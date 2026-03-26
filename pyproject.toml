@@ -9,6 +9,26 @@ description = "CLI tool to download, transcribe, and convert video/audio to stru
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
+authors = [
+    {name = "Rish Madaan"},
+]
+keywords = ["transcription", "whisper", "youtube", "markdown", "obsidian", "cli"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Multimedia :: Sound/Audio :: Speech",
+    "Topic :: Text Processing :: Markup :: Markdown",
+]
+
 dependencies = [
     "typer[all]>=0.9",
     "pyyaml>=6.0",
@@ -17,6 +37,11 @@ dependencies = [
     "yt-dlp>=2024.0",
     "rich>=13.0",
 ]
+
+[project.urls]
+Repository = "https://github.com/rishmadaan/anyscribecli"
+Issues = "https://github.com/rishmadaan/anyscribecli/issues"
+Documentation = "https://github.com/rishmadaan/anyscribecli/tree/main/docs"
 
 [project.optional-dependencies]
 dev = [

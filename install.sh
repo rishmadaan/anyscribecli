@@ -3,7 +3,7 @@
 # ascli installer
 #
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/yourusername/anyscribecli/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/rishmadaan/anyscribecli/main/install.sh | bash
 #
 # Or with options:
 #   curl -fsSL ... | bash -s -- --method git --no-onboard
@@ -20,7 +20,7 @@ set -euo pipefail
 
 # ── Defaults ──────────────────────────────────────────────────
 INSTALL_METHOD="pip"       # pip (from PyPI) or git (from GitHub)
-REPO_URL="https://github.com/yourusername/anyscribecli.git"
+REPO_URL="https://github.com/rishmadaan/anyscribecli.git"
 RUN_ONBOARD=true
 VERBOSE=false
 DRY_RUN=false

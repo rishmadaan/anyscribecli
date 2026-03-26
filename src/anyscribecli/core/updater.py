@@ -21,7 +21,7 @@ from anyscribecli import __version__
 console = Console()
 
 # GitHub repo for pip-based installs
-GITHUB_REPO = "https://github.com/yourusername/anyscribecli.git"
+GITHUB_REPO = "https://github.com/rishmadaan/anyscribecli.git"
 PYPI_PACKAGE = "anyscribecli"
 
 

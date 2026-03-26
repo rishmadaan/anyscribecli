@@ -52,7 +52,7 @@ sudo apt install python3 python3-pip python3-venv
 **Easiest way** — one command that handles everything:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/yourusername/anyscribecli/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/rishmadaan/anyscribecli/main/install.sh | bash
 ```
 
 This checks your system, installs missing dependencies, installs ascli, and runs the setup wizard. If it works, you can skip to Step 4.
@@ -60,13 +60,13 @@ This checks your system, installs missing dependencies, installs ascli, and runs
 **Or install manually with pip:**
 
 ```bash
-pip install git+https://github.com/yourusername/anyscribecli.git
+pip install git+https://github.com/rishmadaan/anyscribecli.git
 ```
 
 **Or clone the source** (if you want to modify the code):
 
 ```bash
-git clone https://github.com/yourusername/anyscribecli.git
+git clone https://github.com/rishmadaan/anyscribecli.git
 cd anyscribecli
 pip install -e .
 ```

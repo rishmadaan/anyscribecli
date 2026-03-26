@@ -26,17 +26,17 @@ YouTube/Instagram URL → Download audio → Transcribe (OpenAI Whisper) → For
 One command — checks for dependencies, installs everything, and runs setup:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/yourusername/anyscribecli/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/rishmadaan/anyscribecli/main/install.sh | bash
 ```
 
 ### Or install manually
 
 ```bash
 # Option A: pip install from GitHub
-pip install git+https://github.com/yourusername/anyscribecli.git
+pip install git+https://github.com/rishmadaan/anyscribecli.git
 
 # Option B: clone and install (for development)
-git clone https://github.com/yourusername/anyscribecli.git
+git clone https://github.com/rishmadaan/anyscribecli.git
 cd anyscribecli
 pip install -e .
 ```
