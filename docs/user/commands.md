@@ -16,6 +16,11 @@ Every ascli command. Copy-paste friendly.
 |---------|-------------|
 | `ascli onboard` | First-time setup wizard |
 | `ascli transcribe <url>` | Download and transcribe a video |
+| `ascli batch <file>` | Batch transcribe URLs from a file |
+| `ascli config show` | View current settings |
+| `ascli config set <key> <value>` | Change a setting |
+| `ascli providers list` | Show available providers |
+| `ascli providers test [name]` | Test a provider's API key |
 | `ascli update` | Update to the latest version |
 | `ascli doctor` | Check system health |
 | `ascli --version` | Show version |
@@ -130,7 +135,107 @@ On error:
 | Platform | URL patterns | Status |
 |----------|-------------|--------|
 | YouTube | `youtube.com/watch?v=`, `youtu.be/`, `youtube.com/shorts/`, `youtube.com/live/` | Working |
-| Instagram | `instagram.com/reel/`, `instagram.com/p/` | Coming soon |
+| Instagram | `instagram.com/reel/`, `instagram.com/p/` | Working (requires `pip install instaloader`) |
+
+---
+
+## ascli batch
+
+Transcribe multiple URLs from a file. One URL per line, blank lines and `#comments` are skipped.
+
+```bash
+ascli batch urls.txt
+```
+
+### Flags
+
+| Flag | Short | Description | Default |
+|------|-------|-------------|---------|
+| `--provider` | `-p` | Override provider | From config |
+| `--language` | `-l` | Override language | `auto` |
+| `--json` | `-j` | Output results as JSON | Off |
+| `--keep-media` | | Keep audio files | From config |
+| `--quiet` | `-q` | Suppress progress | Off |
+| `--stop-on-error` | | Stop at first failure | Off (continues) |
+
+### Examples
+
+```bash
+# Create a file with URLs
+cat > urls.txt << EOF
+https://youtube.com/watch?v=abc123
+https://youtube.com/watch?v=def456
+# this line is skipped
+https://instagram.com/reel/xyz789
+EOF
+
+# Transcribe all
+ascli batch urls.txt
+
+# Stop if any fail
+ascli batch urls.txt --stop-on-error
+
+# JSON output for scripting
+ascli batch urls.txt --json
+```
+
+---
+
+## ascli config
+
+View and change settings.
+
+```bash
+ascli config show           # display all settings
+ascli config set key value  # change a setting
+ascli config path           # print config file location
+```
+
+### Examples
+
+```bash
+# Show current config
+ascli config show
+
+# Change provider
+ascli config set provider elevenlabs
+
+# Change language
+ascli config set language hi
+
+# Set Instagram credentials
+ascli config set instagram.username myuser
+ascli config set instagram.password mypass
+
+# Get JSON output
+ascli config show --json
+```
+
+> **Dot-notation:** Use dots for nested keys like `instagram.username`.
+
+---
+
+## ascli providers
+
+Manage transcription providers.
+
+```bash
+ascli providers list          # show all providers
+ascli providers test          # test active provider
+ascli providers test openai   # test a specific provider
+```
+
+### Available Providers
+
+| Provider | API Key Env Var | Best For |
+|----------|-----------------|----------|
+| `openai` | `OPENAI_API_KEY` | General purpose, multilingual (default) |
+| `openrouter` | `OPENROUTER_API_KEY` | Access to various models |
+| `elevenlabs` | `ELEVENLABS_API_KEY` | High accuracy, 99 languages, diarization |
+| `sargam` | `SARGAM_API_KEY` | Indic languages (Hindi, Tamil, Telugu, etc.) |
+| `local` | None needed | Offline, free, runs on your machine |
+
+> **Local provider** requires `pip install faster-whisper`. No API key, no internet. Runs on CPU (slower) or GPU (fast). Models download automatically on first use.
 
 ---
 

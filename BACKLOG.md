@@ -65,46 +65,46 @@ Everything needed to transcribe a YouTube video to markdown:
 
 ---
 
-## v0.2.0 — Instagram + Config Commands
+## v0.2.0 — Instagram + Config + Providers + Batch + Local ✅
 
-- [ ] Instagram downloader (`downloaders/instagram.py`)
-  - instaloader Python API
-  - Session caching (Dropzone bundle pattern: load → test_login → fresh login if invalid → save)
+**Released:** 2026-03-26
+
+All features originally planned for v0.2.0–v0.5.0, built in one session:
+
+- [x] Instagram downloader (`downloaders/instagram.py`)
+  - instaloader Python API with session caching (Dropzone bundle pattern)
   - Auth credentials from config.yaml
-  - Support for reels and posts
-- [ ] `ascli config show` — display current settings
-- [ ] `ascli config set <key> <value>` — update settings (dot-notation: `instagram.username`)
-- [ ] `ascli config path` — print config file location
-- [ ] `ascli providers list` — show available providers with active indicator
-- [ ] `ascli providers test <name>` — test a provider's API key
-- [ ] Update user docs for new commands
-
----
-
-## v0.3.0 — Additional Providers
-
-- [ ] OpenRouter provider (`providers/openrouter.py`)
-  - Route to Whisper via OpenRouter API
-  - Different models available for different languages
-- [ ] ElevenLabs provider (`providers/elevenlabs.py`)
-  - ElevenLabs speech-to-text API
-- [ ] Sargam provider (`providers/sargam.py`)
-  - Sargam AI transcription (Indic language strength)
+  - Reels and posts supported
+- [x] `ascli config show` — display current settings (supports --json)
+- [x] `ascli config set <key> <value>` — dot-notation for nested keys
+- [x] `ascli config path` — print config file location
+- [x] `ascli providers list` — show available providers with active indicator
+- [x] `ascli providers test <name>` — test a provider's API key
+- [x] OpenRouter provider — audio-via-chat using GPT-4o-audio-preview
+- [x] ElevenLabs provider — Scribe v1 STT API, word-level timestamps
+- [x] Sargam/Sarvam provider — Indic languages, auto-chunks to 30s for REST API limit
+- [x] Local provider — faster-whisper, CPU/GPU, no API key, offline
+- [x] `ascli batch <file>` — batch transcribe URLs from a file
+- [x] Updated user docs for all new commands
 - [ ] Per-provider API key management in onboarding wizard
-- [ ] Provider comparison docs (which provider for which language)
+- [ ] `output_format: timestamped` — transcript with `[mm:ss]` timestamps
+- [ ] Progress bar for batch jobs
+- [ ] Batch summary in daily log
+- [ ] Provider comparison docs
 
 ---
 
-## v0.4.0 — Batch Processing + Timestamped Output
+## v0.3.0 — Polish + Remaining Features
 
-- [ ] Batch processing — accept a file of URLs, process sequentially
+- [ ] Per-provider API key management in onboarding wizard
 - [ ] `output_format: timestamped` — transcript with `[mm:ss]` timestamps per segment
-- [ ] Progress bar for batch jobs (not just spinner)
-- [ ] Batch summary report in daily log
+- [ ] Progress bar for batch jobs (Rich progress bar instead of spinner)
+- [ ] Batch summary appended to daily log
+- [ ] Provider comparison docs (which provider for which language)
+- [ ] Comprehensive error handling and retry logic
+- [ ] Full test suite
 
 ---
-
-## v0.5.0 — Local Model Support
 
 - [ ] Local provider (`providers/local.py`)
   - whisper.cpp or faster-whisper bindings

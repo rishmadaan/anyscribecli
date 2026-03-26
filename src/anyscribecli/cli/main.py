@@ -43,9 +43,14 @@ def main(
 # Register commands
 from anyscribecli.cli.onboard import onboard  # noqa: E402
 from anyscribecli.cli.transcribe import transcribe  # noqa: E402
+from anyscribecli.cli.config_cmd import config_app, providers_app  # noqa: E402
+from anyscribecli.cli.batch import batch  # noqa: E402
 
 app.command()(onboard)
 app.command()(transcribe)
+app.command()(batch)
+app.add_typer(config_app, name="config")
+app.add_typer(providers_app, name="providers")
 
 
 @app.command()

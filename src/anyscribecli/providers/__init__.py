@@ -10,6 +10,10 @@ if TYPE_CHECKING:
 # Maps provider name -> module path, class name (lazy import to avoid loading all deps)
 PROVIDER_REGISTRY: dict[str, tuple[str, str]] = {
     "openai": ("anyscribecli.providers.openai", "OpenAIProvider"),
+    "openrouter": ("anyscribecli.providers.openrouter", "OpenRouterProvider"),
+    "elevenlabs": ("anyscribecli.providers.elevenlabs", "ElevenLabsProvider"),
+    "sargam": ("anyscribecli.providers.sargam", "SargamProvider"),
+    "local": ("anyscribecli.providers.local", "LocalProvider"),
 }
 
 
