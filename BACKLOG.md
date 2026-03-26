@@ -88,10 +88,10 @@ All features originally planned for v0.2.0–v0.5.0, built in one session:
 - [x] Updated user docs for all new commands
 - [x] Per-provider API key management in onboarding wizard
 - [x] Instagram credentials in onboarding wizard
-- [ ] `output_format: timestamped` — transcript with `[mm:ss]` timestamps
-- [ ] Progress bar for batch jobs
-- [ ] Batch summary in daily log
-- [ ] Provider comparison docs
+- [x] `output_format: timestamped` — transcript with `[mm:ss]` timestamps per segment
+- [x] Rich progress bar for batch jobs
+- [x] Batch summary in daily log (each item indexed via orchestrator)
+- [x] Provider comparison docs (`docs/user/providers.md`)
 
 ---
 

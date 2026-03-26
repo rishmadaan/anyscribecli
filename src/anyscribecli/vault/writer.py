@@ -102,7 +102,15 @@ def write_transcript(
     body_parts.append(f"**Source:** [{download.platform}]({download.original_url})\n")
     body_parts.append(f"**Duration:** {duration_str} | **Words:** {word_count} | **Reading time:** {reading_time}\n")
     body_parts.append("\n---\n")
-    body_parts.append(f"\n## Transcript\n\n{transcript.text}\n")
+
+    # Transcript body — format depends on output_format setting
+    if settings.output_format == "timestamped" and transcript.segments:
+        body_parts.append("\n## Transcript\n")
+        for seg in transcript.segments:
+            ts = format_duration(seg.start)
+            body_parts.append(f"\n**[{ts}]** {seg.text}\n")
+    else:
+        body_parts.append(f"\n## Transcript\n\n{transcript.text}\n")
 
     content = frontmatter + "\n" + "\n".join(body_parts)
     out_path.write_text(content)

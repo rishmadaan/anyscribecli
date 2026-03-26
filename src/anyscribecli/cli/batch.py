@@ -8,6 +8,7 @@ from pathlib import Path
 
 import typer
 from rich.console import Console
+from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, MofNCompleteColumn
 from rich.table import Table
 
 from anyscribecli.config.settings import load_config, load_env
@@ -30,8 +31,6 @@ def batch(
     Reads a file with one URL per line (blank lines and #comments are skipped).
     Processes each URL sequentially and reports results.
     """
-    from anyscribecli.core.orchestrator import process
-
     if not file.exists():
         err_console.print(f"[red]File not found:[/red] {file}")
         raise typer.Exit(code=1)
@@ -56,44 +55,38 @@ def batch(
     if keep_media:
         settings.keep_media = True
 
-    if not quiet:
-        console.print(f"[bold]Batch processing {len(urls)} URL(s)...[/bold]\n")
-
     results: list[dict] = []
     succeeded = 0
     failed = 0
 
-    for i, url in enumerate(urls, 1):
-        if not quiet:
-            console.print(f"[bold][{i}/{len(urls)}][/bold] {url}")
-
-        try:
-            result = process(url, settings, quiet=quiet)
-            succeeded += 1
-            results.append({
-                "success": True,
-                "url": url,
-                "file": str(result.file_path),
-                "title": result.title,
-                "platform": result.platform,
-                "duration": result.duration,
-                "language": result.language,
-                "word_count": result.word_count,
-            })
-            if not quiet:
-                console.print(f"  [green]Done:[/green] {result.title}\n")
-        except Exception as e:
-            failed += 1
-            results.append({
-                "success": False,
-                "url": url,
-                "error": str(e),
-            })
-            if not quiet:
-                err_console.print(f"  [red]Failed:[/red] {e}\n")
-            if stop_on_error:
-                err_console.print("[red]Stopping on error (--stop-on-error).[/red]")
+    if quiet or output_json:
+        # No progress display
+        for url in urls:
+            succeeded, failed = _process_url(
+                url, settings, results, succeeded, failed, quiet=True
+            )
+            if failed and stop_on_error:
                 break
+    else:
+        # Rich progress bar
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[bold]{task.description}"),
+            BarColumn(),
+            MofNCompleteColumn(),
+            console=err_console,
+        ) as progress:
+            task = progress.add_task("Transcribing", total=len(urls))
+
+            for url in urls:
+                progress.update(task, description=f"[bold]{_shorten_url(url)}")
+                succeeded, failed = _process_url(
+                    url, settings, results, succeeded, failed, quiet=True
+                )
+                progress.advance(task)
+                if failed and stop_on_error:
+                    err_console.print("[red]Stopping on error (--stop-on-error).[/red]")
+                    break
 
     # Summary
     if output_json:
@@ -117,9 +110,51 @@ def batch(
                 if r["success"]:
                     table.add_row(str(i), "[green]OK[/green]", r["title"])
                 else:
-                    table.add_row(str(i), "[red]FAIL[/red]", r["error"][:60])
+                    table.add_row(str(i), "[red]FAIL[/red]", r["error"][:80])
 
             console.print(table)
 
     if failed > 0:
         raise typer.Exit(code=1)
+
+
+def _shorten_url(url: str, max_len: int = 50) -> str:
+    """Shorten a URL for display in progress bar."""
+    url = url.replace("https://", "").replace("http://", "").replace("www.", "")
+    if len(url) > max_len:
+        return url[: max_len - 3] + "..."
+    return url
+
+
+def _process_url(
+    url: str,
+    settings,
+    results: list[dict],
+    succeeded: int,
+    failed: int,
+    quiet: bool,
+) -> tuple[int, int]:
+    """Process a single URL, append to results. Returns (succeeded, failed)."""
+    from anyscribecli.core.orchestrator import process
+
+    try:
+        result = process(url, settings, quiet=quiet)
+        succeeded += 1
+        results.append({
+            "success": True,
+            "url": url,
+            "file": str(result.file_path),
+            "title": result.title,
+            "platform": result.platform,
+            "duration": result.duration,
+            "language": result.language,
+            "word_count": result.word_count,
+        })
+    except Exception as e:
+        failed += 1
+        results.append({
+            "success": False,
+            "url": url,
+            "error": str(e),
+        })
+    return succeeded, failed
