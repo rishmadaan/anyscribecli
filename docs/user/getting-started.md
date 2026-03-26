@@ -49,12 +49,25 @@ sudo apt install python3 python3-pip python3-venv
 
 ## Step 2: Install ascli
 
+**Easiest way** — one command that handles everything:
+
 ```bash
-# Download the project
+curl -fsSL https://raw.githubusercontent.com/yourusername/anyscribecli/main/install.sh | bash
+```
+
+This checks your system, installs missing dependencies, installs ascli, and runs the setup wizard. If it works, you can skip to Step 4.
+
+**Or install manually with pip:**
+
+```bash
+pip install git+https://github.com/yourusername/anyscribecli.git
+```
+
+**Or clone the source** (if you want to modify the code):
+
+```bash
 git clone https://github.com/yourusername/anyscribecli.git
 cd anyscribecli
-
-# Install (this creates the `ascli` command)
 pip install -e .
 ```
 
@@ -66,7 +79,7 @@ ascli --version
 
 You should see `ascli v0.1.0` (or a newer version).
 
-> **What does `pip install -e .` mean?** It installs ascli in "editable" mode — the `ascli` command is available everywhere, and if you update the source code (via `ascli update`), the changes take effect immediately without reinstalling.
+> **What's the difference?** `pip install git+...` installs a packaged copy — clean, no source code on disk. `pip install -e .` is for developers — it links to the source so you can edit code and see changes immediately. Both create the same `ascli` command.
 
 ## Step 3: Run the setup wizard
 

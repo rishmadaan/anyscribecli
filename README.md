@@ -21,18 +21,27 @@ YouTube/Instagram URL → Download audio → Transcribe (OpenAI Whisper) → For
 
 ## Quick Start
 
-### Install
+### Install (recommended)
+
+One command — checks for dependencies, installs everything, and runs setup:
 
 ```bash
-# Clone the repo
+curl -fsSL https://raw.githubusercontent.com/yourusername/anyscribecli/main/install.sh | bash
+```
+
+### Or install manually
+
+```bash
+# Option A: pip install from GitHub
+pip install git+https://github.com/yourusername/anyscribecli.git
+
+# Option B: clone and install (for development)
 git clone https://github.com/yourusername/anyscribecli.git
 cd anyscribecli
-
-# Install (creates the `ascli` command)
 pip install -e .
 ```
 
-### Onboard
+Then run the setup wizard:
 
 ```bash
 ascli onboard
@@ -54,6 +63,8 @@ That's it. Open `~/.anyscribecli/workspace/` in Obsidian to browse your transcri
 |---------|-------------|
 | `ascli onboard` | Interactive setup wizard (first-time + reconfigure) |
 | `ascli transcribe <url>` | Download and transcribe a video URL |
+| `ascli update` | Update to the latest version |
+| `ascli doctor` | Check system health and dependencies |
 | `ascli --version` | Show version |
 | `ascli --help` | Rich-formatted help |
 
