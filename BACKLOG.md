@@ -86,7 +86,8 @@ All features originally planned for v0.2.0–v0.5.0, built in one session:
 - [x] Local provider — faster-whisper, CPU/GPU, no API key, offline
 - [x] `ascli batch <file>` — batch transcribe URLs from a file
 - [x] Updated user docs for all new commands
-- [ ] Per-provider API key management in onboarding wizard
+- [x] Per-provider API key management in onboarding wizard
+- [x] Instagram credentials in onboarding wizard
 - [ ] `output_format: timestamped` — transcript with `[mm:ss]` timestamps
 - [ ] Progress bar for batch jobs
 - [ ] Batch summary in daily log

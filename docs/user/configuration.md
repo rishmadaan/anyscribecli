@@ -48,11 +48,14 @@ Which API to use for transcription. Default: `openai`.
 | Value | Service | What you need |
 |-------|---------|---------------|
 | `openai` | OpenAI Whisper API | `OPENAI_API_KEY` in .env |
-| `openrouter` | OpenRouter (planned) | `OPENROUTER_API_KEY` |
-| `elevenlabs` | ElevenLabs (planned) | `ELEVENLABS_API_KEY` |
-| `sargam` | Sargam AI (planned) | `SARGAM_API_KEY` |
+| `openrouter` | OpenRouter (audio-via-chat models) | `OPENROUTER_API_KEY` |
+| `elevenlabs` | ElevenLabs Scribe (99 languages) | `ELEVENLABS_API_KEY` |
+| `sargam` | Sarvam AI (Indic languages) | `SARGAM_API_KEY` |
+| `local` | faster-whisper (offline, free) | None needed |
 
-> **Why multiple providers?** Different services handle different languages better. OpenAI Whisper is a good default, but specialized providers may give better results for specific languages.
+> **Why multiple providers?** Different services handle different languages better. OpenAI Whisper is a good default, ElevenLabs has high accuracy across 99 languages, Sarvam excels at Indian languages, and the local provider is free and works offline.
+
+> **Local provider** requires `pip install faster-whisper`. Models download automatically on first use. Works on CPU (slower) or GPU (fast with CUDA).
 
 #### language
 

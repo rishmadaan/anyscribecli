@@ -90,7 +90,14 @@ class InstagramDownloader(AbstractDownloader):
         return L
 
     def download(self, url: str, output_dir: Path) -> DownloadResult:
-        import instaloader
+        try:
+            import instaloader
+        except ImportError:
+            raise RuntimeError(
+                "instaloader is required for Instagram downloads.\n"
+                "Install it with: pip install instaloader\n"
+                "Or: pip install anyscribecli[instagram]"
+            )
 
         output_dir.mkdir(parents=True, exist_ok=True)
         shortcode = self._extract_shortcode(url)
