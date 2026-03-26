@@ -38,11 +38,19 @@ Then prepend a row to `docs/building/_index.md`.
 
 ## Documentation Requirements
 
+### Developer docs (`docs/building/`)
 - Every PR or significant change MUST include a building doc update
 - If you changed architecture: update `docs/building/architecture.md`
 - If you added/changed a provider: update `docs/building/providers.md`
 - If you added/changed a downloader: update `docs/building/downloaders.md`
 - If you made a non-trivial decision: write a journal entry explaining why
+
+### User docs (`docs/user/`)
+- If you added/changed a user-facing command or flag: update `docs/user/commands.md`
+- If you changed config options: update `docs/user/configuration.md`
+- If you changed the onboarding flow: update `docs/user/getting-started.md`
+- User docs target semi-technical users new to CLI — explain jargon, show examples, include troubleshooting
+- Every user doc has frontmatter: `summary`, `read_when`, `title`
 
 ## Quick Context
 

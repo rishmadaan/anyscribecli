@@ -30,25 +30,53 @@ Flow: `CLI command -> orchestrator -> downloader + provider -> vault writer -> i
 
 ## Documentation Ethic
 
-This project maintains a developer memory layer at `docs/building/`. This is mandatory, not optional.
+This project maintains TWO documentation layers. Both are mandatory, not optional.
 
-### When to write a building doc entry
+### 1. Developer memory layer (`docs/building/`)
 
+For developers and AI agents working on the codebase.
+
+**When to write a building doc entry:**
 - After completing a significant feature or change
 - After making an architecture decision
 - After debugging a non-trivial issue
 - After researching alternatives and choosing one
 
-### How to write one
-
+**How to write one:**
 1. Create `docs/building/journal/YYYY-MM-DD-<slug>.md` with frontmatter (type, tags, tldr)
 2. Update `docs/building/_index.md` with a new row (newest first)
 3. Update relevant living docs (`architecture.md`, `providers.md`, `downloaders.md`) if the change affects them
 
-### Living docs vs journal entries
-
+**Living docs vs journal entries:**
 - **Living docs** (`architecture.md`, `providers.md`) reflect current state — update in place
 - **Journal entries** preserve historical decisions — append only, never edit old entries
+
+### 2. User documentation (`docs/user/`)
+
+For end users — assume a **semi-technical audience who may be new to CLI tools**. This is critical.
+
+**Files:**
+- `getting-started.md` — 5-minute install-to-first-transcription guide
+- `commands.md` — complete command reference with examples
+- `configuration.md` — all settings explained with context
+
+**User doc standards:**
+- Every doc has YAML frontmatter: `summary`, `read_when` (list of when to read this), `title`
+- Lead with the command, explain after — show what to type before explaining why
+- Use `>` blockquotes for tips, warnings, and "new to this?" asides
+- Include copy-paste-ready examples for every command and flag
+- Explain jargon when first used (e.g., "slug", "frontmatter", "editable install")
+- Troubleshooting section with common errors and plain-English fixes
+- Write for someone who can follow instructions but doesn't know CLI conventions
+
+**When to update user docs:**
+- Adding a new command → update `commands.md`, add to overview table
+- Adding a new flag → update the flags table in `commands.md`
+- Changing config options → update `configuration.md`
+- Changing onboarding flow → update `getting-started.md`
+- Adding a new platform/provider → update relevant sections in all three docs
+
+**Never skip user docs.** If you add a feature users interact with, the user docs must be updated in the same commit.
 
 ## Adding a New Provider
 

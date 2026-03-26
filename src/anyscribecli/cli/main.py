@@ -46,3 +46,70 @@ from anyscribecli.cli.transcribe import transcribe  # noqa: E402
 
 app.command()(onboard)
 app.command()(transcribe)
+
+
+@app.command()
+def update(
+    force: bool = typer.Option(False, "--force", "-f", help="Force update even with local changes."),
+    check: bool = typer.Option(False, "--check", "-c", help="Only check for updates, don't install."),
+) -> None:
+    """[bold yellow]Update[/bold yellow] ascli to the latest version.
+
+    Pulls the latest changes from git and reinstalls the package.
+    """
+    from anyscribecli.core.updater import check_for_updates, update as do_update
+
+    if check:
+        check_for_updates(quiet=False)
+    else:
+        success = do_update(force=force)
+        if not success:
+            raise typer.Exit(code=1)
+
+
+@app.command()
+def doctor() -> None:
+    """[bold]Check[/bold] system health — dependencies, config, and workspace.
+
+    Runs all diagnostic checks and reports status.
+    """
+    from anyscribecli.core.deps import check_dependencies, print_dependency_status
+    from anyscribecli.config.paths import APP_HOME, CONFIG_FILE, ENV_FILE, WORKSPACE_DIR
+    from anyscribecli.core.updater import get_install_path, check_for_updates
+
+    console.print("[bold]ascli doctor[/bold]\n")
+
+    # Dependencies
+    console.print("[bold]1. System Dependencies[/bold]\n")
+    results = check_dependencies()
+    print_dependency_status(results)
+
+    # Config
+    console.print("\n[bold]2. Configuration[/bold]\n")
+    checks = [
+        ("App directory", APP_HOME.exists()),
+        ("Config file", CONFIG_FILE.exists()),
+        ("API keys file", ENV_FILE.exists()),
+        ("Workspace vault", WORKSPACE_DIR.exists()),
+        ("Workspace index", (WORKSPACE_DIR / "_index.md").exists()),
+    ]
+    for name, ok in checks:
+        status = "[green]OK[/green]" if ok else "[red]Missing[/red]"
+        console.print(f"  {name}: {status}")
+
+    if not CONFIG_FILE.exists():
+        console.print("\n  [yellow]Run [bold]ascli onboard[/bold] to set up.[/yellow]")
+
+    # Install info
+    console.print("\n[bold]3. Installation[/bold]\n")
+    console.print(f"  Version: v{__version__}")
+    repo = get_install_path()
+    if repo:
+        console.print("  Install type: git (editable)")
+        console.print(f"  Repo path: {repo}")
+    else:
+        console.print("  Install type: pip package")
+
+    # Updates
+    console.print()
+    check_for_updates(quiet=True)
