@@ -93,6 +93,18 @@ For end users — assume a **semi-technical audience who may be new to CLI tools
 3. Update URL detection regex in `registry.py`
 4. Update `docs/building/downloaders.md`
 
+## Versioning
+
+SemVer: `MAJOR.MINOR.PATCH`. See `BACKLOG.md` for the full version roadmap.
+
+Version lives in **one place**: `src/anyscribecli/__init__.py`. The `pyproject.toml` also has a version field that must match — update both when bumping.
+
+```bash
+# After changing version in __init__.py AND pyproject.toml:
+git add -A && git commit -m "Bump version to X.Y.Z"
+git tag vX.Y.Z
+```
+
 ## Testing
 
 ```bash
