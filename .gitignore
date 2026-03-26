@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.venv/
+*.egg
+
+# Environment and secrets
+.env
+*.env.local
+
+# Media files (downloaded content)
+*.mp3
+*.mp4
+*.m4a
+*.wav
+*.ogg
+*.flac
+*.webm
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# App runtime (these live in ~/.anyscribecli/)
+sessions/
+tmp/
+logs/
