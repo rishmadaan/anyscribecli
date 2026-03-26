@@ -8,12 +8,12 @@ A Python CLI tool (`ascli`) that downloads video/audio from YouTube/Instagram, t
 
 ```
 src/anyscribecli/
-├── cli/           # Typer commands (main.py, onboard.py, transcribe.py, config_cmd.py)
+├── cli/           # Typer commands (main.py, onboard.py, transcribe.py, batch.py, config_cmd.py)
 ├── config/        # Paths + settings (paths.py, settings.py)
 ├── downloaders/   # Platform downloaders (base.py, youtube.py, instagram.py, registry.py)
-├── providers/     # Transcription APIs (base.py, openai.py, openrouter.py, ...)
+├── providers/     # Transcription APIs (base.py, openai.py, openrouter.py, elevenlabs.py, sargam.py, local.py)
 ├── vault/         # Obsidian vault management (scaffold.py, writer.py, index.py)
-└── core/          # Orchestration + audio processing (orchestrator.py, audio.py)
+└── core/          # Orchestration + audio + deps + updater (orchestrator.py, audio.py, deps.py, updater.py)
 ```
 
 Flow: `CLI command -> orchestrator -> downloader + provider -> vault writer -> index update`
@@ -59,6 +59,7 @@ For end users — assume a **semi-technical audience who may be new to CLI tools
 - `getting-started.md` — 5-minute install-to-first-transcription guide
 - `commands.md` — complete command reference with examples
 - `configuration.md` — all settings explained with context
+- `providers.md` — provider comparison: features, pricing, languages, when to use each
 
 **User doc standards:**
 - Every doc has YAML frontmatter: `summary`, `read_when` (list of when to read this), `title`
@@ -74,7 +75,7 @@ For end users — assume a **semi-technical audience who may be new to CLI tools
 - Adding a new flag → update the flags table in `commands.md`
 - Changing config options → update `configuration.md`
 - Changing onboarding flow → update `getting-started.md`
-- Adding a new platform/provider → update relevant sections in all three docs
+- Adding a new platform/provider → update `providers.md` and relevant sections in other docs
 
 **Never skip user docs.** If you add a feature users interact with, the user docs must be updated in the same commit.
 

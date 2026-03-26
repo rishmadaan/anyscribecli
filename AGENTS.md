@@ -55,11 +55,16 @@ Then prepend a row to `docs/building/_index.md`.
 ## Quick Context
 
 - CLI entry point: `src/anyscribecli/cli/main.py`
+- Onboarding + provider info: `src/anyscribecli/cli/onboard.py`
+- Config/providers commands: `src/anyscribecli/cli/config_cmd.py`
+- Batch processing: `src/anyscribecli/cli/batch.py`
 - Config loading: `src/anyscribecli/config/settings.py`
 - Path constants: `src/anyscribecli/config/paths.py`
-- Provider ABC: `src/anyscribecli/providers/base.py`
-- Downloader ABC: `src/anyscribecli/downloaders/base.py`
+- Provider ABC + registry: `src/anyscribecli/providers/base.py`, `providers/__init__.py`
+- Downloader ABC + registry: `src/anyscribecli/downloaders/base.py`, `downloaders/registry.py`
 - Core flow: `src/anyscribecli/core/orchestrator.py`
+- Dependency checker: `src/anyscribecli/core/deps.py`
+- Update system: `src/anyscribecli/core/updater.py`
 
 ## Cross-Platform
 
