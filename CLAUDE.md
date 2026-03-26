@@ -94,6 +94,10 @@ For end users — assume a **semi-technical audience who may be new to CLI tools
 3. Update URL detection regex in `registry.py`
 4. Update `docs/building/downloaders.md`
 
+## Post-Commit Checklist
+
+**After every significant commit**, follow `docs/building/COMMIT_CHECKLIST.md`. It ensures README, user docs, building docs, and version references stay in sync with code. This is mandatory — stale docs are bugs.
+
 ## Versioning
 
 SemVer: `MAJOR.MINOR.PATCH`. See `BACKLOG.md` for the full version roadmap.

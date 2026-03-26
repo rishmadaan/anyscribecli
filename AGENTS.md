@@ -36,6 +36,10 @@ tldr: "One-line summary"
 
 Then prepend a row to `docs/building/_index.md`.
 
+## Post-Commit Checklist
+
+**After every significant commit**, follow `docs/building/COMMIT_CHECKLIST.md`. It has per-scenario checklists (new command, new provider, new downloader, version bump) and grep commands to catch stale references. This is mandatory.
+
 ## Documentation Requirements
 
 ### Developer docs (`docs/building/`)

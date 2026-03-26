@@ -14,7 +14,7 @@ YouTube/Instagram URL → Download audio → Transcribe (OpenAI Whisper) → For
 ```
 
 - Downloads audio optimized for transcription (16kHz, mono, 64kbps)
-- Transcribes via pluggable API providers (OpenAI default, OpenRouter, ElevenLabs, Sargam planned)
+- Transcribes via 5 pluggable providers (OpenAI, ElevenLabs, OpenRouter, Sarvam, Local)
 - Outputs markdown with YAML frontmatter, word count, reading time, timestamps
 - Maintains a master index + daily processing logs in your Obsidian vault
 - `--json` flag on all commands for scripting and AI agent integration
@@ -63,6 +63,9 @@ That's it. Open `~/.anyscribecli/workspace/` in Obsidian to browse your transcri
 |---------|-------------|
 | `ascli onboard` | Interactive setup wizard (first-time + reconfigure) |
 | `ascli transcribe <url>` | Download and transcribe a video URL |
+| `ascli batch <file>` | Batch transcribe URLs from a file |
+| `ascli config show/set` | View and change settings |
+| `ascli providers list/test` | Manage transcription providers |
 | `ascli update` | Update to the latest version |
 | `ascli doctor` | Check system health and dependencies |
 | `ascli --version` | Show version |
@@ -152,7 +155,7 @@ All settings live at `~/.anyscribecli/config.yaml`:
 provider: openai        # Transcription provider
 language: auto           # Language (auto-detect or ISO code)
 keep_media: false        # Keep downloaded audio files
-output_format: clean     # clean | timestamped (future)
+output_format: clean     # clean | timestamped
 ```
 
 API keys are stored separately in `~/.anyscribecli/.env`.
@@ -162,12 +165,12 @@ API keys are stored separately in `~/.anyscribecli/.env`.
 | Provider | Status | Best For |
 |----------|--------|----------|
 | OpenAI (Whisper) | Active (default) | General purpose, multilingual |
-| OpenRouter | Planned | Model flexibility, cost options |
-| ElevenLabs | Planned | TBD |
-| Sargam | Planned | Indic languages |
-| Local (whisper.cpp) | Planned | Offline, privacy, no API cost |
+| ElevenLabs (Scribe) | Active | High accuracy, 99 languages, word timestamps |
+| OpenRouter | Active | Access to various models via unified API |
+| Sarvam AI | Active | Indic languages (Hindi, Tamil, Telugu, etc.) |
+| Local (faster-whisper) | Active | Offline, free, CPU or GPU |
 
-The provider architecture is pluggable — adding a new provider is one file implementing the `TranscriptionProvider` interface.
+The provider architecture is pluggable — adding a new provider is one file implementing the `TranscriptionProvider` interface. See [Provider Guide](docs/user/providers.md) for detailed comparison.
 
 ## Development
 

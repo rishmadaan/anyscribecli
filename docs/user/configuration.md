@@ -80,7 +80,7 @@ How to format the transcript text. Default: `clean`.
 | Value | Description |
 |-------|-------------|
 | `clean` | Plain text transcript, paragraphs only |
-| `timestamped` | Transcript with `[mm:ss]` timestamps per segment (planned) |
+| `timestamped` | Transcript with `[mm:ss]` timestamps per segment |
 
 ## .env (API Keys)
 
