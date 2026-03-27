@@ -70,7 +70,22 @@ ascli onboard --force --skip-deps
 The main command. Downloads audio from a URL, transcribes it, and saves a formatted markdown file.
 
 ```bash
-ascli transcribe <url>
+ascli transcribe "<url>"
+```
+
+> **Important:** Always wrap URLs in quotes. Shells like zsh treat `?` as a special character, which breaks unquoted YouTube URLs. If you forget the quotes, ascli will detect the problem and tell you.
+
+### Three ways to provide the URL
+
+```bash
+# 1. Pass the URL as an argument (always use quotes)
+ascli transcribe "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+
+# 2. Run without a URL — you'll be prompted to paste it (no quoting needed)
+ascli transcribe
+
+# 3. Copy a URL to your clipboard, then:
+ascli transcribe --clipboard
 ```
 
 ### Flags
@@ -82,24 +97,31 @@ ascli transcribe <url>
 | `--json` | `-j` | Output result as JSON | Off |
 | `--keep-media` | | Keep the downloaded audio file | From config (false) |
 | `--quiet` | `-q` | No progress output (just the result) | Off |
+| `--clipboard` | `-c` | Read URL from system clipboard | Off |
 
 ### Examples
 
 ```bash
-# Basic — transcribe a YouTube video
-ascli transcribe https://www.youtube.com/watch?v=dQw4w9WgXcQ
+# YouTube video (always quote the URL)
+ascli transcribe "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+
+# Instagram reel
+ascli transcribe "https://www.instagram.com/reel/C17LiBLyIOe/"
+
+# Interactive — paste URL when prompted
+ascli transcribe
+
+# From clipboard
+ascli transcribe --clipboard
 
 # Specify language (skip auto-detection)
-ascli transcribe https://youtube.com/watch?v=abc123 --language es
+ascli transcribe "https://youtube.com/watch?v=abc123" --language es
 
 # Keep the audio file alongside the transcript
-ascli transcribe https://youtube.com/watch?v=abc123 --keep-media
-
-# Quiet mode — only print the file path
-ascli transcribe https://youtube.com/watch?v=abc123 --quiet
+ascli transcribe "https://youtube.com/watch?v=abc123" --keep-media
 
 # JSON output — for scripts, AI agents, or piping to other tools
-ascli transcribe https://youtube.com/watch?v=abc123 --json
+ascli transcribe "https://youtube.com/watch?v=abc123" --json
 ```
 
 ### JSON Output
@@ -135,7 +157,7 @@ On error:
 | Platform | URL patterns | Status |
 |----------|-------------|--------|
 | YouTube | `youtube.com/watch?v=`, `youtu.be/`, `youtube.com/shorts/`, `youtube.com/live/` | Working |
-| Instagram | `instagram.com/reel/`, `instagram.com/p/` | Working (requires `pip install instaloader`) |
+| Instagram | `instagram.com/reel/`, `instagram.com/p/` | Working (requires Instagram credentials in config) |
 
 ---
 

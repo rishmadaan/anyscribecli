@@ -7,7 +7,7 @@
 | Name | Tool | Auth Required | Status |
 |------|------|---------------|--------|
 | youtube | yt-dlp (subprocess) | No | Active |
-| instagram | instaloader (Python API) | Yes (username/password) | Active (optional dep) |
+| instagram | instaloader (Python API) | Yes (username/password) | Active |
 
 ## Downloader-Specific Notes
 
@@ -24,22 +24,28 @@
 - Downloads video via instaloader, then extracts audio via ffmpeg
 - Handles: `instagram.com/reel/`, `instagram.com/p/`
 - Only video posts — image posts are rejected with a helpful error
-- Requires `pip install instaloader` (optional dependency)
-- Lazy-loaded in registry — won't crash if instaloader not installed
+- Included as a main dependency (installed automatically with ascli)
+- Downloads video directly via `post.video_url` then extracts audio with ffmpeg
+- Better error handling: specific messages for bad credentials, 2FA, rate limiting
 
 ## Registry Pattern
 
-`registry.py` uses lazy loading for optional downloaders:
+`registry.py` directly imports all downloaders:
 
 ```python
-def _load_downloaders():
-    downloaders = [YouTubeDownloader()]
-    try:
-        from .instagram import InstagramDownloader
-        downloaders.append(InstagramDownloader())
-    except ImportError:
-        pass  # instaloader not installed
-    return downloaders
+from anyscribecli.downloaders.youtube import YouTubeDownloader
+from anyscribecli.downloaders.instagram import InstagramDownloader
+
+DOWNLOADERS = [YouTubeDownloader(), InstagramDownloader()]
+```
+
+For future optional downloaders, use lazy loading:
+```python
+try:
+    from .newplatform import NewDownloader
+    DOWNLOADERS.append(NewDownloader())
+except ImportError:
+    pass
 ```
 
 ## Adding a Downloader
@@ -48,7 +54,7 @@ def _load_downloaders():
 2. Implement `AbstractDownloader` from `base.py`:
    - `can_handle(url)` returning bool
    - `download(url, output_dir)` returning `DownloadResult`
-3. Add to `_load_downloaders()` in `registry.py` (lazy if optional dep)
+3. Add import to `registry.py` (direct if main dep, lazy if optional)
 4. Update this doc and `docs/user/commands.md` (Supported Platforms table)
 
 ## Audio Optimization

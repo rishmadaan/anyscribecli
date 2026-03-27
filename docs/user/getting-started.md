@@ -90,9 +90,11 @@ ascli onboard
 The wizard will:
 
 1. **Check your system** — makes sure `yt-dlp` and `ffmpeg` are installed. If they're missing, it offers to install them for you.
-2. **Ask for your OpenAI API key** — this is stored locally at `~/.anyscribecli/.env` and never sent anywhere except OpenAI.
-3. **Set your preferences** — language (auto-detect by default), whether to keep audio files.
-4. **Create your workspace** — an Obsidian vault at `~/.anyscribecli/workspace/`.
+2. **Choose your provider** — use arrow keys to select from 5 transcription providers (OpenAI is the default).
+3. **Enter your API key** — stored locally at `~/.anyscribecli/.env` and never sent anywhere except your chosen provider.
+4. **Configure Instagram** (optional) — provide credentials if you want to transcribe Instagram reels.
+5. **Set preferences** — language (auto-detect by default), whether to keep audio files.
+6. **Create your workspace** — an Obsidian vault at `~/.anyscribecli/workspace/`.
 
 > **Already have everything installed?** You can skip the dependency check with `ascli onboard --skip-deps`.
 
@@ -101,10 +103,12 @@ The wizard will:
 Pick any YouTube video and run:
 
 ```bash
-ascli transcribe https://www.youtube.com/watch?v=VIDEO_ID
+ascli transcribe "https://www.youtube.com/watch?v=VIDEO_ID"
 ```
 
 Replace `VIDEO_ID` with a real video ID. A short video (under 5 minutes) is good for your first try.
+
+> **Important:** Always wrap the URL in quotes (`"..."`). Without quotes, your shell may break the URL. Or just run `ascli transcribe` with no URL and paste it when prompted.
 
 You'll see progress output like:
 

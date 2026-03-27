@@ -16,27 +16,21 @@ The `0.x` prefix means pre-stable — breaking changes are allowed between minor
 
 | Version | Milestone | Status |
 |---------|-----------|--------|
-| 0.1.0 | YouTube + OpenAI MVP | **Current** |
-| 0.2.0 | Instagram + config commands | Planned |
-| 0.3.0 | Additional providers (OpenRouter, ElevenLabs, Sargam) | Planned |
-| 0.4.0 | Batch processing + timestamped output | Planned |
-| 0.5.0 | Local model support (whisper.cpp / faster-whisper) | Planned |
-| 1.0.0 | Stable: all platforms, all providers, polished | Future |
+| 0.1.0 | YouTube + OpenAI MVP | Released 2026-03-26 |
+| 0.2.0 | Full feature build (Instagram, all providers, batch, config, onboarding) | **Current** |
+| 0.3.0 | Polish (test suite, error handling) | Next |
+| 1.0.0 | Stable: published on PyPI, full test coverage | Future |
 
 ### How to bump versions
 
-Version lives in one place: `src/anyscribecli/__init__.py`
-
-```python
-__version__ = "0.1.0"  # ← change this
-```
-
-The `pyproject.toml` reads from the same source. Bump, commit, tag:
+Version lives in TWO places (must match):
+- `src/anyscribecli/__init__.py`
+- `pyproject.toml`
 
 ```bash
-# After changing __init__.py:
-git add -A && git commit -m "Bump version to 0.2.0"
-git tag v0.2.0
+# After changing both files:
+git add -A && git commit -m "Bump version to X.Y.Z"
+git tag vX.Y.Z
 git push && git push --tags
 ```
 
@@ -95,35 +89,21 @@ All features originally planned for v0.2.0–v0.5.0, built in one session:
 
 ---
 
-## v0.3.0 — Polish + Remaining Features
+## v0.3.0 — Polish + Quality
 
-- [ ] Per-provider API key management in onboarding wizard
-- [ ] `output_format: timestamped` — transcript with `[mm:ss]` timestamps per segment
-- [ ] Progress bar for batch jobs (Rich progress bar instead of spinner)
-- [ ] Batch summary appended to daily log
-- [ ] Provider comparison docs (which provider for which language)
-- [ ] Comprehensive error handling and retry logic
-- [ ] Full test suite
-
----
-
-- [ ] Local provider (`providers/local.py`)
-  - whisper.cpp or faster-whisper bindings
-  - No API key needed, no internet required
-  - Model download management
-- [ ] Offline mode detection
-- [ ] Local model selection in config
+- [ ] Full test suite (pytest — unit tests for providers, downloaders, vault, config)
+- [ ] Comprehensive error handling and retry logic (network failures, API rate limits)
+- [ ] Suppress instaloader's noisy retry output (redirect to log file)
+- [ ] `ascli logs` command to view recent log files
 
 ---
 
 ## v1.0.0 — Stable Release
 
-- [ ] All platforms working (YouTube, Instagram)
-- [ ] All planned providers working
-- [ ] Comprehensive error handling and recovery
 - [ ] PyPI published (`pip install anyscribecli`)
-- [ ] Full test suite
+- [ ] Full test coverage
 - [ ] Stable config format (breaking changes require v2.0.0)
+- [ ] CI/CD pipeline (GitHub Actions: lint, test, build, publish)
 
 ---
 

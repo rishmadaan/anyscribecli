@@ -30,8 +30,8 @@ URL input -> Platform detection -> Download (yt-dlp / instaloader)
 ### Download Layer (`downloaders/`)
 - Abstract base with `download()` and `can_handle()` methods
 - YouTube: yt-dlp subprocess with `--extract-audio --audio-format mp3`
-- Instagram: instaloader Python API with session caching (optional dep)
-- Registry dispatches URL to correct downloader, gracefully handles missing optional deps
+- Instagram: instaloader Python API with session caching, direct video download
+- Registry dispatches URL to correct downloader
 
 ### Provider Layer (`providers/`)
 - Abstract base with `transcribe(audio_path) -> TranscriptResult`
@@ -65,6 +65,6 @@ URL input -> Platform detection -> Download (yt-dlp / instaloader)
 - **Dataclasses** over pydantic: fewer deps, sufficient for config/results
 - **src/ layout**: prevents accidental imports from project root
 - **Audio: 16kHz mono 64kbps**: proven optimal for Whisper from AnyScribe web app
-- **Lazy imports**: optional deps (instaloader, faster-whisper) only imported when needed
+- **Lazy imports**: optional deps (faster-whisper for local provider) only imported when needed
 - **Three install paths**: install.sh (users), pip from GitHub (power users), git clone (devs)
 - **SemVer**: 0.x for pre-stable, 1.0.0 when all platforms + providers stable
