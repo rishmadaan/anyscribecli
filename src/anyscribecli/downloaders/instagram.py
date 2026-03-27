@@ -10,13 +10,16 @@ import re
 import subprocess
 from pathlib import Path
 
+import httpx
+import instaloader
+
 from anyscribecli.downloaders.base import AbstractDownloader, DownloadResult
 from anyscribecli.config.paths import SESSIONS_DIR
 from anyscribecli.config.settings import load_config
 
 
 class InstagramDownloader(AbstractDownloader):
-    """Download video/audio from Instagram using instaloader + yt-dlp for audio extraction."""
+    """Download video/audio from Instagram using instaloader for auth + direct video download."""
 
     PATTERNS = [
         r"instagram\.com(?:/[^/]+)?/p/",
@@ -37,21 +40,17 @@ class InstagramDownloader(AbstractDownloader):
 
         return match.group(1).split("/", 1)[0]
 
-    def _get_instaloader(self):
+    def _get_instaloader(self) -> instaloader.Instaloader:
         """Create and authenticate an Instaloader instance.
 
         Mirrors Dropzone bundle: load session → test_login → fresh login if invalid → save.
         """
-        try:
-            import instaloader
-        except ImportError:
-            raise RuntimeError(
-                "instaloader is required for Instagram downloads.\n"
-                "Install it with: pip install instaloader\n"
-                "Or: pip install anyscribecli[instagram]"
-            )
-
-        L = instaloader.Instaloader()
+        L = instaloader.Instaloader(
+            download_video_thumbnails=False,
+            download_geotags=False,
+            download_comments=False,
+            save_metadata=False,
+        )
         settings = load_config()
         username = settings.instagram.username
         password = settings.instagram.password
@@ -80,25 +79,30 @@ class InstagramDownloader(AbstractDownloader):
         try:
             L.login(username, password)
             L.save_session_to_file(str(session_file))
+        except instaloader.exceptions.BadCredentialsException:
+            raise RuntimeError(
+                "Instagram login failed: incorrect username or password.\n"
+                "Check your credentials: ascli config show\n"
+                "Update them: ascli config set instagram.username YOUR_USERNAME"
+            )
+        except instaloader.exceptions.TwoFactorAuthRequiredException:
+            raise RuntimeError(
+                "Instagram requires two-factor authentication.\n"
+                "Use an account without 2FA, or generate an app-specific password."
+            )
         except Exception as e:
             raise RuntimeError(
                 f"Instagram login failed: {e}\n"
-                "Check your credentials in ~/.anyscribecli/config.yaml\n"
-                "Note: Instagram may temporarily block logins from new locations."
+                "This can happen when:\n"
+                "  - Credentials are wrong\n"
+                "  - Instagram temporarily blocked the login (try again later)\n"
+                "  - The account has 2FA enabled\n"
+                "Tip: Use a secondary/dummy account for ascli."
             )
 
         return L
 
     def download(self, url: str, output_dir: Path) -> DownloadResult:
-        try:
-            import instaloader
-        except ImportError:
-            raise RuntimeError(
-                "instaloader is required for Instagram downloads.\n"
-                "Install it with: pip install instaloader\n"
-                "Or: pip install anyscribecli[instagram]"
-            )
-
         output_dir.mkdir(parents=True, exist_ok=True)
         shortcode = self._extract_shortcode(url)
 
@@ -112,25 +116,28 @@ class InstagramDownloader(AbstractDownloader):
         if not title:
             title = f"instagram-{shortcode}"
 
-        duration = post.video_duration if post.is_video else None
-
         if not post.is_video:
             raise RuntimeError(
-                "This Instagram post is an image, not a video. "
+                "This Instagram post is an image, not a video.\n"
                 "ascli can only transcribe video/audio content."
             )
 
-        # Download video using instaloader
-        video_dir = output_dir / f"ig_{shortcode}"
-        video_dir.mkdir(exist_ok=True)
-        L.download_post(post, target=str(video_dir))
+        duration = post.video_duration
 
-        # Find the downloaded video file
-        video_files = list(video_dir.glob("*.mp4"))
-        if not video_files:
-            raise RuntimeError("Instagram download completed but no video file found.")
+        # Download video directly via URL (faster than download_post)
+        video_url = post.video_url
+        if not video_url:
+            raise RuntimeError(
+                "Could not get video URL from Instagram.\n"
+                "The post may be private, or Instagram may be rate-limiting.\n"
+                "Try again in a few minutes, or check your credentials."
+            )
 
-        video_path = video_files[0]
+        video_path = output_dir / f"{shortcode}.mp4"
+        response = httpx.get(video_url, follow_redirects=True, timeout=120.0)
+        if response.status_code != 200:
+            raise RuntimeError(f"Failed to download video: HTTP {response.status_code}")
+        video_path.write_bytes(response.content)
 
         # Extract audio optimized for Whisper using ffmpeg
         audio_path = output_dir / f"{shortcode}.mp3"
@@ -148,10 +155,8 @@ class InstagramDownloader(AbstractDownloader):
         if result.returncode != 0:
             raise RuntimeError(f"Audio extraction failed: {result.stderr.strip()[:200]}")
 
-        # Clean up video files
-        for f in video_dir.iterdir():
-            f.unlink()
-        video_dir.rmdir()
+        # Clean up video file
+        video_path.unlink(missing_ok=True)
 
         return DownloadResult(
             audio_path=audio_path,

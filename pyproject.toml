@@ -37,6 +37,7 @@ dependencies = [
     "yt-dlp>=2024.0",
     "rich>=13.0",
     "beaupy>=3.0",
+    "instaloader>=4.10",
 ]
 
 [project.urls]
@@ -49,8 +50,8 @@ dev = [
     "pytest>=8.0",
     "ruff>=0.4",
 ]
-instagram = [
-    "instaloader>=4.10",
+local = [
+    "faster-whisper>=1.0",
 ]
 
 [project.scripts]

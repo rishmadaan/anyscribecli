@@ -4,23 +4,13 @@ from __future__ import annotations
 
 from anyscribecli.downloaders.base import AbstractDownloader
 from anyscribecli.downloaders.youtube import YouTubeDownloader
-
-
-def _load_downloaders() -> list[AbstractDownloader]:
-    """Load all available downloaders. Instagram is optional (requires instaloader)."""
-    downloaders: list[AbstractDownloader] = [
-        YouTubeDownloader(),
-    ]
-    try:
-        from anyscribecli.downloaders.instagram import InstagramDownloader
-        downloaders.append(InstagramDownloader())
-    except ImportError:
-        pass  # instaloader not installed — Instagram support unavailable
-    return downloaders
-
+from anyscribecli.downloaders.instagram import InstagramDownloader
 
 # Register all available downloaders. Order matters — first match wins.
-DOWNLOADERS: list[AbstractDownloader] = _load_downloaders()
+DOWNLOADERS: list[AbstractDownloader] = [
+    YouTubeDownloader(),
+    InstagramDownloader(),
+]
 
 
 def detect_platform(url: str) -> str:
