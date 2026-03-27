@@ -111,7 +111,8 @@ def onboard(
         table.add_row(name + default_marker, info["description"])
     console.print(table)
 
-    provider = typer.prompt("\nProvider", default=settings.provider)
+    console.print("\n  Type a provider name from the table above, or press [bold]Enter[/bold] to use the default.")
+    provider = typer.prompt("  Select provider", default=settings.provider)
     if provider not in PROVIDER_INFO:
         console.print(f"[yellow]Unknown provider '{provider}', using openai.[/yellow]")
         provider = "openai"
@@ -130,7 +131,8 @@ def onboard(
                 border_style="blue",
             )
         )
-        api_key = typer.prompt(f"{pinfo['label']} API key", hide_input=True)
+        console.print("  Paste your key below (it will be hidden as you type):")
+        api_key = typer.prompt(f"  {pinfo['label']} API key", hide_input=True)
         if api_key:
             env_keys[pinfo["env_var"]] = api_key
     else:
@@ -145,7 +147,8 @@ def onboard(
         )
 
     # Step 5: Ask if user wants to add more provider keys
-    if typer.confirm("\nConfigure additional provider API keys?", default=False):
+    console.print("\n  You can add API keys for other providers now, or skip and add them later.")
+    if typer.confirm("  Configure additional provider API keys?", default=False):
         for name, info in PROVIDER_INFO.items():
             if name == provider or info["env_var"] is None:
                 continue
@@ -165,7 +168,8 @@ def onboard(
             border_style="blue",
         )
     )
-    if typer.confirm("Configure Instagram?", default=False):
+    console.print("  Type [bold]y[/bold] to set up Instagram, or [bold]n[/bold] to skip.")
+    if typer.confirm("  Configure Instagram?", default=False):
         settings.instagram.username = typer.prompt("  Instagram username")
         settings.instagram.password = typer.prompt("  Instagram password", hide_input=True)
 
@@ -178,7 +182,8 @@ def onboard(
             border_style="blue",
         )
     )
-    settings.language = typer.prompt("Language", default=settings.language)
+    console.print("  Press [bold]Enter[/bold] for auto-detect, or type a language code:")
+    settings.language = typer.prompt("  Language", default=settings.language)
 
     # Step 8: Keep media
     console.print(
@@ -189,7 +194,8 @@ def onboard(
             border_style="blue",
         )
     )
-    settings.keep_media = typer.confirm("Keep media files?", default=settings.keep_media)
+    console.print("  Type [bold]y[/bold] to keep audio files, or [bold]n[/bold] to discard after transcription.")
+    settings.keep_media = typer.confirm("  Keep media files?", default=settings.keep_media)
 
     # Save config and env
     save_config(settings)
