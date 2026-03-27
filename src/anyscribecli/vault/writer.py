@@ -7,7 +7,7 @@ import shutil
 from datetime import date
 from pathlib import Path
 
-from anyscribecli.config.paths import WORKSPACE_DIR, MEDIA_DIR
+from anyscribecli.config.paths import WORKSPACE_DIR, AUDIO_DIR
 from anyscribecli.config.settings import Settings
 from anyscribecli.downloaders.base import DownloadResult
 from anyscribecli.providers.base import TranscriptResult
@@ -115,11 +115,11 @@ def write_transcript(
     content = frontmatter + "\n" + "\n".join(body_parts)
     out_path.write_text(content)
 
-    # Optionally keep media
+    # Optionally keep audio file (saved outside workspace to keep vault pure markdown)
     if settings.keep_media and download.audio_path.exists():
-        media_dir = (workspace or MEDIA_DIR.parent.parent) / "media" / today
-        media_dir.mkdir(parents=True, exist_ok=True)
-        dest = media_dir / f"{slug}{download.audio_path.suffix}"
+        audio_dir = AUDIO_DIR / download.platform / today
+        audio_dir.mkdir(parents=True, exist_ok=True)
+        dest = audio_dir / f"{slug}{download.audio_path.suffix}"
         shutil.copy2(download.audio_path, dest)
 
     return out_path

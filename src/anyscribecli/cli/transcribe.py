@@ -112,6 +112,43 @@ def transcribe(
         console.print(f"  Language: {result.language}")
         console.print(f"  Words:    {result.word_count}")
 
+        # Post-transcription download prompt
+        _maybe_download_after(url, settings, quiet)
+
+
+def _maybe_download_after(url: str, settings, quiet: bool) -> None:
+    """Prompt to download video/audio after transcription, based on config."""
+    if settings.prompt_download == "never" or quiet:
+        return
+
+    should_download = False
+    if settings.prompt_download == "always":
+        should_download = True
+    elif settings.prompt_download == "ask":
+        console.print()
+        should_download = typer.confirm("  Download the video/audio file too?", default=False)
+
+    if should_download:
+        from pathlib import Path
+        from anyscribecli.cli.download import _download_video
+        from anyscribecli.config.paths import TMP_DIR
+        from anyscribecli.downloaders.registry import detect_platform
+        import tempfile
+        import shutil
+
+        TMP_DIR.mkdir(parents=True, exist_ok=True)
+        tmp_dir = Path(tempfile.mkdtemp(dir=TMP_DIR))
+        try:
+            platform = detect_platform(url)
+            err_console.print("[bold blue]Downloading video...[/bold blue]")
+            result = _download_video(url, platform, tmp_dir, quiet=False)
+            console.print(f"  [green]Video saved:[/green] {result['file']}")
+        except Exception as e:
+            err_console.print(f"  [yellow]Download failed:[/yellow] {e}")
+        finally:
+            if tmp_dir.exists():
+                shutil.rmtree(tmp_dir, ignore_errors=True)
+
 
 def _validate_url(url: str) -> str:
     """Validate and clean the URL. Detect common shell mangling issues."""

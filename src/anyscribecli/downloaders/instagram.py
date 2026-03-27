@@ -53,7 +53,7 @@ class InstagramDownloader(AbstractDownloader):
         )
         settings = load_config()
         username = settings.instagram.username
-        password = settings.instagram.password
+        password = settings.get_instagram_password()
 
         if not username or not password:
             raise RuntimeError(

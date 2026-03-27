@@ -191,7 +191,9 @@ def onboard(
     if bconfirm("  Set up Instagram?"):
         console.print("  Enter your Instagram credentials:")
         settings.instagram.username = typer.prompt("  Username")
-        settings.instagram.password = typer.prompt("  Password", hide_input=True)
+        ig_password = typer.prompt("  Password", hide_input=True)
+        if ig_password:
+            env_keys["INSTAGRAM_PASSWORD"] = ig_password
 
     # Step 7: Language (arrow-key selector)
     console.print(
@@ -218,14 +220,40 @@ def onboard(
     # Step 8: Keep media
     console.print(
         Panel(
-            "Keep downloaded audio files alongside transcripts?\n"
-            "Files are saved to [cyan]~/.anyscribecli/workspace/media/[/cyan]\n\n"
+            "Keep downloaded audio files after transcription?\n"
+            "Files are saved to [cyan]~/.anyscribecli/media/audio/[/cyan]\n\n"
             "[dim]You can change this later with: ascli config set keep_media true[/dim]",
             title="Media Storage",
             border_style="blue",
         )
     )
     settings.keep_media = bconfirm("  Keep audio files after transcription?")
+
+    # Step 9: Post-transcription download prompt
+    console.print(
+        Panel(
+            "After each transcription, ascli can ask if you want to\n"
+            "download the full video or audio file.\n\n"
+            "[bold]never[/bold]  — don't ask (default)\n"
+            "[bold]ask[/bold]    — ask every time after transcription\n"
+            "[bold]always[/bold] — always download video after transcription",
+            title="Post-Transcription Download",
+            border_style="blue",
+        )
+    )
+    console.print("  Use [bold]↑↓ arrow keys[/bold] to navigate, [bold]Enter[/bold] to select:\n")
+    download_options = [
+        "[cyan]never[/cyan] — don't ask, just transcribe",
+        "[cyan]ask[/cyan] — ask me each time if I want the video/audio too",
+        "[cyan]always[/cyan] — always download the full video after transcription",
+    ]
+    download_codes = ["never", "ask", "always"]
+    dl_selected = bselect(download_options, cursor="❯ ", cursor_style="cyan")
+    if dl_selected is None:
+        settings.prompt_download = "never"
+    else:
+        settings.prompt_download = download_codes[download_options.index(dl_selected)]
+    console.print(f"\n  [green]Selected:[/green] {settings.prompt_download}\n")
 
     # Save config and env
     save_config(settings)

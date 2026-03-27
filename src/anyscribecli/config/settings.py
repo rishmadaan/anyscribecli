@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass, field, asdict
 
 import yaml
@@ -13,7 +14,7 @@ from anyscribecli.config.paths import CONFIG_FILE, ENV_FILE
 @dataclass
 class InstagramSettings:
     username: str = ""
-    password: str = ""
+    # password is NOT stored here — it lives in .env as INSTAGRAM_PASSWORD
 
 
 @dataclass
@@ -21,20 +22,26 @@ class Settings:
     provider: str = "openai"
     language: str = "auto"
     keep_media: bool = False
-    output_format: str = "clean"  # clean | timestamped (future: diarized)
+    output_format: str = "clean"  # clean | timestamped
+    prompt_download: str = "never"  # never | always | ask (prompt after transcription)
     instagram: InstagramSettings = field(default_factory=InstagramSettings)
 
     def to_dict(self) -> dict:
         """Serialize to a plain dict for YAML output."""
-        d = asdict(self)
-        return d
+        return asdict(self)
 
     @classmethod
     def from_dict(cls, data: dict) -> Settings:
         """Deserialize from a dict (loaded from YAML)."""
         ig_data = data.pop("instagram", {})
+        # Drop password from config if it was there from old versions
+        ig_data.pop("password", None)
         ig = InstagramSettings(**ig_data) if ig_data else InstagramSettings()
         return cls(instagram=ig, **data)
+
+    def get_instagram_password(self) -> str:
+        """Get Instagram password from environment (stored in .env)."""
+        return os.environ.get("INSTAGRAM_PASSWORD", "")
 
 
 def load_config() -> Settings:
@@ -54,13 +61,13 @@ def save_config(settings: Settings) -> None:
 
 
 def load_env() -> None:
-    """Load API keys from .env file."""
+    """Load API keys and secrets from .env file."""
     if ENV_FILE.exists():
         load_dotenv(ENV_FILE)
 
 
 def save_env(keys: dict[str, str]) -> None:
-    """Write or update API keys in .env file."""
+    """Write or update secrets in .env file."""
     ENV_FILE.parent.mkdir(parents=True, exist_ok=True)
 
     existing: dict[str, str] = {}

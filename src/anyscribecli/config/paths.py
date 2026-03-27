@@ -9,7 +9,13 @@ LOGS_DIR = APP_HOME / "logs"
 WORKSPACE_DIR = APP_HOME / "workspace"
 SESSIONS_DIR = APP_HOME / "sessions"
 TMP_DIR = APP_HOME / "tmp"
-MEDIA_DIR = WORKSPACE_DIR / "media"
+
+# Media lives OUTSIDE the workspace — keeps the Obsidian vault pure markdown
+MEDIA_DIR = APP_HOME / "media"
+AUDIO_DIR = MEDIA_DIR / "audio"
+VIDEO_DIR = MEDIA_DIR / "video"
+
+# Workspace subdirs
 SOURCES_DIR = WORKSPACE_DIR / "sources"
 DAILY_DIR = WORKSPACE_DIR / "daily"
 INDEX_FILE = WORKSPACE_DIR / "_index.md"
