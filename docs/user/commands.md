@@ -15,7 +15,8 @@ Every ascli command. Copy-paste friendly.
 | Command | What it does |
 |---------|-------------|
 | `ascli onboard` | First-time setup wizard |
-| `ascli transcribe <url>` | Download and transcribe a video |
+| `ascli transcribe "<url>"` | Download and transcribe a video |
+| `ascli download "<url>"` | Download video or audio only (no transcription) |
 | `ascli batch <file>` | Batch transcribe URLs from a file |
 | `ascli config show` | View current settings |
 | `ascli config set <key> <value>` | Change a setting |
@@ -199,6 +200,46 @@ ascli batch urls.txt --stop-on-error
 
 # JSON output for scripting
 ascli batch urls.txt --json
+```
+
+---
+
+## ascli download
+
+Download video or audio from a URL — no transcription. Useful when you just want the file.
+
+```bash
+ascli download "<url>"
+```
+
+Saves to `~/.anyscribecli/media/video/` (default) or `~/.anyscribecli/media/audio/`.
+
+### Flags
+
+| Flag | Description | Default |
+|------|-------------|---------|
+| `--video` / `--audio-only` | Download video (default) or extract audio only | `--video` |
+| `--json`, `-j` | Output result as JSON | Off |
+| `--quiet`, `-q` | Suppress progress output | Off |
+| `--clipboard`, `-c` | Read URL from clipboard | Off |
+
+### Examples
+
+```bash
+# Download video
+ascli download "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+
+# Download audio only (no video)
+ascli download "https://www.youtube.com/watch?v=dQw4w9WgXcQ" --audio-only
+
+# From clipboard
+ascli download --clipboard
+
+# Interactive (paste URL when prompted)
+ascli download
+
+# JSON output
+ascli download "https://youtube.com/watch?v=abc123" --json
 ```
 
 ---

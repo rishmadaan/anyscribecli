@@ -89,8 +89,14 @@ All features originally planned for v0.2.0–v0.5.0, built in one session:
 
 ---
 
-## v0.3.0 — Polish + Quality
+## v0.3.0 — Cache, Dedup, Polish
 
+- [ ] **Duplicate / cache checking** (inspired by AnyScribe web app's FindStamp pattern):
+  - Before transcribing: check if URL was already transcribed (lookup by source URL in _index.md or a cache file)
+  - Before downloading: check if video/audio already exists in media/
+  - If cached, show the existing transcript and ask to re-transcribe or skip
+  - `--force` flag to bypass cache and re-transcribe
+  - Track cache hits/misses for cost awareness
 - [ ] Full test suite (pytest — unit tests for providers, downloaders, vault, config)
 - [ ] Comprehensive error handling and retry logic (network failures, API rate limits)
 - [ ] Suppress instaloader's noisy retry output (redirect to log file)
@@ -117,5 +123,4 @@ All features originally planned for v0.2.0–v0.5.0, built in one session:
 - Export formats beyond markdown (PDF, DOCX, SRT subtitles)
 - Podcast RSS feed ingestion
 - Topic file generation (Foundry-style, when 3+ transcripts share a topic)
-- Cache system (skip re-transcription of same URL)
 - Cost tracking (Whisper API usage per month)

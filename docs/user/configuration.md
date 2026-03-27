@@ -34,10 +34,12 @@ provider: openai        # Which transcription service to use
 language: auto           # Language for transcription
 keep_media: false        # Whether to save audio files
 output_format: clean     # How to format transcripts
-instagram:               # Instagram credentials (for future use)
+prompt_download: never   # Ask to download video after transcription
+instagram:               # Instagram credentials
   username: ""
-  password: ""
 ```
+
+> **Note:** Instagram password and API keys are stored in `~/.anyscribecli/.env`, not in config.yaml. Secrets never go in config.
 
 ### Settings Explained
 
@@ -82,13 +84,29 @@ How to format the transcript text. Default: `clean`.
 | `clean` | Plain text transcript, paragraphs only |
 | `timestamped` | Transcript with `[mm:ss]` timestamps per segment |
 
-## .env (API Keys)
+#### prompt_download
 
-Your API keys are stored separately from config for security:
+Whether to offer downloading the video/audio file after each transcription. Default: `never`.
+
+| Value | Description |
+|-------|-------------|
+| `never` | Don't ask — just transcribe (default) |
+| `ask` | Ask after each transcription if you want the video/audio too |
+| `always` | Always download the full video after transcription |
+
+> **Tip:** You can always download manually with `ascli download "<url>"` regardless of this setting.
+
+## .env (API Keys and Secrets)
+
+API keys and passwords are stored separately from config for security:
 
 ```bash
 # ~/.anyscribecli/.env
 OPENAI_API_KEY=sk-proj-...
+INSTAGRAM_PASSWORD=your-password
+# ELEVENLABS_API_KEY=xi-...
+# OPENROUTER_API_KEY=sk-or-...
+# SARGAM_API_KEY=...
 ```
 
 > **Important:** This file contains secrets. It's excluded from git by default. Never share it or commit it to a repository.
@@ -109,25 +127,25 @@ nano ~/.anyscribecli/.env
 
 ## Workspace Structure
 
-Your transcripts are organized in an Obsidian vault:
+Your transcripts live in the workspace (pure markdown, no binaries). Media files are stored separately.
 
 ```
-~/.anyscribecli/workspace/
-├── .obsidian/                         # Obsidian app config (auto-generated)
-├── _index.md                          # Master index — all transcripts, newest first
-├── sources/
-│   ├── youtube/
-│   │   └── 2026-03-26/
-│   │       └── video-title.md         # One file per transcript
-│   └── instagram/
-│       └── 2026-03-26/
-│           └── reel-caption.md
-├── daily/
-│   └── 2026-03-26.md                  # What you transcribed today
-└── media/                             # Audio files (only if keep_media=true)
-    └── 2026-03-26/
-        └── video-title.mp3
+~/.anyscribecli/
+├── workspace/                             # Obsidian vault (markdown only)
+│   ├── .obsidian/                         # Obsidian app config
+│   ├── _index.md                          # Master index — newest first
+│   ├── sources/
+│   │   ├── youtube/YYYY-MM-DD/            # YouTube transcripts by date
+│   │   └── instagram/YYYY-MM-DD/          # Instagram transcripts by date
+│   └── daily/YYYY-MM-DD.md               # Daily processing log
+├── media/                                 # Downloads (separate from vault)
+│   ├── audio/<platform>/YYYY-MM-DD/       # Audio files (if keep_media=true)
+│   └── video/<platform>/YYYY-MM-DD/       # Video files (ascli download)
+├── sessions/                              # Login sessions
+└── logs/                                  # Processing logs
 ```
+
+> **Why is media separate?** Keeping binaries out of the Obsidian vault means the vault stays lightweight and fast — even with hundreds of transcripts.
 
 ### How files are named
 

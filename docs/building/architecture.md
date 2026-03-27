@@ -19,7 +19,7 @@ URL input -> Platform detection -> Download (yt-dlp / instaloader)
 
 ### CLI Layer (`cli/`)
 - Typer app with `rich_markup_mode="rich"`
-- Commands: `onboard`, `transcribe`, `batch`, `config`, `providers`, `update`, `doctor`
+- Commands: `onboard`, `transcribe`, `download`, `batch`, `config`, `providers`, `update`, `doctor`
 - Global flags: `--json`, `--quiet`
 - `--json` on all commands for AI agent and scripting integration
 

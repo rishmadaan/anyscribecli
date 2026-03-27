@@ -62,7 +62,8 @@ That's it. Open `~/.anyscribecli/workspace/` in Obsidian to browse your transcri
 | Command | Description |
 |---------|-------------|
 | `ascli onboard` | Interactive setup wizard (first-time + reconfigure) |
-| `ascli transcribe <url>` | Download and transcribe a video URL |
+| `ascli transcribe "<url>"` | Download and transcribe a video URL |
+| `ascli download "<url>"` | Download video or audio only (no transcription) |
 | `ascli batch <file>` | Batch transcribe URLs from a file |
 | `ascli config show/set` | View and change settings |
 | `ascli providers list/test` | Manage transcription providers |
@@ -114,21 +115,26 @@ The onboarding wizard checks for these and helps you install them:
 | ffmpeg | Yes | `brew install ffmpeg` or [ffmpeg.org](https://ffmpeg.org/) |
 | OpenAI API key | Yes (default provider) | [platform.openai.com](https://platform.openai.com/api-keys) |
 
-## Workspace Structure
-
-Your transcripts live in an Obsidian vault:
+## Directory Structure
 
 ```
-~/.anyscribecli/workspace/
-├── _index.md                         # Master index (newest first)
-├── sources/
-│   ├── youtube/2026-03-26/
-│   │   └── video-title.md            # Transcript with frontmatter
-│   └── instagram/2026-03-26/
-│       └── reel-caption.md
-├── daily/
-│   └── 2026-03-26.md                 # Daily processing log
-└── media/                            # Audio files (if keep_media=true)
+~/.anyscribecli/
+├── config.yaml                           # Settings (no secrets)
+├── .env                                  # API keys + passwords (secrets)
+├── workspace/                            # Obsidian vault (pure markdown)
+│   ├── _index.md                         # Master index (newest first)
+│   ├── sources/
+│   │   ├── youtube/2026-03-27/
+│   │   │   └── video-title.md            # Transcript with frontmatter
+│   │   └── instagram/2026-03-27/
+│   │       └── reel-caption.md
+│   └── daily/
+│       └── 2026-03-27.md                 # Daily processing log
+├── media/                                # Downloads (separate from vault)
+│   ├── audio/<platform>/YYYY-MM-DD/      # Audio files (if keep_media=true)
+│   └── video/<platform>/YYYY-MM-DD/      # Video files (ascli download)
+├── sessions/                             # Login sessions (Instagram)
+└── logs/                                 # Processing logs
 ```
 
 Each transcript includes YAML frontmatter for Obsidian properties:
