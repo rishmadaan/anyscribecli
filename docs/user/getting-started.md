@@ -13,7 +13,7 @@ Install ascli, run the setup wizard, and get your first transcript — all in ab
 By the end of this guide you will have:
 - ascli installed on your machine
 - An Obsidian vault ready to browse your transcripts
-- Your first YouTube video transcribed to markdown
+- Your first video transcribed to markdown
 
 ## What you need
 
@@ -21,7 +21,7 @@ Before starting, you need:
 
 - **A computer running macOS or Linux** (Windows via WSL2 works too)
 - **An internet connection** (for downloading videos and calling the transcription API)
-- **An OpenAI API key** — get one at [platform.openai.com/api-keys](https://platform.openai.com/api-keys). You'll need to add a payment method, but Whisper transcription costs about $0.006/minute — a 10-minute video costs roughly 6 cents.
+- **An API key** for your chosen provider — OpenAI is the default. Get one at [platform.openai.com/api-keys](https://platform.openai.com/api-keys). Whisper costs about $0.006/minute — a 10-minute video costs roughly 6 cents. Or use the **local** provider for free (no API key, runs on your machine).
 
 > **New to the command line?** You'll be typing commands in your Terminal app (macOS) or terminal emulator (Linux). Every command in this guide starts with `ascli` — just copy-paste and press Enter.
 
@@ -49,26 +49,8 @@ sudo apt install python3 python3-pip python3-venv
 
 ## Step 2: Install ascli
 
-**Easiest way** — one command that handles everything:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/rishmadaan/anyscribecli/main/install.sh | bash
-```
-
-This checks your system, installs missing dependencies, installs ascli, and runs the setup wizard. If it works, you can skip to Step 4.
-
-**Or install manually with pip:**
-
 ```bash
 pip install git+https://github.com/rishmadaan/anyscribecli.git
-```
-
-**Or clone the source** (if you want to modify the code):
-
-```bash
-git clone https://github.com/rishmadaan/anyscribecli.git
-cd anyscribecli
-pip install -e .
 ```
 
 Verify it worked:
@@ -79,7 +61,7 @@ ascli --version
 
 You should see `ascli v0.3.0` (or a newer version).
 
-> **What's the difference?** `pip install git+...` installs a packaged copy — clean, no source code on disk. `pip install -e .` is for developers — it links to the source so you can edit code and see changes immediately. Both create the same `ascli` command.
+> **Other install methods:** You can also use the [install script](https://raw.githubusercontent.com/rishmadaan/anyscribecli/main/install.sh) which checks and installs all dependencies for you, or [clone the repo](https://github.com/rishmadaan/anyscribecli) for development.
 
 ## Step 3: Run the setup wizard
 
@@ -87,16 +69,19 @@ You should see `ascli v0.3.0` (or a newer version).
 ascli onboard
 ```
 
-The wizard will:
+The wizard uses arrow-key selectors — navigate with **↑↓** and press **Enter** to select:
 
-1. **Check your system** — makes sure `yt-dlp` and `ffmpeg` are installed. If they're missing, it offers to install them for you.
-2. **Choose your provider** — use arrow keys to select from 5 transcription providers (OpenAI is the default).
-3. **Enter your API key** — stored locally at `~/.anyscribecli/.env` and never sent anywhere except your chosen provider.
-4. **Configure Instagram** (optional) — provide credentials if you want to transcribe Instagram reels.
-5. **Set preferences** — language (auto-detect by default), whether to keep audio files.
-6. **Create your workspace** — an Obsidian vault at `~/.anyscribecli/workspace/`.
+1. **Check your system** — makes sure `yt-dlp` and `ffmpeg` are installed. Offers to install missing ones.
+2. **Choose your provider** — 5 options: OpenAI (default), ElevenLabs, Sarvam AI, OpenRouter, Local.
+3. **Enter your API key** — stored locally at `~/.anyscribecli/.env`. Never sent anywhere except your provider.
+4. **Add more provider keys** (optional) — configure multiple providers now or later.
+5. **Configure Instagram** (optional) — username and password for downloading Instagram reels. A secondary account is recommended.
+6. **Choose language** — auto-detect (default) or pick a specific language.
+7. **Keep audio files** — whether to save the transcription audio alongside your transcripts.
+8. **Post-transcription downloads** — whether ascli should offer to download the full video after each transcription (never/ask/always).
+9. **Create workspace** — sets up your Obsidian vault at `~/.anyscribecli/workspace/`.
 
-> **Already have everything installed?** You can skip the dependency check with `ascli onboard --skip-deps`.
+> **Re-run anytime:** `ascli onboard --force` to change settings. `ascli onboard --skip-deps` to skip the dependency check.
 
 ## Step 4: Transcribe your first video
 
@@ -108,9 +93,9 @@ ascli transcribe "https://www.youtube.com/watch?v=VIDEO_ID"
 
 Replace `VIDEO_ID` with a real video ID. A short video (under 5 minutes) is good for your first try.
 
-> **Important:** Always wrap the URL in quotes (`"..."`). Without quotes, your shell may break the URL. Or just run `ascli transcribe` with no URL and paste it when prompted.
+> **Always wrap URLs in quotes** (`"..."`). Shells like zsh break URLs with `?` in them. Or run `ascli transcribe` with no URL and paste it when prompted — no quoting needed.
 
-You'll see progress output like:
+You'll see:
 
 ```
 Downloading audio...
@@ -118,7 +103,20 @@ Downloading audio...
 Transcribing with openai...
   Done: 847 words, language=en
 Writing to vault...
-  Saved: ~/.anyscribecli/workspace/sources/youtube/2026-03-26/how-to-make-perfect-coffee.md
+  Saved: ~/.anyscribecli/workspace/sources/youtube/2026-03-27/how-to-make-perfect-coffee.md
+```
+
+### Also try
+
+```bash
+# Instagram reel
+ascli transcribe "https://www.instagram.com/reel/SHORTCODE/"
+
+# Just download, no transcription
+ascli download "https://www.youtube.com/watch?v=VIDEO_ID"
+
+# From clipboard (copy a URL first)
+ascli transcribe --clipboard
 ```
 
 ## Step 5: Browse in Obsidian
@@ -133,7 +131,7 @@ Open Obsidian and select "Open folder as vault", then choose:
 
 You'll see:
 - **`_index.md`** — a table of all your transcripts, newest first
-- **`sources/youtube/`** — your transcripts organized by date
+- **`sources/youtube/`** and **`sources/instagram/`** — transcripts organized by platform and date
 - **`daily/`** — a log of what you transcribed each day
 
 Each transcript has YAML properties that Obsidian can search and filter:
@@ -150,26 +148,44 @@ tags: [transcript, youtube]
 
 ## What to do next
 
-- **Transcribe more videos** — just run `ascli transcribe <url>` with any YouTube link
-- **Try JSON output** — `ascli transcribe <url> --json` gives machine-readable output for scripting
-- **Check your setup** — `ascli doctor` verifies everything is healthy
-- **Update ascli** — `ascli update` pulls the latest version
+- **Transcribe more** — `ascli transcribe "url"` with any YouTube or Instagram link
+- **Download video** — `ascli download "url"` to save video without transcribing
+- **Batch process** — `ascli batch urls.txt` to transcribe a list of URLs
+- **Switch providers** — `ascli config set provider elevenlabs`
+- **Try JSON output** — `ascli transcribe "url" --json` for scripting
+- **Check health** — `ascli doctor` verifies everything is working
+- **Update** — `ascli update` pulls the latest version
+- **View all commands** — `ascli --help`
 
 ## Troubleshooting
 
 **"command not found: ascli"**
-Make sure you installed with `pip install -e .` and that your Python scripts directory is on your PATH. Try running `python3 -m anyscribecli.cli.main --help` as a workaround.
+Your Python scripts directory may not be on your PATH. Try:
+```bash
+python3 -m pip show anyscribecli    # check it's installed
+```
+If installed but not found, add `~/.local/bin` (Linux) or the Python framework bin (macOS) to your PATH.
 
 **"OPENAI_API_KEY not set"**
-Run `ascli onboard --force` to re-enter your API key, or manually edit `~/.anyscribecli/.env`.
+Run `ascli onboard --force` to re-enter your API key, or edit `~/.anyscribecli/.env` directly.
+
+**"No matches found" when pasting a URL**
+Your shell is interpreting `?` as a special character. Wrap the URL in quotes:
+```bash
+ascli transcribe "https://www.youtube.com/watch?v=VIDEO_ID"
+```
+Or run `ascli transcribe` without a URL and paste it at the prompt.
 
 **"yt-dlp download failed"**
-The video may be age-restricted, private, or geo-blocked. Try a different video. You can also update yt-dlp: `brew upgrade yt-dlp` or `pip install --upgrade yt-dlp`.
+The video may be age-restricted, private, or geo-blocked. Try a different video. Update yt-dlp: `pip install --upgrade yt-dlp`.
 
-**Transcription seems wrong or in the wrong language**
-Force a specific language: `ascli transcribe <url> --language en` (or `es`, `fr`, `hi`, etc.)
+**Instagram "login_required" errors**
+Instagram rate-limits third-party access. Try again in a few minutes. Use a secondary account. Check credentials: `ascli config show`.
+
+**Transcription in wrong language**
+Force a specific language: `ascli transcribe "url" --language en` (or `es`, `fr`, `hi`, etc.)
 
 **Large video taking too long**
-Videos over ~30 minutes are split into chunks automatically. This is normal — each chunk is transcribed separately and merged. The Whisper API has a 25MB file limit, so chunking is necessary.
+Videos over ~30 minutes are chunked automatically. Each chunk is transcribed separately and merged. This is normal.
 
-See [Commands](commands.md) for the full reference, or [Configuration](configuration.md) for all settings.
+See [Commands](commands.md) for the full reference, [Configuration](configuration.md) for all settings, or [Providers](providers.md) for provider comparison.

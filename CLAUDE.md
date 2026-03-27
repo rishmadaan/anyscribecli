@@ -20,13 +20,16 @@ Flow: `CLI command -> orchestrator -> downloader + provider -> vault writer -> i
 
 ## Key Patterns
 
-- **Providers** implement `TranscriptionProvider` ABC from `providers/base.py`
-- **Downloaders** implement `AbstractDownloader` ABC from `downloaders/base.py`
-- **Config** lives at `~/.anyscribecli/config.yaml`, API keys in `~/.anyscribecli/.env`
+- **Providers** implement `TranscriptionProvider` ABC from `providers/base.py` (5 active: openai, elevenlabs, openrouter, sargam, local)
+- **Downloaders** implement `AbstractDownloader` ABC from `downloaders/base.py` (youtube, instagram)
+- **Config** at `~/.anyscribecli/config.yaml` — secrets in `.env` (API keys, Instagram password)
 - **All paths** use `pathlib.Path` via `config/paths.py` — no hardcoded separators
-- **CLI output** is human-readable by default, `--json` flag for machine/agent consumption
+- **CLI output** human-readable by default, `--json` flag for machine/agent consumption
+- **Interactive prompts** use `beaupy` (arrow-key selectors) for onboarding, `typer.prompt` for text input
+- **URL input** three methods: quoted argument (primary), interactive prompt (fallback), clipboard
+- **Media outside vault** — audio in `~/.anyscribecli/media/audio/`, video in `media/video/`, workspace is pure markdown
 - **Audio params** optimized for Whisper: 16kHz, mono, 64kbps mp3
-- **Files >25MB** are chunked into 18-min segments before transcription
+- **Chunking** — 18-min segments for Whisper (25MB limit), 30s segments for Sarvam (REST API limit)
 
 ## Documentation Ethic
 

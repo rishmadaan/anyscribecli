@@ -71,6 +71,12 @@ Then prepend a row to `docs/building/_index.md`.
 - Dependency checker: `src/anyscribecli/core/deps.py`
 - Update system: `src/anyscribecli/core/updater.py`
 
+## Key Dependencies
+
+- `beaupy` — arrow-key selectors in onboarding wizard
+- `instaloader` — Instagram auth + post metadata (main dep, not optional)
+- `faster-whisper` — local transcription (optional, only for `local` provider)
+
 ## Cross-Platform
 
 All code must work on macOS and Linux. Use `pathlib.Path` everywhere. No platform-specific assumptions.

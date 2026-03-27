@@ -37,12 +37,16 @@ Interactive setup wizard. Run this once after installing, or again to change set
 ascli onboard
 ```
 
-**What it does:**
-1. Checks system dependencies (Python, yt-dlp, ffmpeg)
-2. Offers to install anything missing
-3. Asks for your API key
-4. Sets preferences (provider, language, keep media)
-5. Creates your Obsidian workspace
+**What it does** (arrow-key selectors throughout):
+1. Checks system dependencies (Python, yt-dlp, ffmpeg) — offers to install missing ones
+2. Choose transcription provider (5 options, arrow keys)
+3. Enter API key for your chosen provider
+4. Optionally add API keys for other providers
+5. Optionally configure Instagram credentials
+6. Choose default language (arrow-key selector with common options)
+7. Choose whether to keep audio files after transcription
+8. Choose post-transcription download behavior (never/ask/always)
+9. Creates your Obsidian workspace at `~/.anyscribecli/workspace/`
 
 ### Flags
 
