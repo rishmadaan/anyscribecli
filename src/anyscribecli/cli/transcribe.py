@@ -57,13 +57,16 @@ def transcribe(
             err_console.print(f"[dim]URL from clipboard:[/dim] {url}")
 
     if not url:
-        # Interactive prompt — avoids the zsh glob issue entirely
-        console.print("  Paste a YouTube or Instagram URL:")
+        # No URL provided — prompt interactively
+        console.print("  Paste a YouTube or Instagram URL (no quotes needed here):")
         url = typer.prompt("  URL")
 
     if not url:
         err_console.print("[red]Error:[/red] No URL provided.")
         raise typer.Exit(code=1)
+
+    # Detect URLs mangled by zsh glob expansion (? stripped)
+    url = _validate_url(url)
 
     load_env()
     settings = load_config()
@@ -108,6 +111,34 @@ def transcribe(
         console.print(f"  Duration: {result.duration}")
         console.print(f"  Language: {result.language}")
         console.print(f"  Words:    {result.word_count}")
+
+
+def _validate_url(url: str) -> str:
+    """Validate and clean the URL. Detect common shell mangling issues."""
+    url = url.strip()
+
+    # Detect truncated YouTube URLs (zsh ate the ?v= part)
+    if "youtube.com/watch" in url and "?" not in url:
+        err_console.print(
+            "[red]Error:[/red] This URL looks incomplete — the `?v=...` part is missing.\n\n"
+            "  This usually happens because your shell (zsh) interprets `?` as a\n"
+            "  special character. Wrap the URL in quotes:\n\n"
+            '  [bold cyan]ascli transcribe "https://www.youtube.com/watch?v=VIDEO_ID"[/bold cyan]\n\n'
+            "  Or run [bold]ascli transcribe[/bold] without a URL to paste it interactively."
+        )
+        raise typer.Exit(code=2)
+
+    # Basic URL validation
+    if not url.startswith("http://") and not url.startswith("https://"):
+        err_console.print(
+            f"[red]Error:[/red] '{url}' doesn't look like a URL.\n\n"
+            "  Expected a YouTube or Instagram URL like:\n"
+            '  [bold cyan]ascli transcribe "https://www.youtube.com/watch?v=VIDEO_ID"[/bold cyan]\n\n'
+            "  Make sure to wrap the URL in quotes."
+        )
+        raise typer.Exit(code=2)
+
+    return url
 
 
 def _read_clipboard() -> str | None:
