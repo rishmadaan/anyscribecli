@@ -52,10 +52,12 @@ The wizard checks your system for dependencies (Python, yt-dlp, ffmpeg), prompts
 ### Transcribe
 
 ```bash
-ascli transcribe https://www.youtube.com/watch?v=VIDEO_ID
+ascli transcribe "https://www.youtube.com/watch?v=VIDEO_ID"
 ```
 
 That's it. Open `~/.anyscribecli/workspace/` in Obsidian to browse your transcripts.
+
+> **Always wrap URLs in quotes** — shells like zsh break URLs with `?` in them.
 
 ## Commands
 
@@ -88,7 +90,7 @@ ascli transcribe <url>
 All commands support `--json` for machine-readable output:
 
 ```bash
-ascli transcribe https://youtube.com/watch?v=abc123 --json
+ascli transcribe "https://youtube.com/watch?v=abc123" --json
 ```
 
 ```json

@@ -61,6 +61,7 @@ Then prepend a row to `docs/building/_index.md`.
 - CLI entry point: `src/anyscribecli/cli/main.py`
 - Onboarding + provider info: `src/anyscribecli/cli/onboard.py`
 - Config/providers commands: `src/anyscribecli/cli/config_cmd.py`
+- Download command: `src/anyscribecli/cli/download.py`
 - Batch processing: `src/anyscribecli/cli/batch.py`
 - Config loading: `src/anyscribecli/config/settings.py`
 - Path constants: `src/anyscribecli/config/paths.py`

@@ -8,7 +8,7 @@ A Python CLI tool (`ascli`) that downloads video/audio from YouTube/Instagram, t
 
 ```
 src/anyscribecli/
-├── cli/           # Typer commands (main.py, onboard.py, transcribe.py, batch.py, config_cmd.py)
+├── cli/           # Typer commands (main.py, onboard.py, transcribe.py, download.py, batch.py, config_cmd.py)
 ├── config/        # Paths + settings (paths.py, settings.py)
 ├── downloaders/   # Platform downloaders (base.py, youtube.py, instagram.py, registry.py)
 ├── providers/     # Transcription APIs (base.py, openai.py, openrouter.py, elevenlabs.py, sargam.py, local.py)
