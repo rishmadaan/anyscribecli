@@ -356,7 +356,7 @@ Print the installed version.
 
 ```bash
 ascli --version
-# Output: ascli v0.2.0
+# Output: ascli v0.3.0
 ```
 
 ---

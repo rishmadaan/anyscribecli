@@ -1,6 +1,6 @@
 # Architecture
 
-**Last updated:** 2026-03-26 (v0.2.0)
+**Last updated:** 2026-03-27 (v0.3.0)
 
 ## Overview
 

@@ -77,7 +77,7 @@ Verify it worked:
 ascli --version
 ```
 
-You should see `ascli v0.2.0` (or a newer version).
+You should see `ascli v0.3.0` (or a newer version).
 
 > **What's the difference?** `pip install git+...` installs a packaged copy — clean, no source code on disk. `pip install -e .` is for developers — it links to the source so you can edit code and see changes immediately. Both create the same `ascli` command.
 
