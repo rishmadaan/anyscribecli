@@ -4,50 +4,54 @@
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-0.3.0-orange.svg)](https://github.com/rishmadaan/anyscribecli/releases)
 
 ---
 
 ## What it does
 
 ```
-YouTube/Instagram URL → Download audio → Transcribe (OpenAI Whisper) → Formatted Markdown → Obsidian Vault
+YouTube/Instagram URL → Download audio → Transcribe → Formatted Markdown → Obsidian Vault
 ```
 
-- Downloads audio optimized for transcription (16kHz, mono, 64kbps)
-- Transcribes via 5 pluggable providers (OpenAI, ElevenLabs, OpenRouter, Sarvam, Local)
-- Outputs markdown with YAML frontmatter, word count, reading time, timestamps
-- Maintains a master index + daily processing logs in your Obsidian vault
-- `--json` flag on all commands for scripting and AI agent integration
+- **5 transcription providers** — OpenAI Whisper, ElevenLabs, OpenRouter, Sarvam AI, Local (offline)
+- **2 platforms** — YouTube and Instagram (reels + posts)
+- **Obsidian-native output** — YAML frontmatter, word count, reading time, tags
+- **Master index + daily logs** — browse everything in Obsidian
+- **Download-only mode** — grab video or audio without transcribing
+- **Batch processing** — transcribe a list of URLs from a file
+- **`--json` on every command** — for scripting and AI agent integration
+- **Arrow-key onboarding wizard** — interactive setup, installs missing dependencies
 
 ## Quick Start
 
-### Install (recommended)
-
-One command — checks for dependencies, installs everything, and runs setup:
+### Install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/rishmadaan/anyscribecli/main/install.sh | bash
-```
-
-### Or install manually
-
-```bash
-# Option A: pip install from GitHub
+# From GitHub (recommended)
 pip install git+https://github.com/rishmadaan/anyscribecli.git
 
-# Option B: clone and install (for development)
+# Or use the install script (checks and installs dependencies too)
+curl -fsSL https://raw.githubusercontent.com/rishmadaan/anyscribecli/main/install.sh | bash
+
+# Or clone for development
 git clone https://github.com/rishmadaan/anyscribecli.git
-cd anyscribecli
-pip install -e .
+cd anyscribecli && pip install -e .
 ```
 
-Then run the setup wizard:
+### Set up
 
 ```bash
 ascli onboard
 ```
 
-The wizard checks your system for dependencies (Python, yt-dlp, ffmpeg), prompts for your API key, and sets up an Obsidian vault at `~/.anyscribecli/workspace/`.
+Interactive wizard with arrow-key selectors:
+1. Checks system dependencies (yt-dlp, ffmpeg) — installs missing ones
+2. Choose provider from 5 options (arrow keys)
+3. Enter API key
+4. Configure Instagram credentials (optional)
+5. Choose language, media storage, post-transcription download behavior
+6. Creates your Obsidian workspace
 
 ### Transcribe
 
@@ -55,39 +59,48 @@ The wizard checks your system for dependencies (Python, yt-dlp, ffmpeg), prompts
 ascli transcribe "https://www.youtube.com/watch?v=VIDEO_ID"
 ```
 
-That's it. Open `~/.anyscribecli/workspace/` in Obsidian to browse your transcripts.
+> **Always wrap URLs in quotes** — shells like zsh break URLs with `?` in them. Or just run `ascli transcribe` and paste when prompted.
 
-> **Always wrap URLs in quotes** — shells like zsh break URLs with `?` in them.
+### Download (no transcription)
+
+```bash
+ascli download "https://www.youtube.com/watch?v=VIDEO_ID"            # video
+ascli download "https://www.youtube.com/watch?v=VIDEO_ID" --audio-only  # audio
+```
 
 ## Commands
 
 | Command | Description |
 |---------|-------------|
-| `ascli onboard` | Interactive setup wizard (first-time + reconfigure) |
-| `ascli transcribe "<url>"` | Download and transcribe a video URL |
-| `ascli download "<url>"` | Download video or audio only (no transcription) |
+| `ascli onboard` | Interactive setup wizard |
+| `ascli transcribe "<url>"` | Transcribe a video to markdown |
+| `ascli download "<url>"` | Download video or audio only |
 | `ascli batch <file>` | Batch transcribe URLs from a file |
 | `ascli config show/set` | View and change settings |
 | `ascli providers list/test` | Manage transcription providers |
 | `ascli update` | Update to the latest version |
-| `ascli doctor` | Check system health and dependencies |
-| `ascli --version` | Show version |
-| `ascli --help` | Rich-formatted help |
+| `ascli doctor` | Check system health |
 
-### Transcribe Options
+### Transcribe options
 
 ```bash
-ascli transcribe <url>
-  --provider, -p <name>    # Override transcription provider
+ascli transcribe "<url>"
+  --provider, -p <name>    # Override provider (openai, elevenlabs, local, etc.)
   --language, -l <code>    # Language code (default: auto-detect)
   --json, -j               # JSON output for scripting/AI agents
   --keep-media             # Keep the downloaded audio file
+  --clipboard, -c          # Read URL from clipboard
   --quiet, -q              # Suppress progress output
 ```
 
-### JSON Output
+Three ways to provide the URL:
+```bash
+ascli transcribe "https://..."     # quoted argument (primary)
+ascli transcribe                    # interactive prompt (no quoting needed)
+ascli transcribe --clipboard        # read from system clipboard
+```
 
-All commands support `--json` for machine-readable output:
+### JSON output
 
 ```bash
 ascli transcribe "https://youtube.com/watch?v=abc123" --json
@@ -96,7 +109,7 @@ ascli transcribe "https://youtube.com/watch?v=abc123" --json
 ```json
 {
   "success": true,
-  "file": "~/.anyscribecli/workspace/sources/youtube/2026-03-26/video-title.md",
+  "file": "~/.anyscribecli/workspace/sources/youtube/2026-03-27/video-title.md",
   "title": "Video Title",
   "platform": "youtube",
   "duration": "12:34",
@@ -108,95 +121,86 @@ ascli transcribe "https://youtube.com/watch?v=abc123" --json
 
 ## Prerequisites
 
-The onboarding wizard checks for these and helps you install them:
+The onboarding wizard checks for these and offers to install them:
 
 | Dependency | Required | Install |
 |------------|----------|---------|
 | Python 3.10+ | Yes | [python.org](https://www.python.org/downloads/) |
 | yt-dlp | Yes | `brew install yt-dlp` or `pip install yt-dlp` |
 | ffmpeg | Yes | `brew install ffmpeg` or [ffmpeg.org](https://ffmpeg.org/) |
-| OpenAI API key | Yes (default provider) | [platform.openai.com](https://platform.openai.com/api-keys) |
+| API key | Yes (for cloud providers) | See [Provider Guide](docs/user/providers.md) |
 
-## Directory Structure
+## Directory structure
 
 ```
 ~/.anyscribecli/
 ├── config.yaml                           # Settings (no secrets)
-├── .env                                  # API keys + passwords (secrets)
+├── .env                                  # API keys + passwords
 ├── workspace/                            # Obsidian vault (pure markdown)
 │   ├── _index.md                         # Master index (newest first)
 │   ├── sources/
-│   │   ├── youtube/2026-03-27/
-│   │   │   └── video-title.md            # Transcript with frontmatter
-│   │   └── instagram/2026-03-27/
-│   │       └── reel-caption.md
-│   └── daily/
-│       └── 2026-03-27.md                 # Daily processing log
+│   │   ├── youtube/YYYY-MM-DD/<slug>.md
+│   │   └── instagram/YYYY-MM-DD/<slug>.md
+│   └── daily/YYYY-MM-DD.md
 ├── media/                                # Downloads (separate from vault)
-│   ├── audio/<platform>/YYYY-MM-DD/      # Audio files (if keep_media=true)
-│   └── video/<platform>/YYYY-MM-DD/      # Video files (ascli download)
-├── sessions/                             # Login sessions (Instagram)
+│   ├── audio/<platform>/YYYY-MM-DD/      # Kept audio (if keep_media=true)
+│   └── video/<platform>/YYYY-MM-DD/      # Downloaded videos
+├── sessions/                             # Login sessions
 └── logs/                                 # Processing logs
 ```
 
-Each transcript includes YAML frontmatter for Obsidian properties:
-
-```yaml
----
-source: https://youtube.com/watch?v=...
-platform: youtube
-title: "Video Title"
-duration: "12:34"
-language: en
-provider: openai
-word_count: 1500
-reading_time: "8 min"
-tags: [transcript, youtube]
----
-```
-
-## Configuration
-
-All settings live at `~/.anyscribecli/config.yaml`:
-
-```yaml
-provider: openai        # Transcription provider
-language: auto           # Language (auto-detect or ISO code)
-keep_media: false        # Keep downloaded audio files
-output_format: clean     # clean | timestamped
-```
-
-API keys are stored separately in `~/.anyscribecli/.env`.
+> **Media is separate from the vault** — your Obsidian workspace stays lightweight, just markdown.
 
 ## Providers
 
-| Provider | Status | Best For |
-|----------|--------|----------|
-| OpenAI (Whisper) | Active (default) | General purpose, multilingual |
-| ElevenLabs (Scribe) | Active | High accuracy, 99 languages, word timestamps |
-| OpenRouter | Active | Access to various models via unified API |
-| Sarvam AI | Active | Indic languages (Hindi, Tamil, Telugu, etc.) |
-| Local (faster-whisper) | Active | Offline, free, CPU or GPU |
+| Provider | Best for | API key |
+|----------|----------|---------|
+| **OpenAI Whisper** (default) | General purpose, multilingual | `OPENAI_API_KEY` |
+| **ElevenLabs Scribe** | High accuracy, 99 languages, word timestamps | `ELEVENLABS_API_KEY` |
+| **Sarvam AI** | Indic languages (Hindi, Tamil, Telugu, etc.) | `SARGAM_API_KEY` |
+| **OpenRouter** | Access to various AI models | `OPENROUTER_API_KEY` |
+| **Local** (faster-whisper) | Offline, free, no API key needed | None |
 
-The provider architecture is pluggable — adding a new provider is one file implementing the `TranscriptionProvider` interface. See [Provider Guide](docs/user/providers.md) for detailed comparison.
+See [Provider Guide](docs/user/providers.md) for detailed comparison, pricing, and setup.
+
+## Configuration
+
+```yaml
+# ~/.anyscribecli/config.yaml
+provider: openai          # Transcription provider
+language: auto             # Language (auto-detect or ISO code)
+keep_media: false          # Keep audio files after transcription
+output_format: clean       # clean | timestamped
+prompt_download: never     # never | ask | always — download video after transcription
+```
+
+API keys and passwords live in `~/.anyscribecli/.env` (separate from config, never committed).
+
+See [Configuration Guide](docs/user/configuration.md) for all options.
+
+## Documentation
+
+| For | Where |
+|-----|-------|
+| First-time users | [Getting Started](docs/user/getting-started.md) |
+| Command reference | [Commands](docs/user/commands.md) |
+| All config options | [Configuration](docs/user/configuration.md) |
+| Provider comparison | [Providers](docs/user/providers.md) |
+| AI developers | [CLAUDE.md](CLAUDE.md) |
+| Agent directives | [AGENTS.md](AGENTS.md) |
+| Developer memory | [Building Docs](docs/building/) |
 
 ## Development
 
 ```bash
-# Install with dev dependencies
+git clone https://github.com/rishmadaan/anyscribecli.git
+cd anyscribecli
 pip install -e ".[dev]"
 
-# Lint
-ruff check src/
-
-# Format
-ruff format src/
-
-# Test
-pytest
+ruff check src/          # lint
+ruff format src/         # format
+pytest                   # test
 ```
-
-See [CLAUDE.md](CLAUDE.md) for AI developer instructions and [docs/building/](docs/building/) for the developer memory layer.
 
 ## License
 
