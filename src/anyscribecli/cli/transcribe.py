@@ -16,7 +16,7 @@ err_console = Console(stderr=True)
 
 
 def transcribe(
-    url: str = typer.Argument(..., help="YouTube or Instagram URL to transcribe."),
+    url: Optional[str] = typer.Argument(None, help="YouTube or Instagram URL to transcribe."),
     provider: Optional[str] = typer.Option(
         None, "--provider", "-p", help="Override transcription provider."
     ),
@@ -32,13 +32,38 @@ def transcribe(
     quiet: bool = typer.Option(
         False, "--quiet", "-q", help="Suppress progress output."
     ),
+    clipboard: bool = typer.Option(
+        False, "--clipboard", "-c", help="Read URL from clipboard."
+    ),
 ) -> None:
     """[bold blue]Transcribe[/bold blue] a video/audio URL to markdown.
 
     Downloads the audio, transcribes via API, and saves a formatted
     markdown file to your Obsidian workspace.
+
+    [dim]Tip: If the URL contains special characters (like ?), either
+    wrap it in quotes or just run `ascli transcribe` without a URL
+    and you'll be prompted to paste it.[/dim]
     """
     from anyscribecli.core.orchestrator import process
+
+    # Resolve the URL from argument, clipboard, or interactive prompt
+    if clipboard:
+        url = _read_clipboard()
+        if not url:
+            err_console.print("[red]Error:[/red] No URL found in clipboard.")
+            raise typer.Exit(code=1)
+        if not quiet:
+            err_console.print(f"[dim]URL from clipboard:[/dim] {url}")
+
+    if not url:
+        # Interactive prompt — avoids the zsh glob issue entirely
+        console.print("  Paste a YouTube or Instagram URL:")
+        url = typer.prompt("  URL")
+
+    if not url:
+        err_console.print("[red]Error:[/red] No URL provided.")
+        raise typer.Exit(code=1)
 
     load_env()
     settings = load_config()
@@ -83,3 +108,25 @@ def transcribe(
         console.print(f"  Duration: {result.duration}")
         console.print(f"  Language: {result.language}")
         console.print(f"  Words:    {result.word_count}")
+
+
+def _read_clipboard() -> str | None:
+    """Read URL from system clipboard. Returns None if unavailable."""
+    try:
+        import subprocess
+        import platform
+
+        if platform.system() == "Darwin":
+            result = subprocess.run(["pbpaste"], capture_output=True, text=True, timeout=5)
+        else:
+            result = subprocess.run(
+                ["xclip", "-selection", "clipboard", "-o"],
+                capture_output=True, text=True, timeout=5,
+            )
+        text = result.stdout.strip()
+        # Basic validation — should look like a URL
+        if text and ("youtube.com" in text or "youtu.be" in text or "instagram.com" in text):
+            return text
+        return text if text.startswith("http") else None
+    except Exception:
+        return None
