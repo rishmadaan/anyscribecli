@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import typer
+from beaupy import confirm as bconfirm, select as bselect
 from rich.console import Console
 from rich.panel import Panel
-from rich.table import Table
 
 from anyscribecli.config.paths import APP_HOME, CONFIG_FILE, ENV_FILE, ensure_app_dirs
 from anyscribecli.config.settings import Settings, save_config, save_env, load_config
@@ -48,6 +48,27 @@ PROVIDER_INFO = {
     },
 }
 
+# Build display options for the selector
+PROVIDER_OPTIONS = [
+    f"[cyan]{name}[/cyan] — {info['description']}"
+    for name, info in PROVIDER_INFO.items()
+]
+PROVIDER_NAMES = list(PROVIDER_INFO.keys())
+
+LANGUAGE_OPTIONS = [
+    "[cyan]auto[/cyan] — auto-detect language from audio",
+    "[cyan]en[/cyan] — English",
+    "[cyan]es[/cyan] — Spanish",
+    "[cyan]fr[/cyan] — French",
+    "[cyan]hi[/cyan] — Hindi",
+    "[cyan]ar[/cyan] — Arabic",
+    "[cyan]zh[/cyan] — Chinese",
+    "[cyan]ja[/cyan] — Japanese",
+    "[cyan]ko[/cyan] — Korean",
+    "[cyan]other[/cyan] — type a language code",
+]
+LANGUAGE_CODES = ["auto", "en", "es", "fr", "hi", "ar", "zh", "ja", "ko", "other"]
+
 
 def onboard(
     force: bool = typer.Option(False, "--force", "-f", help="Re-run setup even if already configured."),
@@ -72,7 +93,8 @@ def onboard(
         Panel(
             "Welcome to [bold]ascli[/bold]!\n\n"
             "This wizard will check your system, set up configuration,\n"
-            "and initialize your Obsidian workspace.",
+            "and initialize your Obsidian workspace.\n\n"
+            "[dim]Use arrow keys to navigate, Enter to select.[/dim]",
             title="Onboarding",
             border_style="blue",
         )
@@ -92,31 +114,27 @@ def onboard(
     # Load existing settings or defaults
     settings = load_config() if CONFIG_FILE.exists() else Settings()
 
-    # Step 3: Provider selection
+    # Step 3: Provider selection (arrow-key selector)
     console.print(
         Panel(
             "Choose your default transcription provider.\n"
-            "You can change this later with [bold]ascli config set provider <name>[/bold]\n"
-            "or override per-transcription with [bold]ascli transcribe <url> --provider <name>[/bold].",
+            "You can change this later with [bold]ascli config set provider <name>[/bold]",
             title="Provider",
             border_style="blue",
         )
     )
+    console.print("  Use [bold]↑↓ arrow keys[/bold] to navigate, [bold]Enter[/bold] to select:\n")
 
-    table = Table(show_header=True, header_style="bold")
-    table.add_column("Name", style="cyan")
-    table.add_column("Description")
-    for name, info in PROVIDER_INFO.items():
-        default_marker = " (default)" if name == "openai" else ""
-        table.add_row(name + default_marker, info["description"])
-    console.print(table)
+    # Find current default index
+    default_idx = PROVIDER_NAMES.index(settings.provider) if settings.provider in PROVIDER_NAMES else 0
+    selected = bselect(PROVIDER_OPTIONS, cursor_index=default_idx, cursor="❯ ", cursor_style="cyan")
 
-    console.print("\n  Type a provider name from the table above, or press [bold]Enter[/bold] to use the default.")
-    provider = typer.prompt("  Select provider", default=settings.provider)
-    if provider not in PROVIDER_INFO:
-        console.print(f"[yellow]Unknown provider '{provider}', using openai.[/yellow]")
+    if selected is None:
         provider = "openai"
+    else:
+        provider = PROVIDER_NAMES[PROVIDER_OPTIONS.index(selected)]
     settings.provider = provider
+    console.print(f"\n  [green]Selected:[/green] {provider}\n")
 
     # Step 4: API key for selected provider
     env_keys: dict[str, str] = {}
@@ -126,12 +144,13 @@ def onboard(
         console.print(
             Panel(
                 f"Enter your [bold]{pinfo['label']}[/bold] API key.\n"
-                f"Get one at: [link={pinfo['key_url']}]{pinfo['key_url']}[/link]",
+                f"Get one at: [link={pinfo['key_url']}]{pinfo['key_url']}[/link]\n\n"
+                "[dim]Your key is stored locally and never shared.[/dim]",
                 title="API Key",
                 border_style="blue",
             )
         )
-        console.print("  Paste your key below (it will be hidden as you type):")
+        console.print("  Paste your key below (hidden as you type):")
         api_key = typer.prompt(f"  {pinfo['label']} API key", hide_input=True)
         if api_key:
             env_keys[pinfo["env_var"]] = api_key
@@ -146,13 +165,14 @@ def onboard(
             )
         )
 
-    # Step 5: Ask if user wants to add more provider keys
-    console.print("\n  You can add API keys for other providers now, or skip and add them later.")
-    if typer.confirm("  Configure additional provider API keys?", default=False):
+    # Step 5: Additional provider keys
+    console.print()
+    console.print("  Want to configure API keys for other providers too?")
+    if bconfirm("  Add additional provider keys?"):
         for name, info in PROVIDER_INFO.items():
             if name == provider or info["env_var"] is None:
                 continue
-            if typer.confirm(f"  Add {info['label']} API key?", default=False):
+            if bconfirm(f"  Add {info['label']} key?"):
                 key = typer.prompt(f"  {info['label']} API key", hide_input=True)
                 if key:
                     env_keys[info["env_var"]] = key
@@ -163,39 +183,49 @@ def onboard(
             "Instagram downloads require a username and password.\n"
             "A dummy/secondary account is recommended — Instagram may\n"
             "temporarily restrict third-party access.\n\n"
-            "Skip this if you only plan to use YouTube.",
+            "[dim]Skip this if you only plan to use YouTube.[/dim]",
             title="Instagram (Optional)",
             border_style="blue",
         )
     )
-    console.print("  Type [bold]y[/bold] to set up Instagram, or [bold]n[/bold] to skip.")
-    if typer.confirm("  Configure Instagram?", default=False):
-        settings.instagram.username = typer.prompt("  Instagram username")
-        settings.instagram.password = typer.prompt("  Instagram password", hide_input=True)
+    if bconfirm("  Set up Instagram?"):
+        console.print("  Enter your Instagram credentials:")
+        settings.instagram.username = typer.prompt("  Username")
+        settings.instagram.password = typer.prompt("  Password", hide_input=True)
 
-    # Step 7: Language
+    # Step 7: Language (arrow-key selector)
     console.print(
         Panel(
-            "[bold]auto[/bold] = auto-detect language from audio\n"
-            "Or specify: en, es, fr, hi, ar, zh, ja, ko, etc.",
+            "Choose the default language for transcription.\n"
+            "You can override per-video with [bold]--language[/bold] flag.",
             title="Default Language",
             border_style="blue",
         )
     )
-    console.print("  Press [bold]Enter[/bold] for auto-detect, or type a language code:")
-    settings.language = typer.prompt("  Language", default=settings.language)
+    console.print("  Use [bold]↑↓ arrow keys[/bold] to navigate, [bold]Enter[/bold] to select:\n")
+
+    lang_selected = bselect(LANGUAGE_OPTIONS, cursor="❯ ", cursor_style="cyan")
+    if lang_selected is None:
+        settings.language = "auto"
+    else:
+        lang_code = LANGUAGE_CODES[LANGUAGE_OPTIONS.index(lang_selected)]
+        if lang_code == "other":
+            settings.language = typer.prompt("  Enter language code (e.g., de, pt, ru)")
+        else:
+            settings.language = lang_code
+    console.print(f"\n  [green]Selected:[/green] {settings.language}\n")
 
     # Step 8: Keep media
     console.print(
         Panel(
             "Keep downloaded audio files alongside transcripts?\n"
-            "Files are saved to [cyan]~/.anyscribecli/workspace/media/[/cyan]",
+            "Files are saved to [cyan]~/.anyscribecli/workspace/media/[/cyan]\n\n"
+            "[dim]You can change this later with: ascli config set keep_media true[/dim]",
             title="Media Storage",
             border_style="blue",
         )
     )
-    console.print("  Type [bold]y[/bold] to keep audio files, or [bold]n[/bold] to discard after transcription.")
-    settings.keep_media = typer.confirm("  Keep media files?", default=settings.keep_media)
+    settings.keep_media = bconfirm("  Keep audio files after transcription?")
 
     # Save config and env
     save_config(settings)
