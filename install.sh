@@ -13,7 +13,7 @@
 #   2. Checks for Python 3.10+, installs if missing
 #   3. Checks for yt-dlp and ffmpeg, installs if missing
 #   4. Installs anyscribecli via pip (from PyPI or GitHub)
-#   5. Runs the onboarding wizard
+#   5. Tells you to run `ascli onboard`
 # ──────────────────────────────────────────────────────────────
 
 set -euo pipefail
@@ -21,7 +21,7 @@ set -euo pipefail
 # ── Defaults ──────────────────────────────────────────────────
 INSTALL_METHOD="pip"       # pip (from PyPI) or git (from GitHub)
 REPO_URL="https://github.com/rishmadaan/anyscribecli.git"
-RUN_ONBOARD=true
+RUN_ONBOARD=false
 VERBOSE=false
 DRY_RUN=false
 
@@ -47,7 +47,7 @@ while [[ $# -gt 0 ]]; do
     case "$1" in
         --method)       INSTALL_METHOD="$2"; shift 2 ;;
         --repo)         REPO_URL="$2"; shift 2 ;;
-        --no-onboard)   RUN_ONBOARD=false; shift ;;
+        --onboard)      RUN_ONBOARD=true; shift ;;
         --verbose)      VERBOSE=true; shift ;;
         --dry-run)      DRY_RUN=true; shift ;;
         --help|-h)
@@ -60,7 +60,7 @@ while [[ $# -gt 0 ]]; do
             echo "                       pip: install from PyPI (when published)"
             echo "                       git: install from GitHub repository"
             echo "  --repo <url>         GitHub repo URL (for git method)"
-            echo "  --no-onboard         Skip the onboarding wizard after install"
+            echo "  --onboard            Run the onboarding wizard after install"
             echo "  --verbose            Show detailed output"
             echo "  --dry-run            Show what would be done without doing it"
             echo "  --help               Show this help"
@@ -96,7 +96,7 @@ install_brew_if_needed() {
     if [[ "$OS" == "macos" ]] && ! command_exists brew; then
         warn "Homebrew not found. It's needed to install dependencies."
         echo "    Install from: https://brew.sh"
-        read -rp "    Install Homebrew now? [Y/n] " answer
+        read -rp "    Install Homebrew now? [Y/n] " answer </dev/tty
         answer="${answer:-Y}"
         if [[ "$answer" =~ ^[Yy] ]]; then
             info "Installing Homebrew..."
@@ -176,7 +176,7 @@ check_python() {
         warn "Python 3 not found"
     fi
 
-    read -rp "    Install Python? [Y/n] " answer
+    read -rp "    Install Python? [Y/n] " answer </dev/tty
     answer="${answer:-Y}"
     if [[ "$answer" =~ ^[Yy] ]]; then
         install_package "Python" "python@3.12" "python3" ""
@@ -195,7 +195,7 @@ check_ytdlp() {
     fi
 
     warn "yt-dlp not found"
-    read -rp "    Install yt-dlp? [Y/n] " answer
+    read -rp "    Install yt-dlp? [Y/n] " answer </dev/tty
     answer="${answer:-Y}"
     if [[ "$answer" =~ ^[Yy] ]]; then
         install_package "yt-dlp" "yt-dlp" "yt-dlp" "yt-dlp"
@@ -214,7 +214,7 @@ check_ffmpeg() {
     fi
 
     warn "ffmpeg not found"
-    read -rp "    Install ffmpeg? [Y/n] " answer
+    read -rp "    Install ffmpeg? [Y/n] " answer </dev/tty
     answer="${answer:-Y}"
     if [[ "$answer" =~ ^[Yy] ]]; then
         install_package "ffmpeg" "ffmpeg" "ffmpeg" ""
@@ -264,7 +264,7 @@ install_ascli() {
     fi
 }
 
-# ── Run onboarding ────────────────────────────────────────────
+# ── Run onboarding (opt-in) ───────────────────────────────────
 run_onboard() {
     if [[ "$RUN_ONBOARD" == true ]]; then
         echo ""
@@ -273,17 +273,12 @@ run_onboard() {
         if [[ "$DRY_RUN" == true ]]; then
             echo "    [dry-run] ascli onboard --skip-deps"
         else
-            # Skip deps since we just checked them
             if command_exists ascli; then
                 ascli onboard --skip-deps
             else
                 python3 -m anyscribecli.cli.main onboard --skip-deps
             fi
         fi
-    else
-        echo ""
-        info "Skipping onboarding (--no-onboard)."
-        echo "    Run ${BOLD}ascli onboard${NC} when ready."
     fi
 }
 
@@ -304,13 +299,24 @@ main() {
     run_onboard
 
     echo ""
-    echo -e "${GREEN}${BOLD}  ┌─────────────────────────────────────┐${NC}"
-    echo -e "${GREEN}${BOLD}  │  ascli is ready!                    │${NC}"
-    echo -e "${GREEN}${BOLD}  │                                     │${NC}"
-    echo -e "${GREEN}${BOLD}  │  ascli transcribe <url>             │${NC}"
-    echo -e "${GREEN}${BOLD}  │  ascli doctor                       │${NC}"
-    echo -e "${GREEN}${BOLD}  │  ascli update                       │${NC}"
-    echo -e "${GREEN}${BOLD}  └─────────────────────────────────────┘${NC}"
+    if [[ "$RUN_ONBOARD" == true ]]; then
+        echo -e "${GREEN}${BOLD}  ┌─────────────────────────────────────┐${NC}"
+        echo -e "${GREEN}${BOLD}  │  ascli is ready!                    │${NC}"
+        echo -e "${GREEN}${BOLD}  │                                     │${NC}"
+        echo -e "${GREEN}${BOLD}  │  ascli transcribe <url>             │${NC}"
+        echo -e "${GREEN}${BOLD}  │  ascli doctor                       │${NC}"
+        echo -e "${GREEN}${BOLD}  └─────────────────────────────────────┘${NC}"
+    else
+        echo -e "${GREEN}${BOLD}  ┌─────────────────────────────────────┐${NC}"
+        echo -e "${GREEN}${BOLD}  │  ascli is installed!                │${NC}"
+        echo -e "${GREEN}${BOLD}  │                                     │${NC}"
+        echo -e "${GREEN}${BOLD}  │  Next step:                         │${NC}"
+        echo -e "${GREEN}${BOLD}  │    ascli onboard                    │${NC}"
+        echo -e "${GREEN}${BOLD}  │                                     │${NC}"
+        echo -e "${GREEN}${BOLD}  │  Then:                              │${NC}"
+        echo -e "${GREEN}${BOLD}  │    ascli transcribe <url>           │${NC}"
+        echo -e "${GREEN}${BOLD}  └─────────────────────────────────────┘${NC}"
+    fi
     echo ""
 }
 
