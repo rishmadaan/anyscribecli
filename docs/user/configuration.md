@@ -71,7 +71,7 @@ Use standard language codes: `en` (English), `es` (Spanish), `fr` (French), `hi`
 
 Whether to save the downloaded audio file alongside the transcript. Default: `false`.
 
-When `true`, audio files are saved to `~/.anyscribecli/workspace/media/YYYY-MM-DD/`. This uses more disk space but lets you re-listen or re-transcribe later without downloading again.
+When `true`, audio files are saved to `~/.anyscribecli/media/audio/<platform>/YYYY-MM-DD/` (separate from the Obsidian workspace). This uses more disk space but lets you re-listen or re-transcribe later without downloading again.
 
 > **Disk space:** A 10-minute video at 64kbps mono is about 5MB of audio. If you transcribe a lot, this adds up.
 

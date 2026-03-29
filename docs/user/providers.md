@@ -19,7 +19,7 @@ ascli supports 5 transcription providers. Here's how they compare and when to us
 | **Languages** | 99 | 99 | 22 Indian + English | Model-dependent | 99 |
 | **Timestamps** | Segment-level | Word-level | No (REST API) | No | Segment-level |
 | **Pricing** | ~$0.36/hr | ~$0.22–0.40/hr | ~$0.35/hr | Varies by model | Free |
-| **File limit** | 25 MB (auto-chunked) | 3 GB | 30s (auto-chunked) | ~context window | RAM only |
+| **File limit** | 25 MB (auto-chunked) | 25 MB (auto-chunked) | 30s (auto-chunked) | 25 MB (auto-chunked) | RAM only |
 | **Offline** | No | No | No | No | Yes |
 | **API key** | Required | Required | Required | Required | Not needed |
 
@@ -52,8 +52,8 @@ ascli config set provider elevenlabs
 - **API key env var:** `ELEVENLABS_API_KEY`
 - **Get a key:** [elevenlabs.io/app/settings/api-keys](https://elevenlabs.io/app/settings/api-keys)
 - **Cost:** ~$0.22–0.40/hour depending on plan
-- **File limit:** 3 GB (very generous)
-- **Model:** `scribe_v1` (Scribe v2 also available)
+- **File limit:** The ElevenLabs API accepts up to 3 GB, but ascli chunks at 25 MB (same as OpenAI) for consistency
+- **Model:** `scribe_v1`
 
 > **When to use:** When you need the highest accuracy, word-level timestamps, or speaker identification. Slightly cheaper than OpenAI for high volumes.
 
@@ -85,7 +85,7 @@ ascli config set provider openrouter
 - **API key env var:** `OPENROUTER_API_KEY`
 - **Get a key:** [openrouter.ai/keys](https://openrouter.ai/keys)
 - **Cost:** Varies by model (per-token pricing, generally more expensive than dedicated STT)
-- **File limit:** Constrained by model context window
+- **File limit:** 25 MB (auto-chunked, same as OpenAI)
 - **No timestamps** — returns plain text only
 - **Model override:** Set `OPENROUTER_MODEL` env var to choose a model (default: `openai/gpt-4o-audio-preview`)
 

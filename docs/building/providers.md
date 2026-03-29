@@ -1,6 +1,6 @@
 # Providers
 
-**Last updated:** 2026-03-27 (v0.3.0)
+**Last updated:** 2026-03-29 (v0.3.1)
 
 ## Available Providers
 
@@ -22,15 +22,17 @@
 ### ElevenLabs (`providers/elevenlabs.py`)
 - Uses `scribe_v1` model, `xi-api-key` auth header
 - Returns word-level timestamps (grouped into ~30-word segments for readability)
-- 3GB file limit — very generous
+- ElevenLabs API accepts up to 3GB, but ascli chunks at 25MB (same `WHISPER_MAX_BYTES` threshold) for consistency
 
 ### OpenRouter (`providers/openrouter.py`)
 - No dedicated STT endpoint — sends base64 audio to chat models
 - Default model: `openai/gpt-4o-audio-preview` (override via `OPENROUTER_MODEL` env var)
 - No timestamps returned — plain text only
+- Auto-chunked at 25MB (same `WHISPER_MAX_BYTES` threshold as OpenAI/ElevenLabs)
 - More expensive than dedicated STT APIs
 
 ### Sargam/Sarvam (`providers/sargam.py`)
+- Uses `saaras:v2` model
 - REST API limited to 30-second clips
 - Auto-chunks audio into 30s segments (different from the standard 18-min Whisper chunks)
 - `api-subscription-key` auth header

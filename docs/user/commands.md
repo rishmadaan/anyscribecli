@@ -20,6 +20,7 @@ Every ascli command. Copy-paste friendly.
 | `ascli batch <file>` | Batch transcribe URLs from a file |
 | `ascli config show` | View current settings |
 | `ascli config set <key> <value>` | Change a setting |
+| `ascli config path` | Print config file location |
 | `ascli providers list` | Show available providers |
 | `ascli providers test [name]` | Test a provider's API key |
 | `ascli update` | Update to the latest version |
@@ -216,7 +217,7 @@ Download video or audio from a URL — no transcription. Useful when you just wa
 ascli download "<url>"
 ```
 
-Saves to `~/.anyscribecli/media/video/` (default) or `~/.anyscribecli/media/audio/`.
+Saves to `~/.anyscribecli/media/video/<platform>/YYYY-MM-DD/` (default) or `~/.anyscribecli/media/audio/<platform>/YYYY-MM-DD/` with `--audio-only`.
 
 ### Flags
 
@@ -258,6 +259,12 @@ ascli config set key value  # change a setting
 ascli config path           # print config file location
 ```
 
+### Flags
+
+| Command | Flag | Short | Description |
+|---------|------|-------|-------------|
+| `config show` | `--json` | `-j` | Output settings as JSON |
+
 ### Examples
 
 ```bash
@@ -291,6 +298,12 @@ ascli providers list          # show all providers
 ascli providers test          # test active provider
 ascli providers test openai   # test a specific provider
 ```
+
+### Flags
+
+| Command | Flag | Short | Description |
+|---------|------|-------|-------------|
+| `providers list` | `--json` | `-j` | Output provider list as JSON |
 
 ### Available Providers
 
@@ -346,7 +359,7 @@ ascli doctor
 
 **What it checks:**
 1. System dependencies (Python, yt-dlp, ffmpeg, ffprobe)
-2. Configuration files (config.yaml, .env, workspace)
+2. Configuration (app directory, config.yaml, .env, workspace vault, workspace index)
 3. Installation info (version, install type, repo path)
 4. Available updates
 
@@ -360,7 +373,7 @@ Print the installed version.
 
 ```bash
 ascli --version
-# Output: ascli v0.3.0
+# Output: ascli v0.3.1
 ```
 
 ---

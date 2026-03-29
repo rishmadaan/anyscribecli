@@ -59,7 +59,7 @@ Verify it worked:
 ascli --version
 ```
 
-You should see `ascli v0.3.0` (or a newer version).
+You should see `ascli v0.3.1` (or a newer version).
 
 > **Other install methods:** You can also use the [install script](https://raw.githubusercontent.com/rishmadaan/anyscribecli/main/install.sh) which checks and installs all dependencies for you, or [clone the repo](https://github.com/rishmadaan/anyscribecli) for development.
 
@@ -72,12 +72,12 @@ ascli onboard
 The wizard uses arrow-key selectors — navigate with **↑↓** and press **Enter** to select:
 
 1. **Check your system** — makes sure `yt-dlp` and `ffmpeg` are installed. Offers to install missing ones.
-2. **Choose your provider** — 5 options: OpenAI (default), ElevenLabs, Sarvam AI, OpenRouter, Local.
+2. **Choose your provider** — 5 options: OpenAI (default), OpenRouter, ElevenLabs, Sarvam AI, Local.
 3. **Enter your API key** — stored locally at `~/.anyscribecli/.env`. Never sent anywhere except your provider.
 4. **Add more provider keys** (optional) — configure multiple providers now or later.
 5. **Configure Instagram** (optional) — username and password for downloading Instagram reels. A secondary account is recommended.
 6. **Choose language** — auto-detect (default) or pick a specific language.
-7. **Keep audio files** — whether to save the transcription audio alongside your transcripts.
+7. **Keep audio files** — whether to save the transcription audio to `~/.anyscribecli/media/audio/`.
 8. **Post-transcription downloads** — whether ascli should offer to download the full video after each transcription (never/ask/always).
 9. **Create workspace** — sets up your Obsidian vault at `~/.anyscribecli/workspace/`.
 
@@ -98,12 +98,11 @@ Replace `VIDEO_ID` with a real video ID. A short video (under 5 minutes) is good
 You'll see:
 
 ```
-Downloading audio...
-  Downloaded: How to Make Perfect Coffee
-Transcribing with openai...
-  Done: 847 words, language=en
-Writing to vault...
-  Saved: ~/.anyscribecli/workspace/sources/youtube/2026-03-27/how-to-make-perfect-coffee.md
+Transcription saved: ~/.anyscribecli/workspace/sources/youtube/2026-03-29/how-to-make-perfect-coffee.md
+  Title:    How to Make Perfect Coffee
+  Duration: 4:32
+  Language: en
+  Words:    847
 ```
 
 ### Also try

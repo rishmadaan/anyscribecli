@@ -1,6 +1,6 @@
 # Architecture
 
-**Last updated:** 2026-03-27 (v0.3.0)
+**Last updated:** 2026-03-29 (v0.3.1)
 
 ## Overview
 
@@ -20,8 +20,8 @@ URL input -> Platform detection -> Download (yt-dlp / instaloader)
 ### CLI Layer (`cli/`)
 - Typer app with `rich_markup_mode="rich"`
 - Commands: `onboard`, `transcribe`, `download`, `batch`, `config`, `providers`, `update`, `doctor`
-- Global flags: `--json`, `--quiet`
-- `--json` on all commands for AI agent and scripting integration
+- `--json` and `--quiet` available on main commands (transcribe, download, batch, config show, providers list)
+- `--json` for AI agent and scripting integration
 
 ### Config Layer (`config/`)
 - `paths.py`: all path constants via pathlib

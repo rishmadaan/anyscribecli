@@ -6,7 +6,7 @@
 #   curl -fsSL https://raw.githubusercontent.com/rishmadaan/anyscribecli/main/install.sh | bash
 #
 # Or with options:
-#   curl -fsSL ... | bash -s -- --method git --no-onboard
+#   curl -fsSL ... | bash -s -- --method git --onboard
 #
 # What it does:
 #   1. Checks your OS (macOS or Linux)

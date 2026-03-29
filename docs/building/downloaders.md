@@ -1,6 +1,6 @@
 # Downloaders
 
-**Last updated:** 2026-03-27 (v0.3.0)
+**Last updated:** 2026-03-29 (v0.3.1)
 
 ## Available Downloaders
 
@@ -22,7 +22,7 @@
 - Session caching pattern from Dropzone bundle: load session → test_login → fresh login if invalid → save
 - Sessions stored at `~/.anyscribecli/sessions/instagram_session`
 - Downloads video via instaloader, then extracts audio via ffmpeg
-- Handles: `instagram.com/reel/`, `instagram.com/p/`
+- Handles: `instagram.com/reel/`, `instagram.com/p/`, `instagram.com/<username>/reel/`, `instagram.com/<username>/p/`
 - Only video posts — image posts are rejected with a helpful error
 - Included as a main dependency (installed automatically with ascli)
 - Downloads video directly via `post.video_url` then extracts audio with ffmpeg

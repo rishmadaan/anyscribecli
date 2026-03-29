@@ -18,7 +18,8 @@ The `0.x` prefix means pre-stable — breaking changes are allowed between minor
 |---------|-----------|--------|
 | 0.1.0 | YouTube + OpenAI MVP | Released 2026-03-26 |
 | 0.2.0 | Full feature build (Instagram, all providers, batch, config, onboarding) | Released 2026-03-26 |
-| 0.3.0 | Download command, media restructure, post-transcription prompts, UX polish | **Current** |
+| 0.3.0 | Download command, media restructure, post-transcription prompts, UX polish | Released 2026-03-27 |
+| 0.3.1 | Documentation accuracy audit — 16 issues fixed across all docs | **Current** |
 | 0.4.0 | Cache/dedup, test suite, error handling | Next |
 | 1.0.0 | Stable: published on PyPI, full test coverage | Future |
 

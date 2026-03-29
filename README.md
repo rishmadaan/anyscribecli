@@ -4,7 +4,7 @@
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.3.0-orange.svg)](https://github.com/rishmadaan/anyscribecli/releases)
+[![Version](https://img.shields.io/badge/version-0.3.1-orange.svg)](https://github.com/rishmadaan/anyscribecli/releases)
 
 ---
 
@@ -20,7 +20,7 @@ YouTube/Instagram URL → Download audio → Transcribe → Formatted Markdown �
 - **Master index + daily logs** — browse everything in Obsidian
 - **Download-only mode** — grab video or audio without transcribing
 - **Batch processing** — transcribe a list of URLs from a file
-- **`--json` on every command** — for scripting and AI agent integration
+- **`--json` on main commands** — for scripting and AI agent integration
 - **Arrow-key onboarding wizard** — interactive setup, installs missing dependencies
 
 ## Quick Start
@@ -76,7 +76,7 @@ ascli download "https://www.youtube.com/watch?v=VIDEO_ID" --audio-only  # audio
 | `ascli transcribe "<url>"` | Transcribe a video to markdown |
 | `ascli download "<url>"` | Download video or audio only |
 | `ascli batch <file>` | Batch transcribe URLs from a file |
-| `ascli config show/set` | View and change settings |
+| `ascli config show/set/path` | View and change settings |
 | `ascli providers list/test` | Manage transcription providers |
 | `ascli update` | Update to the latest version |
 | `ascli doctor` | Check system health |
@@ -98,6 +98,28 @@ Three ways to provide the URL:
 ascli transcribe "https://..."     # quoted argument (primary)
 ascli transcribe                    # interactive prompt (no quoting needed)
 ascli transcribe --clipboard        # read from system clipboard
+```
+
+### Download options
+
+```bash
+ascli download "<url>"
+  --video / --audio-only     # Video (default) or audio only
+  --json, -j                 # JSON output
+  --quiet, -q                # Suppress progress
+  --clipboard, -c            # Read URL from clipboard
+```
+
+### Batch options
+
+```bash
+ascli batch <file>
+  --provider, -p <name>      # Override provider
+  --language, -l <code>      # Override language
+  --json, -j                 # JSON output
+  --keep-media               # Keep audio files
+  --quiet, -q                # Suppress progress
+  --stop-on-error            # Stop at first failure
 ```
 
 ### JSON output
