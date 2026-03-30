@@ -1,4 +1,4 @@
-"""Workspace migration — move legacy ~/.anyscribecli/workspace/ to ~/anyscribe."""
+"""Migrations for workspace and directory renames across versions."""
 
 from __future__ import annotations
 
@@ -28,3 +28,16 @@ def maybe_migrate_workspace() -> Path | None:
         shutil.move(str(LEGACY_WORKSPACE), str(DEFAULT_WORKSPACE))
         return DEFAULT_WORKSPACE
     return None
+
+
+def maybe_migrate_media_to_downloads() -> bool:
+    """Rename ~/.anyscribecli/media/ to ~/.anyscribecli/downloads/.
+
+    Returns True if migrated, False otherwise.
+    """
+    from anyscribecli.config.paths import DOWNLOADS_DIR, LEGACY_MEDIA_DIR
+
+    if LEGACY_MEDIA_DIR.exists() and not DOWNLOADS_DIR.exists():
+        shutil.move(str(LEGACY_MEDIA_DIR), str(DOWNLOADS_DIR))
+        return True
+    return False

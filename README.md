@@ -172,14 +172,14 @@ The onboarding wizard checks for these and offers to install them:
 ~/.anyscribecli/                          # App internals (hidden)
 ├── config.yaml                           # Settings (no secrets)
 ├── .env                                  # API keys + passwords
-├── media/                                # Downloads (separate from vault)
+├── downloads/                            # Downloads (separate from vault)
 │   ├── audio/<platform>/YYYY-MM-DD/      # Kept audio (if keep_media=true)
 │   └── video/<platform>/YYYY-MM-DD/      # Downloaded videos
 ├── sessions/                             # Login sessions
 └── logs/                                 # Processing logs
 ```
 
-> **Workspace is visible and configurable** — transcripts default to `~/anyscribe/` (no hidden dot-dir). Change it with `ascli config set workspace_path /your/path`. Media stays separate to keep the vault lightweight.
+> **Workspace is visible and configurable** — transcripts default to `~/anyscribe/` (no hidden dot-dir). Change it with `ascli config set workspace_path /your/path`. Downloads stay separate to keep the vault lightweight.
 
 ## Providers
 

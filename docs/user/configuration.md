@@ -17,7 +17,7 @@ ascli uses two locations: a visible workspace for your transcripts and a hidden 
 | **Workspace** | `~/anyscribe/` | Your Obsidian vault with all transcripts (configurable) |
 | Config | `~/.anyscribecli/config.yaml` | Your preferences (provider, language, etc.) |
 | API Keys | `~/.anyscribecli/.env` | Secret API keys (never committed to git) |
-| Media | `~/.anyscribecli/media/` | Downloaded audio/video files |
+| Downloads | `~/.anyscribecli/downloads/` | Downloaded audio/video files |
 | Logs | `~/.anyscribecli/logs/` | Processing logs |
 | Sessions | `~/.anyscribecli/sessions/` | Instagram login sessions (when enabled) |
 | Temp | `~/.anyscribecli/tmp/` | Temporary downloads (auto-cleaned) |
@@ -76,7 +76,7 @@ Use standard language codes: `en` (English), `es` (Spanish), `fr` (French), `hi`
 
 Whether to save the downloaded audio file alongside the transcript. Default: `false`.
 
-When `true`, audio files are saved to `~/.anyscribecli/media/audio/<platform>/YYYY-MM-DD/` (separate from the Obsidian workspace). This uses more disk space but lets you re-listen or re-transcribe later without downloading again.
+When `true`, audio files are saved to `~/.anyscribecli/downloads/audio/<platform>/YYYY-MM-DD/` (separate from the Obsidian workspace). This uses more disk space but lets you re-listen or re-transcribe later without downloading again.
 
 > **Disk space:** A 10-minute video at 64kbps mono is about 5MB of audio. If you transcribe a lot, this adds up.
 
@@ -108,8 +108,8 @@ What to do with the original file when transcribing local audio/video files. Def
 | Value | Description |
 |-------|-------------|
 | `skip` | Leave the original file where it is (default) |
-| `copy` | Copy to `~/.anyscribecli/media/audio/local/YYYY-MM-DD/` for organization |
-| `move` | Move to the media directory (removes the original) |
+| `copy` | Copy to `~/.anyscribecli/downloads/audio/local/YYYY-MM-DD/` for organization |
+| `move` | Move to the downloads directory (removes the original) |
 | `ask` | Ask each time what to do |
 
 > **Why skip by default?** Unlike URL downloads where audio is temporary, local files already exist on your disk. Copying them wastes space unless you want everything organized in one place.
@@ -147,7 +147,7 @@ nano ~/.anyscribecli/.env
 
 ## Workspace Structure
 
-Your transcripts live in the workspace (pure markdown, no binaries). Media files are stored separately in the app directory.
+Your transcripts live in the workspace (pure markdown, no binaries). Downloaded files are stored separately in the app directory.
 
 ```
 ~/anyscribe/                               # Obsidian vault (configurable)
@@ -160,14 +160,14 @@ Your transcripts live in the workspace (pure markdown, no binaries). Media files
 └── daily/YYYY-MM-DD.md                   # Daily processing log
 
 ~/.anyscribecli/                           # App internals (hidden)
-├── media/                                 # Downloads (separate from vault)
+├── downloads/                             # Downloads (separate from vault)
 │   ├── audio/<platform>/YYYY-MM-DD/       # Audio files (if keep_media=true)
 │   └── video/<platform>/YYYY-MM-DD/       # Video files (ascli download)
 ├── sessions/                              # Login sessions
 └── logs/                                  # Processing logs
 ```
 
-> **Why is media separate?** Keeping binaries out of the Obsidian vault means the vault stays lightweight and fast — even with hundreds of transcripts.
+> **Why are downloads separate?** Keeping binaries out of the Obsidian vault means the vault stays lightweight and fast — even with hundreds of transcripts.
 
 #### workspace_path
 

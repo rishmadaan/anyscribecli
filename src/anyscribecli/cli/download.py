@@ -31,7 +31,7 @@ def download(
 ) -> None:
     """[bold green]Download[/bold green] video or audio from a URL — no transcription.
 
-    Saves to ~/.anyscribecli/media/video/ or ~/.anyscribecli/media/audio/.
+    Saves to ~/.anyscribecli/downloads/video/ or ~/.anyscribecli/downloads/audio/.
 
     [dim]Tip: Wrap URLs in quotes to avoid shell issues.[/dim]
     """

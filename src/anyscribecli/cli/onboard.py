@@ -316,7 +316,7 @@ def onboard(
         console.print(
             Panel(
                 "Keep downloaded audio files after transcription?\n"
-                "Files are saved to [cyan]~/.anyscribecli/media/audio/[/cyan]\n\n"
+                "Files are saved to [cyan]~/.anyscribecli/downloads/audio/[/cyan]\n\n"
                 "[dim]You can change this later with: ascli config set keep_media true[/dim]",
                 title="Media Storage",
                 border_style="blue",
@@ -350,8 +350,8 @@ def onboard(
         )
         local_options = [
             "[cyan]skip[/cyan] — leave the original file where it is",
-            "[cyan]copy[/cyan] — copy to ~/.anyscribecli/media/audio/ for organization",
-            "[cyan]move[/cyan] — move to ~/.anyscribecli/media/audio/ for organization",
+            "[cyan]copy[/cyan] — copy to ~/.anyscribecli/downloads/audio/ for organization",
+            "[cyan]move[/cyan] — move to ~/.anyscribecli/downloads/audio/ for organization",
             "[cyan]ask[/cyan] — ask me each time",
         ]
         local_codes = ["skip", "copy", "move", "ask"]

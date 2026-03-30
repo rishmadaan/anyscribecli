@@ -18,7 +18,7 @@ ascli transcribe --clipboard          # Read URL from clipboard
 | `--provider` | `-p` | Override provider: openai, elevenlabs, sargam, openrouter, local | From config |
 | `--language` | `-l` | Language code (en, es, fr, hi, ar, etc.) or "auto" | From config (auto) |
 | `--json` | `-j` | Output result as JSON | Off |
-| `--keep-media` | | Keep downloaded audio in `~/.anyscribecli/media/audio/` | From config |
+| `--keep-media` | | Keep downloaded audio in `~/.anyscribecli/downloads/audio/` | From config |
 | `--quiet` | `-q` | Suppress progress output | Off |
 | `--clipboard` | `-c` | Read URL from system clipboard | Off |
 
@@ -102,8 +102,8 @@ ascli download --clipboard             # From clipboard
 
 ### Output locations
 
-- Video: `~/.anyscribecli/media/video/<platform>/YYYY-MM-DD/`
-- Audio: `~/.anyscribecli/media/audio/<platform>/YYYY-MM-DD/`
+- Video: `~/.anyscribecli/downloads/video/<platform>/YYYY-MM-DD/`
+- Audio: `~/.anyscribecli/downloads/audio/<platform>/YYYY-MM-DD/`
 
 ---
 

@@ -10,10 +10,13 @@ LOGS_DIR = APP_HOME / "logs"
 SESSIONS_DIR = APP_HOME / "sessions"
 TMP_DIR = APP_HOME / "tmp"
 
-# Media lives OUTSIDE the workspace — keeps the Obsidian vault pure markdown
-MEDIA_DIR = APP_HOME / "media"
-AUDIO_DIR = MEDIA_DIR / "audio"
-VIDEO_DIR = MEDIA_DIR / "video"
+# Downloads live OUTSIDE the workspace — keeps the Obsidian vault pure markdown
+DOWNLOADS_DIR = APP_HOME / "downloads"
+AUDIO_DIR = DOWNLOADS_DIR / "audio"
+VIDEO_DIR = DOWNLOADS_DIR / "video"
+
+# Legacy path (pre-v0.5.1)
+LEGACY_MEDIA_DIR = APP_HOME / "media"
 
 # Workspace — visible, user-facing (configurable via config.yaml workspace_path)
 DEFAULT_WORKSPACE = Path.home() / "anyscribe"

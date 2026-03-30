@@ -77,7 +77,7 @@ The wizard uses arrow-key selectors — navigate with **↑↓** and press **Ent
 4. **Add more provider keys** (optional) — configure multiple providers now or later.
 5. **Configure Instagram** (optional) — username and password for downloading Instagram reels. A secondary account is recommended.
 6. **Choose language** — auto-detect (default) or pick a specific language.
-7. **Keep audio files** — whether to save the transcription audio to `~/.anyscribecli/media/audio/`.
+7. **Keep audio files** — whether to save the transcription audio to `~/.anyscribecli/downloads/audio/`.
 8. **Local file handling** — what to do with original files when transcribing local audio/video (skip/copy/move/ask).
 9. **Post-transcription downloads** — whether ascli should offer to download the full video after each transcription (never/ask/always).
 10. **Choose workspace location** — where to store transcripts (default: `~/anyscribe/`).

@@ -28,7 +28,7 @@ Flow: `CLI command -> orchestrator -> downloader + provider -> vault writer -> i
 - **Interactive prompts** use `beaupy` (arrow-key selectors) for onboarding, `typer.prompt` for text input
 - **URL input** three methods: quoted argument (primary), interactive prompt (fallback), clipboard
 - **Workspace** at `~/anyscribe/` (configurable) — pure markdown Obsidian vault, resolved via `get_workspace_dir()` in `config/paths.py`
-- **Media outside vault** — audio in `~/.anyscribecli/media/audio/`, video in `media/video/`
+- **Downloads outside vault** — audio in `~/.anyscribecli/downloads/audio/`, video in `downloads/video/`
 - **Audio params** optimized for Whisper: 16kHz, mono, 64kbps mp3
 - **Chunking** — 18-min segments for Whisper (25MB limit), 30s segments for Sarvam (REST API limit)
 

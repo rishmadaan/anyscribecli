@@ -7,8 +7,7 @@
 | Workspace | `~/anyscribe/` | Obsidian vault — configurable via `workspace_path` |
 | Config | `~/.anyscribecli/config.yaml` | Settings (no secrets) |
 | Secrets | `~/.anyscribecli/.env` | API keys, passwords — **never display** |
-| Audio | `~/.anyscribecli/media/audio/` | Kept audio files (if enabled) |
-| Video | `~/.anyscribecli/media/video/` | Downloaded videos |
+| Downloads | `~/.anyscribecli/downloads/` | Downloaded audio/video files |
 | Logs | `~/.anyscribecli/logs/` | Processing logs |
 | Sessions | `~/.anyscribecli/sessions/` | Instagram login sessions |
 | Temp | `~/.anyscribecli/tmp/` | Temporary downloads (auto-cleaned) |
@@ -33,7 +32,7 @@ instagram:
 
 **language** — Default audio language. `auto` lets the provider detect it. Set explicitly if detection is wrong. Override per-command with `--language`.
 
-**keep_media** — When true, saves downloaded audio to `~/.anyscribecli/media/audio/<platform>/YYYY-MM-DD/`. A 10-min video at 64kbps mono is ~5 MB.
+**keep_media** — When true, saves downloaded audio to `~/.anyscribecli/downloads/audio/<platform>/YYYY-MM-DD/`. A 10-min video at 64kbps mono is ~5 MB.
 
 **workspace_path** — Where transcripts are stored. Empty string (default) means `~/anyscribe/`. Set a custom path to use an existing Obsidian vault or preferred location. Check resolved path with `ascli config show`.
 
@@ -41,7 +40,7 @@ instagram:
 
 **prompt_download** — After each transcription: `never` (just transcribe), `ask` (prompt to download video/audio), `always` (auto-download video too).
 
-**local_file_media** — When transcribing local files: `skip` (leave original), `copy` (duplicate to media dir), `move` (relocate to media dir), `ask` (prompt each time).
+**local_file_media** — When transcribing local files: `skip` (leave original), `copy` (duplicate to downloads dir), `move` (relocate to downloads dir), `ask` (prompt each time).
 
 **instagram.username** — Instagram account for reel downloads. Password stored in `.env`.
 
@@ -79,7 +78,7 @@ ASCLI_LOCAL_MODEL=base                           # Optional: tiny|base|small|med
 
 **Organization:** Files grouped by platform, then by date. Slugs are lowercase, hyphenated, max 60 chars. Duplicate slugs on the same day get `-2`, `-3`, etc.
 
-**Media is separate:** Audio/video files live in `~/.anyscribecli/media/`, not in the workspace. The vault stays lightweight — pure markdown. Use `ascli config show` to see the resolved workspace path.
+**Downloads are separate:** Audio/video files live in `~/.anyscribecli/downloads/`, not in the workspace. The vault stays lightweight — pure markdown. Use `ascli config show` to see the resolved workspace path.
 
 ## Transcript File Format
 

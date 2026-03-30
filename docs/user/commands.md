@@ -231,7 +231,7 @@ Download video or audio from a URL — no transcription. Useful when you just wa
 ascli download "<url>"
 ```
 
-Saves to `~/.anyscribecli/media/video/<platform>/YYYY-MM-DD/` (default) or `~/.anyscribecli/media/audio/<platform>/YYYY-MM-DD/` with `--audio-only`.
+Saves to `~/.anyscribecli/downloads/video/<platform>/YYYY-MM-DD/` (default) or `~/.anyscribecli/downloads/audio/<platform>/YYYY-MM-DD/` with `--audio-only`.
 
 ### Flags
 

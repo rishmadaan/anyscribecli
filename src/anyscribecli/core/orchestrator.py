@@ -43,12 +43,13 @@ def process(url: str, settings: Settings, quiet: bool = False) -> ProcessResult:
     Returns:
         ProcessResult with metadata about the written file.
     """
-    # Auto-migrate legacy workspace if needed
-    from anyscribecli.core.migrate import maybe_migrate_workspace
+    # Auto-migrate legacy paths if needed
+    from anyscribecli.core.migrate import maybe_migrate_workspace, maybe_migrate_media_to_downloads
 
     migrated = maybe_migrate_workspace()
     if migrated and not quiet:
         err_console.print(f"  [yellow]Workspace moved to {migrated}[/yellow]")
+    maybe_migrate_media_to_downloads()
 
     TMP_DIR.mkdir(parents=True, exist_ok=True)
     tmp_dir = Path(tempfile.mkdtemp(dir=TMP_DIR))
