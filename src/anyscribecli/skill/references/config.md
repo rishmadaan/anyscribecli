@@ -1,0 +1,123 @@
+# Configuration & Workspace
+
+## File Locations
+
+| File | Path | Purpose |
+|------|------|---------|
+| Config | `~/.anyscribecli/config.yaml` | Settings (no secrets) |
+| Secrets | `~/.anyscribecli/.env` | API keys, passwords — **never display** |
+| Workspace | `~/.anyscribecli/workspace/` | Obsidian vault (pure markdown) |
+| Audio | `~/.anyscribecli/media/audio/` | Kept audio files (if enabled) |
+| Video | `~/.anyscribecli/media/video/` | Downloaded videos |
+| Logs | `~/.anyscribecli/logs/` | Processing logs |
+| Sessions | `~/.anyscribecli/sessions/` | Instagram login sessions |
+| Temp | `~/.anyscribecli/tmp/` | Temporary downloads (auto-cleaned) |
+
+## config.yaml Settings
+
+```yaml
+provider: openai          # openai | elevenlabs | sargam | openrouter | local
+language: auto            # auto | ISO code (en, es, fr, hi, ar, zh, ja, ko...)
+keep_media: false         # Keep audio files after transcription
+output_format: clean      # clean | timestamped
+prompt_download: never    # never | ask | always
+local_file_media: skip    # skip | copy | move | ask
+instagram:
+  username: ""
+```
+
+### Setting details
+
+**provider** — Default transcription service. Override per-command with `--provider`.
+
+**language** — Default audio language. `auto` lets the provider detect it. Set explicitly if detection is wrong. Override per-command with `--language`.
+
+**keep_media** — When true, saves downloaded audio to `~/.anyscribecli/media/audio/<platform>/YYYY-MM-DD/`. A 10-min video at 64kbps mono is ~5 MB.
+
+**output_format** — `clean` outputs paragraphs only. `timestamped` adds `[mm:ss]` markers per segment.
+
+**prompt_download** — After each transcription: `never` (just transcribe), `ask` (prompt to download video/audio), `always` (auto-download video too).
+
+**local_file_media** — When transcribing local files: `skip` (leave original), `copy` (duplicate to media dir), `move` (relocate to media dir), `ask` (prompt each time).
+
+**instagram.username** — Instagram account for reel downloads. Password stored in `.env`.
+
+## .env Variables
+
+```bash
+OPENAI_API_KEY=sk-proj-...
+ELEVENLABS_API_KEY=xi-...
+OPENROUTER_API_KEY=sk-or-...
+SARGAM_API_KEY=...
+INSTAGRAM_PASSWORD=...
+OPENROUTER_MODEL=openai/gpt-4o-audio-preview   # Optional override
+ASCLI_LOCAL_MODEL=base                           # Optional: tiny|base|small|medium|large-v3
+```
+
+## Workspace Structure
+
+```
+~/.anyscribecli/workspace/
+├── .obsidian/                              # Obsidian config
+├── _index.md                               # Master index (newest first)
+├── sources/
+│   ├── youtube/
+│   │   └── YYYY-MM-DD/
+│   │       └── video-title-slug.md
+│   ├── instagram/
+│   │   └── YYYY-MM-DD/
+│   │       └── reel-title-slug.md
+│   └── local/
+│       └── YYYY-MM-DD/
+│           └── file-name-slug.md
+└── daily/
+    └── YYYY-MM-DD.md                       # Daily processing log
+```
+
+**Organization:** Files grouped by platform, then by date. Slugs are lowercase, hyphenated, max 60 chars. Duplicate slugs on the same day get `-2`, `-3`, etc.
+
+**Media is separate:** Audio/video files live in `~/.anyscribecli/media/`, not in the workspace. The vault stays lightweight — pure markdown.
+
+## Transcript File Format
+
+Each file has YAML frontmatter + markdown body:
+
+```yaml
+---
+source: https://youtube.com/watch?v=...
+platform: youtube
+title: "Video Title"
+duration: "12:34"
+language: en
+provider: openai
+date_processed: 2026-03-26
+word_count: 1500
+reading_time: "8 min"
+tags:
+  - transcript
+  - youtube
+tldr: "Video Title"
+---
+
+# Video Title
+
+**Channel:** Channel Name
+
+**Source:** [youtube](https://youtube.com/watch?v=...)
+
+**Duration:** 12:34 | **Words:** 1500 | **Reading time:** 8 min
+
+---
+
+## Transcript
+
+The transcript text goes here...
+```
+
+## Viewing in Obsidian
+
+Open Obsidian → "Open folder as vault" → `~/.anyscribecli/workspace/`
+
+On macOS: press Cmd+Shift+G in the file picker to type the hidden path.
+
+The `_index.md` file is the entry point — a table of all transcripts sorted newest-first with links to each file.

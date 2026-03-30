@@ -21,6 +21,9 @@ build/
 *.flac
 *.webm
 
+# Claude Code (skills are installed from the package, not the repo)
+.claude/skills/
+
 # IDE
 .vscode/
 .idea/

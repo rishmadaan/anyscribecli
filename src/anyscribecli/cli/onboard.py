@@ -9,7 +9,14 @@ from beaupy import confirm as bconfirm, select as bselect
 from rich.console import Console
 from rich.panel import Panel
 
-from anyscribecli.config.paths import APP_HOME, CONFIG_FILE, ENV_FILE, ensure_app_dirs
+from anyscribecli.config.paths import (
+    APP_HOME,
+    ASCLI_SKILL_TARGET,
+    CLAUDE_HOME,
+    CONFIG_FILE,
+    ENV_FILE,
+    ensure_app_dirs,
+)
 from anyscribecli.config.settings import Settings, save_config, save_env, load_config, load_env
 from anyscribecli.core.deps import check_and_install
 from anyscribecli.vault.scaffold import create_vault
@@ -411,6 +418,27 @@ def onboard(
     # Create vault
     workspace = create_vault()
 
+    # Step 11: Claude Code skill installation
+    skill_status = ""
+    if CLAUDE_HOME.exists():
+        if not ASCLI_SKILL_TARGET.exists():
+            console.print("\n  [bold]Claude Code detected![/bold]")
+            console.print(
+                "  ascli includes a skill that teaches Claude Code how to\n"
+                "  transcribe, configure providers, and troubleshoot for you."
+            )
+            if bconfirm("  Install ascli skill for Claude Code?"):
+                from anyscribecli.cli.skill_cmd import copy_skill_files
+
+                copy_skill_files()
+                skill_status = "installed"
+                console.print("  [green]✓[/green] Skill installed to ~/.claude/skills/ascli/")
+            else:
+                skill_status = "skipped"
+        else:
+            skill_status = "installed"
+            console.print("\n  [bold]Claude Code skill:[/bold] [green]installed[/green]")
+
     # Summary
     configured_keys = ", ".join(env_keys.keys()) if env_keys else "none"
     ig_status = (
@@ -430,7 +458,9 @@ def onboard(
             f"  Instagram:   {ig_status}\n"
             f"  Language:    {settings.language}\n"
             f"  Keep media:  {settings.keep_media}\n"
-            f"  Local files: {settings.local_file_media}\n\n"
+            f"  Local files: {settings.local_file_media}\n"
+            + (f"  Claude Code: {skill_status}\n" if skill_status else "")
+            + "\n"
             "[bold]Next steps:[/bold]\n"
             "  [bold cyan]ascli transcribe <url>[/bold cyan]  — transcribe a video\n"
             "  [bold cyan]ascli providers list[/bold cyan]    — see available providers\n"

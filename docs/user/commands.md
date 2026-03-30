@@ -23,6 +23,7 @@ Every ascli command. Copy-paste friendly.
 | `ascli config path` | Print config file location |
 | `ascli providers list` | Show available providers |
 | `ascli providers test [name]` | Test a provider's API key |
+| `ascli install-skill` | Install Claude Code skill |
 | `ascli update` | Update to the latest version |
 | `ascli doctor` | Check system health |
 | `ascli --version` | Show version |
@@ -328,6 +329,26 @@ ascli providers test openai   # test a specific provider
 | `local` | None needed | Offline, free, runs on your machine |
 
 > **Local provider** requires `pip install faster-whisper`. No API key, no internet. Runs on CPU (slower) or GPU (fast). Models download automatically on first use.
+
+---
+
+## ascli install-skill
+
+Install the ascli skill for [Claude Code](https://docs.anthropic.com/en/docs/claude-code). This teaches Claude how to transcribe, configure providers, and troubleshoot ascli on your behalf.
+
+```bash
+ascli install-skill
+```
+
+Copies skill files from the ascli package to `~/.claude/skills/ascli/`. Requires Claude Code to be installed (`~/.claude/` must exist).
+
+### Flags
+
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--force` | `-f` | Overwrite existing skill files |
+
+> **Tip:** You don't need to run this manually if you went through `ascli onboard` — the wizard auto-detects Claude Code and offers to install the skill for you.
 
 ---
 

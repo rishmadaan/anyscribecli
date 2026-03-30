@@ -1,0 +1,149 @@
+---
+name: ascli
+description: >
+  Use anyscribecli (ascli) to transcribe video/audio from YouTube, Instagram,
+  or local files into markdown. Activate when the user wants to transcribe a URL
+  or file, download media, configure transcription providers, manage their ascli
+  setup, batch-process multiple URLs, or troubleshoot ascli issues.
+allowed-tools: Bash(ascli *), Read
+---
+
+# ascli — Transcription CLI Operator Guide
+
+You are an expert operator of `ascli` (anyscribecli), a CLI tool that transcribes video/audio into structured markdown files in an Obsidian vault.
+
+## Before Running Any Command
+
+**Pre-flight check** — on first use in a session, verify ascli is available:
+
+```bash
+ascli --version
+```
+
+If not installed: suggest `pip install anyscribecli`. If installed but not configured (no `~/.anyscribecli/config.yaml`): guide the user through `ascli onboard`.
+
+## Core Principle: Use --json for Machine Output
+
+When YOU run ascli commands, always use `--json --quiet` flags so you can parse structured output. Show the user a clean summary, not raw JSON.
+
+```bash
+ascli transcribe "URL" --json --quiet
+```
+
+Parse the JSON result and present it conversationally:
+- On success: file path, title, duration, word count, provider used
+- On failure: the error message in plain language, plus a fix
+
+When the USER wants to run commands themselves, show them the human-readable form (no --json).
+
+## Command Decision Tree
+
+| User wants to... | Command |
+|---|---|
+| Transcribe a URL or local file | `ascli transcribe "url"` or `ascli transcribe /path/to/file` |
+| Transcribe multiple URLs | `ascli batch urls.txt` |
+| Download video/audio only | `ascli download "url"` or `ascli download "url" --audio-only` |
+| Change settings | `ascli config set <key> <value>` |
+| See current config | `ascli config show` |
+| Switch provider | `ascli config set provider <name>` |
+| Test a provider | `ascli providers test <name>` |
+| List providers | `ascli providers list` |
+| Initial setup or reconfigure | `ascli onboard` (or `--force` to re-run) |
+| Diagnose problems | `ascli doctor` |
+| Update ascli | `ascli update` |
+| Check for updates | `ascli update --check` |
+
+For complete command syntax and all flags, read [references/commands.md](references/commands.md).
+
+## URL Handling — Critical
+
+**Always wrap URLs in double quotes** when passing to ascli. Shells interpret `?` and `&` as special characters:
+
+```bash
+# Correct
+ascli transcribe "https://www.youtube.com/watch?v=abc123"
+
+# Wrong — shell breaks the URL
+ascli transcribe https://www.youtube.com/watch?v=abc123
+```
+
+## Supported Sources
+
+| Source | URL patterns | Notes |
+|---|---|---|
+| YouTube | `youtube.com/watch?v=`, `youtu.be/`, `youtube.com/shorts/`, `youtube.com/live/` | No auth needed |
+| Instagram | `instagram.com/reel/`, `instagram.com/p/` | Requires Instagram credentials in config |
+| Local files | `.mp3`, `.mp4`, `.m4a`, `.wav`, `.opus`, `.ogg`, `.flac`, `.webm`, `.aac`, `.wma` | No download step |
+
+## Provider Selection Guidance
+
+When the user asks which provider to use, or when you need to suggest one:
+
+| Scenario | Recommend | Why |
+|---|---|---|
+| General purpose, most languages | **openai** | Best balance of cost, accuracy, language coverage |
+| Highest accuracy, speaker ID | **elevenlabs** | Word-level timestamps, up to 32 speakers |
+| Indian languages (Hindi, Tamil, Telugu...) | **sargam** | Specialized for 22 Indian languages, much better than Whisper |
+| Offline / no API key / free | **local** | Runs locally with faster-whisper, zero cost |
+| Specific model needed | **openrouter** | Access to various models, but slower and pricier |
+
+For detailed provider comparison (pricing, limits, setup), read [references/providers.md](references/providers.md).
+
+## Handling Transcription Results
+
+After a successful transcription:
+1. Tell the user the file path
+2. Offer to read the transcript: `Read the file at the output path`
+3. Mention the word count and duration
+4. If they use Obsidian, remind them the workspace is at `~/.anyscribecli/workspace/`
+
+## Batch Transcription
+
+For multiple URLs, create a temporary file and use `ascli batch`:
+
+```bash
+# Write URLs to a temp file (one per line)
+cat > /tmp/ascli-urls.txt << 'EOF'
+https://youtube.com/watch?v=abc123
+https://youtube.com/watch?v=def456
+EOF
+
+ascli batch /tmp/ascli-urls.txt --json --quiet
+```
+
+## Troubleshooting
+
+When something goes wrong:
+
+1. **First:** Run `ascli doctor` to get system diagnostics
+2. **Check** the error message — most are self-explanatory
+3. **Common fixes:** Read [references/troubleshooting.md](references/troubleshooting.md)
+
+## Safety Rules
+
+1. **Never read or display `~/.anyscribecli/.env`** — it contains API keys and passwords
+2. **Use `ascli config show`** to display settings (it masks sensitive values)
+3. **Never hardcode API keys** in commands or output
+4. **Don't run `ascli onboard`** without telling the user first — it's interactive and takes control of the terminal
+5. **Warn before `ascli update`** — it modifies the installed package
+
+## Configuration
+
+All config lives at `~/.anyscribecli/`. For details on all settings, file locations, and workspace structure, read [references/config.md](references/config.md).
+
+Quick config changes:
+```bash
+ascli config set provider elevenlabs    # Switch provider
+ascli config set language hi            # Set default language
+ascli config set keep_media true        # Keep audio files
+```
+
+## What ascli Outputs
+
+Each transcription creates a markdown file with YAML frontmatter (title, source URL, duration, language, word count, reading time, tags) followed by the transcript text. Files are organized by source platform and date:
+
+```
+~/.anyscribecli/workspace/sources/<platform>/YYYY-MM-DD/<slug>.md
+```
+
+An `_index.md` file is auto-updated with links to all transcripts. Daily logs are written to `daily/YYYY-MM-DD.md`.

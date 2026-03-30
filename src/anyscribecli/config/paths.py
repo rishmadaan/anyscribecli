@@ -1,5 +1,6 @@
 """All path constants for anyscribecli."""
 
+from importlib.resources import files as pkg_files
 from pathlib import Path
 
 APP_HOME = Path.home() / ".anyscribecli"
@@ -19,6 +20,17 @@ VIDEO_DIR = MEDIA_DIR / "video"
 SOURCES_DIR = WORKSPACE_DIR / "sources"
 DAILY_DIR = WORKSPACE_DIR / "daily"
 INDEX_FILE = WORKSPACE_DIR / "_index.md"
+
+
+# Claude Code skill installation
+CLAUDE_HOME = Path.home() / ".claude"
+CLAUDE_SKILLS_DIR = CLAUDE_HOME / "skills"
+ASCLI_SKILL_TARGET = CLAUDE_SKILLS_DIR / "ascli"
+
+
+def get_skill_source_dir():
+    """Return path to bundled skill files in the package."""
+    return pkg_files("anyscribecli").joinpath("skill")
 
 
 def ensure_app_dirs() -> None:

@@ -20,7 +20,8 @@ The `0.x` prefix means pre-stable — breaking changes are allowed between minor
 | 0.2.0 | Full feature build (Instagram, all providers, batch, config, onboarding) | Released 2026-03-26 |
 | 0.3.0 | Download command, media restructure, post-transcription prompts, UX polish | Released 2026-03-27 |
 | 0.3.1 | Documentation accuracy audit — 16 issues fixed across all docs. First PyPI publish. | Released 2026-03-29 |
-| 0.4.0 | Local file transcription, onboard reconfigure UX, Instagram error fix | **Current** |
+| 0.4.0 | Local file transcription, onboard reconfigure UX, Instagram error fix | Released 2026-03-30 |
+| 0.4.1 | Claude Code skill — bundled skill + install-skill command + onboard integration | **Current** |
 | 0.5.0 | Cache/dedup, test suite, error handling | Next |
 | 1.0.0 | Stable: full test coverage, CI/CD pipeline | Future |
 
@@ -125,6 +126,22 @@ All features originally planned for v0.2.0–v0.5.0, built in one session:
   - Per-step skip/change prompts
   - Arrow-key selectors pre-select current values
 - [x] **Instagram error message fix** — corrected to point to `.env` instead of `config set`
+
+---
+
+## v0.4.1 — Claude Code Skill ✅
+
+**Released:** 2026-03-30
+
+- [x] **Claude Code skill** — teaches Claude how to use ascli on behalf of end users
+  - SKILL.md with decision tree, safety rules, `--json` patterns
+  - Reference files: commands, providers, troubleshooting, config
+  - Auto-triggers when user asks to transcribe, configure, or troubleshoot
+- [x] **`ascli install-skill`** — copies bundled skill files to `~/.claude/skills/ascli/`
+  - `--force` flag to overwrite existing
+  - Detects if Claude Code is installed
+- [x] **Onboard integration** — `ascli onboard` auto-detects `~/.claude/` and offers skill installation
+- [x] Skill files bundled as package data via `src/anyscribecli/skill/`
 
 ---
 
