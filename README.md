@@ -82,6 +82,7 @@ ascli download "https://www.youtube.com/watch?v=VIDEO_ID" --audio-only  # audio
 | `ascli batch <file>` | Batch transcribe URLs or file paths from a file |
 | `ascli config show/set/path` | View and change settings |
 | `ascli providers list/test` | Manage transcription providers |
+| `ascli install-skill` | Install Claude Code skill |
 | `ascli update` | Update to the latest version |
 | `ascli doctor` | Check system health |
 
@@ -206,6 +207,16 @@ local_file_media: skip     # skip | copy | move | ask — what to do with local 
 API keys and passwords live in `~/.anyscribecli/.env` (separate from config, never committed).
 
 See [Configuration Guide](docs/user/configuration.md) for all options.
+
+## Claude Code Integration
+
+ascli ships with a [Claude Code skill](https://code.claude.com/docs/en/skills) that teaches Claude how to transcribe, configure providers, and troubleshoot on your behalf. After installing ascli:
+
+```bash
+ascli install-skill
+```
+
+Or run `ascli onboard` — it auto-detects Claude Code and offers to install the skill. Once installed, Claude can use `/ascli` or auto-activate when you ask it to transcribe something.
 
 ## Documentation
 

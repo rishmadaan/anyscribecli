@@ -59,7 +59,7 @@ Verify it worked:
 ascli --version
 ```
 
-You should see `ascli v0.4.0` (or a newer version).
+You should see `ascli v0.4.1` (or a newer version).
 
 > **Other install methods:** You can also use the [install script](https://raw.githubusercontent.com/rishmadaan/anyscribecli/main/install.sh) which checks and installs all dependencies for you, or [clone the repo](https://github.com/rishmadaan/anyscribecli) for development.
 
@@ -158,6 +158,7 @@ tags: [transcript, youtube]
 - **Try JSON output** — `ascli transcribe "url" --json` for scripting
 - **Check health** — `ascli doctor` verifies everything is working
 - **Update** — `ascli update` pulls the latest version
+- **Claude Code** — `ascli install-skill` teaches Claude Code to use ascli for you
 - **View all commands** — `ascli --help`
 
 ## Troubleshooting
