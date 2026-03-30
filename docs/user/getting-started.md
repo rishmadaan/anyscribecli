@@ -100,7 +100,7 @@ Replace `VIDEO_ID` with a real video ID. A short video (under 5 minutes) is good
 You'll see:
 
 ```
-Transcription saved: ~/anyscribe/sources/youtube/2026-03-29/how-to-make-perfect-coffee.md
+Transcription saved: ~/anyscribe/sources/youtube/how-to-make-perfect-coffee.md
   Title:    How to Make Perfect Coffee
   Duration: 4:32
   Language: en
@@ -135,7 +135,7 @@ Open Obsidian and select "Open folder as vault", then choose:
 
 You'll see:
 - **`_index.md`** — a table of all your transcripts, newest first
-- **`sources/youtube/`**, **`sources/instagram/`**, and **`sources/local/`** — transcripts organized by source and date
+- **`sources/youtube/`**, **`sources/instagram/`**, and **`sources/local/`** — transcripts organized by source
 - **`daily/`** — a log of what you transcribed each day
 
 Each transcript has YAML properties that Obsidian can search and filter:

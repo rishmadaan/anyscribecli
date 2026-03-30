@@ -32,7 +32,7 @@ instagram:
 
 **language** — Default audio language. `auto` lets the provider detect it. Set explicitly if detection is wrong. Override per-command with `--language`.
 
-**keep_media** — When true, saves downloaded audio to `~/.anyscribecli/downloads/audio/<platform>/YYYY-MM-DD/`. A 10-min video at 64kbps mono is ~5 MB.
+**keep_media** — When true, saves downloaded audio to `~/.anyscribecli/downloads/audio/<platform>/`. A 10-min video at 64kbps mono is ~5 MB.
 
 **workspace_path** — Where transcripts are stored. Empty string (default) means `~/anyscribe/`. Set a custom path to use an existing Obsidian vault or preferred location. Check resolved path with `ascli config show`.
 
@@ -64,19 +64,16 @@ ASCLI_LOCAL_MODEL=base                           # Optional: tiny|base|small|med
 ├── _index.md                               # Master index (newest first)
 ├── sources/
 │   ├── youtube/
-│   │   └── YYYY-MM-DD/
-│   │       └── video-title-slug.md
+│   │   └── video-title-slug.md
 │   ├── instagram/
-│   │   └── YYYY-MM-DD/
-│   │       └── reel-title-slug.md
+│   │   └── reel-title-slug.md
 │   └── local/
-│       └── YYYY-MM-DD/
-│           └── file-name-slug.md
+│       └── file-name-slug.md
 └── daily/
     └── YYYY-MM-DD.md                       # Daily processing log
 ```
 
-**Organization:** Files grouped by platform, then by date. Slugs are lowercase, hyphenated, max 60 chars. Duplicate slugs on the same day get `-2`, `-3`, etc.
+**Organization:** Files grouped by platform. Slugs are lowercase, hyphenated, max 60 chars. Duplicate slugs get `-2`, `-3`, etc.
 
 **Downloads are separate:** Audio/video files live in `~/.anyscribecli/downloads/`, not in the workspace. The vault stays lightweight — pure markdown. Use `ascli config show` to see the resolved workspace path.
 

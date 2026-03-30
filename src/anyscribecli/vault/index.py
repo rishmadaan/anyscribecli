@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import yaml
 from datetime import date
 from pathlib import Path
 
@@ -104,3 +105,57 @@ def update_indexes(
     duration_str = format_duration(download.duration)
     update_master_index(entry_path, download, duration_str, workspace)
     update_daily_log(entry_path, download, duration_str, workspace)
+
+
+def rebuild_master_index(workspace: Path | None = None) -> None:
+    """Rebuild _index.md from scratch by scanning all transcript files.
+
+    Reads frontmatter from each .md file in sources/, rebuilds the index
+    with correct relative links. Sorted newest-first by date_processed.
+    """
+    ws = workspace or get_workspace_dir()
+    sources = ws / "sources"
+    index_file = ws / "_index.md"
+
+    if not sources.is_dir():
+        return
+
+    entries: list[dict] = []
+    for md_file in sources.rglob("*.md"):
+        if md_file.name.startswith("_"):
+            continue
+        try:
+            text = md_file.read_text()
+            if not text.startswith("---"):
+                continue
+            end = text.index("---", 3)
+            fm = yaml.safe_load(text[3:end])
+            if not isinstance(fm, dict):
+                continue
+            rel_path = md_file.relative_to(ws)
+            entries.append({
+                "date": fm.get("date_processed", ""),
+                "platform": fm.get("platform", ""),
+                "title": fm.get("title", md_file.stem),
+                "duration": fm.get("duration", ""),
+                "link": f"[[{rel_path}|{fm.get('title', md_file.stem)}]]",
+            })
+        except Exception:
+            continue
+
+    # Sort newest first
+    entries.sort(key=lambda e: e["date"], reverse=True)
+
+    lines = [
+        "# Transcripts\n",
+        "",
+        "| Date | Platform | Entry | Duration | Title |",
+        "|------|----------|-------|----------|-------|",
+    ]
+    for e in entries:
+        lines.append(
+            f"| {e['date']} | {e['platform']} | {e['link']} | {e['duration']} | {e['title']} |"
+        )
+    lines.append("")
+
+    index_file.write_text("\n".join(lines))

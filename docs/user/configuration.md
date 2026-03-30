@@ -76,7 +76,7 @@ Use standard language codes: `en` (English), `es` (Spanish), `fr` (French), `hi`
 
 Whether to save the downloaded audio file alongside the transcript. Default: `false`.
 
-When `true`, audio files are saved to `~/.anyscribecli/downloads/audio/<platform>/YYYY-MM-DD/` (separate from the Obsidian workspace). This uses more disk space but lets you re-listen or re-transcribe later without downloading again.
+When `true`, audio files are saved to `~/.anyscribecli/downloads/audio/<platform>/` (separate from the Obsidian workspace). This uses more disk space but lets you re-listen or re-transcribe later without downloading again.
 
 > **Disk space:** A 10-minute video at 64kbps mono is about 5MB of audio. If you transcribe a lot, this adds up.
 
@@ -108,7 +108,7 @@ What to do with the original file when transcribing local audio/video files. Def
 | Value | Description |
 |-------|-------------|
 | `skip` | Leave the original file where it is (default) |
-| `copy` | Copy to `~/.anyscribecli/downloads/audio/local/YYYY-MM-DD/` for organization |
+| `copy` | Copy to `~/.anyscribecli/downloads/audio/local/` for organization |
 | `move` | Move to the downloads directory (removes the original) |
 | `ask` | Ask each time what to do |
 
@@ -154,15 +154,15 @@ Your transcripts live in the workspace (pure markdown, no binaries). Downloaded 
 ├── .obsidian/                             # Obsidian app config
 ├── _index.md                              # Master index — newest first
 ├── sources/
-│   ├── youtube/YYYY-MM-DD/                # YouTube transcripts by date
-│   ├── instagram/YYYY-MM-DD/              # Instagram transcripts by date
-│   └── local/YYYY-MM-DD/                 # Local file transcripts by date
+│   ├── youtube/                           # YouTube transcripts
+│   ├── instagram/                         # Instagram transcripts
+│   └── local/                             # Local file transcripts
 └── daily/YYYY-MM-DD.md                   # Daily processing log
 
 ~/.anyscribecli/                           # App internals (hidden)
 ├── downloads/                             # Downloads (separate from vault)
-│   ├── audio/<platform>/YYYY-MM-DD/       # Audio files (if keep_media=true)
-│   └── video/<platform>/YYYY-MM-DD/       # Video files (ascli download)
+│   ├── audio/<platform>/                  # Audio files (if keep_media=true)
+│   └── video/<platform>/                  # Video files (ascli download)
 ├── sessions/                              # Login sessions
 └── logs/                                  # Processing logs
 ```
@@ -182,9 +182,8 @@ ascli config set workspace_path ~/Documents/transcripts
 
 ### How files are named
 
-- **Date folders:** `YYYY-MM-DD` (e.g., `2026-03-26`)
 - **File names:** A "slug" of the video title — lowercase, hyphens instead of spaces, max 60 characters
-- **Collisions:** If two videos have the same slug on the same day, the second gets `-2` appended
+- **Collisions:** If two videos have the same slug, the second gets `-2` appended
 
 ### Transcript frontmatter
 

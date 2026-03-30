@@ -2,7 +2,7 @@
 type: plan
 tags: [workspace, structure, vault, obsidian, migration]
 tldr: "Remove YYYY-MM-DD date folders from workspace and downloads — flatten to sources/<platform>/<slug>.md. Auto-migrate existing files on first run."
-status: planned
+status: done
 ---
 
 # Plan: Flatten Workspace Structure — Remove Date Folders

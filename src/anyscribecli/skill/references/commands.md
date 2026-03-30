@@ -31,7 +31,7 @@ ascli transcribe --clipboard          # Read URL from clipboard
 ```json
 {
   "success": true,
-  "file": "/Users/you/.anyscribecli/workspace/sources/youtube/2026-03-26/title.md",
+  "file": "/Users/you/anyscribe/sources/youtube/title.md",
   "title": "Video Title",
   "platform": "youtube",
   "duration": "12:34",
@@ -102,8 +102,8 @@ ascli download --clipboard             # From clipboard
 
 ### Output locations
 
-- Video: `~/.anyscribecli/downloads/video/<platform>/YYYY-MM-DD/`
-- Audio: `~/.anyscribecli/downloads/audio/<platform>/YYYY-MM-DD/`
+- Video: `~/.anyscribecli/downloads/video/<platform>/`
+- Audio: `~/.anyscribecli/downloads/audio/<platform>/`
 
 ---
 

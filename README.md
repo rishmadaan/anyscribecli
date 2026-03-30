@@ -137,7 +137,7 @@ ascli transcribe "https://youtube.com/watch?v=abc123" --json
 ```json
 {
   "success": true,
-  "file": "~/anyscribe/sources/youtube/2026-03-27/video-title.md",
+  "file": "~/anyscribe/sources/youtube/video-title.md",
   "title": "Video Title",
   "platform": "youtube",
   "duration": "12:34",
@@ -164,17 +164,17 @@ The onboarding wizard checks for these and offers to install them:
 ~/anyscribe/                              # Obsidian vault (configurable)
 ├── _index.md                             # Master index (newest first)
 ├── sources/
-│   ├── youtube/YYYY-MM-DD/<slug>.md
-│   ├── instagram/YYYY-MM-DD/<slug>.md
-│   └── local/YYYY-MM-DD/<slug>.md
+│   ├── youtube/<slug>.md
+│   ├── instagram/<slug>.md
+│   └── local/<slug>.md
 └── daily/YYYY-MM-DD.md
 
 ~/.anyscribecli/                          # App internals (hidden)
 ├── config.yaml                           # Settings (no secrets)
 ├── .env                                  # API keys + passwords
 ├── downloads/                            # Downloads (separate from vault)
-│   ├── audio/<platform>/YYYY-MM-DD/      # Kept audio (if keep_media=true)
-│   └── video/<platform>/YYYY-MM-DD/      # Downloaded videos
+│   ├── audio/<platform>/                 # Kept audio (if keep_media=true)
+│   └── video/<platform>/                 # Downloaded videos
 ├── sessions/                             # Login sessions
 └── logs/                                 # Processing logs
 ```

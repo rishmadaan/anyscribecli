@@ -149,7 +149,7 @@ When you use `--json`, ascli prints structured JSON to stdout (progress goes to 
 ```json
 {
   "success": true,
-  "file": "/Users/you/anyscribe/sources/youtube/2026-03-26/video-title.md",
+  "file": "/Users/you/anyscribe/sources/youtube/video-title.md",
   "title": "Video Title",
   "platform": "youtube",
   "duration": "12:34",
@@ -231,7 +231,7 @@ Download video or audio from a URL — no transcription. Useful when you just wa
 ascli download "<url>"
 ```
 
-Saves to `~/.anyscribecli/downloads/video/<platform>/YYYY-MM-DD/` (default) or `~/.anyscribecli/downloads/audio/<platform>/YYYY-MM-DD/` with `--audio-only`.
+Saves to `~/.anyscribecli/downloads/video/<platform>/` (default) or `~/.anyscribecli/downloads/audio/<platform>/` with `--audio-only`.
 
 ### Flags
 

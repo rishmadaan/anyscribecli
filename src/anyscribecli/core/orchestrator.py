@@ -44,12 +44,23 @@ def process(url: str, settings: Settings, quiet: bool = False) -> ProcessResult:
         ProcessResult with metadata about the written file.
     """
     # Auto-migrate legacy paths if needed
-    from anyscribecli.core.migrate import maybe_migrate_workspace, maybe_migrate_media_to_downloads
+    from anyscribecli.core.migrate import (
+        maybe_migrate_workspace,
+        maybe_migrate_media_to_downloads,
+        maybe_flatten_date_folders,
+    )
 
     migrated = maybe_migrate_workspace()
     if migrated and not quiet:
         err_console.print(f"  [yellow]Workspace moved to {migrated}[/yellow]")
     maybe_migrate_media_to_downloads()
+
+    flattened = maybe_flatten_date_folders()
+    if flattened and not quiet:
+        err_console.print(f"  [yellow]Flattened {flattened} files out of date folders[/yellow]")
+    if flattened:
+        from anyscribecli.vault.index import rebuild_master_index
+        rebuild_master_index()
 
     TMP_DIR.mkdir(parents=True, exist_ok=True)
     tmp_dir = Path(tempfile.mkdtemp(dir=TMP_DIR))

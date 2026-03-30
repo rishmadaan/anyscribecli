@@ -57,8 +57,8 @@ def write_transcript(
     if not slug:
         slug = "untitled"
 
-    # Determine output path: sources/<platform>/YYYY-MM-DD/<slug>.md
-    out_dir = ws / "sources" / download.platform / today
+    # Determine output path: sources/<platform>/<slug>.md
+    out_dir = ws / "sources" / download.platform
     out_dir.mkdir(parents=True, exist_ok=True)
 
     # Handle slug collisions
@@ -125,7 +125,7 @@ def write_transcript(
         _handle_local_file_media(download, settings, slug, today)
     elif settings.keep_media and download.audio_path.exists():
         # URL downloads: save converted audio to media dir
-        audio_dir = AUDIO_DIR / download.platform / today
+        audio_dir = AUDIO_DIR / download.platform
         audio_dir.mkdir(parents=True, exist_ok=True)
         dest = audio_dir / f"{slug}{download.audio_path.suffix}"
         shutil.copy2(download.audio_path, dest)
@@ -168,7 +168,7 @@ def _handle_local_file_media(
     if not original.exists():
         return
 
-    audio_dir = AUDIO_DIR / "local" / today
+    audio_dir = AUDIO_DIR / "local"
     audio_dir.mkdir(parents=True, exist_ok=True)
     dest = audio_dir / f"{slug}{original.suffix}"
 

@@ -56,7 +56,6 @@ def download(
     url = _validate_url(url)
     load_env()
 
-    from datetime import date
     from anyscribecli.vault.writer import slugify
 
     TMP_DIR.mkdir(parents=True, exist_ok=True)
@@ -75,9 +74,8 @@ def download(
         else:
             # Download audio only (same as transcribe pipeline)
             dl_result = downloader.download(url, tmp_dir)
-            today = date.today().isoformat()
             slug = slugify(dl_result.title) or "untitled"
-            dest_dir = AUDIO_DIR / platform / today
+            dest_dir = AUDIO_DIR / platform
             dest_dir.mkdir(parents=True, exist_ok=True)
             dest = dest_dir / f"{slug}{dl_result.audio_path.suffix}"
             shutil.copy2(dl_result.audio_path, dest)
@@ -111,7 +109,6 @@ def download(
 
 def _download_video(url: str, platform: str, tmp_dir: Path, quiet: bool) -> dict:
     """Download full video using yt-dlp (works for both YouTube and Instagram)."""
-    from datetime import date
     from anyscribecli.vault.writer import slugify
 
     # yt-dlp can handle both YouTube and Instagram video URLs
@@ -148,10 +145,9 @@ def _download_video(url: str, platform: str, tmp_dir: Path, quiet: bool) -> dict
         raise RuntimeError("Download completed but no video file found.")
     video_path = video_files[0]
 
-    # Move to media/video/<platform>/YYYY-MM-DD/<slug>.mp4
-    today = date.today().isoformat()
+    # Move to downloads/video/<platform>/<slug>.mp4
     slug = slugify(title) or "untitled"
-    dest_dir = VIDEO_DIR / platform / today
+    dest_dir = VIDEO_DIR / platform
     dest_dir.mkdir(parents=True, exist_ok=True)
     dest = dest_dir / f"{slug}{video_path.suffix}"
     shutil.move(str(video_path), str(dest))
