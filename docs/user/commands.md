@@ -15,9 +15,9 @@ Every ascli command. Copy-paste friendly.
 | Command | What it does |
 |---------|-------------|
 | `ascli onboard` | First-time setup wizard |
-| `ascli transcribe "<url>"` | Download and transcribe a video |
+| `ascli transcribe "<url or file>"` | Transcribe a URL or local file |
 | `ascli download "<url>"` | Download video or audio only (no transcription) |
-| `ascli batch <file>` | Batch transcribe URLs from a file |
+| `ascli batch <file>` | Batch transcribe URLs or file paths from a file |
 | `ascli config show` | View current settings |
 | `ascli config set <key> <value>` | Change a setting |
 | `ascli config path` | Print config file location |
@@ -73,24 +73,29 @@ ascli onboard --force --skip-deps
 
 ## ascli transcribe
 
-The main command. Downloads audio from a URL, transcribes it, and saves a formatted markdown file.
+The main command. Transcribes a URL or local audio/video file and saves a formatted markdown file.
 
 ```bash
 ascli transcribe "<url>"
+ascli transcribe /path/to/file.mp3
 ```
 
-> **Important:** Always wrap URLs in quotes. Shells like zsh treat `?` as a special character, which breaks unquoted YouTube URLs. If you forget the quotes, ascli will detect the problem and tell you.
+> **Important:** Always wrap URLs in quotes. Shells like zsh treat `?` as a special character, which breaks unquoted YouTube URLs. Local file paths don't need quotes.
 
-### Three ways to provide the URL
+### Ways to provide input
 
 ```bash
-# 1. Pass the URL as an argument (always use quotes)
+# 1. Pass a URL as an argument (always use quotes)
 ascli transcribe "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
 
-# 2. Run without a URL — you'll be prompted to paste it (no quoting needed)
+# 2. Pass a local audio/video file
+ascli transcribe /path/to/podcast.mp3
+ascli transcribe ~/recordings/meeting.m4a
+
+# 3. Run without input — you'll be prompted to paste a URL or file path
 ascli transcribe
 
-# 3. Copy a URL to your clipboard, then:
+# 4. Copy a URL to your clipboard, then:
 ascli transcribe --clipboard
 ```
 
@@ -114,7 +119,12 @@ ascli transcribe "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
 # Instagram reel
 ascli transcribe "https://www.instagram.com/reel/C17LiBLyIOe/"
 
-# Interactive — paste URL when prompted
+# Local audio/video file
+ascli transcribe /path/to/podcast.mp3
+ascli transcribe ~/recordings/meeting.m4a
+ascli transcribe ./interview.opus
+
+# Interactive — paste URL or file path when prompted
 ascli transcribe
 
 # From clipboard
@@ -158,18 +168,19 @@ On error:
 
 > **Scripting tip:** Use `--json --quiet` together to get clean JSON with no extra output. Pipe to `jq` for filtering: `ascli transcribe <url> --json -q | jq '.file'`
 
-### Supported Platforms
+### Supported Inputs
 
-| Platform | URL patterns | Status |
-|----------|-------------|--------|
+| Source | Patterns | Status |
+|--------|----------|--------|
 | YouTube | `youtube.com/watch?v=`, `youtu.be/`, `youtube.com/shorts/`, `youtube.com/live/` | Working |
 | Instagram | `instagram.com/reel/`, `instagram.com/p/` | Working (requires Instagram credentials in config) |
+| Local files | `.mp3`, `.mp4`, `.m4a`, `.wav`, `.opus`, `.ogg`, `.flac`, `.webm`, `.aac`, `.wma` | Working |
 
 ---
 
 ## ascli batch
 
-Transcribe multiple URLs from a file. One URL per line, blank lines and `#comments` are skipped.
+Transcribe multiple URLs or local files from a list. One entry per line, blank lines and `#comments` are skipped.
 
 ```bash
 ascli batch urls.txt
@@ -189,12 +200,13 @@ ascli batch urls.txt
 ### Examples
 
 ```bash
-# Create a file with URLs
+# Create a file with URLs and/or file paths
 cat > urls.txt << EOF
 https://youtube.com/watch?v=abc123
 https://youtube.com/watch?v=def456
 # this line is skipped
 https://instagram.com/reel/xyz789
+/path/to/local-recording.mp3
 EOF
 
 # Transcribe all

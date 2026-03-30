@@ -32,9 +32,7 @@ class YouTubeDownloader(AbstractDownloader):
 
         # Step 1: Get metadata via --dump-json
         meta_cmd = ["yt-dlp", "--dump-json", "--no-download", url]
-        meta_result = subprocess.run(
-            meta_cmd, capture_output=True, text=True, timeout=60
-        )
+        meta_result = subprocess.run(meta_cmd, capture_output=True, text=True, timeout=60)
         if meta_result.returncode != 0:
             raise RuntimeError(f"yt-dlp metadata failed: {meta_result.stderr.strip()}")
 
@@ -49,16 +47,17 @@ class YouTubeDownloader(AbstractDownloader):
         dl_cmd = [
             "yt-dlp",
             "--extract-audio",
-            "--audio-format", "mp3",
-            "--postprocessor-args", "ffmpeg:-ar 16000 -ac 1 -b:a 64k",
-            "--output", output_template,
+            "--audio-format",
+            "mp3",
+            "--postprocessor-args",
+            "ffmpeg:-ar 16000 -ac 1 -b:a 64k",
+            "--output",
+            output_template,
             "--no-playlist",
             "--no-overwrites",
             url,
         ]
-        dl_result = subprocess.run(
-            dl_cmd, capture_output=True, text=True, timeout=600
-        )
+        dl_result = subprocess.run(dl_cmd, capture_output=True, text=True, timeout=600)
         if dl_result.returncode != 0:
             raise RuntimeError(f"yt-dlp download failed: {dl_result.stderr.strip()}")
 

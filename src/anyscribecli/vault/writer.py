@@ -78,12 +78,12 @@ def write_transcript(
         f"source: {download.original_url}\n"
         f"platform: {download.platform}\n"
         f'title: "{download.title}"\n'
-        f"duration: \"{duration_str}\"\n"
+        f'duration: "{duration_str}"\n'
         f"language: {transcript.language}\n"
         f"provider: {settings.provider}\n"
         f"date_processed: {today}\n"
         f"word_count: {word_count}\n"
-        f"reading_time: \"{reading_time}\"\n"
+        f'reading_time: "{reading_time}"\n'
         f"tags:\n"
         f"  - transcript\n"
         f"  - {download.platform}\n"
@@ -99,8 +99,13 @@ def write_transcript(
     if download.channel:
         body_parts.append(f"**Channel:** {download.channel}\n")
 
-    body_parts.append(f"**Source:** [{download.platform}]({download.original_url})\n")
-    body_parts.append(f"**Duration:** {duration_str} | **Words:** {word_count} | **Reading time:** {reading_time}\n")
+    if download.platform == "local":
+        body_parts.append(f"**Source:** local file (`{download.original_url}`)\n")
+    else:
+        body_parts.append(f"**Source:** [{download.platform}]({download.original_url})\n")
+    body_parts.append(
+        f"**Duration:** {duration_str} | **Words:** {word_count} | **Reading time:** {reading_time}\n"
+    )
     body_parts.append("\n---\n")
 
     # Transcript body — format depends on output_format setting
@@ -115,11 +120,59 @@ def write_transcript(
     content = frontmatter + "\n" + "\n".join(body_parts)
     out_path.write_text(content)
 
-    # Optionally keep audio file (saved outside workspace to keep vault pure markdown)
-    if settings.keep_media and download.audio_path.exists():
+    # Handle media file retention
+    if download.platform == "local":
+        _handle_local_file_media(download, settings, slug, today)
+    elif settings.keep_media and download.audio_path.exists():
+        # URL downloads: save converted audio to media dir
         audio_dir = AUDIO_DIR / download.platform / today
         audio_dir.mkdir(parents=True, exist_ok=True)
         dest = audio_dir / f"{slug}{download.audio_path.suffix}"
         shutil.copy2(download.audio_path, dest)
 
     return out_path
+
+
+def _handle_local_file_media(
+    download: DownloadResult,
+    settings: Settings,
+    slug: str,
+    today: str,
+) -> None:
+    """Handle the original source file for local file transcriptions."""
+    from rich.console import Console
+
+    action = settings.local_file_media
+    original = Path(download.original_url)
+
+    if action == "skip":
+        return
+
+    if action == "ask":
+        import typer
+
+        err_console = Console(stderr=True)
+        err_console.print(f"\n  Original file: [cyan]{original}[/cyan]")
+        choice = (
+            typer.prompt(
+                "  What to do with the original file? (skip/copy/move)",
+                default="skip",
+            )
+            .strip()
+            .lower()
+        )
+        if choice not in ("copy", "move"):
+            return
+        action = choice
+
+    if not original.exists():
+        return
+
+    audio_dir = AUDIO_DIR / "local" / today
+    audio_dir.mkdir(parents=True, exist_ok=True)
+    dest = audio_dir / f"{slug}{original.suffix}"
+
+    if action == "copy":
+        shutil.copy2(original, dest)
+    elif action == "move":
+        shutil.move(str(original), str(dest))

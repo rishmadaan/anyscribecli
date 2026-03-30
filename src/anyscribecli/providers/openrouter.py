@@ -40,14 +40,10 @@ class OpenRouterProvider(TranscriptionProvider):
     def _get_api_key(self) -> str:
         key = os.environ.get("OPENROUTER_API_KEY", "")
         if not key:
-            raise RuntimeError(
-                "OPENROUTER_API_KEY not set. Add it to ~/.anyscribecli/.env"
-            )
+            raise RuntimeError("OPENROUTER_API_KEY not set. Add it to ~/.anyscribecli/.env")
         return key
 
-    def _transcribe_single(
-        self, audio_path: Path, language: str, api_key: str
-    ) -> str:
+    def _transcribe_single(self, audio_path: Path, language: str, api_key: str) -> str:
         """Transcribe a single audio file via OpenRouter chat API."""
         audio_bytes = audio_path.read_bytes()
         audio_b64 = base64.b64encode(audio_bytes).decode("utf-8")
@@ -93,9 +89,7 @@ class OpenRouterProvider(TranscriptionProvider):
         )
 
         if response.status_code != 200:
-            raise RuntimeError(
-                f"OpenRouter API error ({response.status_code}): {response.text}"
-            )
+            raise RuntimeError(f"OpenRouter API error ({response.status_code}): {response.text}")
 
         data = response.json()
         return data["choices"][0]["message"]["content"]
@@ -106,7 +100,9 @@ class OpenRouterProvider(TranscriptionProvider):
 
         if file_size <= WHISPER_MAX_BYTES:
             text = self._transcribe_single(audio_path, language, api_key)
-            return TranscriptResult(text=text, language=language if language != "auto" else "unknown")
+            return TranscriptResult(
+                text=text, language=language if language != "auto" else "unknown"
+            )
 
         # Chunk large files
         chunks = chunk_audio(audio_path)

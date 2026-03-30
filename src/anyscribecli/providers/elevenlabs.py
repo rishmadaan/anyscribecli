@@ -31,14 +31,10 @@ class ElevenLabsProvider(TranscriptionProvider):
     def _get_api_key(self) -> str:
         key = os.environ.get("ELEVENLABS_API_KEY", "")
         if not key:
-            raise RuntimeError(
-                "ELEVENLABS_API_KEY not set. Add it to ~/.anyscribecli/.env"
-            )
+            raise RuntimeError("ELEVENLABS_API_KEY not set. Add it to ~/.anyscribecli/.env")
         return key
 
-    def _transcribe_single(
-        self, audio_path: Path, language: str, api_key: str
-    ) -> dict:
+    def _transcribe_single(self, audio_path: Path, language: str, api_key: str) -> dict:
         """Transcribe a single audio file via ElevenLabs."""
         with open(audio_path, "rb") as f:
             files = {"file": (audio_path.name, f, "audio/mpeg")}
@@ -57,9 +53,7 @@ class ElevenLabsProvider(TranscriptionProvider):
             )
 
         if response.status_code != 200:
-            raise RuntimeError(
-                f"ElevenLabs API error ({response.status_code}): {response.text}"
-            )
+            raise RuntimeError(f"ElevenLabs API error ({response.status_code}): {response.text}")
         return response.json()
 
     def transcribe(self, audio_path: Path, language: str = "auto") -> TranscriptResult:
@@ -67,9 +61,7 @@ class ElevenLabsProvider(TranscriptionProvider):
         file_size = audio_path.stat().st_size
 
         if file_size <= WHISPER_MAX_BYTES:
-            return self._parse_response(
-                self._transcribe_single(audio_path, language, api_key)
-            )
+            return self._parse_response(self._transcribe_single(audio_path, language, api_key))
 
         # Chunk large files
         chunks = chunk_audio(audio_path)

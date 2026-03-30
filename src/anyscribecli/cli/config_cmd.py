@@ -47,7 +47,9 @@ def config_show(
 
 @config_app.command("set")
 def config_set(
-    key: str = typer.Argument(..., help="Setting key (e.g., 'provider', 'language', 'instagram.username')."),
+    key: str = typer.Argument(
+        ..., help="Setting key (e.g., 'provider', 'language', 'instagram.username')."
+    ),
     value: str = typer.Argument(..., help="New value."),
 ) -> None:
     """[bold]Change[/bold] a configuration setting.
@@ -84,6 +86,7 @@ def config_set(
     target[final_key] = value_typed
 
     from anyscribecli.config.settings import Settings
+
     new_settings = Settings.from_dict(data)
     save_config(new_settings)
     console.print(f"[green]Set[/green] {key} = {value_typed}")
@@ -127,10 +130,7 @@ def providers_list(
     providers = list_providers()
 
     if output_json:
-        result = [
-            {"name": p, "active": p == active}
-            for p in providers
-        ]
+        result = [{"name": p, "active": p == active} for p in providers]
         json.dump(result, sys.stdout, indent=2)
         sys.stdout.write("\n")
     else:

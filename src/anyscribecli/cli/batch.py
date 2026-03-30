@@ -18,7 +18,7 @@ err_console = Console(stderr=True)
 
 
 def batch(
-    file: Path = typer.Argument(..., help="File containing URLs (one per line)."),
+    file: Path = typer.Argument(..., help="File containing URLs or file paths (one per line)."),
     provider: str | None = typer.Option(None, "--provider", "-p", help="Override provider."),
     language: str | None = typer.Option(None, "--language", "-l", help="Override language."),
     output_json: bool = typer.Option(False, "--json", "-j", help="Output results as JSON."),
@@ -26,10 +26,10 @@ def batch(
     quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress progress."),
     stop_on_error: bool = typer.Option(False, "--stop-on-error", help="Stop at first failure."),
 ) -> None:
-    """[bold magenta]Batch transcribe[/bold magenta] URLs from a file.
+    """[bold magenta]Batch transcribe[/bold magenta] URLs or local files from a list.
 
-    Reads a file with one URL per line (blank lines and #comments are skipped).
-    Processes each URL sequentially and reports results.
+    Reads a file with one URL or file path per line (blank lines and #comments
+    are skipped). Processes each entry sequentially and reports results.
     """
     if not file.exists():
         err_console.print(f"[red]File not found:[/red] {file}")
@@ -43,7 +43,7 @@ def batch(
             urls.append(line)
 
     if not urls:
-        err_console.print("[yellow]No URLs found in file.[/yellow]")
+        err_console.print("[yellow]No URLs or file paths found in file.[/yellow]")
         raise typer.Exit()
 
     load_env()
@@ -62,9 +62,7 @@ def batch(
     if quiet or output_json:
         # No progress display
         for url in urls:
-            succeeded, failed = _process_url(
-                url, settings, results, succeeded, failed, quiet=True
-            )
+            succeeded, failed = _process_url(url, settings, results, succeeded, failed, quiet=True)
             if failed and stop_on_error:
                 break
     else:
@@ -90,15 +88,21 @@ def batch(
 
     # Summary
     if output_json:
-        json.dump({
-            "total": len(urls),
-            "succeeded": succeeded,
-            "failed": failed,
-            "results": results,
-        }, sys.stdout, indent=2)
+        json.dump(
+            {
+                "total": len(urls),
+                "succeeded": succeeded,
+                "failed": failed,
+                "results": results,
+            },
+            sys.stdout,
+            indent=2,
+        )
         sys.stdout.write("\n")
     else:
-        console.print(f"\n[bold]Batch complete:[/bold] {succeeded} succeeded, {failed} failed, {len(urls)} total")
+        console.print(
+            f"\n[bold]Batch complete:[/bold] {succeeded} succeeded, {failed} failed, {len(urls)} total"
+        )
 
         if results:
             table = Table(title="Results")
@@ -140,21 +144,25 @@ def _process_url(
     try:
         result = process(url, settings, quiet=quiet)
         succeeded += 1
-        results.append({
-            "success": True,
-            "url": url,
-            "file": str(result.file_path),
-            "title": result.title,
-            "platform": result.platform,
-            "duration": result.duration,
-            "language": result.language,
-            "word_count": result.word_count,
-        })
+        results.append(
+            {
+                "success": True,
+                "url": url,
+                "file": str(result.file_path),
+                "title": result.title,
+                "platform": result.platform,
+                "duration": result.duration,
+                "language": result.language,
+                "word_count": result.word_count,
+            }
+        )
     except Exception as e:
         failed += 1
-        results.append({
-            "success": False,
-            "url": url,
-            "error": str(e),
-        })
+        results.append(
+            {
+                "success": False,
+                "url": url,
+                "error": str(e),
+            }
+        )
     return succeeded, failed

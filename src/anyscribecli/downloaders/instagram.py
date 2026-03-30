@@ -59,7 +59,7 @@ class InstagramDownloader(AbstractDownloader):
             raise RuntimeError(
                 "Instagram credentials not configured.\n"
                 "Run: ascli config set instagram.username YOUR_USERNAME\n"
-                "Run: ascli config set instagram.password YOUR_PASSWORD\n"
+                "Add INSTAGRAM_PASSWORD=YOUR_PASSWORD to ~/.anyscribecli/.env\n"
                 "Or re-run: ascli onboard --force"
             )
 
@@ -144,11 +144,16 @@ class InstagramDownloader(AbstractDownloader):
         cmd = [
             "ffmpeg",
             "-y",
-            "-i", str(video_path),
-            "-ar", "16000",
-            "-ac", "1",
-            "-b:a", "64k",
-            "-f", "mp3",
+            "-i",
+            str(video_path),
+            "-ar",
+            "16000",
+            "-ac",
+            "1",
+            "-b:a",
+            "64k",
+            "-f",
+            "mp3",
             str(audio_path),
         ]
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)

@@ -17,9 +17,12 @@ def get_audio_duration(audio_path: Path) -> float:
     """Get duration of an audio file in seconds using ffprobe."""
     cmd = [
         "ffprobe",
-        "-v", "quiet",
-        "-show_entries", "format=duration",
-        "-of", "default=noprint_wrappers=1:nokey=1",
+        "-v",
+        "quiet",
+        "-show_entries",
+        "format=duration",
+        "-of",
+        "default=noprint_wrappers=1:nokey=1",
         str(audio_path),
     ]
     result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
@@ -49,13 +52,20 @@ def chunk_audio(audio_path: Path) -> list[tuple[Path, float]]:
         cmd = [
             "ffmpeg",
             "-y",
-            "-i", str(audio_path),
-            "-ss", str(offset),
-            "-t", str(CHUNK_DURATION_SECONDS),
-            "-ar", "16000",
-            "-ac", "1",
-            "-b:a", "64k",
-            "-f", "mp3",
+            "-i",
+            str(audio_path),
+            "-ss",
+            str(offset),
+            "-t",
+            str(CHUNK_DURATION_SECONDS),
+            "-ar",
+            "16000",
+            "-ac",
+            "1",
+            "-b:a",
+            "64k",
+            "-f",
+            "mp3",
             str(chunk_path),
         ]
         result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)

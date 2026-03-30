@@ -112,7 +112,9 @@ def _git_update(repo_path: Path, force: bool = False) -> bool:
     )
     if status_result.stdout.strip() and not force:
         console.print("\n[yellow]You have uncommitted changes in the repo.[/yellow]")
-        console.print("Run [bold]ascli update --force[/bold] to update anyway (will stash changes).")
+        console.print(
+            "Run [bold]ascli update --force[/bold] to update anyway (will stash changes)."
+        )
         return False
 
     if status_result.stdout.strip() and force:

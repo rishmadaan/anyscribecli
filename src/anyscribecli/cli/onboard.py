@@ -2,17 +2,29 @@
 
 from __future__ import annotations
 
+import os
+
 import typer
 from beaupy import confirm as bconfirm, select as bselect
 from rich.console import Console
 from rich.panel import Panel
 
 from anyscribecli.config.paths import APP_HOME, CONFIG_FILE, ENV_FILE, ensure_app_dirs
-from anyscribecli.config.settings import Settings, save_config, save_env, load_config
+from anyscribecli.config.settings import Settings, save_config, save_env, load_config, load_env
 from anyscribecli.core.deps import check_and_install
 from anyscribecli.vault.scaffold import create_vault
 
 console = Console()
+
+
+def _mask_key(value: str) -> str:
+    """Mask an API key for display, showing only last 4 chars."""
+    if not value:
+        return "[dim]not set[/dim]"
+    if len(value) <= 4:
+        return "****"
+    return f"****{value[-4:]}"
+
 
 # Provider metadata for the wizard
 PROVIDER_INFO = {
@@ -50,8 +62,7 @@ PROVIDER_INFO = {
 
 # Build display options for the selector
 PROVIDER_OPTIONS = [
-    f"[cyan]{name}[/cyan] — {info['description']}"
-    for name, info in PROVIDER_INFO.items()
+    f"[cyan]{name}[/cyan] — {info['description']}" for name, info in PROVIDER_INFO.items()
 ]
 PROVIDER_NAMES = list(PROVIDER_INFO.keys())
 
@@ -71,7 +82,9 @@ LANGUAGE_CODES = ["auto", "en", "es", "fr", "hi", "ar", "zh", "ja", "ko", "other
 
 
 def onboard(
-    force: bool = typer.Option(False, "--force", "-f", help="Re-run setup even if already configured."),
+    force: bool = typer.Option(
+        False, "--force", "-f", help="Re-run setup even if already configured."
+    ),
     skip_deps: bool = typer.Option(False, "--skip-deps", help="Skip dependency checking."),
 ) -> None:
     """[bold green]Set up ascli[/bold green] — interactive onboarding wizard.
@@ -113,47 +126,82 @@ def onboard(
 
     # Load existing settings or defaults
     settings = load_config() if CONFIG_FILE.exists() else Settings()
+    reconfiguring = CONFIG_FILE.exists() and force
+
+    # Load existing env so we can show what's already set
+    if reconfiguring:
+        load_env()
+        console.print(
+            Panel(
+                "Existing configuration detected. Each step will show your\n"
+                "current settings — choose whether to keep or change them.",
+                title="Reconfiguring",
+                border_style="yellow",
+            )
+        )
 
     # Step 3: Provider selection (arrow-key selector)
-    console.print(
-        Panel(
-            "Choose your default transcription provider.\n"
-            "You can change this later with [bold]ascli config set provider <name>[/bold]",
-            title="Provider",
-            border_style="blue",
+    change_provider = True
+    if reconfiguring:
+        console.print(f"\n  [bold]Provider:[/bold] [cyan]{settings.provider}[/cyan]")
+        change_provider = bconfirm("  Change provider?")
+
+    if change_provider:
+        console.print(
+            Panel(
+                "Choose your default transcription provider.\n"
+                "You can change this later with [bold]ascli config set provider <name>[/bold]",
+                title="Provider",
+                border_style="blue",
+            )
         )
-    )
-    console.print("  Use [bold]↑↓ arrow keys[/bold] to navigate, [bold]Enter[/bold] to select:\n")
+        console.print(
+            "  Use [bold]↑↓ arrow keys[/bold] to navigate, [bold]Enter[/bold] to select:\n"
+        )
 
-    # Find current default index
-    default_idx = PROVIDER_NAMES.index(settings.provider) if settings.provider in PROVIDER_NAMES else 0
-    selected = bselect(PROVIDER_OPTIONS, cursor_index=default_idx, cursor="❯ ", cursor_style="cyan")
+        # Find current default index
+        default_idx = (
+            PROVIDER_NAMES.index(settings.provider) if settings.provider in PROVIDER_NAMES else 0
+        )
+        selected = bselect(
+            PROVIDER_OPTIONS, cursor_index=default_idx, cursor="❯ ", cursor_style="cyan"
+        )
 
-    if selected is None:
-        provider = "openai"
-    else:
-        provider = PROVIDER_NAMES[PROVIDER_OPTIONS.index(selected)]
-    settings.provider = provider
-    console.print(f"\n  [green]Selected:[/green] {provider}\n")
+        if selected is None:
+            provider = "openai"
+        else:
+            provider = PROVIDER_NAMES[PROVIDER_OPTIONS.index(selected)]
+        settings.provider = provider
+        console.print(f"\n  [green]Selected:[/green] {provider}\n")
+
+    provider = settings.provider
 
     # Step 4: API key for selected provider
     env_keys: dict[str, str] = {}
     pinfo = PROVIDER_INFO[provider]
 
     if pinfo["env_var"]:
-        console.print(
-            Panel(
-                f"Enter your [bold]{pinfo['label']}[/bold] API key.\n"
-                f"Get one at: [link={pinfo['key_url']}]{pinfo['key_url']}[/link]\n\n"
-                "[dim]Your key is stored locally and never shared.[/dim]",
-                title="API Key",
-                border_style="blue",
+        existing_key = os.environ.get(pinfo["env_var"], "")
+        change_key = True
+
+        if reconfiguring and existing_key:
+            console.print(f"\n  [bold]{pinfo['label']} API key:[/bold] {_mask_key(existing_key)}")
+            change_key = bconfirm("  Change API key?")
+
+        if change_key:
+            console.print(
+                Panel(
+                    f"Enter your [bold]{pinfo['label']}[/bold] API key.\n"
+                    f"Get one at: [link={pinfo['key_url']}]{pinfo['key_url']}[/link]\n\n"
+                    "[dim]Your key is stored locally and never shared.[/dim]",
+                    title="API Key",
+                    border_style="blue",
+                )
             )
-        )
-        console.print("  Paste your key below (hidden as you type):")
-        api_key = typer.prompt(f"  {pinfo['label']} API key", hide_input=True)
-        if api_key:
-            env_keys[pinfo["env_var"]] = api_key
+            console.print("  Paste your key below (hidden as you type):")
+            api_key = typer.prompt(f"  {pinfo['label']} API key", hide_input=True)
+            if api_key:
+                env_keys[pinfo["env_var"]] = api_key
     else:
         console.print(
             Panel(
@@ -172,88 +220,188 @@ def onboard(
         for name, info in PROVIDER_INFO.items():
             if name == provider or info["env_var"] is None:
                 continue
-            if bconfirm(f"  Add {info['label']} key?"):
-                key = typer.prompt(f"  {info['label']} API key", hide_input=True)
-                if key:
-                    env_keys[info["env_var"]] = key
+            existing_val = os.environ.get(info["env_var"], "")
+            if existing_val:
+                console.print(f"  {info['label']}: {_mask_key(existing_val)}")
+                if not bconfirm(f"  Change {info['label']} key?"):
+                    continue
+            elif not bconfirm(f"  Add {info['label']} key?"):
+                continue
+            key = typer.prompt(f"  {info['label']} API key", hide_input=True)
+            if key:
+                env_keys[info["env_var"]] = key
 
     # Step 6: Instagram credentials
-    console.print(
-        Panel(
-            "Instagram downloads require a username and password.\n"
-            "A dummy/secondary account is recommended — Instagram may\n"
-            "temporarily restrict third-party access.\n\n"
-            "[dim]Skip this if you only plan to use YouTube.[/dim]",
-            title="Instagram (Optional)",
-            border_style="blue",
+    existing_ig_user = settings.instagram.username
+    existing_ig_pass = os.environ.get("INSTAGRAM_PASSWORD", "")
+    change_ig = True
+
+    if reconfiguring and (existing_ig_user or existing_ig_pass):
+        ig_display = existing_ig_user or "[dim]no username[/dim]"
+        pw_display = _mask_key(existing_ig_pass)
+        console.print(f"\n  [bold]Instagram:[/bold] {ig_display} / password: {pw_display}")
+        change_ig = bconfirm("  Change Instagram credentials?")
+    else:
+        console.print(
+            Panel(
+                "Instagram downloads require a username and password.\n"
+                "A dummy/secondary account is recommended — Instagram may\n"
+                "temporarily restrict third-party access.\n\n"
+                "[dim]Skip this if you only plan to use YouTube.[/dim]",
+                title="Instagram (Optional)",
+                border_style="blue",
+            )
         )
-    )
-    if bconfirm("  Set up Instagram?"):
+        change_ig = bconfirm("  Set up Instagram?")
+
+    if change_ig:
         console.print("  Enter your Instagram credentials:")
-        settings.instagram.username = typer.prompt("  Username")
+        settings.instagram.username = typer.prompt("  Username", default=existing_ig_user or "")
         ig_password = typer.prompt("  Password", hide_input=True)
         if ig_password:
             env_keys["INSTAGRAM_PASSWORD"] = ig_password
 
     # Step 7: Language (arrow-key selector)
-    console.print(
-        Panel(
-            "Choose the default language for transcription.\n"
-            "You can override per-video with [bold]--language[/bold] flag.",
-            title="Default Language",
-            border_style="blue",
-        )
-    )
-    console.print("  Use [bold]↑↓ arrow keys[/bold] to navigate, [bold]Enter[/bold] to select:\n")
+    change_lang = True
+    if reconfiguring:
+        console.print(f"\n  [bold]Language:[/bold] [cyan]{settings.language}[/cyan]")
+        change_lang = bconfirm("  Change language?")
 
-    lang_selected = bselect(LANGUAGE_OPTIONS, cursor="❯ ", cursor_style="cyan")
-    if lang_selected is None:
-        settings.language = "auto"
-    else:
-        lang_code = LANGUAGE_CODES[LANGUAGE_OPTIONS.index(lang_selected)]
-        if lang_code == "other":
-            settings.language = typer.prompt("  Enter language code (e.g., de, pt, ru)")
+    if change_lang:
+        console.print(
+            Panel(
+                "Choose the default language for transcription.\n"
+                "You can override per-video with [bold]--language[/bold] flag.",
+                title="Default Language",
+                border_style="blue",
+            )
+        )
+        console.print(
+            "  Use [bold]↑↓ arrow keys[/bold] to navigate, [bold]Enter[/bold] to select:\n"
+        )
+
+        lang_default_idx = (
+            LANGUAGE_CODES.index(settings.language) if settings.language in LANGUAGE_CODES else 0
+        )
+        lang_selected = bselect(
+            LANGUAGE_OPTIONS, cursor_index=lang_default_idx, cursor="❯ ", cursor_style="cyan"
+        )
+        if lang_selected is None:
+            settings.language = "auto"
         else:
-            settings.language = lang_code
-    console.print(f"\n  [green]Selected:[/green] {settings.language}\n")
+            lang_code = LANGUAGE_CODES[LANGUAGE_OPTIONS.index(lang_selected)]
+            if lang_code == "other":
+                settings.language = typer.prompt("  Enter language code (e.g., de, pt, ru)")
+            else:
+                settings.language = lang_code
+        console.print(f"\n  [green]Selected:[/green] {settings.language}\n")
 
     # Step 8: Keep media
-    console.print(
-        Panel(
-            "Keep downloaded audio files after transcription?\n"
-            "Files are saved to [cyan]~/.anyscribecli/media/audio/[/cyan]\n\n"
-            "[dim]You can change this later with: ascli config set keep_media true[/dim]",
-            title="Media Storage",
-            border_style="blue",
-        )
-    )
-    settings.keep_media = bconfirm("  Keep audio files after transcription?")
+    change_media = True
+    if reconfiguring:
+        media_display = "yes" if settings.keep_media else "no"
+        console.print(f"\n  [bold]Keep media:[/bold] [cyan]{media_display}[/cyan]")
+        change_media = bconfirm("  Change keep media setting?")
 
-    # Step 9: Post-transcription download prompt
-    console.print(
-        Panel(
-            "After each transcription, ascli can ask if you want to\n"
-            "download the full video or audio file.\n\n"
-            "[bold]never[/bold]  — don't ask (default)\n"
-            "[bold]ask[/bold]    — ask every time after transcription\n"
-            "[bold]always[/bold] — always download video after transcription",
-            title="Post-Transcription Download",
-            border_style="blue",
+    if change_media:
+        console.print(
+            Panel(
+                "Keep downloaded audio files after transcription?\n"
+                "Files are saved to [cyan]~/.anyscribecli/media/audio/[/cyan]\n\n"
+                "[dim]You can change this later with: ascli config set keep_media true[/dim]",
+                title="Media Storage",
+                border_style="blue",
+            )
         )
-    )
-    console.print("  Use [bold]↑↓ arrow keys[/bold] to navigate, [bold]Enter[/bold] to select:\n")
-    download_options = [
-        "[cyan]never[/cyan] — don't ask, just transcribe",
-        "[cyan]ask[/cyan] — ask me each time if I want the video/audio too",
-        "[cyan]always[/cyan] — always download the full video after transcription",
-    ]
-    download_codes = ["never", "ask", "always"]
-    dl_selected = bselect(download_options, cursor="❯ ", cursor_style="cyan")
-    if dl_selected is None:
-        settings.prompt_download = "never"
-    else:
-        settings.prompt_download = download_codes[download_options.index(dl_selected)]
-    console.print(f"\n  [green]Selected:[/green] {settings.prompt_download}\n")
+        settings.keep_media = bconfirm("  Keep audio files after transcription?")
+
+    # Step 9: Local file media handling
+    change_local = True
+    if reconfiguring:
+        console.print(
+            f"\n  [bold]Local file media:[/bold] [cyan]{settings.local_file_media}[/cyan]"
+        )
+        change_local = bconfirm("  Change local file media setting?")
+
+    if change_local:
+        console.print(
+            Panel(
+                "When transcribing local files (mp3, mp4, wav, etc.),\n"
+                "what should ascli do with the original file?\n\n"
+                "[bold]skip[/bold]  — leave the file where it is (default)\n"
+                "[bold]copy[/bold]  — copy to media dir for organization\n"
+                "[bold]move[/bold]  — move to media dir for organization\n"
+                "[bold]ask[/bold]   — ask each time",
+                title="Local File Handling",
+                border_style="blue",
+            )
+        )
+        console.print(
+            "  Use [bold]↑↓ arrow keys[/bold] to navigate, [bold]Enter[/bold] to select:\n"
+        )
+        local_options = [
+            "[cyan]skip[/cyan] — leave the original file where it is",
+            "[cyan]copy[/cyan] — copy to ~/.anyscribecli/media/audio/ for organization",
+            "[cyan]move[/cyan] — move to ~/.anyscribecli/media/audio/ for organization",
+            "[cyan]ask[/cyan] — ask me each time",
+        ]
+        local_codes = ["skip", "copy", "move", "ask"]
+        local_default_idx = (
+            local_codes.index(settings.local_file_media)
+            if settings.local_file_media in local_codes
+            else 0
+        )
+        local_selected = bselect(
+            local_options, cursor_index=local_default_idx, cursor="❯ ", cursor_style="cyan"
+        )
+        if local_selected is None:
+            settings.local_file_media = "skip"
+        else:
+            settings.local_file_media = local_codes[local_options.index(local_selected)]
+        console.print(f"\n  [green]Selected:[/green] {settings.local_file_media}\n")
+
+    # Step 10: Post-transcription download prompt
+    change_download = True
+    if reconfiguring:
+        console.print(
+            f"\n  [bold]Post-transcription download:[/bold] [cyan]{settings.prompt_download}[/cyan]"
+        )
+        change_download = bconfirm("  Change download prompt setting?")
+
+    if change_download:
+        console.print(
+            Panel(
+                "After each transcription, ascli can ask if you want to\n"
+                "download the full video or audio file.\n\n"
+                "[bold]never[/bold]  — don't ask (default)\n"
+                "[bold]ask[/bold]    — ask every time after transcription\n"
+                "[bold]always[/bold] — always download video after transcription",
+                title="Post-Transcription Download",
+                border_style="blue",
+            )
+        )
+        console.print(
+            "  Use [bold]↑↓ arrow keys[/bold] to navigate, [bold]Enter[/bold] to select:\n"
+        )
+        download_options = [
+            "[cyan]never[/cyan] — don't ask, just transcribe",
+            "[cyan]ask[/cyan] — ask me each time if I want the video/audio too",
+            "[cyan]always[/cyan] — always download the full video after transcription",
+        ]
+        download_codes = ["never", "ask", "always"]
+        dl_default_idx = (
+            download_codes.index(settings.prompt_download)
+            if settings.prompt_download in download_codes
+            else 0
+        )
+        dl_selected = bselect(
+            download_options, cursor_index=dl_default_idx, cursor="❯ ", cursor_style="cyan"
+        )
+        if dl_selected is None:
+            settings.prompt_download = "never"
+        else:
+            settings.prompt_download = download_codes[download_options.index(dl_selected)]
+        console.print(f"\n  [green]Selected:[/green] {settings.prompt_download}\n")
 
     # Save config and env
     save_config(settings)
@@ -265,7 +413,11 @@ def onboard(
 
     # Summary
     configured_keys = ", ".join(env_keys.keys()) if env_keys else "none"
-    ig_status = f"configured ({settings.instagram.username})" if settings.instagram.username else "not configured"
+    ig_status = (
+        f"configured ({settings.instagram.username})"
+        if settings.instagram.username
+        else "not configured"
+    )
 
     console.print(
         Panel(
@@ -277,7 +429,8 @@ def onboard(
             f"  API keys:    {configured_keys}\n"
             f"  Instagram:   {ig_status}\n"
             f"  Language:    {settings.language}\n"
-            f"  Keep media:  {settings.keep_media}\n\n"
+            f"  Keep media:  {settings.keep_media}\n"
+            f"  Local files: {settings.local_file_media}\n\n"
             "[bold]Next steps:[/bold]\n"
             "  [bold cyan]ascli transcribe <url>[/bold cyan]  — transcribe a video\n"
             "  [bold cyan]ascli providers list[/bold cyan]    — see available providers\n"

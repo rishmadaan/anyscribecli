@@ -16,7 +16,7 @@ err_console = Console(stderr=True)
 
 
 def transcribe(
-    url: Optional[str] = typer.Argument(None, help="YouTube or Instagram URL to transcribe."),
+    url: Optional[str] = typer.Argument(None, help="URL or local file path to transcribe."),
     provider: Optional[str] = typer.Option(
         None, "--provider", "-p", help="Override transcription provider."
     ),
@@ -26,20 +26,17 @@ def transcribe(
     output_json: bool = typer.Option(
         False, "--json", "-j", help="Output result as JSON (for scripting/agents)."
     ),
-    keep_media: bool = typer.Option(
-        False, "--keep-media", help="Keep downloaded audio file."
-    ),
-    quiet: bool = typer.Option(
-        False, "--quiet", "-q", help="Suppress progress output."
-    ),
-    clipboard: bool = typer.Option(
-        False, "--clipboard", "-c", help="Read URL from clipboard."
-    ),
+    keep_media: bool = typer.Option(False, "--keep-media", help="Keep downloaded audio file."),
+    quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress progress output."),
+    clipboard: bool = typer.Option(False, "--clipboard", "-c", help="Read URL from clipboard."),
 ) -> None:
-    """[bold blue]Transcribe[/bold blue] a video/audio URL to markdown.
+    """[bold blue]Transcribe[/bold blue] a video/audio URL or local file to markdown.
 
-    Downloads the audio, transcribes via API, and saves a formatted
-    markdown file to your Obsidian workspace.
+    Accepts a YouTube/Instagram URL or a local audio/video file path.
+    Transcribes via API and saves a formatted markdown file to your
+    Obsidian workspace.
+
+    [dim]Supported file formats: mp3, mp4, m4a, wav, opus, ogg, flac, webm, aac, wma[/dim]
 
     [dim]Tip: If the URL contains special characters (like ?), either
     wrap it in quotes or just run `ascli transcribe` without a URL
@@ -57,16 +54,16 @@ def transcribe(
             err_console.print(f"[dim]URL from clipboard:[/dim] {url}")
 
     if not url:
-        # No URL provided — prompt interactively
-        console.print("  Paste a YouTube or Instagram URL (no quotes needed here):")
-        url = typer.prompt("  URL")
+        # No input provided — prompt interactively
+        console.print("  Paste a URL or local file path (no quotes needed here):")
+        url = typer.prompt("  Input")
 
     if not url:
-        err_console.print("[red]Error:[/red] No URL provided.")
+        err_console.print("[red]Error:[/red] No URL or file path provided.")
         raise typer.Exit(code=1)
 
-    # Detect URLs mangled by zsh glob expansion (? stripped)
-    url = _validate_url(url)
+    # Validate input — either a URL or a local file path
+    url = _validate_input(url)
 
     load_env()
     settings = load_config()
@@ -112,8 +109,9 @@ def transcribe(
         console.print(f"  Language: {result.language}")
         console.print(f"  Words:    {result.word_count}")
 
-        # Post-transcription download prompt
-        _maybe_download_after(url, settings, quiet)
+        # Post-transcription download prompt (skip for local files)
+        if url.startswith("http://") or url.startswith("https://"):
+            _maybe_download_after(url, settings, quiet)
 
 
 def _maybe_download_after(url: str, settings, quiet: bool) -> None:
@@ -150,9 +148,16 @@ def _maybe_download_after(url: str, settings, quiet: bool) -> None:
                 shutil.rmtree(tmp_dir, ignore_errors=True)
 
 
-def _validate_url(url: str) -> str:
-    """Validate and clean the URL. Detect common shell mangling issues."""
+def _validate_input(url: str) -> str:
+    """Validate input as a URL or local file path."""
+    from pathlib import Path
+
     url = url.strip()
+
+    # Check if it's a local file path
+    path = Path(url).expanduser()
+    if path.exists() and path.is_file():
+        return str(path.resolve())
 
     # Detect truncated YouTube URLs (zsh ate the ?v= part)
     if "youtube.com/watch" in url and "?" not in url:
@@ -168,10 +173,11 @@ def _validate_url(url: str) -> str:
     # Basic URL validation
     if not url.startswith("http://") and not url.startswith("https://"):
         err_console.print(
-            f"[red]Error:[/red] '{url}' doesn't look like a URL.\n\n"
-            "  Expected a YouTube or Instagram URL like:\n"
-            '  [bold cyan]ascli transcribe "https://www.youtube.com/watch?v=VIDEO_ID"[/bold cyan]\n\n'
-            "  Make sure to wrap the URL in quotes."
+            f"[red]Error:[/red] '{url}' doesn't look like a URL or file path.\n\n"
+            "  Expected a URL or a local audio/video file:\n"
+            '  [bold cyan]ascli transcribe "https://www.youtube.com/watch?v=VIDEO_ID"[/bold cyan]\n'
+            "  [bold cyan]ascli transcribe /path/to/audio.mp3[/bold cyan]\n\n"
+            "  Supported formats: mp3, mp4, m4a, wav, opus, ogg, flac, webm, aac, wma"
         )
         raise typer.Exit(code=2)
 
@@ -189,7 +195,9 @@ def _read_clipboard() -> str | None:
         else:
             result = subprocess.run(
                 ["xclip", "-selection", "clipboard", "-o"],
-                capture_output=True, text=True, timeout=5,
+                capture_output=True,
+                text=True,
+                timeout=5,
             )
         text = result.stdout.strip()
         # Basic validation — should look like a URL

@@ -1,6 +1,6 @@
 # anyscribecli
 
-**Download. Transcribe. Markdown.** A CLI tool that turns YouTube and Instagram videos into structured, searchable markdown — browsable in Obsidian.
+**Download. Transcribe. Markdown.** A CLI tool that turns YouTube videos, Instagram reels, and local audio/video files into structured, searchable markdown — browsable in Obsidian.
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -11,11 +11,11 @@
 ## What it does
 
 ```
-YouTube/Instagram URL → Download audio → Transcribe → Formatted Markdown → Obsidian Vault
+URL or local file → Download/convert audio → Transcribe → Formatted Markdown → Obsidian Vault
 ```
 
 - **5 transcription providers** — OpenAI Whisper, ElevenLabs, OpenRouter, Sarvam AI, Local (offline)
-- **2 platforms** — YouTube and Instagram (reels + posts)
+- **3 input sources** — YouTube, Instagram (reels + posts), local files (mp3, mp4, m4a, wav, opus, ogg, flac, webm)
 - **Obsidian-native output** — YAML frontmatter, word count, reading time, tags
 - **Master index + daily logs** — browse everything in Obsidian
 - **Download-only mode** — grab video or audio without transcribing
@@ -56,10 +56,14 @@ Interactive wizard with arrow-key selectors:
 ### Transcribe
 
 ```bash
+# From a URL
 ascli transcribe "https://www.youtube.com/watch?v=VIDEO_ID"
+
+# From a local file
+ascli transcribe /path/to/podcast.mp3
 ```
 
-> **Always wrap URLs in quotes** — shells like zsh break URLs with `?` in them. Or just run `ascli transcribe` and paste when prompted.
+> **Always wrap URLs in quotes** — shells like zsh break URLs with `?` in them. Or just run `ascli transcribe` and paste when prompted. Local file paths don't need quotes.
 
 ### Download (no transcription)
 
@@ -73,9 +77,9 @@ ascli download "https://www.youtube.com/watch?v=VIDEO_ID" --audio-only  # audio
 | Command | Description |
 |---------|-------------|
 | `ascli onboard` | Interactive setup wizard |
-| `ascli transcribe "<url>"` | Transcribe a video to markdown |
+| `ascli transcribe "<url or file>"` | Transcribe a video or local file to markdown |
 | `ascli download "<url>"` | Download video or audio only |
-| `ascli batch <file>` | Batch transcribe URLs from a file |
+| `ascli batch <file>` | Batch transcribe URLs or file paths from a file |
 | `ascli config show/set/path` | View and change settings |
 | `ascli providers list/test` | Manage transcription providers |
 | `ascli update` | Update to the latest version |
@@ -93,11 +97,12 @@ ascli transcribe "<url>"
   --quiet, -q              # Suppress progress output
 ```
 
-Three ways to provide the URL:
+Provide a URL, file path, or use interactive mode:
 ```bash
-ascli transcribe "https://..."     # quoted argument (primary)
+ascli transcribe "https://..."     # quoted URL (primary)
+ascli transcribe /path/to/file.mp3 # local audio/video file
 ascli transcribe                    # interactive prompt (no quoting needed)
-ascli transcribe --clipboard        # read from system clipboard
+ascli transcribe --clipboard        # read URL from system clipboard
 ```
 
 ### Download options
@@ -162,7 +167,8 @@ The onboarding wizard checks for these and offers to install them:
 │   ├── _index.md                         # Master index (newest first)
 │   ├── sources/
 │   │   ├── youtube/YYYY-MM-DD/<slug>.md
-│   │   └── instagram/YYYY-MM-DD/<slug>.md
+│   │   ├── instagram/YYYY-MM-DD/<slug>.md
+│   │   └── local/YYYY-MM-DD/<slug>.md
 │   └── daily/YYYY-MM-DD.md
 ├── media/                                # Downloads (separate from vault)
 │   ├── audio/<platform>/YYYY-MM-DD/      # Kept audio (if keep_media=true)
@@ -194,6 +200,7 @@ language: auto             # Language (auto-detect or ISO code)
 keep_media: false          # Keep audio files after transcription
 output_format: clean       # clean | timestamped
 prompt_download: never     # never | ask | always — download video after transcription
+local_file_media: skip     # skip | copy | move | ask — what to do with local files
 ```
 
 API keys and passwords live in `~/.anyscribecli/.env` (separate from config, never committed).

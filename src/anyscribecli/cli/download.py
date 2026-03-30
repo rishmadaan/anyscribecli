@@ -22,7 +22,9 @@ err_console = Console(stderr=True)
 
 def download(
     url: Optional[str] = typer.Argument(None, help="YouTube or Instagram URL to download."),
-    video: bool = typer.Option(True, "--video/--audio-only", help="Download video (default) or audio only."),
+    video: bool = typer.Option(
+        True, "--video/--audio-only", help="Download video (default) or audio only."
+    ),
     output_json: bool = typer.Option(False, "--json", "-j", help="Output result as JSON."),
     quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress progress output."),
     clipboard: bool = typer.Option(False, "--clipboard", "-c", help="Read URL from clipboard."),
@@ -116,9 +118,12 @@ def _download_video(url: str, platform: str, tmp_dir: Path, quiet: bool) -> dict
     output_template = str(tmp_dir / "%(title).80s.%(ext)s")
     cmd = [
         "yt-dlp",
-        "--format", "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
-        "--merge-output-format", "mp4",
-        "--output", output_template,
+        "--format",
+        "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
+        "--merge-output-format",
+        "mp4",
+        "--output",
+        output_template,
         "--no-playlist",
         "--print-json",
     ]
@@ -131,11 +136,14 @@ def _download_video(url: str, platform: str, tmp_dir: Path, quiet: bool) -> dict
         raise RuntimeError(f"Download failed: {result.stderr.strip()[:300]}")
 
     import json as _json
+
     metadata = _json.loads(result.stdout.split("\n")[0])
     title = metadata.get("title", "untitled")
 
     # Find the downloaded video
-    video_files = list(tmp_dir.glob("*.mp4")) + list(tmp_dir.glob("*.mkv")) + list(tmp_dir.glob("*.webm"))
+    video_files = (
+        list(tmp_dir.glob("*.mp4")) + list(tmp_dir.glob("*.mkv")) + list(tmp_dir.glob("*.webm"))
+    )
     if not video_files:
         raise RuntimeError("Download completed but no video file found.")
     video_path = video_files[0]

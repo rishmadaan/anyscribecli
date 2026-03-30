@@ -30,12 +30,13 @@ This is your main settings file. The onboarding wizard creates it, but you can a
 ```yaml
 # ~/.anyscribecli/config.yaml
 
-provider: openai        # Which transcription service to use
-language: auto           # Language for transcription
-keep_media: false        # Whether to save audio files
-output_format: clean     # How to format transcripts
-prompt_download: never   # Ask to download video after transcription
-instagram:               # Instagram credentials
+provider: openai          # Which transcription service to use
+language: auto             # Language for transcription
+keep_media: false          # Whether to save audio files
+output_format: clean       # How to format transcripts
+prompt_download: never     # Ask to download video after transcription
+local_file_media: skip     # What to do with local files after transcription
+instagram:                 # Instagram credentials
   username: ""
 ```
 
@@ -96,6 +97,19 @@ Whether to offer downloading the video/audio file after each transcription. Defa
 
 > **Tip:** You can always download manually with `ascli download "<url>"` regardless of this setting.
 
+#### local_file_media
+
+What to do with the original file when transcribing local audio/video files. Default: `skip`.
+
+| Value | Description |
+|-------|-------------|
+| `skip` | Leave the original file where it is (default) |
+| `copy` | Copy to `~/.anyscribecli/media/audio/local/YYYY-MM-DD/` for organization |
+| `move` | Move to the media directory (removes the original) |
+| `ask` | Ask each time what to do |
+
+> **Why skip by default?** Unlike URL downloads where audio is temporary, local files already exist on your disk. Copying them wastes space unless you want everything organized in one place.
+
 ## .env (API Keys and Secrets)
 
 API keys and passwords are stored separately from config for security:
@@ -119,6 +133,8 @@ The easiest way is to re-run onboarding:
 ascli onboard --force
 ```
 
+This shows your current settings (API keys masked) and lets you change only what you need — no need to re-enter everything.
+
 Or edit the file directly:
 
 ```bash
@@ -136,7 +152,8 @@ Your transcripts live in the workspace (pure markdown, no binaries). Media files
 │   ├── _index.md                          # Master index — newest first
 │   ├── sources/
 │   │   ├── youtube/YYYY-MM-DD/            # YouTube transcripts by date
-│   │   └── instagram/YYYY-MM-DD/          # Instagram transcripts by date
+│   │   ├── instagram/YYYY-MM-DD/          # Instagram transcripts by date
+│   │   └── local/YYYY-MM-DD/             # Local file transcripts by date
 │   └── daily/YYYY-MM-DD.md               # Daily processing log
 ├── media/                                 # Downloads (separate from vault)
 │   ├── audio/<platform>/YYYY-MM-DD/       # Audio files (if keep_media=true)

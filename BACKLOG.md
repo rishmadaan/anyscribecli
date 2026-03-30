@@ -19,8 +19,9 @@ The `0.x` prefix means pre-stable — breaking changes are allowed between minor
 | 0.1.0 | YouTube + OpenAI MVP | Released 2026-03-26 |
 | 0.2.0 | Full feature build (Instagram, all providers, batch, config, onboarding) | Released 2026-03-26 |
 | 0.3.0 | Download command, media restructure, post-transcription prompts, UX polish | Released 2026-03-27 |
-| 0.3.1 | Documentation accuracy audit — 16 issues fixed across all docs. First PyPI publish. | **Current** |
-| 0.4.0 | Cache/dedup, test suite, error handling | Next |
+| 0.3.1 | Documentation accuracy audit — 16 issues fixed across all docs. First PyPI publish. | Released 2026-03-29 |
+| 0.4.0 | Local file transcription, onboard reconfigure UX, Instagram error fix | **Current** |
+| 0.5.0 | Cache/dedup, test suite, error handling | Next |
 | 1.0.0 | Stable: full test coverage, CI/CD pipeline | Future |
 
 ### How to bump versions
@@ -110,7 +111,24 @@ All features originally planned for v0.2.0–v0.5.0, built in one session:
 
 ---
 
-## v0.4.0 — Cache, Dedup, Quality
+## v0.4.0 — Local Files, Onboard Reconfig UX ✅
+
+**Released:** 2026-03-30
+
+- [x] **Local file transcription** — `ascli transcribe /path/to/file.mp3`
+  - Supports mp3, mp4, m4a, wav, opus, ogg, flac, webm, aac, wma
+  - New `LocalFileDownloader` — converts to Whisper-optimized audio via ffmpeg
+  - Vault output saved under `sources/local/YYYY-MM-DD/`
+  - Works with batch command too
+- [x] **Onboard reconfigure UX** — `ascli onboard --force` now shows current settings and asks before overwriting each step
+  - Masked API key display (****abcd)
+  - Per-step skip/change prompts
+  - Arrow-key selectors pre-select current values
+- [x] **Instagram error message fix** — corrected to point to `.env` instead of `config set`
+
+---
+
+## v0.5.0 — Cache, Dedup, Quality
 
 - [ ] **Duplicate / cache checking** (inspired by AnyScribe web app's FindStamp pattern):
   - Before transcribing: check if URL was already transcribed (lookup by source URL in _index.md or a cache file)

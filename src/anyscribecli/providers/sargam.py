@@ -40,14 +40,10 @@ class SargamProvider(TranscriptionProvider):
     def _get_api_key(self) -> str:
         key = os.environ.get("SARGAM_API_KEY", "")
         if not key:
-            raise RuntimeError(
-                "SARGAM_API_KEY not set. Add it to ~/.anyscribecli/.env"
-            )
+            raise RuntimeError("SARGAM_API_KEY not set. Add it to ~/.anyscribecli/.env")
         return key
 
-    def _transcribe_single(
-        self, audio_path: Path, language: str, api_key: str
-    ) -> dict:
+    def _transcribe_single(self, audio_path: Path, language: str, api_key: str) -> dict:
         """Transcribe a single audio file via Sarvam API (must be <=30s)."""
         with open(audio_path, "rb") as f:
             files = {"file": (audio_path.name, f, "audio/mpeg")}
@@ -66,9 +62,7 @@ class SargamProvider(TranscriptionProvider):
             )
 
         if response.status_code != 200:
-            raise RuntimeError(
-                f"Sarvam API error ({response.status_code}): {response.text}"
-            )
+            raise RuntimeError(f"Sarvam API error ({response.status_code}): {response.text}")
         return response.json()
 
     def _chunk_for_sarvam(self, audio_path: Path) -> list[tuple[Path, float]]:
@@ -88,12 +82,23 @@ class SargamProvider(TranscriptionProvider):
         while offset < duration:
             chunk_path = chunk_dir / f"{stem}_sarvam{chunk_num:03d}.mp3"
             cmd = [
-                "ffmpeg", "-y",
-                "-i", str(audio_path),
-                "-ss", str(offset),
-                "-t", str(SARVAM_MAX_DURATION),
-                "-ar", "16000", "-ac", "1", "-b:a", "64k",
-                "-f", "mp3", str(chunk_path),
+                "ffmpeg",
+                "-y",
+                "-i",
+                str(audio_path),
+                "-ss",
+                str(offset),
+                "-t",
+                str(SARVAM_MAX_DURATION),
+                "-ar",
+                "16000",
+                "-ac",
+                "1",
+                "-b:a",
+                "64k",
+                "-f",
+                "mp3",
+                str(chunk_path),
             ]
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
             if result.returncode != 0:

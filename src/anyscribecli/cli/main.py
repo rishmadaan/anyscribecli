@@ -57,8 +57,12 @@ app.add_typer(providers_app, name="providers")
 
 @app.command()
 def update(
-    force: bool = typer.Option(False, "--force", "-f", help="Force update even with local changes."),
-    check: bool = typer.Option(False, "--check", "-c", help="Only check for updates, don't install."),
+    force: bool = typer.Option(
+        False, "--force", "-f", help="Force update even with local changes."
+    ),
+    check: bool = typer.Option(
+        False, "--check", "-c", help="Only check for updates, don't install."
+    ),
 ) -> None:
     """[bold yellow]Update[/bold yellow] ascli to the latest version.
 

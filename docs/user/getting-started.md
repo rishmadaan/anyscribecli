@@ -59,7 +59,7 @@ Verify it worked:
 ascli --version
 ```
 
-You should see `ascli v0.3.1` (or a newer version).
+You should see `ascli v0.4.0` (or a newer version).
 
 > **Other install methods:** You can also use the [install script](https://raw.githubusercontent.com/rishmadaan/anyscribecli/main/install.sh) which checks and installs all dependencies for you, or [clone the repo](https://github.com/rishmadaan/anyscribecli) for development.
 
@@ -78,10 +78,11 @@ The wizard uses arrow-key selectors — navigate with **↑↓** and press **Ent
 5. **Configure Instagram** (optional) — username and password for downloading Instagram reels. A secondary account is recommended.
 6. **Choose language** — auto-detect (default) or pick a specific language.
 7. **Keep audio files** — whether to save the transcription audio to `~/.anyscribecli/media/audio/`.
-8. **Post-transcription downloads** — whether ascli should offer to download the full video after each transcription (never/ask/always).
-9. **Create workspace** — sets up your Obsidian vault at `~/.anyscribecli/workspace/`.
+8. **Local file handling** — what to do with original files when transcribing local audio/video (skip/copy/move/ask).
+9. **Post-transcription downloads** — whether ascli should offer to download the full video after each transcription (never/ask/always).
+10. **Create workspace** — sets up your Obsidian vault at `~/.anyscribecli/workspace/`.
 
-> **Re-run anytime:** `ascli onboard --force` to change settings. `ascli onboard --skip-deps` to skip the dependency check.
+> **Re-run anytime:** `ascli onboard --force` to change settings — it shows your current config and lets you choose which parts to update. `ascli onboard --skip-deps` to skip the dependency check.
 
 ## Step 4: Transcribe your first video
 
@@ -108,6 +109,9 @@ Transcription saved: ~/.anyscribecli/workspace/sources/youtube/2026-03-29/how-to
 ### Also try
 
 ```bash
+# Local audio/video file (mp3, mp4, m4a, wav, opus, ogg, flac, webm)
+ascli transcribe /path/to/podcast.mp3
+
 # Instagram reel
 ascli transcribe "https://www.instagram.com/reel/SHORTCODE/"
 
@@ -130,7 +134,7 @@ Open Obsidian and select "Open folder as vault", then choose:
 
 You'll see:
 - **`_index.md`** — a table of all your transcripts, newest first
-- **`sources/youtube/`** and **`sources/instagram/`** — transcripts organized by platform and date
+- **`sources/youtube/`**, **`sources/instagram/`**, and **`sources/local/`** — transcripts organized by source and date
 - **`daily/`** — a log of what you transcribed each day
 
 Each transcript has YAML properties that Obsidian can search and filter:
@@ -147,7 +151,7 @@ tags: [transcript, youtube]
 
 ## What to do next
 
-- **Transcribe more** — `ascli transcribe "url"` with any YouTube or Instagram link
+- **Transcribe more** — `ascli transcribe "url"` with any YouTube or Instagram link, or `ascli transcribe /path/to/file.mp3` for local files
 - **Download video** — `ascli download "url"` to save video without transcribing
 - **Batch process** — `ascli batch urls.txt` to transcribe a list of URLs
 - **Switch providers** — `ascli config set provider elevenlabs`

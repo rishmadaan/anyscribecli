@@ -36,9 +36,7 @@ class OpenAIProvider(TranscriptionProvider):
             )
         return key
 
-    def _transcribe_single(
-        self, audio_path: Path, language: str, api_key: str
-    ) -> dict:
+    def _transcribe_single(self, audio_path: Path, language: str, api_key: str) -> dict:
         """Transcribe a single audio file (must be <= 25MB)."""
         with open(audio_path, "rb") as f:
             files = {"file": (audio_path.name, f, "audio/mpeg")}
@@ -59,9 +57,7 @@ class OpenAIProvider(TranscriptionProvider):
             )
 
         if response.status_code != 200:
-            raise RuntimeError(
-                f"Whisper API error ({response.status_code}): {response.text}"
-            )
+            raise RuntimeError(f"Whisper API error ({response.status_code}): {response.text}")
         return response.json()
 
     def transcribe(self, audio_path: Path, language: str = "auto") -> TranscriptResult:
@@ -69,9 +65,7 @@ class OpenAIProvider(TranscriptionProvider):
         file_size = audio_path.stat().st_size
 
         if file_size <= WHISPER_MAX_BYTES:
-            return self._parse_response(
-                self._transcribe_single(audio_path, language, api_key)
-            )
+            return self._parse_response(self._transcribe_single(audio_path, language, api_key))
 
         # Chunk large files (>25MB) — pattern from AnyScribe web app
         chunks = chunk_audio(audio_path)

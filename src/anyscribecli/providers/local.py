@@ -46,17 +46,17 @@ class LocalProvider(TranscriptionProvider):
             )
 
         import os
+
         model_size = os.environ.get("ASCLI_LOCAL_MODEL", DEFAULT_MODEL)
         if model_size not in LOCAL_MODELS:
-            raise ValueError(
-                f"Unknown model '{model_size}'. Available: {', '.join(LOCAL_MODELS)}"
-            )
+            raise ValueError(f"Unknown model '{model_size}'. Available: {', '.join(LOCAL_MODELS)}")
 
         # Auto-detect compute type
         device = "cpu"
         compute_type = "int8"
         try:
             import torch
+
             if torch.cuda.is_available():
                 device = "cuda"
                 compute_type = "float16"

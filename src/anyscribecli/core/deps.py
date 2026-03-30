@@ -102,9 +102,7 @@ def _get_python_version() -> tuple[int, int]:
 def _get_version(command: str) -> str | None:
     """Try to get version string from a command."""
     try:
-        result = subprocess.run(
-            [command, "--version"], capture_output=True, text=True, timeout=10
-        )
+        result = subprocess.run([command, "--version"], capture_output=True, text=True, timeout=10)
         output = result.stdout.strip() or result.stderr.strip()
         return output.split("\n")[0] if output else None
     except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
@@ -155,7 +153,11 @@ def print_dependency_status(results: list[DepCheckResult]) -> None:
             status = "[green]Found[/green]"
             info = r.version or r.path or ""
         else:
-            req = "[red]Missing (required)[/red]" if r.dep.required else "[yellow]Missing (optional)[/yellow]"
+            req = (
+                "[red]Missing (required)[/red]"
+                if r.dep.required
+                else "[yellow]Missing (optional)[/yellow]"
+            )
             status = req
             info = r.dep.description
 
@@ -187,9 +189,7 @@ def install_dependency(dep: Dependency) -> bool:
 
     console.print(f"  Running: [cyan]{cmd_str}[/cyan]")
     try:
-        result = subprocess.run(
-            cmd_str.split(), capture_output=True, text=True, timeout=300
-        )
+        result = subprocess.run(cmd_str.split(), capture_output=True, text=True, timeout=300)
         if result.returncode == 0:
             console.print(f"  [green]{dep.name} installed successfully.[/green]")
             return True
@@ -238,9 +238,7 @@ def check_and_install(interactive: bool = True) -> bool:
 
         # Skip ffprobe if ffmpeg is also missing (installing ffmpeg covers both)
         if r.dep.name == "ffprobe":
-            ffmpeg_missing = any(
-                mr.dep.name == "ffmpeg" and not mr.found for mr in results
-            )
+            ffmpeg_missing = any(mr.dep.name == "ffmpeg" and not mr.found for mr in results)
             if ffmpeg_missing:
                 continue  # will be installed with ffmpeg
 
@@ -270,5 +268,7 @@ def check_and_install(interactive: bool = True) -> bool:
             console.print("\n[green]All dependencies satisfied.[/green]")
             return True
 
-    console.print("\n[yellow]Some dependencies are still missing. ascli may not work fully.[/yellow]")
+    console.print(
+        "\n[yellow]Some dependencies are still missing. ascli may not work fully.[/yellow]"
+    )
     return typer.confirm("Continue anyway?", default=False)

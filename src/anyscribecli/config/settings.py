@@ -24,6 +24,7 @@ class Settings:
     keep_media: bool = False
     output_format: str = "clean"  # clean | timestamped
     prompt_download: str = "never"  # never | always | ask (prompt after transcription)
+    local_file_media: str = "skip"  # skip | copy | move | ask
     instagram: InstagramSettings = field(default_factory=InstagramSettings)
 
     def to_dict(self) -> dict:
