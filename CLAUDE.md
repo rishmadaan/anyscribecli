@@ -13,7 +13,7 @@ src/anyscribecli/
 ├── downloaders/   # Platform downloaders (base.py, youtube.py, instagram.py, registry.py)
 ├── providers/     # Transcription APIs (base.py, openai.py, openrouter.py, elevenlabs.py, sargam.py, local.py)
 ├── vault/         # Obsidian vault management (scaffold.py, writer.py, index.py)
-└── core/          # Orchestration + audio + deps + updater (orchestrator.py, audio.py, deps.py, updater.py)
+└── core/          # Orchestration + audio + deps + updater + migrations (orchestrator.py, audio.py, deps.py, updater.py, migrate.py)
 ```
 
 Flow: `CLI command -> orchestrator -> downloader + provider -> vault writer -> index update`
@@ -106,12 +106,11 @@ For end users — assume a **semi-technical audience who may be new to CLI tools
 
 SemVer: `MAJOR.MINOR.PATCH`. See `BACKLOG.md` for the full version roadmap.
 
-Version lives in **one place**: `src/anyscribecli/__init__.py`. The `pyproject.toml` also has a version field that must match — update both when bumping.
+Version lives in TWO places that must match: `src/anyscribecli/__init__.py` and `pyproject.toml`.
 
 ```bash
-# After changing version in __init__.py AND pyproject.toml:
-git add -A && git commit -m "Bump version to X.Y.Z"
-git tag vX.Y.Z
+# One-command release (bumps both files, commits, tags, pushes → triggers PyPI publish):
+./scripts/release.sh X.Y.Z "description"
 ```
 
 ## Testing

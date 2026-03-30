@@ -2,7 +2,8 @@
 
 | Date | Type | Entry | TL;DR |
 |------|------|-------|-------|
-| 2026-03-30 | plan | [[plans/flatten-workspace-structure.md\|Flatten Workspace Structure]] | Remove YYYY-MM-DD date folders — flatten to sources/&lt;platform&gt;/&lt;slug&gt;.md. Auto-migrate existing files on first run. |
+| 2026-03-30 | project-note | [[journal/2026-03-30-v050-052-workspace-pypi-flatten.md\|v0.5.0–v0.5.2 Workspace, PyPI, Flatten]] | Configurable workspace path, PyPI automation via GitHub Actions, media→downloads rename, flattened workspace structure (removed date folders). Three migrations, one release script. |
+| 2026-03-30 | plan | [[plans/flatten-workspace-structure.md\|Flatten Workspace Structure]] | Remove YYYY-MM-DD date folders — flatten to sources/&lt;platform&gt;/&lt;slug&gt;.md. Auto-migrate existing files on first run. (Done in v0.5.2) |
 | 2026-03-30 | project-note | [[journal/2026-03-30-v041-claude-code-skill.md\|v0.4.1 Claude Code Skill]] | Built a Claude Code skill that teaches Claude how to use ascli for end users. Bundled in package, distributed via install-skill command and onboard integration. |
 | 2026-03-30 | feature | [[journal/2026-03-30-local-file-transcription.md\|Local File Transcription]] | Added local file transcription — mp3, mp4, m4a, wav, opus, ogg, flac, webm, aac, wma files. New LocalFileDownloader, updated CLI and vault writer. |
 | 2026-03-30 | project-note | [[journal/2026-03-30-v032-onboard-reconfig-ux.md\|v0.3.2 Onboard Reconfig UX]] | onboard --force shows current settings, asks before overwriting. Instagram error message fix. |

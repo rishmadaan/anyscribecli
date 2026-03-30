@@ -21,21 +21,20 @@ The `0.x` prefix means pre-stable — breaking changes are allowed between minor
 | 0.3.0 | Download command, media restructure, post-transcription prompts, UX polish | Released 2026-03-27 |
 | 0.3.1 | Documentation accuracy audit — 16 issues fixed across all docs. First PyPI publish. | Released 2026-03-29 |
 | 0.4.0 | Local file transcription, onboard reconfigure UX, Instagram error fix | Released 2026-03-30 |
-| 0.4.1 | Claude Code skill — bundled skill + install-skill command + onboard integration | **Current** |
-| 0.5.0 | Cache/dedup, test suite, error handling | Next |
+| 0.4.1 | Claude Code skill — bundled skill + install-skill command + onboard integration | Released 2026-03-30 |
+| 0.5.0 | Configurable workspace path, auto-migration to ~/anyscribe, PyPI automation | Released 2026-03-30 |
+| 0.5.1 | Rename media/ to downloads/ for clarity | Released 2026-03-30 |
+| 0.5.2 | Flatten workspace structure — remove date folders, auto-migrate | **Current** |
+| 0.6.0 | Cache/dedup, test suite, error handling | Next |
 | 1.0.0 | Stable: full test coverage, CI/CD pipeline | Future |
 
 ### How to bump versions
 
-Version lives in TWO places (must match):
-- `src/anyscribecli/__init__.py`
-- `pyproject.toml`
+Version lives in TWO places (must match): `src/anyscribecli/__init__.py` and `pyproject.toml`.
 
 ```bash
-# After changing both files:
-git add -A && git commit -m "Bump version to X.Y.Z"
-git tag vX.Y.Z
-git push && git push --tags
+# One-command release (bumps both files, commits, tags, pushes → triggers PyPI publish):
+./scripts/release.sh X.Y.Z "description"
 ```
 
 ---
@@ -119,7 +118,7 @@ All features originally planned for v0.2.0–v0.5.0, built in one session:
 - [x] **Local file transcription** — `ascli transcribe /path/to/file.mp3`
   - Supports mp3, mp4, m4a, wav, opus, ogg, flac, webm, aac, wma
   - New `LocalFileDownloader` — converts to Whisper-optimized audio via ffmpeg
-  - Vault output saved under `sources/local/YYYY-MM-DD/`
+  - Vault output saved under `sources/local/`
   - Works with batch command too
 - [x] **Onboard reconfigure UX** — `ascli onboard --force` now shows current settings and asks before overwriting each step
   - Masked API key display (****abcd)
@@ -145,9 +144,49 @@ All features originally planned for v0.2.0–v0.5.0, built in one session:
 
 ---
 
-## v0.5.0 — Cache, Dedup, Quality
+## v0.5.0 — Configurable Workspace, PyPI Automation ✅
 
-- [ ] **Duplicate / cache checking** (inspired by AnyScribe web app's FindStamp pattern):
+**Released:** 2026-03-30
+
+- [x] **Configurable workspace path** — `workspace_path` in config.yaml, default `~/anyscribe/`
+  - Migrates legacy `~/.anyscribecli/workspace/` automatically on first run
+  - `get_workspace_dir()` in paths.py resolves config value → default
+- [x] **PyPI automation** — GitHub Actions publishes on tag push (`v*`)
+  - `.github/workflows/publish.yml` with trusted publishing (no API tokens in secrets)
+  - `scripts/release.sh` — one-command bump + commit + tag + push
+  - Version verification: tag must match pyproject.toml before publish
+- [x] Workspace moved from hidden `~/.anyscribecli/workspace/` to visible `~/anyscribe/`
+
+---
+
+## v0.5.1 — Rename media/ to downloads/ ✅
+
+**Released:** 2026-03-30
+
+- [x] **Renamed `~/.anyscribecli/media/` to `~/.anyscribecli/downloads/`** for clarity
+  - `MEDIA_DIR` → `DOWNLOADS_DIR`, `AUDIO_DIR`, `VIDEO_DIR` path constants
+  - Auto-migration: `maybe_migrate_media_to_downloads()` moves on first run
+  - Updated all display strings, docs, and skill references
+
+---
+
+## v0.5.2 — Flatten Workspace Structure ✅
+
+**Released:** 2026-03-30
+
+- [x] **Removed YYYY-MM-DD date folders** from transcript and download paths
+  - Before: `sources/youtube/2026-03-30/slug.md` → After: `sources/youtube/slug.md`
+  - Also flattened `downloads/audio/` and `downloads/video/`
+  - Auto-migration: `maybe_flatten_date_folders()` moves existing files on first run
+  - `rebuild_master_index()` regenerates `_index.md` with correct flat paths after migration
+  - Slug collision handling unchanged — `-2`, `-3` suffix for duplicates
+- [x] Updated all docs (README, user docs, skill refs, plan status → done)
+
+---
+
+## v0.6.0 — Cache, Dedup, Quality
+
+- [ ] **Duplicate/cache checking** (inspired by AnyScribe web app's FindStamp pattern):
   - Before transcribing: check if URL was already transcribed (lookup by source URL in _index.md or a cache file)
   - Before downloading: check if video/audio already exists in media/
   - If cached, show the existing transcript and ask to re-transcribe or skip

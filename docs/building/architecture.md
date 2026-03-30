@@ -1,6 +1,6 @@
 # Architecture
 
-**Last updated:** 2026-03-29 (v0.3.1)
+**Last updated:** 2026-03-30 (v0.5.2)
 
 ## Overview
 
@@ -55,6 +55,7 @@ URL input -> Platform detection -> Download (yt-dlp / instaloader)
 - Audio module handles chunking (18-min for Whisper 25MB limit, 30s for Sarvam)
 - Dependency checker detects OS, checks/installs yt-dlp, ffmpeg, Python
 - Updater supports both git-based (dev) and pip-based (user) installs
+- Migrations run at startup: workspace path rename, media→downloads, date folder flattening
 
 ## Key Technical Decisions
 
@@ -66,5 +67,7 @@ URL input -> Platform detection -> Download (yt-dlp / instaloader)
 - **src/ layout**: prevents accidental imports from project root
 - **Audio: 16kHz mono 64kbps**: proven optimal for Whisper from AnyScribe web app
 - **Lazy imports**: optional deps (faster-whisper for local provider) only imported when needed
-- **Three install paths**: install.sh (users), pip from GitHub (power users), git clone (devs)
+- **Three install paths**: install.sh (users), pip from PyPI (recommended), git clone (devs)
 - **SemVer**: 0.x for pre-stable, 1.0.0 when all platforms + providers stable
+- **Auto-migration**: Startup migrations handle legacy paths transparently (workspace rename, media→downloads, date folder flattening)
+- **PyPI automation**: GitHub Actions publishes on tag push via trusted publishing; `scripts/release.sh` for one-command releases
