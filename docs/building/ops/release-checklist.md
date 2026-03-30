@@ -59,61 +59,41 @@ SemVer rules for this project:
 
 ## Release
 
-### 4. Bump Version in Two Files
+### 4. Run the Release Script
 
-Both must match. Update both at the same time.
-
-**File 1:** `src/anyscribecli/__init__.py`
-```python
-__version__ = "X.Y.Z"
-```
-
-**File 2:** `pyproject.toml`
-```toml
-version = "X.Y.Z"
-```
-
-### 5. Commit and Tag
+The release script bumps version, commits, tags, and pushes — which triggers GitHub Actions to build and publish to PyPI automatically.
 
 ```bash
+./scripts/release.sh X.Y.Z "Short description of what changed"
+```
+
+This does everything in one shot:
+1. Updates version in `__init__.py` and `pyproject.toml`
+2. Commits the bump
+3. Creates git tag `vX.Y.Z`
+4. Pushes commit + tag → triggers `.github/workflows/publish.yml` → publishes to PyPI
+
+The workflow also verifies the tag matches the package version before publishing.
+
+> **This is irreversible.** Once published, a version number is permanently claimed on PyPI. If something is wrong, release a new PATCH version.
+
+### Manual Alternative
+
+If you need to release without the script (or the Action fails):
+
+```bash
+# Bump version in __init__.py AND pyproject.toml, then:
 git add src/anyscribecli/__init__.py pyproject.toml
-git commit -m "Bump version to X.Y.Z"
+git commit -m "Bump to vX.Y.Z"
 git tag vX.Y.Z
 git push && git push --tags
-```
 
-### 6. Build Distribution Files
-
-```bash
-# Always clean first — stale builds cause subtle issues
+# If Action failed — manual build + upload:
 rm -rf dist/
-
-# Build
 python -m build
-```
-
-This creates two files in `dist/`:
-- `anyscribecli-X.Y.Z.tar.gz`
-- `anyscribecli-X.Y.Z-py3-none-any.whl`
-
-### 7. Verify the Build
-
-```bash
-# Check for packaging issues
 twine check dist/*
-```
-
-Must say "PASSED" for both files. If it warns about the README, fix the markdown.
-
-### 8. Upload to PyPI
-
-```bash
 twine upload dist/*
 ```
-
-Uses credentials from `~/.pypirc`. If that file doesn't exist, twine will prompt for username (`__token__`) and password (your API token).
-
-> **This is irreversible.** Once uploaded, this version number is permanently claimed. You cannot re-upload or overwrite it. If something is wrong, you must release a new PATCH version.
 
 ---
 
@@ -175,19 +155,10 @@ For when you just need the commands:
 # Pre-flight
 pytest && ruff check src/
 
-# Bump version in __init__.py AND pyproject.toml, then:
-git add src/anyscribecli/__init__.py pyproject.toml
-git commit -m "Bump version to X.Y.Z"
-git tag vX.Y.Z
-git push && git push --tags
+# Release (one command does everything)
+./scripts/release.sh X.Y.Z "description"
 
-# Build and publish
-rm -rf dist/
-python -m build
-twine check dist/*
-twine upload dist/*
-
-# Verify
+# Verify (after GitHub Actions finishes ~1-2 min)
 pip install --upgrade anyscribecli
 ascli --version
 ```

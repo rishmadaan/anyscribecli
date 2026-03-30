@@ -83,31 +83,31 @@ This is the only place the app checks for updates without the user explicitly ru
 
 ---
 
-## NOT Automated (You Do These Manually)
+## Automated: PyPI Publishing
 
-### Version Bumping
+**File:** `.github/workflows/publish.yml`
 
-Version lives in **two files** that must match:
-- `src/anyscribecli/__init__.py` → `__version__ = "X.Y.Z"`
-- `pyproject.toml` → `version = "X.Y.Z"`
+When you push a tag matching `v*`, GitHub Actions automatically:
+1. Builds the package (`python -m build`)
+2. Verifies the tag matches `pyproject.toml` version (fails if mismatched)
+3. Publishes to PyPI via trusted publishing (no API token in secrets needed after setup)
 
-There is no automated sync check. If these desync, pip will show the pyproject.toml version, but the app will display the `__init__.py` version. **Always update both.**
+**Setup (one-time):** Configure trusted publishing on [pypi.org](https://pypi.org/manage/project/anyscribecli/settings/publishing/) — add GitHub as a trusted publisher with repository `rishmadaan/anyscribecli`, workflow `publish.yml`.
 
-### Building and Publishing
+### Release Script
 
-No CI/CD pipeline. You manually:
-1. `python -m build` — creates distribution files
-2. `twine upload dist/*` — pushes to PyPI
+**File:** `scripts/release.sh`
 
-See [release-checklist.md](release-checklist.md) for the full process.
-
-### Git Tagging
-
-Tags are not created automatically. You must manually:
+One command to bump + commit + tag + push:
 ```bash
-git tag vX.Y.Z
-git push --tags
+./scripts/release.sh 0.5.0 "description of changes"
 ```
+
+Includes safety checks: clean working tree, semver format, no duplicate tags, branch warning.
+
+---
+
+## NOT Automated (You Do These Manually)
 
 ### GitHub Releases
 
@@ -150,7 +150,6 @@ Things that could be automated but aren't yet:
 | What | How | Priority |
 |------|-----|----------|
 | CI/CD (lint + test on push) | GitHub Actions workflow | High for v1.0 |
-| Auto-publish to PyPI on tag | GitHub Actions + PyPI trusted publisher | High for v1.0 |
 | Version sync check | Pre-commit hook comparing both files | Medium |
 | Changelog generation | From git tags/commits | Low |
 | Startup update notification | Opt-in check on `ascli` launch with TTL | Low |
