@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import date
 from pathlib import Path
 
-from anyscribecli.config.paths import WORKSPACE_DIR
+from anyscribecli.config.paths import get_workspace_dir
 from anyscribecli.downloaders.base import DownloadResult
 from anyscribecli.vault.writer import format_duration
 
@@ -17,7 +17,7 @@ def update_master_index(
     workspace: Path | None = None,
 ) -> None:
     """Prepend a new row to _index.md."""
-    ws = workspace or WORKSPACE_DIR
+    ws = workspace or get_workspace_dir()
     index_file = ws / "_index.md"
 
     today = date.today().isoformat()
@@ -55,7 +55,7 @@ def update_daily_log(
     workspace: Path | None = None,
 ) -> None:
     """Create or update the daily processing log."""
-    ws = workspace or WORKSPACE_DIR
+    ws = workspace or get_workspace_dir()
     today = date.today().isoformat()
     daily_dir = ws / "daily"
     daily_dir.mkdir(parents=True, exist_ok=True)

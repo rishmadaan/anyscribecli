@@ -93,13 +93,13 @@ Videos >30 min are auto-chunked. Each chunk transcribes separately. This is norm
 ascli doctor    # Check what's wrong
 ```
 
-Nuclear option (loses all transcripts and config):
+Nuclear option (loses config — transcripts are separate at `~/anyscribe/`):
 ```bash
 rm -rf ~/.anyscribecli
 ascli onboard
 ```
 
-Back up `~/.anyscribecli/workspace/` first if transcripts matter.
+Back up `~/anyscribe/` first if transcripts matter (or check `ascli config show` for custom workspace path).
 
 ### faster-whisper not found (local provider)
 

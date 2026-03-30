@@ -80,7 +80,8 @@ The wizard uses arrow-key selectors — navigate with **↑↓** and press **Ent
 7. **Keep audio files** — whether to save the transcription audio to `~/.anyscribecli/media/audio/`.
 8. **Local file handling** — what to do with original files when transcribing local audio/video (skip/copy/move/ask).
 9. **Post-transcription downloads** — whether ascli should offer to download the full video after each transcription (never/ask/always).
-10. **Create workspace** — sets up your Obsidian vault at `~/.anyscribecli/workspace/`.
+10. **Choose workspace location** — where to store transcripts (default: `~/anyscribe/`).
+11. **Create workspace** — sets up your Obsidian vault at the chosen location.
 
 > **Re-run anytime:** `ascli onboard --force` to change settings — it shows your current config and lets you choose which parts to update. `ascli onboard --skip-deps` to skip the dependency check.
 
@@ -99,7 +100,7 @@ Replace `VIDEO_ID` with a real video ID. A short video (under 5 minutes) is good
 You'll see:
 
 ```
-Transcription saved: ~/.anyscribecli/workspace/sources/youtube/2026-03-29/how-to-make-perfect-coffee.md
+Transcription saved: ~/anyscribe/sources/youtube/2026-03-29/how-to-make-perfect-coffee.md
   Title:    How to Make Perfect Coffee
   Duration: 4:32
   Language: en
@@ -127,10 +128,10 @@ ascli transcribe --clipboard
 Open Obsidian and select "Open folder as vault", then choose:
 
 ```
-~/.anyscribecli/workspace/
+~/anyscribe/
 ```
 
-> **Tip:** On macOS, press `Cmd+Shift+G` in the file picker and type `~/.anyscribecli/workspace/` to navigate to hidden folders.
+> **Tip:** This folder is in your home directory — it shows up in Finder and file pickers by default. If you chose a custom workspace path during setup, use that path instead.
 
 You'll see:
 - **`_index.md`** — a table of all your transcripts, newest first

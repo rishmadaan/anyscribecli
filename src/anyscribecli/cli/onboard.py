@@ -14,8 +14,10 @@ from anyscribecli.config.paths import (
     ASCLI_SKILL_TARGET,
     CLAUDE_HOME,
     CONFIG_FILE,
+    DEFAULT_WORKSPACE,
     ENV_FILE,
     ensure_app_dirs,
+    get_workspace_dir,
 )
 from anyscribecli.config.settings import Settings, save_config, save_env, load_config, load_env
 from anyscribecli.core.deps import check_and_install
@@ -410,15 +412,49 @@ def onboard(
             settings.prompt_download = download_codes[download_options.index(dl_selected)]
         console.print(f"\n  [green]Selected:[/green] {settings.prompt_download}\n")
 
+    # Step 11: Workspace location
+    change_workspace = True
+    current_ws = get_workspace_dir() if CONFIG_FILE.exists() else DEFAULT_WORKSPACE
+    if reconfiguring:
+        console.print(f"\n  [bold]Workspace:[/bold] [cyan]{current_ws}[/cyan]")
+        change_workspace = bconfirm("  Change workspace location?")
+
+    if change_workspace:
+        console.print(
+            Panel(
+                "Where should ascli store your transcripts?\n"
+                f"Default: [cyan]{DEFAULT_WORKSPACE}[/cyan]\n\n"
+                "This is your Obsidian vault — open it in Obsidian to browse transcripts.\n"
+                "[dim]You can change this later with: ascli config set workspace_path /your/path[/dim]",
+                title="Workspace Location",
+                border_style="blue",
+            )
+        )
+        custom_path = typer.prompt(
+            "  Workspace path (Enter for default)", default=str(DEFAULT_WORKSPACE)
+        )
+        custom_path = custom_path.strip()
+        if custom_path == str(DEFAULT_WORKSPACE):
+            settings.workspace_path = ""  # empty means default
+        else:
+            settings.workspace_path = custom_path
+
     # Save config and env
     save_config(settings)
     if env_keys:
         save_env(env_keys)
 
+    # Auto-migrate legacy workspace if needed
+    from anyscribecli.core.migrate import maybe_migrate_workspace
+
+    migrated = maybe_migrate_workspace()
+    if migrated:
+        console.print(f"  [green]✓[/green] Migrated transcripts to [cyan]{migrated}[/cyan]")
+
     # Create vault
     workspace = create_vault()
 
-    # Step 11: Claude Code skill installation
+    # Step 12: Claude Code skill installation
     skill_status = ""
     if CLAUDE_HOME.exists():
         if not ASCLI_SKILL_TARGET.exists():
@@ -465,7 +501,7 @@ def onboard(
             "  [bold cyan]ascli transcribe <url>[/bold cyan]  — transcribe a video\n"
             "  [bold cyan]ascli providers list[/bold cyan]    — see available providers\n"
             "  [bold cyan]ascli config show[/bold cyan]       — view your settings\n"
-            "  Open [cyan]~/.anyscribecli/workspace/[/cyan] in Obsidian to browse transcripts",
+            f"  Open [cyan]{workspace}[/cyan] in Obsidian to browse transcripts",
             title="Ready",
             border_style="green",
         )

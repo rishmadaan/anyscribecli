@@ -87,7 +87,7 @@ def doctor() -> None:
     Runs all diagnostic checks and reports status.
     """
     from anyscribecli.core.deps import check_dependencies, print_dependency_status
-    from anyscribecli.config.paths import APP_HOME, CONFIG_FILE, ENV_FILE, WORKSPACE_DIR
+    from anyscribecli.config.paths import APP_HOME, CONFIG_FILE, ENV_FILE, get_workspace_dir
     from anyscribecli.core.updater import get_install_path, check_for_updates
 
     console.print("[bold]ascli doctor[/bold]\n")
@@ -103,8 +103,8 @@ def doctor() -> None:
         ("App directory", APP_HOME.exists()),
         ("Config file", CONFIG_FILE.exists()),
         ("API keys file", ENV_FILE.exists()),
-        ("Workspace vault", WORKSPACE_DIR.exists()),
-        ("Workspace index", (WORKSPACE_DIR / "_index.md").exists()),
+        ("Workspace vault", get_workspace_dir().exists()),
+        ("Workspace index", (get_workspace_dir() / "_index.md").exists()),
     ]
     for name, ok in checks:
         status = "[green]OK[/green]" if ok else "[red]Missing[/red]"

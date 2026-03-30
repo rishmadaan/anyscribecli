@@ -8,18 +8,21 @@ read_when:
 
 # Configuration
 
-ascli stores all its data in a single directory: `~/.anyscribecli/`. Here's what's inside and how to change it.
+ascli uses two locations: a visible workspace for your transcripts and a hidden directory for app internals.
 
 ## File Locations
 
 | File | Path | What it stores |
 |------|------|---------------|
+| **Workspace** | `~/anyscribe/` | Your Obsidian vault with all transcripts (configurable) |
 | Config | `~/.anyscribecli/config.yaml` | Your preferences (provider, language, etc.) |
 | API Keys | `~/.anyscribecli/.env` | Secret API keys (never committed to git) |
-| Workspace | `~/.anyscribecli/workspace/` | Your Obsidian vault with all transcripts |
+| Media | `~/.anyscribecli/media/` | Downloaded audio/video files |
 | Logs | `~/.anyscribecli/logs/` | Processing logs |
 | Sessions | `~/.anyscribecli/sessions/` | Instagram login sessions (when enabled) |
 | Temp | `~/.anyscribecli/tmp/` | Temporary downloads (auto-cleaned) |
+
+> **Upgrading from an older version?** If you have transcripts at `~/.anyscribecli/workspace/`, ascli will automatically move them to `~/anyscribe/` on your next transcription.
 
 > **Tip:** Run `ascli doctor` to see if all these exist and are healthy.
 
@@ -36,6 +39,7 @@ keep_media: false          # Whether to save audio files
 output_format: clean       # How to format transcripts
 prompt_download: never     # Ask to download video after transcription
 local_file_media: skip     # What to do with local files after transcription
+workspace_path: ""         # Empty = ~/anyscribe (default), or set a custom path
 instagram:                 # Instagram credentials
   username: ""
 ```
@@ -143,18 +147,19 @@ nano ~/.anyscribecli/.env
 
 ## Workspace Structure
 
-Your transcripts live in the workspace (pure markdown, no binaries). Media files are stored separately.
+Your transcripts live in the workspace (pure markdown, no binaries). Media files are stored separately in the app directory.
 
 ```
-~/.anyscribecli/
-├── workspace/                             # Obsidian vault (markdown only)
-│   ├── .obsidian/                         # Obsidian app config
-│   ├── _index.md                          # Master index — newest first
-│   ├── sources/
-│   │   ├── youtube/YYYY-MM-DD/            # YouTube transcripts by date
-│   │   ├── instagram/YYYY-MM-DD/          # Instagram transcripts by date
-│   │   └── local/YYYY-MM-DD/             # Local file transcripts by date
-│   └── daily/YYYY-MM-DD.md               # Daily processing log
+~/anyscribe/                               # Obsidian vault (configurable)
+├── .obsidian/                             # Obsidian app config
+├── _index.md                              # Master index — newest first
+├── sources/
+│   ├── youtube/YYYY-MM-DD/                # YouTube transcripts by date
+│   ├── instagram/YYYY-MM-DD/              # Instagram transcripts by date
+│   └── local/YYYY-MM-DD/                 # Local file transcripts by date
+└── daily/YYYY-MM-DD.md                   # Daily processing log
+
+~/.anyscribecli/                           # App internals (hidden)
 ├── media/                                 # Downloads (separate from vault)
 │   ├── audio/<platform>/YYYY-MM-DD/       # Audio files (if keep_media=true)
 │   └── video/<platform>/YYYY-MM-DD/       # Video files (ascli download)
@@ -163,6 +168,17 @@ Your transcripts live in the workspace (pure markdown, no binaries). Media files
 ```
 
 > **Why is media separate?** Keeping binaries out of the Obsidian vault means the vault stays lightweight and fast — even with hundreds of transcripts.
+
+#### workspace_path
+
+Where to store your transcript workspace. Default: `~/anyscribe/` (when set to empty string or omitted).
+
+Set a custom path to use an existing Obsidian vault or a different location:
+```bash
+ascli config set workspace_path ~/Documents/transcripts
+```
+
+> **Tip:** Leave this empty to use the default `~/anyscribe/`. The workspace is visible in Finder/file managers — no need to navigate to hidden folders.
 
 ### How files are named
 
@@ -197,8 +213,8 @@ tldr: "Video Title"                         # Quick summary
 To start fresh, delete the app directory and re-run onboarding:
 
 ```bash
-rm -rf ~/.anyscribecli
+rm -rf ~/.anyscribecli ~/anyscribe
 ascli onboard
 ```
 
-> **Warning:** This deletes all your transcripts, config, and API keys. Back up `~/.anyscribecli/workspace/` first if you want to keep your transcripts.
+> **Warning:** This deletes your config, API keys, and transcripts. Back up `~/anyscribe/` first if you want to keep your transcripts. If you used a custom workspace path, back up that location instead.

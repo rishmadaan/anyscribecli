@@ -7,7 +7,6 @@ APP_HOME = Path.home() / ".anyscribecli"
 CONFIG_FILE = APP_HOME / "config.yaml"
 ENV_FILE = APP_HOME / ".env"
 LOGS_DIR = APP_HOME / "logs"
-WORKSPACE_DIR = APP_HOME / "workspace"
 SESSIONS_DIR = APP_HOME / "sessions"
 TMP_DIR = APP_HOME / "tmp"
 
@@ -16,10 +15,22 @@ MEDIA_DIR = APP_HOME / "media"
 AUDIO_DIR = MEDIA_DIR / "audio"
 VIDEO_DIR = MEDIA_DIR / "video"
 
-# Workspace subdirs
-SOURCES_DIR = WORKSPACE_DIR / "sources"
-DAILY_DIR = WORKSPACE_DIR / "daily"
-INDEX_FILE = WORKSPACE_DIR / "_index.md"
+# Workspace — visible, user-facing (configurable via config.yaml workspace_path)
+DEFAULT_WORKSPACE = Path.home() / "anyscribe"
+LEGACY_WORKSPACE = APP_HOME / "workspace"
+
+
+def get_workspace_dir() -> Path:
+    """Resolve workspace path: config value > default ~/anyscribe."""
+    if CONFIG_FILE.exists():
+        import yaml
+
+        with open(CONFIG_FILE) as f:
+            data = yaml.safe_load(f) or {}
+        custom = data.get("workspace_path", "")
+        if custom:
+            return Path(custom).expanduser()
+    return DEFAULT_WORKSPACE
 
 
 # Claude Code skill installation

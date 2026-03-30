@@ -95,7 +95,7 @@ After a successful transcription:
 1. Tell the user the file path
 2. Offer to read the transcript: `Read the file at the output path`
 3. Mention the word count and duration
-4. If they use Obsidian, remind them the workspace is at `~/.anyscribecli/workspace/`
+4. If they use Obsidian, remind them to check their workspace location with `ascli config show`
 
 ## Batch Transcription
 
@@ -129,7 +129,7 @@ When something goes wrong:
 
 ## Configuration
 
-All config lives at `~/.anyscribecli/`. For details on all settings, file locations, and workspace structure, read [references/config.md](references/config.md).
+App config lives at `~/.anyscribecli/`. Transcripts default to `~/anyscribe/` (configurable). For details on all settings, file locations, and workspace structure, read [references/config.md](references/config.md).
 
 Quick config changes:
 ```bash
@@ -143,7 +143,7 @@ ascli config set keep_media true        # Keep audio files
 Each transcription creates a markdown file with YAML frontmatter (title, source URL, duration, language, word count, reading time, tags) followed by the transcript text. Files are organized by source platform and date:
 
 ```
-~/.anyscribecli/workspace/sources/<platform>/YYYY-MM-DD/<slug>.md
+~/anyscribe/sources/<platform>/YYYY-MM-DD/<slug>.md
 ```
 
 An `_index.md` file is auto-updated with links to all transcripts. Daily logs are written to `daily/YYYY-MM-DD.md`.

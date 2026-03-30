@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A Python CLI tool (`ascli`) that downloads video/audio from YouTube/Instagram, transcribes it via API, and outputs structured markdown into an Obsidian vault at `~/.anyscribecli/workspace/`.
+A Python CLI tool (`ascli`) that downloads video/audio from YouTube/Instagram, transcribes it via API, and outputs structured markdown into an Obsidian vault at `~/anyscribe/` (configurable via `workspace_path` in config).
 
 ## Architecture
 
@@ -27,7 +27,8 @@ Flow: `CLI command -> orchestrator -> downloader + provider -> vault writer -> i
 - **CLI output** human-readable by default, `--json` flag for machine/agent consumption
 - **Interactive prompts** use `beaupy` (arrow-key selectors) for onboarding, `typer.prompt` for text input
 - **URL input** three methods: quoted argument (primary), interactive prompt (fallback), clipboard
-- **Media outside vault** — audio in `~/.anyscribecli/media/audio/`, video in `media/video/`, workspace is pure markdown
+- **Workspace** at `~/anyscribe/` (configurable) — pure markdown Obsidian vault, resolved via `get_workspace_dir()` in `config/paths.py`
+- **Media outside vault** — audio in `~/.anyscribecli/media/audio/`, video in `media/video/`
 - **Audio params** optimized for Whisper: 16kHz, mono, 64kbps mp3
 - **Chunking** — 18-min segments for Whisper (25MB limit), 30s segments for Sarvam (REST API limit)
 

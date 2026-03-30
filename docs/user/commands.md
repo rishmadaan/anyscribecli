@@ -48,7 +48,8 @@ ascli onboard
 6. Choose default language (arrow-key selector with common options)
 7. Choose whether to keep audio files after transcription
 8. Choose post-transcription download behavior (never/ask/always)
-9. Creates your Obsidian workspace at `~/.anyscribecli/workspace/`
+9. Choose workspace location (default: `~/anyscribe/`)
+10. Creates your Obsidian workspace
 
 ### Flags
 
@@ -148,7 +149,7 @@ When you use `--json`, ascli prints structured JSON to stdout (progress goes to 
 ```json
 {
   "success": true,
-  "file": "/Users/you/.anyscribecli/workspace/sources/youtube/2026-03-26/video-title.md",
+  "file": "/Users/you/anyscribe/sources/youtube/2026-03-26/video-title.md",
   "title": "Video Title",
   "platform": "youtube",
   "duration": "12:34",

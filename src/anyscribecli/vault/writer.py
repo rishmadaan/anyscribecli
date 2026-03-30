@@ -7,7 +7,7 @@ import shutil
 from datetime import date
 from pathlib import Path
 
-from anyscribecli.config.paths import WORKSPACE_DIR, AUDIO_DIR
+from anyscribecli.config.paths import get_workspace_dir, AUDIO_DIR
 from anyscribecli.config.settings import Settings
 from anyscribecli.downloaders.base import DownloadResult
 from anyscribecli.providers.base import TranscriptResult
@@ -51,7 +51,7 @@ def write_transcript(
 
     Returns the path to the written file.
     """
-    ws = workspace or WORKSPACE_DIR
+    ws = workspace or get_workspace_dir()
     today = date.today().isoformat()
     slug = slugify(download.title)
     if not slug:

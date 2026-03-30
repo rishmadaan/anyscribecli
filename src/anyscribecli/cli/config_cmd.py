@@ -38,11 +38,17 @@ def config_show(
     data = settings.to_dict()
 
     if output_json:
+        from anyscribecli.config.paths import get_workspace_dir
+
+        data["_resolved_workspace"] = str(get_workspace_dir())
         json.dump(data, sys.stdout, indent=2)
         sys.stdout.write("\n")
     else:
+        from anyscribecli.config.paths import get_workspace_dir
+
         console.print(f"[dim]Config file: {CONFIG_FILE}[/dim]\n")
         console.print(yaml.dump(data, default_flow_style=False, sort_keys=False).strip())
+        console.print(f"\n[dim]Workspace: {get_workspace_dir()}[/dim]")
 
 
 @config_app.command("set")

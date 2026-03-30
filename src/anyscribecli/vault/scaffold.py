@@ -5,10 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from anyscribecli.config.paths import WORKSPACE_DIR
-
-
-OBSIDIAN_DIR = WORKSPACE_DIR / ".obsidian"
+from anyscribecli.config.paths import get_workspace_dir
 
 CORE_PLUGINS = [
     "file-explorer",
@@ -33,7 +30,7 @@ def create_vault(workspace: Path | None = None) -> Path:
 
     Returns the workspace path.
     """
-    ws = workspace or WORKSPACE_DIR
+    ws = workspace or get_workspace_dir()
 
     # Create directory tree
     dirs = [
@@ -41,7 +38,6 @@ def create_vault(workspace: Path | None = None) -> Path:
         ws / "sources" / "youtube",
         ws / "sources" / "instagram",
         ws / "daily",
-        ws / "media",
     ]
     for d in dirs:
         d.mkdir(parents=True, exist_ok=True)

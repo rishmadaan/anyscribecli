@@ -137,7 +137,7 @@ ascli transcribe "https://youtube.com/watch?v=abc123" --json
 ```json
 {
   "success": true,
-  "file": "~/.anyscribecli/workspace/sources/youtube/2026-03-27/video-title.md",
+  "file": "~/anyscribe/sources/youtube/2026-03-27/video-title.md",
   "title": "Video Title",
   "platform": "youtube",
   "duration": "12:34",
@@ -161,16 +161,17 @@ The onboarding wizard checks for these and offers to install them:
 ## Directory structure
 
 ```
-~/.anyscribecli/
+~/anyscribe/                              # Obsidian vault (configurable)
+├── _index.md                             # Master index (newest first)
+├── sources/
+│   ├── youtube/YYYY-MM-DD/<slug>.md
+│   ├── instagram/YYYY-MM-DD/<slug>.md
+│   └── local/YYYY-MM-DD/<slug>.md
+└── daily/YYYY-MM-DD.md
+
+~/.anyscribecli/                          # App internals (hidden)
 ├── config.yaml                           # Settings (no secrets)
 ├── .env                                  # API keys + passwords
-├── workspace/                            # Obsidian vault (pure markdown)
-│   ├── _index.md                         # Master index (newest first)
-│   ├── sources/
-│   │   ├── youtube/YYYY-MM-DD/<slug>.md
-│   │   ├── instagram/YYYY-MM-DD/<slug>.md
-│   │   └── local/YYYY-MM-DD/<slug>.md
-│   └── daily/YYYY-MM-DD.md
 ├── media/                                # Downloads (separate from vault)
 │   ├── audio/<platform>/YYYY-MM-DD/      # Kept audio (if keep_media=true)
 │   └── video/<platform>/YYYY-MM-DD/      # Downloaded videos
@@ -178,7 +179,7 @@ The onboarding wizard checks for these and offers to install them:
 └── logs/                                 # Processing logs
 ```
 
-> **Media is separate from the vault** — your Obsidian workspace stays lightweight, just markdown.
+> **Workspace is visible and configurable** — transcripts default to `~/anyscribe/` (no hidden dot-dir). Change it with `ascli config set workspace_path /your/path`. Media stays separate to keep the vault lightweight.
 
 ## Providers
 
@@ -202,6 +203,7 @@ keep_media: false          # Keep audio files after transcription
 output_format: clean       # clean | timestamped
 prompt_download: never     # never | ask | always — download video after transcription
 local_file_media: skip     # skip | copy | move | ask — what to do with local files
+workspace_path: ""         # empty = ~/anyscribe (default), or set a custom path
 ```
 
 API keys and passwords live in `~/.anyscribecli/.env` (separate from config, never committed).
