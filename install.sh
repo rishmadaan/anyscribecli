@@ -57,7 +57,7 @@ while [[ $# -gt 0 ]]; do
             echo ""
             echo "Options:"
             echo "  --method <pip|git>   Install method (default: pip)"
-            echo "                       pip: install from PyPI (when published)"
+            echo "                       pip: install from PyPI (default)"
             echo "                       git: install from GitHub repository"
             echo "  --repo <url>         GitHub repo URL (for git method)"
             echo "  --onboard            Run the onboarding wizard after install"
@@ -228,13 +228,11 @@ install_ascli() {
     info "Installing ascli..."
 
     if [[ "$INSTALL_METHOD" == "pip" ]]; then
-        # PyPI install (when published) or GitHub direct
+        # PyPI install
         if [[ "$DRY_RUN" == true ]]; then
             echo "    [dry-run] pip3 install anyscribecli"
         else
-            # For now, fall back to git install since we're not on PyPI yet
-            warn "PyPI package not yet published. Installing from GitHub..."
-            pip3 install "git+${REPO_URL}"
+            pip3 install anyscribecli
         fi
     elif [[ "$INSTALL_METHOD" == "git" ]]; then
         if [[ "$DRY_RUN" == true ]]; then

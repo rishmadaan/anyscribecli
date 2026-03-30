@@ -19,9 +19,9 @@ The `0.x` prefix means pre-stable — breaking changes are allowed between minor
 | 0.1.0 | YouTube + OpenAI MVP | Released 2026-03-26 |
 | 0.2.0 | Full feature build (Instagram, all providers, batch, config, onboarding) | Released 2026-03-26 |
 | 0.3.0 | Download command, media restructure, post-transcription prompts, UX polish | Released 2026-03-27 |
-| 0.3.1 | Documentation accuracy audit — 16 issues fixed across all docs | **Current** |
+| 0.3.1 | Documentation accuracy audit — 16 issues fixed across all docs. First PyPI publish. | **Current** |
 | 0.4.0 | Cache/dedup, test suite, error handling | Next |
-| 1.0.0 | Stable: published on PyPI, full test coverage | Future |
+| 1.0.0 | Stable: full test coverage, CI/CD pipeline | Future |
 
 ### How to bump versions
 
@@ -127,41 +127,16 @@ All features originally planned for v0.2.0–v0.5.0, built in one session:
 
 ## v1.0.0 — Stable Release
 
-- [ ] PyPI published (`pip install anyscribecli`) — see "Publishing to PyPI" below
+- [x] PyPI published (`pip install anyscribecli`) — live since v0.3.1
 - [ ] GitHub Releases with release notes for each tag
 - [ ] Full test coverage
 - [ ] Stable config format (breaking changes require v2.0.0)
 - [ ] CI/CD pipeline (GitHub Actions: lint, test, build, publish)
 
-### Publishing to PyPI (when ready)
+### Release process
 
-PyPI is the Python package registry — makes `pip install anyscribecli` work globally.
-
-```bash
-# One-time: create account at pypi.org, generate API token
-pip install build twine
-python -m build                    # creates dist/anyscribecli-X.Y.Z.tar.gz + .whl
-twine upload dist/*                # uploads to PyPI (prompts for token)
-```
-
-After publishing, update `install.sh` to use `pip install anyscribecli` instead of `git+https://...`.
-
-### GitHub Releases (when ready)
-
-A GitHub Release attaches release notes and downloadable assets to a git tag.
-It's how users on GitHub discover new versions.
-
-```bash
-# After committing and tagging:
-gh release create v0.3.0 --title "v0.3.0 — Download, Media Restructure, UX Polish" --notes-file RELEASE_NOTES.md
-```
-
-Or create via github.com/rishmadaan/anyscribecli/releases/new.
-
-For now, distribution is via git only:
-```bash
-pip install git+https://github.com/rishmadaan/anyscribecli.git
-```
+See `docs/building/ops/release-checklist.md` for the full step-by-step.
+See `docs/building/ops/pypi-guide.md` for PyPI setup, tokens, and troubleshooting.
 
 ---
 

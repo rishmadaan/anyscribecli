@@ -4,7 +4,7 @@
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.3.1-orange.svg)](https://github.com/rishmadaan/anyscribecli/releases)
+[![PyPI](https://img.shields.io/pypi/v/anyscribecli.svg)](https://pypi.org/project/anyscribecli/)
 
 ---
 
@@ -28,8 +28,8 @@ YouTube/Instagram URL → Download audio → Transcribe → Formatted Markdown �
 ### Install
 
 ```bash
-# From GitHub (recommended)
-pip install git+https://github.com/rishmadaan/anyscribecli.git
+# From PyPI (recommended)
+pip install anyscribecli
 
 # Or use the install script (checks and installs dependencies too)
 curl -fsSL https://raw.githubusercontent.com/rishmadaan/anyscribecli/main/install.sh | bash

@@ -50,7 +50,7 @@ sudo apt install python3 python3-pip python3-venv
 ## Step 2: Install ascli
 
 ```bash
-pip install git+https://github.com/rishmadaan/anyscribecli.git
+pip install anyscribecli
 ```
 
 Verify it worked:
