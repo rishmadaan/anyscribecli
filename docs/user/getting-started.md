@@ -182,7 +182,7 @@ ascli transcribe "https://www.youtube.com/watch?v=VIDEO_ID"
 Or run `ascli transcribe` without a URL and paste it at the prompt.
 
 **"yt-dlp download failed"**
-The video may be age-restricted, private, or geo-blocked. Try a different video. Update yt-dlp: `pip install --upgrade yt-dlp`.
+ascli automatically updates yt-dlp if it's more than 60 days old (YouTube frequently changes formats, breaking older versions). If you still see this error, the video may be age-restricted, private, or geo-blocked. Try a different video, or manually update: `pip install --upgrade yt-dlp`.
 
 **Instagram "login_required" errors**
 Instagram rate-limits third-party access. Try again in a few minutes. Use a secondary account. Check credentials: `ascli config show`.

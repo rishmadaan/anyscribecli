@@ -24,7 +24,8 @@ The `0.x` prefix means pre-stable — breaking changes are allowed between minor
 | 0.4.1 | Claude Code skill — bundled skill + install-skill command + onboard integration | Released 2026-03-30 |
 | 0.5.0 | Configurable workspace path, auto-migration to ~/anyscribe, PyPI automation | Released 2026-03-30 |
 | 0.5.1 | Rename media/ to downloads/ for clarity | Released 2026-03-30 |
-| 0.5.2 | Flatten workspace structure — remove date folders, auto-migrate | **Current** |
+| 0.5.2 | Flatten workspace structure — remove date folders, auto-migrate | Released 2026-03-30 |
+| 0.5.3 | Auto-update stale yt-dlp before download | **Current** |
 | 0.6.0 | Cache/dedup, test suite, error handling | Next |
 | 1.0.0 | Stable: full test coverage, CI/CD pipeline | Future |
 
@@ -181,6 +182,18 @@ All features originally planned for v0.2.0–v0.5.0, built in one session:
   - `rebuild_master_index()` regenerates `_index.md` with correct flat paths after migration
   - Slug collision handling unchanged — `-2`, `-3` suffix for duplicates
 - [x] Updated all docs (README, user docs, skill refs, plan status → done)
+
+---
+
+## v0.5.3 — Auto-Update Stale yt-dlp ✅
+
+**Released:** 2026-03-31
+
+- [x] **Auto-update stale yt-dlp** — detects yt-dlp older than 60 days (via date-based version) and auto-updates via pip before any download
+  - `ensure_ytdlp_current()` in `core/deps.py` — parses yt-dlp's YYYY.MM.DD version format
+  - Called from `YouTubeDownloader.download()` and `_download_video()` in download.py
+  - Graceful fallback: prints manual update instruction if pip update fails or times out
+  - Fixes 403 errors caused by YouTube streaming format changes (e.g. SABR streaming)
 
 ---
 

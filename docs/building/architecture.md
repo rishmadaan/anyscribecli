@@ -1,6 +1,6 @@
 # Architecture
 
-**Last updated:** 2026-03-30 (v0.5.2)
+**Last updated:** 2026-03-31 (v0.5.3)
 
 ## Overview
 
@@ -53,14 +53,14 @@ URL input -> Platform detection -> Download (yt-dlp / instaloader)
 ### Core Layer (`core/`)
 - Orchestrator ties the pipeline together
 - Audio module handles chunking (18-min for Whisper 25MB limit, 30s for Sarvam)
-- Dependency checker detects OS, checks/installs yt-dlp, ffmpeg, Python
+- Dependency checker detects OS, checks/installs yt-dlp, ffmpeg, Python; auto-updates stale yt-dlp (>60 days) before download
 - Updater supports both git-based (dev) and pip-based (user) installs
 - Migrations run at startup: workspace path rename, media→downloads, date folder flattening
 
 ## Key Technical Decisions
 
 - **Python** over JS/TS: pipeline tools (yt-dlp, instaloader, whisper) are Python-native
-- **yt-dlp via subprocess** (not Python API): CLI is stable and documented, Python API is not
+- **yt-dlp via subprocess** (not Python API): CLI is stable and documented, Python API is not. Auto-updated when stale — YouTube changes streaming formats frequently, causing 403s with old extractors
 - **instaloader via Python API**: need session management for auth
 - **httpx** over requests: async-capable for batch processing
 - **Dataclasses** over pydantic: fewer deps, sufficient for config/results
