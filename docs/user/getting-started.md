@@ -59,25 +59,27 @@ pip install anyscribecli
 
 Verify it worked:
 
+**macOS / Linux:**
 ```bash
 ascli --version
 ```
 
+**Windows:**
+```bash
+python -m anyscribecli --version
+```
+
 You should see `ascli v0.5.4` (or a newer version).
 
-> **Windows: "ascli is not recognized"?** Use `python -m anyscribecli` instead — it always works without PATH setup:
-> ```
-> python -m anyscribecli onboard
-> python -m anyscribecli transcribe "https://..."
-> ```
-> On first run, ascli will detect the missing PATH and print the exact PowerShell command to fix it permanently.
+> **Why `python -m` on Windows?** pip installs `ascli.exe` to a Scripts directory that's usually not on PATH. `python -m anyscribecli` always works because it uses the same Python you installed with. On first run, it will print the exact PowerShell command to add `ascli` to your PATH permanently — after that, you can use `ascli` directly.
 
 > **Other install methods:** You can also use the [install script](https://raw.githubusercontent.com/rishmadaan/anyscribecli/main/install.sh) which checks and installs all dependencies for you, or [clone the repo](https://github.com/rishmadaan/anyscribecli) for development.
 
 ## Step 3: Run the setup wizard
 
 ```bash
-ascli onboard
+ascli onboard                       # macOS / Linux
+python -m anyscribecli onboard      # Windows (first time — prints PATH fix)
 ```
 
 The wizard uses arrow-key selectors — navigate with **↑↓** and press **Enter** to select:

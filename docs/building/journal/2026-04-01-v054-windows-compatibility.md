@@ -49,7 +49,15 @@ Since pip can't run post-install hooks with modern packaging (wheels), we handle
 1. **`__main__.py`** — enables `python -m anyscribecli` as a fallback entry point when `ascli` isn't on PATH (same pattern as `python -m pip`)
 2. **`_check_path_windows()` in `cli/main.py`** — on Windows, the app callback checks `shutil.which("ascli")`. If missing, it uses `sysconfig.get_path("scripts")` to find the exact Scripts directory and prints a copy-paste PowerShell command that fixes PATH for the current session AND permanently. Uses a `.path_warned` marker file in `~/.anyscribecli/` to only show once.
 
-## What This Doesn't Fix
+## Known Gap: `ascli` Still Requires PATH
+
+After `pip install anyscribecli`, a Windows user typing `ascli` gets "not recognized". They have to know to run `python -m anyscribecli` first — which prints the PATH fix command, after which `ascli` works. This is the same gap `pip` itself has (hence `python -m pip` existing).
+
+**Why this is acceptable for now:** The README, getting-started guide, and PyPI description all clearly show `python -m anyscribecli` as the Windows command. The first-run PATH guidance makes it a one-time friction. The Claude skill, `--json` scripting, and all docs stay `ascli`-first — no dual-command split.
+
+**Future options (icebox):** Custom Windows installer (`.msi` / `winget`), PowerShell install script (`install.ps1`), or a shim in a well-known PATH location. Goal: `pip install anyscribecli` → `ascli` just works.
+
+## What Else This Doesn't Fix
 
 - **ffmpeg/ffprobe PATH issues on Windows**: These are system binaries, not pip packages. Users still need ffmpeg on PATH (typically installed via `choco install ffmpeg`, `winget install ffmpeg`, or manual download). The onboarding wizard can't auto-install these on Windows.
 

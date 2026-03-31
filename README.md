@@ -32,9 +32,6 @@ URL or local file → Download/convert audio → Transcribe → Formatted Markdo
 # From PyPI (recommended)
 pip install anyscribecli
 
-# On Windows, if "ascli" isn't recognized after install, use:
-python -m anyscribecli   # prints the PATH fix command on first run
-
 # Or use the install script (macOS/Linux — checks and installs dependencies too)
 curl -fsSL https://raw.githubusercontent.com/rishmadaan/anyscribecli/main/install.sh | bash
 
@@ -45,9 +42,17 @@ cd anyscribecli && pip install -e .
 
 ### Set up
 
+**macOS / Linux:**
 ```bash
 ascli onboard
 ```
+
+**Windows:**
+```bash
+python -m anyscribecli onboard
+```
+
+> **Windows note:** pip installs `ascli` to a Scripts directory that's often not on PATH. `python -m anyscribecli` always works — and on first run it prints the exact PowerShell command to add `ascli` to your PATH permanently.
 
 Interactive wizard with arrow-key selectors:
 1. Checks system dependencies (yt-dlp, ffmpeg) — installs missing ones

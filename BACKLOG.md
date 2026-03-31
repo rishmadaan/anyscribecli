@@ -246,6 +246,7 @@ See `docs/building/ops/pypi-guide.md` for PyPI setup, tokens, and troubleshootin
 
 ## Icebox (ideas for later, no timeline)
 
+- **Windows zero-config PATH**: Current v0.5.4 workaround is `python -m anyscribecli` as one-time bootstrap (prints PowerShell PATH fix on first run). Acceptable but not great — user has to know the `python -m` incantation. Explore: custom Windows installer (`.msi` or `winget` package), PowerShell install script (`install.ps1` analogous to `install.sh`), or a shim that pip can place in a well-known location. The goal: `pip install anyscribecli` → `ascli` just works, no extra steps.
 - GUI (web UI via FastAPI + React, or TUI via Textual)
 - Speaker diarization (who said what)
 - AI-generated summaries (TL;DR via LLM after transcription)
