@@ -27,6 +27,10 @@ class YouTubeDownloader(AbstractDownloader):
         return any(p in url for p in self.PATTERNS)
 
     def download(self, url: str, output_dir: Path) -> DownloadResult:
+        from anyscribecli.core.deps import ensure_ytdlp_current
+
+        ensure_ytdlp_current()
+
         output_dir.mkdir(parents=True, exist_ok=True)
         output_template = str(output_dir / "%(title).80s.%(ext)s")
 

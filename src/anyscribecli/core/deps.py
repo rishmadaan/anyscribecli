@@ -3,15 +3,20 @@
 from __future__ import annotations
 
 import platform
+import re
 import shutil
 import subprocess
 import sys
 from dataclasses import dataclass
+from datetime import datetime, timezone
 
 from rich.console import Console
 from rich.table import Table
 
 console = Console()
+
+# yt-dlp versions older than this many days trigger an auto-update
+YTDLP_MAX_AGE_DAYS = 60
 
 
 @dataclass
@@ -201,6 +206,60 @@ def install_dependency(dep: Dependency) -> bool:
         console.print(f"  [red]Installation error:[/red] {e}")
         console.print(f"  Install manually: {dep.install_url}")
         return False
+
+
+def _parse_ytdlp_version_date(version_str: str) -> datetime | None:
+    """Parse yt-dlp version string (e.g. 'yt-dlp 2025.10.22') into a datetime."""
+    match = re.search(r"(\d{4})\.(\d{1,2})\.(\d{1,2})", version_str)
+    if not match:
+        return None
+    year, month, day = int(match.group(1)), int(match.group(2)), int(match.group(3))
+    try:
+        return datetime(year, month, day, tzinfo=timezone.utc)
+    except ValueError:
+        return None
+
+
+def ensure_ytdlp_current() -> None:
+    """Check if yt-dlp is stale (>60 days old) and auto-update if so.
+
+    Called before any yt-dlp subprocess invocation to prevent
+    403 errors from outdated extractors (e.g. YouTube SABR streaming).
+    Silently skips if version can't be parsed or update fails.
+    """
+    version_str = _get_version("yt-dlp")
+    if not version_str:
+        return
+
+    release_date = _parse_ytdlp_version_date(version_str)
+    if not release_date:
+        return
+
+    age_days = (datetime.now(timezone.utc) - release_date).days
+    if age_days <= YTDLP_MAX_AGE_DAYS:
+        return
+
+    console.print(
+        f"[yellow]yt-dlp is {age_days} days old ({version_str.strip()}) — updating...[/yellow]"
+    )
+    try:
+        result = subprocess.run(
+            [sys.executable, "-m", "pip", "install", "--upgrade", "yt-dlp"],
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        if result.returncode == 0:
+            new_version = _get_version("yt-dlp") or "unknown"
+            console.print(f"[green]yt-dlp updated to {new_version.strip()}[/green]")
+        else:
+            console.print(
+                "[yellow]yt-dlp auto-update failed. Run manually: pip install -U yt-dlp[/yellow]"
+            )
+    except (subprocess.TimeoutExpired, OSError):
+        console.print(
+            "[yellow]yt-dlp auto-update timed out. Run manually: pip install -U yt-dlp[/yellow]"
+        )
 
 
 def check_and_install(interactive: bool = True) -> bool:
