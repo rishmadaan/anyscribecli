@@ -26,6 +26,40 @@ def version_callback(value: bool) -> None:
         raise typer.Exit()
 
 
+def _check_path_windows() -> None:
+    """On Windows, warn once if `ascli` is not on PATH and print the fix command."""
+    import platform
+    import shutil
+
+    if platform.system() != "Windows":
+        return
+    if shutil.which("ascli") is not None:
+        return
+
+    import sysconfig
+
+    from anyscribecli.config.paths import APP_HOME
+
+    # Only warn once — write a marker file after first warning
+    marker = APP_HOME / ".path_warned"
+    if marker.exists():
+        return
+
+    scripts_dir = sysconfig.get_path("scripts")
+    console.print()
+    console.print("[bold yellow]ascli is not on your PATH.[/bold yellow]")
+    console.print("Run this command in PowerShell to fix it permanently:\n")
+    console.print(
+        f'  [bold cyan]$env:Path += ";{scripts_dir}"; '
+        f"[Environment]::SetEnvironmentVariable('Path', "
+        f"[Environment]::GetEnvironmentVariable('Path', 'User') + ';{scripts_dir}', "
+        f"'User')[/bold cyan]\n"
+    )
+    console.print("Then restart your terminal and use [bold]ascli[/bold] directly.\n")
+    APP_HOME.mkdir(parents=True, exist_ok=True)
+    marker.touch()
+
+
 @app.callback()
 def main(
     version: Optional[bool] = typer.Option(
@@ -38,6 +72,7 @@ def main(
     ),
 ) -> None:
     """[bold]ascli[/bold] — download, transcribe, and convert video/audio to structured markdown."""
+    _check_path_windows()
 
 
 # Register commands

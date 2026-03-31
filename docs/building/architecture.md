@@ -22,6 +22,8 @@ URL input -> Platform detection -> Download (yt-dlp / instaloader)
 - Commands: `onboard`, `transcribe`, `download`, `batch`, `config`, `providers`, `update`, `doctor`
 - `--json` and `--quiet` available on main commands (transcribe, download, batch, config show, providers list)
 - `--json` for AI agent and scripting integration
+- `__main__.py` enables `python -m anyscribecli` as alternative entry point (Windows PATH fallback)
+- On Windows, app callback checks if `ascli` is on PATH; if not, prints the exact PowerShell command to fix it (one-time, uses `.path_warned` marker)
 
 ### Config Layer (`config/`)
 - `paths.py`: all path constants via pathlib

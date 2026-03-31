@@ -209,6 +209,8 @@ All features originally planned for v0.2.0–v0.5.0, built in one session:
 - [x] **Fixed Python detection on Windows** — was checking `shutil.which("python3")` which doesn't exist on Windows; now uses `sys.version_info` directly
 - [x] **Fixed `pip install` in onboarding** — rewrites bare `pip install` to `sys.executable -m pip install` so it targets the correct Python environment
 - [x] **Added Windows OS classifier** in pyproject.toml
+- [x] **`python -m anyscribecli` entry point** — `__main__.py` so the tool works even when Scripts dir isn't on PATH
+- [x] **PATH setup guidance on first run** — on Windows, if `ascli` isn't on PATH, prints the exact PowerShell command to fix it permanently (one-time, marker file prevents repeat nag)
 
 ---
 

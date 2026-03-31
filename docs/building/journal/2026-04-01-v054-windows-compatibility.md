@@ -1,7 +1,7 @@
 ---
 type: project-note
 tags: [windows, cross-platform, yt-dlp, subprocess, PATH, dependency-management]
-tldr: "v0.5.4 — Fixed Windows compatibility by invoking yt-dlp as `python -m yt_dlp` instead of bare `yt-dlp`, fixing Python detection via `sys.version_info`, and using `sys.executable -m pip` for installs."
+tldr: "v0.5.4 — Fixed Windows compatibility: `python -m yt_dlp` invocation, direct Python detection, correct pip targeting, `python -m anyscribecli` entry point, and first-run PATH setup guidance."
 ---
 
 # v0.5.4: Windows Compatibility
@@ -42,10 +42,16 @@ Chose option 2. It's the Pythonic way to invoke pip-installed tools. `yt_dlp` su
 - `_detect_os()` now returns `"windows"` for Windows (was falling through to `"other"`)
 - Three call sites updated: `YouTubeDownloader.download()`, `_download_video()`, `ensure_ytdlp_current()`
 
+## PATH Guidance UX
+
+Since pip can't run post-install hooks with modern packaging (wheels), we handle PATH setup at first run:
+
+1. **`__main__.py`** — enables `python -m anyscribecli` as a fallback entry point when `ascli` isn't on PATH (same pattern as `python -m pip`)
+2. **`_check_path_windows()` in `cli/main.py`** — on Windows, the app callback checks `shutil.which("ascli")`. If missing, it uses `sysconfig.get_path("scripts")` to find the exact Scripts directory and prints a copy-paste PowerShell command that fixes PATH for the current session AND permanently. Uses a `.path_warned` marker file in `~/.anyscribecli/` to only show once.
+
 ## What This Doesn't Fix
 
 - **ffmpeg/ffprobe PATH issues on Windows**: These are system binaries, not pip packages. Users still need ffmpeg on PATH (typically installed via `choco install ffmpeg`, `winget install ffmpeg`, or manual download). The onboarding wizard can't auto-install these on Windows.
-- **`ascli` command itself not on PATH**: If the user's Python Scripts directory isn't on PATH, they need to add it manually or use the full path. This is a Python/pip limitation, not something we can fix in the tool.
 
 ## Chat Summary
 
@@ -55,6 +61,8 @@ Chose option 2. It's the Pythonic way to invoke pip-installed tools. `yt_dlp` su
 4. First approach (scan Scripts directories) was rejected as fragile for different Windows setups
 5. Implemented `python -m yt_dlp` approach — works universally across platforms and install methods
 6. Updated all three subprocess call sites plus dependency checker and installer
+7. Added `__main__.py` for `python -m anyscribecli` fallback entry point
+8. Added `_check_path_windows()` — first-run PATH detection with exact PowerShell fix command
 
 ## Links
 

@@ -32,7 +32,10 @@ URL or local file → Download/convert audio → Transcribe → Formatted Markdo
 # From PyPI (recommended)
 pip install anyscribecli
 
-# Or use the install script (checks and installs dependencies too)
+# On Windows, if "ascli" isn't recognized after install, use:
+python -m anyscribecli   # prints the PATH fix command on first run
+
+# Or use the install script (macOS/Linux — checks and installs dependencies too)
 curl -fsSL https://raw.githubusercontent.com/rishmadaan/anyscribecli/main/install.sh | bash
 
 # Or clone for development

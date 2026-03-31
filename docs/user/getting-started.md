@@ -65,7 +65,12 @@ ascli --version
 
 You should see `ascli v0.5.4` (or a newer version).
 
-> **Windows: "ascli is not recognized"?** If Python's Scripts directory isn't on PATH, use the full path shown in the pip install output (e.g. `C:\Users\<you>\AppData\...\Scripts\ascli.exe`), or add that Scripts directory to your PATH. See the troubleshooting section below.
+> **Windows: "ascli is not recognized"?** Use `python -m anyscribecli` instead — it always works without PATH setup:
+> ```
+> python -m anyscribecli onboard
+> python -m anyscribecli transcribe "https://..."
+> ```
+> On first run, ascli will detect the missing PATH and print the exact PowerShell command to fix it permanently.
 
 > **Other install methods:** You can also use the [install script](https://raw.githubusercontent.com/rishmadaan/anyscribecli/main/install.sh) which checks and installs all dependencies for you, or [clone the repo](https://github.com/rishmadaan/anyscribecli) for development.
 
@@ -171,15 +176,23 @@ tags: [transcript, youtube]
 ## Troubleshooting
 
 **"command not found: ascli"** or **"ascli is not recognized"**
-Your Python scripts directory may not be on your PATH. Try:
+You can always use `python -m anyscribecli` as a drop-in replacement for `ascli`:
 ```bash
-python3 -m pip show anyscribecli    # macOS / Linux
-python -m pip show anyscribecli     # Windows
+python -m anyscribecli onboard           # works exactly like: ascli onboard
+python -m anyscribecli transcribe "..."  # works exactly like: ascli transcribe "..."
 ```
-If installed but not found:
+
+To make the `ascli` shortcut work, add your Python Scripts directory to PATH:
 - **macOS**: add the Python framework bin directory to your PATH
 - **Linux**: add `~/.local/bin` to your PATH
-- **Windows**: add the Scripts directory shown during `pip install` (e.g. `C:\Users\<you>\AppData\Roaming\Python\PythonXXX\Scripts`) to your PATH via System Properties → Environment Variables → Path → Edit → New
+- **Windows** (PowerShell, run as admin):
+  ```powershell
+  # Find where pip installed scripts:
+  python -c "import sysconfig; print(sysconfig.get_path('scripts'))"
+  # Then add that path permanently (replace <path> with the output above):
+  [Environment]::SetEnvironmentVariable('Path', [Environment]::GetEnvironmentVariable('Path', 'User') + ';<path>', 'User')
+  ```
+  Then restart your terminal.
 
 **"OPENAI_API_KEY not set"**
 Run `ascli onboard --force` to re-enter your API key, or edit `~/.anyscribecli/.env` directly.
