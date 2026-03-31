@@ -24,7 +24,7 @@ class Dependency:
     """A system dependency that ascli needs."""
 
     name: str
-    command: str  # binary name to check via shutil.which
+    command: str  # binary name to check via shutil.which (for system binaries)
     required: bool
     description: str
     install_brew: str  # homebrew install command
@@ -32,6 +32,7 @@ class Dependency:
     install_apt: str  # apt install command (Linux)
     install_url: str  # manual install URL
     min_version: str | None = None
+    module_name: str | None = None  # Python module name for pip-installed tools
 
 
 DEPENDENCIES = [
@@ -55,6 +56,7 @@ DEPENDENCIES = [
         install_pip="pip install yt-dlp",
         install_apt="sudo apt install yt-dlp",
         install_url="https://github.com/yt-dlp/yt-dlp#installation",
+        module_name="yt_dlp",
     ),
     Dependency(
         name="ffmpeg",
@@ -79,6 +81,21 @@ DEPENDENCIES = [
 ]
 
 
+def get_command(name: str) -> list[str]:
+    """Return the subprocess invocation prefix for a dependency.
+
+    For pip-installed tools with a module_name (e.g. yt-dlp), returns
+    [sys.executable, "-m", module_name] — works cross-platform regardless
+    of PATH configuration. For system binaries (ffmpeg, etc.), returns [command].
+    """
+    for dep in DEPENDENCIES:
+        if dep.name == name:
+            if dep.module_name:
+                return [sys.executable, "-m", dep.module_name]
+            return [dep.command]
+    return [name]
+
+
 def _detect_os() -> str:
     """Detect the operating system."""
     system = platform.system().lower()
@@ -86,6 +103,8 @@ def _detect_os() -> str:
         return "macos"
     elif system == "linux":
         return "linux"
+    elif system == "windows":
+        return "windows"
     return "other"
 
 
@@ -124,23 +143,43 @@ class DepCheckResult:
     path: str | None
 
 
+def _check_module(module_name: str) -> tuple[bool, str | None]:
+    """Check if a Python module is available and get its version."""
+    try:
+        result = subprocess.run(
+            [sys.executable, "-m", module_name, "--version"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        if result.returncode == 0:
+            output = result.stdout.strip() or result.stderr.strip()
+            version = output.split("\n")[0] if output else None
+            return True, version
+    except (subprocess.TimeoutExpired, OSError):
+        pass
+    return False, None
+
+
 def check_dependencies() -> list[DepCheckResult]:
     """Check all system dependencies. Returns list of results."""
     results = []
     for dep in DEPENDENCIES:
-        path = shutil.which(dep.command)
-        found = path is not None
-
-        version = None
-        if found:
-            if dep.name == "Python":
-                major, minor = _get_python_version()
-                version = f"{major}.{minor}"
-                # Check minimum version
-                if (major, minor) < (3, 10):
-                    found = False
-            else:
-                version = _get_version(dep.command)
+        if dep.name == "Python":
+            # We're already running inside Python — check version directly
+            major, minor = _get_python_version()
+            version = f"{major}.{minor}"
+            found = (major, minor) >= (3, 10)
+            path = sys.executable
+        elif dep.module_name:
+            # pip-installed tool: check via `python -m module` (works cross-platform)
+            found, version = _check_module(dep.module_name)
+            path = f"{sys.executable} -m {dep.module_name}" if found else None
+        else:
+            # System binary: check PATH
+            path = shutil.which(dep.command)
+            found = path is not None
+            version = _get_version(dep.command) if found else None
 
         results.append(DepCheckResult(dep=dep, found=found, version=version, path=path))
     return results
@@ -184,6 +223,18 @@ def get_install_command(dep: Dependency) -> str | None:
     return None
 
 
+def _build_install_cmd(cmd_str: str) -> list[str]:
+    """Convert an install command string to a subprocess arg list.
+
+    Rewrites bare `pip install ...` to `sys.executable -m pip install ...`
+    so it targets the correct Python environment on all platforms.
+    """
+    parts = cmd_str.split()
+    if parts and parts[0] == "pip":
+        return [sys.executable, "-m"] + parts
+    return parts
+
+
 def install_dependency(dep: Dependency) -> bool:
     """Attempt to install a missing dependency. Returns True on success."""
     cmd_str = get_install_command(dep)
@@ -192,9 +243,10 @@ def install_dependency(dep: Dependency) -> bool:
         console.print(f"  Install manually: {dep.install_url}")
         return False
 
-    console.print(f"  Running: [cyan]{cmd_str}[/cyan]")
+    cmd_parts = _build_install_cmd(cmd_str)
+    console.print(f"  Running: [cyan]{' '.join(cmd_parts)}[/cyan]")
     try:
-        result = subprocess.run(cmd_str.split(), capture_output=True, text=True, timeout=300)
+        result = subprocess.run(cmd_parts, capture_output=True, text=True, timeout=300)
         if result.returncode == 0:
             console.print(f"  [green]{dep.name} installed successfully.[/green]")
             return True
@@ -227,7 +279,14 @@ def ensure_ytdlp_current() -> None:
     403 errors from outdated extractors (e.g. YouTube SABR streaming).
     Silently skips if version can't be parsed or update fails.
     """
-    version_str = _get_version("yt-dlp")
+    ytdlp_cmd = get_command("yt-dlp")
+    try:
+        result = subprocess.run(
+            [*ytdlp_cmd, "--version"], capture_output=True, text=True, timeout=10
+        )
+        version_str = result.stdout.strip() or result.stderr.strip()
+    except (subprocess.TimeoutExpired, OSError):
+        version_str = None
     if not version_str:
         return
 
@@ -250,7 +309,16 @@ def ensure_ytdlp_current() -> None:
             timeout=120,
         )
         if result.returncode == 0:
-            new_version = _get_version("yt-dlp") or "unknown"
+            try:
+                v = subprocess.run(
+                    [*ytdlp_cmd, "--version"],
+                    capture_output=True,
+                    text=True,
+                    timeout=10,
+                )
+                new_version = v.stdout.strip() or "unknown"
+            except (subprocess.TimeoutExpired, OSError):
+                new_version = "unknown"
             console.print(f"[green]yt-dlp updated to {new_version.strip()}[/green]")
         else:
             console.print(

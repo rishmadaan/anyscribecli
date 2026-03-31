@@ -109,7 +109,7 @@ def download(
 
 def _download_video(url: str, platform: str, tmp_dir: Path, quiet: bool) -> dict:
     """Download full video using yt-dlp (works for both YouTube and Instagram)."""
-    from anyscribecli.core.deps import ensure_ytdlp_current
+    from anyscribecli.core.deps import ensure_ytdlp_current, get_command
     from anyscribecli.vault.writer import slugify
 
     ensure_ytdlp_current()
@@ -117,7 +117,7 @@ def _download_video(url: str, platform: str, tmp_dir: Path, quiet: bool) -> dict
     # yt-dlp can handle both YouTube and Instagram video URLs
     output_template = str(tmp_dir / "%(title).80s.%(ext)s")
     cmd = [
-        "yt-dlp",
+        *get_command("yt-dlp"),
         "--format",
         "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
         "--merge-output-format",

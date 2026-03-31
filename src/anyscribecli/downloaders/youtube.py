@@ -27,15 +27,16 @@ class YouTubeDownloader(AbstractDownloader):
         return any(p in url for p in self.PATTERNS)
 
     def download(self, url: str, output_dir: Path) -> DownloadResult:
-        from anyscribecli.core.deps import ensure_ytdlp_current
+        from anyscribecli.core.deps import ensure_ytdlp_current, get_command
 
         ensure_ytdlp_current()
+        ytdlp = get_command("yt-dlp")
 
         output_dir.mkdir(parents=True, exist_ok=True)
         output_template = str(output_dir / "%(title).80s.%(ext)s")
 
         # Step 1: Get metadata via --dump-json
-        meta_cmd = ["yt-dlp", "--dump-json", "--no-download", url]
+        meta_cmd = [*ytdlp, "--dump-json", "--no-download", url]
         meta_result = subprocess.run(meta_cmd, capture_output=True, text=True, timeout=60)
         if meta_result.returncode != 0:
             raise RuntimeError(f"yt-dlp metadata failed: {meta_result.stderr.strip()}")
@@ -49,7 +50,7 @@ class YouTubeDownloader(AbstractDownloader):
         # Step 2: Download audio optimized for Whisper
         # 16kHz mono 64kbps mp3 — proven optimal from AnyScribe web app
         dl_cmd = [
-            "yt-dlp",
+            *ytdlp,
             "--extract-audio",
             "--audio-format",
             "mp3",
