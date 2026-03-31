@@ -25,7 +25,8 @@ The `0.x` prefix means pre-stable — breaking changes are allowed between minor
 | 0.5.0 | Configurable workspace path, auto-migration to ~/anyscribe, PyPI automation | Released 2026-03-30 |
 | 0.5.1 | Rename media/ to downloads/ for clarity | Released 2026-03-30 |
 | 0.5.2 | Flatten workspace structure — remove date folders, auto-migrate | Released 2026-03-30 |
-| 0.5.3 | Auto-update stale yt-dlp before download | **Current** |
+| 0.5.3 | Auto-update stale yt-dlp before download | Released 2026-03-31 |
+| 0.5.4 | Windows compatibility — cross-platform yt-dlp invocation | **Current** |
 | 0.6.0 | Cache/dedup, test suite, error handling | Next |
 | 1.0.0 | Stable: full test coverage, CI/CD pipeline | Future |
 
@@ -194,6 +195,20 @@ All features originally planned for v0.2.0–v0.5.0, built in one session:
   - Called from `YouTubeDownloader.download()` and `_download_video()` in download.py
   - Graceful fallback: prints manual update instruction if pip update fails or times out
   - Fixes 403 errors caused by YouTube streaming format changes (e.g. SABR streaming)
+
+---
+
+## v0.5.4 — Windows Compatibility ✅
+
+**Released:** 2026-04-01
+
+- [x] **Cross-platform yt-dlp invocation** — replaced all bare `yt-dlp` subprocess calls with `python -m yt_dlp`, which works regardless of PATH configuration
+  - New `get_command(name)` in `core/deps.py` — returns `[sys.executable, "-m", module_name]` for pip-installed tools, `[command]` for system binaries
+  - `module_name` field on `Dependency` dataclass — set to `"yt_dlp"` for yt-dlp, `None` for ffmpeg/ffprobe
+  - Updated all 3 call sites: `YouTubeDownloader.download()`, `_download_video()`, `ensure_ytdlp_current()`
+- [x] **Fixed Python detection on Windows** — was checking `shutil.which("python3")` which doesn't exist on Windows; now uses `sys.version_info` directly
+- [x] **Fixed `pip install` in onboarding** — rewrites bare `pip install` to `sys.executable -m pip install` so it targets the correct Python environment
+- [x] **Added Windows OS classifier** in pyproject.toml
 
 ---
 

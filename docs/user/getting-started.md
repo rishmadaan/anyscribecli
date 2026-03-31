@@ -19,18 +19,19 @@ By the end of this guide you will have:
 
 Before starting, you need:
 
-- **A computer running macOS or Linux** (Windows via WSL2 works too)
+- **A computer running macOS, Linux, or Windows** (native Windows and WSL2 both work)
 - **An internet connection** (for downloading videos and calling the transcription API)
 - **An API key** for your chosen provider — OpenAI is the default. Get one at [platform.openai.com/api-keys](https://platform.openai.com/api-keys). Whisper costs about $0.006/minute — a 10-minute video costs roughly 6 cents. Or use the **local** provider for free (no API key, runs on your machine).
 
-> **New to the command line?** You'll be typing commands in your Terminal app (macOS) or terminal emulator (Linux). Every command in this guide starts with `ascli` — just copy-paste and press Enter.
+> **New to the command line?** You'll be typing commands in your Terminal app (macOS), terminal emulator (Linux), or Command Prompt / PowerShell (Windows). Every command in this guide starts with `ascli` — just copy-paste and press Enter.
 
 ## Step 1: Install Python
 
 ascli needs Python 3.10 or newer. Check if you already have it:
 
 ```bash
-python3 --version
+python3 --version      # macOS / Linux
+python --version       # Windows
 ```
 
 You should see something like `Python 3.12.x`. If you get an error or a version below 3.10:
@@ -44,6 +45,9 @@ brew install python@3.12
 ```bash
 sudo apt install python3 python3-pip python3-venv
 ```
+
+**Windows:**
+Download from [python.org/downloads](https://www.python.org/downloads/) and run the installer. **Check "Add Python to PATH"** during installation.
 
 > **Don't have Homebrew?** It's the standard package manager for macOS. Install it from [brew.sh](https://brew.sh).
 
@@ -59,7 +63,9 @@ Verify it worked:
 ascli --version
 ```
 
-You should see `ascli v0.4.1` (or a newer version).
+You should see `ascli v0.5.4` (or a newer version).
+
+> **Windows: "ascli is not recognized"?** If Python's Scripts directory isn't on PATH, use the full path shown in the pip install output (e.g. `C:\Users\<you>\AppData\...\Scripts\ascli.exe`), or add that Scripts directory to your PATH. See the troubleshooting section below.
 
 > **Other install methods:** You can also use the [install script](https://raw.githubusercontent.com/rishmadaan/anyscribecli/main/install.sh) which checks and installs all dependencies for you, or [clone the repo](https://github.com/rishmadaan/anyscribecli) for development.
 
@@ -164,12 +170,16 @@ tags: [transcript, youtube]
 
 ## Troubleshooting
 
-**"command not found: ascli"**
+**"command not found: ascli"** or **"ascli is not recognized"**
 Your Python scripts directory may not be on your PATH. Try:
 ```bash
-python3 -m pip show anyscribecli    # check it's installed
+python3 -m pip show anyscribecli    # macOS / Linux
+python -m pip show anyscribecli     # Windows
 ```
-If installed but not found, add `~/.local/bin` (Linux) or the Python framework bin (macOS) to your PATH.
+If installed but not found:
+- **macOS**: add the Python framework bin directory to your PATH
+- **Linux**: add `~/.local/bin` to your PATH
+- **Windows**: add the Scripts directory shown during `pip install` (e.g. `C:\Users\<you>\AppData\Roaming\Python\PythonXXX\Scripts`) to your PATH via System Properties → Environment Variables → Path → Edit → New
 
 **"OPENAI_API_KEY not set"**
 Run `ascli onboard --force` to re-enter your API key, or edit `~/.anyscribecli/.env` directly.
