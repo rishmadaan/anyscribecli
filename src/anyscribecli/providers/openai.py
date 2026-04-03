@@ -12,7 +12,7 @@ from anyscribecli.providers.base import (
     TranscriptResult,
     TranscriptSegment,
 )
-from anyscribecli.core.audio import chunk_audio, WHISPER_MAX_BYTES
+from anyscribecli.core.audio import chunk_audio, needs_chunking
 
 
 class OpenAIProvider(TranscriptionProvider):
@@ -62,9 +62,8 @@ class OpenAIProvider(TranscriptionProvider):
 
     def transcribe(self, audio_path: Path, language: str = "auto") -> TranscriptResult:
         api_key = self._get_api_key()
-        file_size = audio_path.stat().st_size
 
-        if file_size <= WHISPER_MAX_BYTES:
+        if not needs_chunking(audio_path):
             return self._parse_response(self._transcribe_single(audio_path, language, api_key))
 
         # Chunk large files (>25MB) — pattern from AnyScribe web app

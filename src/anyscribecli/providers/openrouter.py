@@ -20,7 +20,7 @@ from anyscribecli.providers.base import (
     TranscriptionProvider,
     TranscriptResult,
 )
-from anyscribecli.core.audio import WHISPER_MAX_BYTES, chunk_audio
+from anyscribecli.core.audio import chunk_audio, needs_chunking
 
 
 class OpenRouterProvider(TranscriptionProvider):
@@ -96,9 +96,8 @@ class OpenRouterProvider(TranscriptionProvider):
 
     def transcribe(self, audio_path: Path, language: str = "auto") -> TranscriptResult:
         api_key = self._get_api_key()
-        file_size = audio_path.stat().st_size
 
-        if file_size <= WHISPER_MAX_BYTES:
+        if not needs_chunking(audio_path):
             text = self._transcribe_single(audio_path, language, api_key)
             return TranscriptResult(
                 text=text, language=language if language != "auto" else "unknown"

@@ -8,9 +8,33 @@ from pathlib import Path
 # Whisper API limit is 25MB
 WHISPER_MAX_BYTES = 25 * 1024 * 1024
 
+# Max duration to send as a single request.
+# Even files under 25MB can timeout if the audio is too long — Whisper's
+# processing time scales with duration, not file size. At 64kbps mono,
+# a 75-min file is only ~20MB (under the size limit) but takes ~700s to
+# process, well over the 300s HTTP timeout. 30 minutes is a safe ceiling.
+WHISPER_MAX_DURATION_SECONDS = 30 * 60
+
 # 18-minute chunks stay well under 25MB at 64kbps mono
 # (18 min * 60 sec * 64kbit/8 = ~8.6MB per chunk)
 CHUNK_DURATION_SECONDS = 18 * 60
+
+
+def needs_chunking(audio_path: Path) -> bool:
+    """Check if an audio file needs chunking before upload.
+
+    Triggers on file size (>25MB) OR duration (>30 min). The duration check
+    catches files that are small due to aggressive compression but too long
+    for the API to process within the HTTP timeout.
+    """
+    if audio_path.stat().st_size > WHISPER_MAX_BYTES:
+        return True
+    try:
+        duration = get_audio_duration(audio_path)
+        return duration > WHISPER_MAX_DURATION_SECONDS
+    except Exception:
+        # If we can't determine duration, fall back to size-only check
+        return False
 
 
 def get_audio_duration(audio_path: Path) -> float:
