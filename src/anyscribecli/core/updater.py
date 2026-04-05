@@ -113,7 +113,7 @@ def _git_update(repo_path: Path, force: bool = False) -> bool:
     if status_result.stdout.strip() and not force:
         console.print("\n[yellow]You have uncommitted changes in the repo.[/yellow]")
         console.print(
-            "Run [bold]ascli update --force[/bold] to update anyway (will stash changes)."
+            "Run [bold]scribe update --force[/bold] to update anyway (will stash changes)."
         )
         return False
 
@@ -248,7 +248,7 @@ def check_for_updates(quiet: bool = False) -> bool:
     if latest and latest != current:
         console.print(
             f"[yellow]Update available:[/yellow] v{current} → v{latest}\n"
-            f"  Run [bold]ascli update[/bold] to update."
+            f"  Run [bold]scribe update[/bold] to update."
         )
         return True
     elif not quiet:
@@ -257,7 +257,7 @@ def check_for_updates(quiet: bool = False) -> bool:
 
 
 def update(force: bool = False) -> bool:
-    """Update ascli to the latest version.
+    """Update scribe to the latest version.
 
     Automatically detects install type (git vs pip) and uses the appropriate method.
     """

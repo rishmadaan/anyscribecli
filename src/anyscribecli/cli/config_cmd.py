@@ -23,7 +23,7 @@ err_console = Console(stderr=True)
 
 config_app = typer.Typer(
     name="config",
-    help="View and change ascli settings.",
+    help="View and change scribe settings.",
     rich_markup_mode="rich",
     no_args_is_help=True,
 )
@@ -60,7 +60,7 @@ def config_set(
 ) -> None:
     """[bold]Change[/bold] a configuration setting.
 
-    Use dot-notation for nested keys: `ascli config set instagram.username myuser`
+    Use dot-notation for nested keys: `scribe config set instagram.username myuser`
     """
     settings = load_config()
     data = settings.to_dict()
@@ -150,7 +150,7 @@ def providers_list(
             table.add_row(p, "Available", is_active)
 
         console.print(table)
-        console.print("\n[dim]Change with: ascli config set provider <name>[/dim]")
+        console.print("\n[dim]Change with: scribe config set provider <name>[/dim]")
 
 
 @providers_app.command("test")

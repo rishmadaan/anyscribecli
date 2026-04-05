@@ -21,7 +21,7 @@ YTDLP_MAX_AGE_DAYS = 60
 
 @dataclass
 class Dependency:
-    """A system dependency that ascli needs."""
+    """A system dependency that scribe needs."""
 
     name: str
     command: str  # binary name to check via shutil.which (for system binaries)
@@ -396,6 +396,6 @@ def check_and_install(interactive: bool = True) -> bool:
             return True
 
     console.print(
-        "\n[yellow]Some dependencies are still missing. ascli may not work fully.[/yellow]"
+        "\n[yellow]Some dependencies are still missing. scribe may not work fully.[/yellow]"
     )
     return typer.confirm("Continue anyway?", default=False)

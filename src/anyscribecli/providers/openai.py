@@ -32,7 +32,7 @@ class OpenAIProvider(TranscriptionProvider):
         key = os.environ.get("OPENAI_API_KEY", "")
         if not key:
             raise RuntimeError(
-                "OPENAI_API_KEY not set. Run 'ascli onboard' or set it in ~/.anyscribecli/.env"
+                "OPENAI_API_KEY not set. Run 'scribe onboard' or set it in ~/.anyscribecli/.env"
             )
         return key
 

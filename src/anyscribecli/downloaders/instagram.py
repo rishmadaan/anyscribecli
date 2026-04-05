@@ -58,9 +58,9 @@ class InstagramDownloader(AbstractDownloader):
         if not username or not password:
             raise RuntimeError(
                 "Instagram credentials not configured.\n"
-                "Run: ascli config set instagram.username YOUR_USERNAME\n"
+                "Run: scribe config set instagram.username YOUR_USERNAME\n"
                 "Add INSTAGRAM_PASSWORD=YOUR_PASSWORD to ~/.anyscribecli/.env\n"
-                "Or re-run: ascli onboard --force"
+                "Or re-run: scribe onboard --force"
             )
 
         session_file = SESSIONS_DIR / "instagram_session"
@@ -82,8 +82,8 @@ class InstagramDownloader(AbstractDownloader):
         except instaloader.exceptions.BadCredentialsException:
             raise RuntimeError(
                 "Instagram login failed: incorrect username or password.\n"
-                "Check your credentials: ascli config show\n"
-                "Update them: ascli config set instagram.username YOUR_USERNAME"
+                "Check your credentials: scribe config show\n"
+                "Update them: scribe config set instagram.username YOUR_USERNAME"
             )
         except instaloader.exceptions.TwoFactorAuthRequiredException:
             raise RuntimeError(
@@ -97,7 +97,7 @@ class InstagramDownloader(AbstractDownloader):
                 "  - Credentials are wrong\n"
                 "  - Instagram temporarily blocked the login (try again later)\n"
                 "  - The account has 2FA enabled\n"
-                "Tip: Use a secondary/dummy account for ascli."
+                "Tip: Use a secondary/dummy account for scribe."
             )
 
         return L
@@ -119,7 +119,7 @@ class InstagramDownloader(AbstractDownloader):
         if not post.is_video:
             raise RuntimeError(
                 "This Instagram post is an image, not a video.\n"
-                "ascli can only transcribe video/audio content."
+                "scribe can only transcribe video/audio content."
             )
 
         duration = post.video_duration

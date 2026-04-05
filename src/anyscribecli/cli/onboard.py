@@ -1,4 +1,4 @@
-"""Onboarding wizard — set up ascli for first use."""
+"""Onboarding wizard — set up scribe for first use."""
 
 from __future__ import annotations
 
@@ -96,15 +96,15 @@ def onboard(
     ),
     skip_deps: bool = typer.Option(False, "--skip-deps", help="Skip dependency checking."),
 ) -> None:
-    """[bold green]Set up ascli[/bold green] — interactive onboarding wizard.
+    """[bold green]Set up scribe[/bold green] — interactive onboarding wizard.
 
     Checks system dependencies, prompts for API keys, and initializes the Obsidian vault.
     """
     if CONFIG_FILE.exists() and not force:
         console.print(
             Panel(
-                f"ascli is already configured at [cyan]{APP_HOME}[/cyan]\n"
-                "Run [bold]ascli onboard --force[/bold] to re-run setup.",
+                f"scribe is already configured at [cyan]{APP_HOME}[/cyan]\n"
+                "Run [bold]scribe onboard --force[/bold] to re-run setup.",
                 title="Already Configured",
                 border_style="yellow",
             )
@@ -113,7 +113,7 @@ def onboard(
 
     console.print(
         Panel(
-            "Welcome to [bold]ascli[/bold]!\n\n"
+            "Welcome to [bold]scribe[/bold]!\n\n"
             "This wizard will check your system, set up configuration,\n"
             "and initialize your Obsidian workspace.\n\n"
             "[dim]Use arrow keys to navigate, Enter to select.[/dim]",
@@ -159,7 +159,7 @@ def onboard(
         console.print(
             Panel(
                 "Choose your default transcription provider.\n"
-                "You can change this later with [bold]ascli config set provider <name>[/bold]",
+                "You can change this later with [bold]scribe config set provider <name>[/bold]",
                 title="Provider",
                 border_style="blue",
             )
@@ -317,7 +317,7 @@ def onboard(
             Panel(
                 "Keep downloaded audio files after transcription?\n"
                 "Files are saved to [cyan]~/.anyscribecli/downloads/audio/[/cyan]\n\n"
-                "[dim]You can change this later with: ascli config set keep_media true[/dim]",
+                "[dim]You can change this later with: scribe config set keep_media true[/dim]",
                 title="Media Storage",
                 border_style="blue",
             )
@@ -336,7 +336,7 @@ def onboard(
         console.print(
             Panel(
                 "When transcribing local files (mp3, mp4, wav, etc.),\n"
-                "what should ascli do with the original file?\n\n"
+                "what should scribe do with the original file?\n\n"
                 "[bold]skip[/bold]  — leave the file where it is (default)\n"
                 "[bold]copy[/bold]  — copy to media dir for organization\n"
                 "[bold]move[/bold]  — move to media dir for organization\n"
@@ -380,7 +380,7 @@ def onboard(
     if change_download:
         console.print(
             Panel(
-                "After each transcription, ascli can ask if you want to\n"
+                "After each transcription, scribe can ask if you want to\n"
                 "download the full video or audio file.\n\n"
                 "[bold]never[/bold]  — don't ask (default)\n"
                 "[bold]ask[/bold]    — ask every time after transcription\n"
@@ -422,10 +422,10 @@ def onboard(
     if change_workspace:
         console.print(
             Panel(
-                "Where should ascli store your transcripts?\n"
+                "Where should scribe store your transcripts?\n"
                 f"Default: [cyan]{DEFAULT_WORKSPACE}[/cyan]\n\n"
                 "This is your Obsidian vault — open it in Obsidian to browse transcripts.\n"
-                "[dim]You can change this later with: ascli config set workspace_path /your/path[/dim]",
+                "[dim]You can change this later with: scribe config set workspace_path /your/path[/dim]",
                 title="Workspace Location",
                 border_style="blue",
             )
@@ -460,15 +460,15 @@ def onboard(
         if not ASCLI_SKILL_TARGET.exists():
             console.print("\n  [bold]Claude Code detected![/bold]")
             console.print(
-                "  ascli includes a skill that teaches Claude Code how to\n"
+                "  scribe includes a skill that teaches Claude Code how to\n"
                 "  transcribe, configure providers, and troubleshoot for you."
             )
-            if bconfirm("  Install ascli skill for Claude Code?"):
+            if bconfirm("  Install scribe skill for Claude Code?"):
                 from anyscribecli.cli.skill_cmd import copy_skill_files
 
                 copy_skill_files()
                 skill_status = "installed"
-                console.print("  [green]✓[/green] Skill installed to ~/.claude/skills/ascli/")
+                console.print("  [green]✓[/green] Skill installed to ~/.claude/skills/scribe/")
             else:
                 skill_status = "skipped"
         else:
@@ -498,9 +498,9 @@ def onboard(
             + (f"  Claude Code: {skill_status}\n" if skill_status else "")
             + "\n"
             "[bold]Next steps:[/bold]\n"
-            "  [bold cyan]ascli transcribe <url>[/bold cyan]  — transcribe a video\n"
-            "  [bold cyan]ascli providers list[/bold cyan]    — see available providers\n"
-            "  [bold cyan]ascli config show[/bold cyan]       — view your settings\n"
+            "  [bold cyan]scribe transcribe <url>[/bold cyan]  — transcribe a video\n"
+            "  [bold cyan]scribe providers list[/bold cyan]    — see available providers\n"
+            "  [bold cyan]scribe config show[/bold cyan]       — view your settings\n"
             f"  Open [cyan]{workspace}[/cyan] in Obsidian to browse transcripts",
             title="Ready",
             border_style="green",

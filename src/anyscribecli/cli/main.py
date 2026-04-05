@@ -1,16 +1,34 @@
-"""ascli — main CLI entry point."""
+"""scribe — main CLI entry point."""
 
 from __future__ import annotations
 
 from typing import Optional
 
+import click
 import typer
 from rich.console import Console
 
 from anyscribecli import __version__
 
+
+class DefaultToTranscribe(click.Group):
+    """Route bare URLs/paths to the transcribe command automatically.
+
+    If the first argument isn't a known subcommand or a flag,
+    assume it's a URL or file path and prepend 'transcribe'.
+    This lets users write `scribe "https://..."` instead of
+    `scribe transcribe "https://..."`.
+    """
+
+    def parse_args(self, ctx: click.Context, args: list[str]) -> list[str]:
+        if args and args[0] not in self.commands and not args[0].startswith("-"):
+            args = ["transcribe"] + args
+        return super().parse_args(ctx, args)
+
+
 app = typer.Typer(
-    name="ascli",
+    name="scribe",
+    cls=DefaultToTranscribe,
     help="Download, transcribe, and convert video/audio to structured markdown.",
     rich_markup_mode="rich",
     no_args_is_help=True,
@@ -22,18 +40,18 @@ err_console = Console(stderr=True)
 
 def version_callback(value: bool) -> None:
     if value:
-        console.print(f"ascli v{__version__}")
+        console.print(f"scribe v{__version__}")
         raise typer.Exit()
 
 
 def _check_path_windows() -> None:
-    """On Windows, warn once if `ascli` is not on PATH and print the fix command."""
+    """On Windows, warn once if `scribe` is not on PATH and print the fix command."""
     import platform
     import shutil
 
     if platform.system() != "Windows":
         return
-    if shutil.which("ascli") is not None:
+    if shutil.which("scribe") is not None:
         return
 
     import sysconfig
@@ -47,7 +65,7 @@ def _check_path_windows() -> None:
 
     scripts_dir = sysconfig.get_path("scripts")
     console.print()
-    console.print("[bold yellow]ascli is not on your PATH.[/bold yellow]")
+    console.print("[bold yellow]scribe is not on your PATH.[/bold yellow]")
     console.print("Run this command in PowerShell to fix it permanently:\n")
     console.print(
         f'  [bold cyan]$env:Path += ";{scripts_dir}"; '
@@ -55,7 +73,7 @@ def _check_path_windows() -> None:
         f"[Environment]::GetEnvironmentVariable('Path', 'User') + ';{scripts_dir}', "
         f"'User')[/bold cyan]\n"
     )
-    console.print("Then restart your terminal and use [bold]ascli[/bold] directly.\n")
+    console.print("Then restart your terminal and use [bold]scribe[/bold] directly.\n")
     APP_HOME.mkdir(parents=True, exist_ok=True)
     marker.touch()
 
@@ -71,7 +89,7 @@ def main(
         is_eager=True,
     ),
 ) -> None:
-    """[bold]ascli[/bold] — download, transcribe, and convert video/audio to structured markdown."""
+    """[bold]scribe[/bold] — download, transcribe, and convert video/audio to structured markdown."""
     _check_path_windows()
 
 
@@ -101,7 +119,7 @@ def update(
         False, "--check", "-c", help="Only check for updates, don't install."
     ),
 ) -> None:
-    """[bold yellow]Update[/bold yellow] ascli to the latest version.
+    """[bold yellow]Update[/bold yellow] scribe to the latest version.
 
     Pulls the latest changes from git and reinstalls the package.
     """
@@ -125,7 +143,7 @@ def doctor() -> None:
     from anyscribecli.config.paths import APP_HOME, CONFIG_FILE, ENV_FILE, get_workspace_dir
     from anyscribecli.core.updater import get_install_path, check_for_updates
 
-    console.print("[bold]ascli doctor[/bold]\n")
+    console.print("[bold]scribe doctor[/bold]\n")
 
     # Dependencies
     console.print("[bold]1. System Dependencies[/bold]\n")
@@ -146,7 +164,7 @@ def doctor() -> None:
         console.print(f"  {name}: {status}")
 
     if not CONFIG_FILE.exists():
-        console.print("\n  [yellow]Run [bold]ascli onboard[/bold] to set up.[/yellow]")
+        console.print("\n  [yellow]Run [bold]scribe onboard[/bold] to set up.[/yellow]")
 
     # Install info
     console.print("\n[bold]3. Installation[/bold]\n")
