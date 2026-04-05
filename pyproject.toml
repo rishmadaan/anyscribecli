@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "anyscribecli"
-version = "0.5.5"
+version = "0.6.0"
 description = "CLI tool to download, transcribe, and convert video/audio to structured markdown"
 readme = "README.md"
 license = "MIT"
@@ -54,10 +54,14 @@ dev = [
 local = [
     "faster-whisper>=1.0",
 ]
+mcp = [
+    "mcp>=1.0",
+]
 
 [project.scripts]
 scribe = "anyscribecli.cli.main:app"
 ascli = "anyscribecli.cli.main:app"
+scribe-mcp = "anyscribecli.mcp.server:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/anyscribecli"]
