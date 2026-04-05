@@ -1,6 +1,6 @@
 # Architecture
 
-**Last updated:** 2026-04-01 (v0.5.4)
+**Last updated:** 2026-04-05 (v0.6.0)
 
 ## Overview
 
@@ -18,12 +18,29 @@ URL input -> Platform detection -> Download (yt-dlp / instaloader)
 ## Layers
 
 ### CLI Layer (`cli/`)
-- Typer app with `rich_markup_mode="rich"`
-- Commands: `onboard`, `transcribe`, `download`, `batch`, `config`, `providers`, `update`, `doctor`
+- Typer app with `rich_markup_mode="rich"`, custom `DefaultToTranscribe(TyperGroup)` class for bare-URL routing
+- Primary command: `scribe` (alias: `ascli` for backward compat)
+- Commands: `onboard`, `transcribe`, `download`, `batch`, `config`, `providers`, `update`, `doctor`, `install-skill`
+- Bare URL: `scribe "url"` auto-routes to transcribe (first arg not a known subcommand → prepend `transcribe`)
 - `--json` and `--quiet` available on main commands (transcribe, download, batch, config show, providers list)
 - `--json` for AI agent and scripting integration
 - `__main__.py` enables `python -m anyscribecli` as alternative entry point (Windows PATH fallback)
-- On Windows, app callback checks if `ascli` is on PATH; if not, prints the exact PowerShell command to fix it (one-time, uses `.path_warned` marker)
+- On Windows, app callback checks if `scribe` is on PATH; if not, prints the exact PowerShell command to fix it (one-time, uses `.path_warned` marker)
+
+### MCP Layer (`mcp/`)
+- FastMCP server with `scribe-mcp` entry point (stdio transport)
+- 9 tools: transcribe, batch_transcribe, download, list_transcripts, get_config, set_config, list_providers, test_provider, doctor
+- 3 resources: scribe://config, scribe://providers, scribe://workspace
+- Calls core modules directly (orchestrator, settings, providers) — not CLI commands
+- All tools return JSON, consistent error format
+- Optional dependency: `pip install anyscribecli[mcp]` (adds `mcp>=1.0`)
+
+### Skill Layer (`skill/`)
+- Claude Code skill files bundled in package, auto-installed to `~/.claude/skills/scribe/`
+- AI-first: auto-installs if `~/.claude/` exists (no opt-in), auto-updates via `.version` marker
+- On every CLI invocation: compare `.version` to `__version__`, re-copy if mismatched
+- One-time migration from old `ascli` skill directory to `scribe`
+- Skill files: SKILL.md (operator guide), references/ (commands, providers, config, troubleshooting)
 
 ### Config Layer (`config/`)
 - `paths.py`: all path constants via pathlib
@@ -73,3 +90,5 @@ URL input -> Platform detection -> Download (yt-dlp / instaloader)
 - **SemVer**: 0.x for pre-stable, 1.0.0 when all platforms + providers stable
 - **Auto-migration**: Startup migrations handle legacy paths transparently (workspace rename, media→downloads, date folder flattening)
 - **PyPI automation**: GitHub Actions publishes on tag push via trusted publishing; `scripts/release.sh` for one-command releases
+- **AI-first skill management**: Claude Code skill auto-installs and auto-updates on every CLI invocation. `.version` marker pattern borrowed from gitstow — one file read + string compare, never blocks CLI
+- **MCP server**: Thin wrapper around core modules. Both CLI and MCP use same orchestrator/providers/settings — only output format differs (Rich console vs JSON)

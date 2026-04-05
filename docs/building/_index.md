@@ -2,6 +2,7 @@
 
 | Date | Type | Entry | TL;DR |
 |------|------|-------|-------|
+| 2026-04-05 | project-note | [[journal/2026-04-05-v060-scribe-rename-mcp.md\|v0.6.0 scribe Rename + MCP Server]] | Renamed CLI to `scribe` with bare-URL routing, added MCP server (9 tools), skill auto-install/update, published to PyPI. |
 | 2026-04-01 | project-note | [[journal/2026-04-01-v054-windows-compatibility.md\|v0.5.4 Windows Compatibility]] | Fixed Windows by invoking yt-dlp as `python -m yt_dlp` instead of bare command, fixing Python detection, and using `sys.executable -m pip` for installs. |
 | 2026-03-31 | project-note | [[journal/2026-03-31-v053-ytdlp-auto-update.md\|v0.5.3 yt-dlp Auto-Update]] | Auto-detect and update stale yt-dlp (>60 days old) before any download. Prevents 403 errors from YouTube streaming format changes. |
 | 2026-03-30 | project-note | [[journal/2026-03-30-v050-052-workspace-pypi-flatten.md\|v0.5.0–v0.5.2 Workspace, PyPI, Flatten]] | Configurable workspace path, PyPI automation via GitHub Actions, media→downloads rename, flattened workspace structure (removed date folders). Three migrations, one release script. |

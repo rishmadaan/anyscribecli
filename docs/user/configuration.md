@@ -8,7 +8,7 @@ read_when:
 
 # Configuration
 
-ascli uses two locations: a visible workspace for your transcripts and a hidden directory for app internals.
+scribe uses two locations: a visible workspace for your transcripts and a hidden directory for app internals.
 
 ## File Locations
 
@@ -22,9 +22,9 @@ ascli uses two locations: a visible workspace for your transcripts and a hidden 
 | Sessions | `~/.anyscribecli/sessions/` | Instagram login sessions (when enabled) |
 | Temp | `~/.anyscribecli/tmp/` | Temporary downloads (auto-cleaned) |
 
-> **Upgrading from an older version?** If you have transcripts at `~/.anyscribecli/workspace/`, ascli will automatically move them to `~/anyscribe/` on your next transcription.
+> **Upgrading from an older version?** If you have transcripts at `~/.anyscribecli/workspace/`, scribe will automatically move them to `~/anyscribe/` on your next transcription.
 
-> **Tip:** Run `ascli doctor` to see if all these exist and are healthy.
+> **Tip:** Run `scribe doctor` to see if all these exist and are healthy.
 
 ## config.yaml
 
@@ -70,7 +70,7 @@ What language to expect in the audio. Default: `auto` (let the API auto-detect).
 
 Use standard language codes: `en` (English), `es` (Spanish), `fr` (French), `hi` (Hindi), `ar` (Arabic), `zh` (Chinese), `ja` (Japanese), `ko` (Korean), etc.
 
-> **When to set this explicitly:** Auto-detection works well for most videos, but if you're transcribing content in a specific language and getting wrong results, setting the language explicitly helps. You can also override per-video: `ascli transcribe <url> --language hi`
+> **When to set this explicitly:** Auto-detection works well for most videos, but if you're transcribing content in a specific language and getting wrong results, setting the language explicitly helps. You can also override per-video: `scribe transcribe <url> --language hi`
 
 #### keep_media
 
@@ -99,7 +99,7 @@ Whether to offer downloading the video/audio file after each transcription. Defa
 | `ask` | Ask after each transcription if you want the video/audio too |
 | `always` | Always download the full video after transcription |
 
-> **Tip:** You can always download manually with `ascli download "<url>"` regardless of this setting.
+> **Tip:** You can always download manually with `scribe download "<url>"` regardless of this setting.
 
 #### local_file_media
 
@@ -134,7 +134,7 @@ INSTAGRAM_PASSWORD=your-password
 The easiest way is to re-run onboarding:
 
 ```bash
-ascli onboard --force
+scribe onboard --force
 ```
 
 This shows your current settings (API keys masked) and lets you change only what you need — no need to re-enter everything.
@@ -162,7 +162,7 @@ Your transcripts live in the workspace (pure markdown, no binaries). Downloaded 
 ~/.anyscribecli/                           # App internals (hidden)
 ├── downloads/                             # Downloads (separate from vault)
 │   ├── audio/<platform>/                  # Audio files (if keep_media=true)
-│   └── video/<platform>/                  # Video files (ascli download)
+│   └── video/<platform>/                  # Video files (scribe download)
 ├── sessions/                              # Login sessions
 └── logs/                                  # Processing logs
 ```
@@ -175,7 +175,7 @@ Where to store your transcript workspace. Default: `~/anyscribe/` (when set to e
 
 Set a custom path to use an existing Obsidian vault or a different location:
 ```bash
-ascli config set workspace_path ~/Documents/transcripts
+scribe config set workspace_path ~/Documents/transcripts
 ```
 
 > **Tip:** Leave this empty to use the default `~/anyscribe/`. The workspace is visible in Finder/file managers — no need to navigate to hidden folders.
@@ -213,7 +213,7 @@ To start fresh, delete the app directory and re-run onboarding:
 
 ```bash
 rm -rf ~/.anyscribecli ~/anyscribe
-ascli onboard
+scribe onboard
 ```
 
 > **Warning:** This deletes your config, API keys, and transcripts. Back up `~/anyscribe/` first if you want to keep your transcripts. If you used a custom workspace path, back up that location instead.

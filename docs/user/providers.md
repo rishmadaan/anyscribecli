@@ -9,7 +9,7 @@ read_when:
 
 # Providers
 
-ascli supports 5 transcription providers. Here's how they compare and when to use each.
+scribe supports 5 transcription providers. Here's how they compare and when to use each.
 
 ## Quick Comparison
 
@@ -30,13 +30,13 @@ ascli supports 5 transcription providers. Here's how they compare and when to us
 The most widely used speech-to-text API. Good accuracy across most languages. Segment-level timestamps included.
 
 ```bash
-ascli config set provider openai
+scribe config set provider openai
 ```
 
 - **API key env var:** `OPENAI_API_KEY`
 - **Get a key:** [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
 - **Cost:** ~$0.006 per minute ($0.36/hour)
-- **File limit:** 25 MB — ascli automatically chunks larger files into 18-minute segments
+- **File limit:** 25 MB — scribe automatically chunks larger files into 18-minute segments
 - **Model:** `whisper-1`
 
 > **When to use:** Good default for most use cases. Best balance of cost, accuracy, and language coverage.
@@ -46,13 +46,13 @@ ascli config set provider openai
 High-accuracy transcription with word-level timestamps and optional speaker diarization (up to 32 speakers).
 
 ```bash
-ascli config set provider elevenlabs
+scribe config set provider elevenlabs
 ```
 
 - **API key env var:** `ELEVENLABS_API_KEY`
 - **Get a key:** [elevenlabs.io/app/settings/api-keys](https://elevenlabs.io/app/settings/api-keys)
 - **Cost:** ~$0.22–0.40/hour depending on plan
-- **File limit:** The ElevenLabs API accepts up to 3 GB, but ascli chunks at 25 MB (same as OpenAI) for consistency
+- **File limit:** The ElevenLabs API accepts up to 3 GB, but scribe chunks at 25 MB (same as OpenAI) for consistency
 - **Model:** `scribe_v1`
 
 > **When to use:** When you need the highest accuracy, word-level timestamps, or speaker identification. Slightly cheaper than OpenAI for high volumes.
@@ -62,13 +62,13 @@ ascli config set provider elevenlabs
 Specialized for Indian languages. Supports 22 Indian languages plus English with Indian accent optimization. Good for code-mixed audio (e.g., Hindi-English).
 
 ```bash
-ascli config set provider sargam
+scribe config set provider sargam
 ```
 
 - **API key env var:** `SARGAM_API_KEY`
 - **Get a key:** [dashboard.sarvam.ai](https://dashboard.sarvam.ai)
 - **Cost:** ~$0.35/hour; free tier: ~$12 in credits
-- **File limit:** REST API limited to 30 seconds — ascli automatically chunks audio into 30-second segments
+- **File limit:** REST API limited to 30 seconds — scribe automatically chunks audio into 30-second segments
 - **Model:** `saaras:v2`
 - **Supported languages:** Hindi, Tamil, Telugu, Kannada, Malayalam, Bengali, Gujarati, Marathi, Punjabi, Odia, Assamese, Urdu, Sanskrit, and more
 
@@ -79,7 +79,7 @@ ascli config set provider sargam
 Access to various AI models through a unified API. Since OpenRouter doesn't have a dedicated speech-to-text endpoint, this uses audio-capable chat models (like GPT-4o-audio-preview) with a transcription prompt.
 
 ```bash
-ascli config set provider openrouter
+scribe config set provider openrouter
 ```
 
 - **API key env var:** `OPENROUTER_API_KEY`
@@ -96,7 +96,7 @@ ascli config set provider openrouter
 Runs entirely on your machine. No API key, no internet connection, no cost. Uses faster-whisper, a CTranslate2-based reimplementation of OpenAI Whisper that's up to 4x faster.
 
 ```bash
-ascli config set provider local
+scribe config set provider local
 ```
 
 **Setup:**
@@ -127,18 +127,18 @@ pip install faster-whisper
 Change your default provider:
 
 ```bash
-ascli config set provider elevenlabs
+scribe config set provider elevenlabs
 ```
 
 Override for a single transcription:
 
 ```bash
-ascli transcribe <url> --provider local
+scribe "<url>" --provider local
 ```
 
 ## Adding API Keys
 
-The onboarding wizard (`ascli onboard`) asks for API keys. To add more later:
+The onboarding wizard (`scribe onboard`) asks for API keys. To add more later:
 
 Edit `~/.anyscribecli/.env` directly:
 
@@ -152,11 +152,11 @@ SARGAM_API_KEY=...
 Or re-run onboarding:
 
 ```bash
-ascli onboard --force
+scribe onboard --force
 ```
 
 Test that a provider works:
 
 ```bash
-ascli providers test elevenlabs
+scribe providers test elevenlabs
 ```

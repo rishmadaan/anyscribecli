@@ -1,42 +1,42 @@
 ---
-summary: Complete reference for all ascli commands, flags, and options.
+summary: Complete reference for all scribe commands, flags, and options.
 read_when:
   - You want to know what flags are available
   - You need the exact syntax for a command
-  - You're scripting or automating with ascli
+  - You're scripting or automating with scribe
 ---
 
 # Command Reference
 
-Every ascli command. Copy-paste friendly.
+Every scribe command. Copy-paste friendly.
 
 ## Quick Overview
 
 | Command | What it does |
 |---------|-------------|
-| `ascli onboard` | First-time setup wizard |
-| `ascli transcribe "<url or file>"` | Transcribe a URL or local file |
-| `ascli download "<url>"` | Download video or audio only (no transcription) |
-| `ascli batch <file>` | Batch transcribe URLs or file paths from a file |
-| `ascli config show` | View current settings |
-| `ascli config set <key> <value>` | Change a setting |
-| `ascli config path` | Print config file location |
-| `ascli providers list` | Show available providers |
-| `ascli providers test [name]` | Test a provider's API key |
-| `ascli install-skill` | Install Claude Code skill |
-| `ascli update` | Update to the latest version |
-| `ascli doctor` | Check system health |
-| `ascli --version` | Show version |
-| `ascli --help` | Show help |
+| `scribe "<url or file>"` | Transcribe a URL or local file (default action) |
+| `scribe onboard` | First-time setup wizard |
+| `scribe download "<url>"` | Download video or audio only (no transcription) |
+| `scribe batch <file>` | Batch transcribe URLs or file paths from a file |
+| `scribe config show` | View current settings |
+| `scribe config set <key> <value>` | Change a setting |
+| `scribe config path` | Print config file location |
+| `scribe providers list` | Show available providers |
+| `scribe providers test [name]` | Test a provider's API key |
+| `scribe install-skill` | Install/update Claude Code skill |
+| `scribe update` | Update to the latest version |
+| `scribe doctor` | Check system health |
+| `scribe --version` | Show version |
+| `scribe --help` | Show help |
 
 ---
 
-## ascli onboard
+## scribe onboard
 
 Interactive setup wizard. Run this once after installing, or again to change settings.
 
 ```bash
-ascli onboard
+scribe onboard
 ```
 
 **What it does** (arrow-key selectors throughout):
@@ -62,24 +62,25 @@ ascli onboard
 
 ```bash
 # First-time setup
-ascli onboard
+scribe onboard
 
 # Re-run to change settings (e.g., switch provider or update API key)
-ascli onboard --force
+scribe onboard --force
 
 # Skip dependency check (you know they're installed)
-ascli onboard --force --skip-deps
+scribe onboard --force --skip-deps
 ```
 
 ---
 
-## ascli transcribe
+## scribe (default: transcribe)
 
-The main command. Transcribes a URL or local audio/video file and saves a formatted markdown file.
+The main command. Transcribes a URL or local audio/video file and saves a formatted markdown file. **A bare URL routes to transcribe automatically — no subcommand needed.**
 
 ```bash
-ascli transcribe "<url>"
-ascli transcribe /path/to/file.mp3
+scribe "<url>"                          # bare URL — just works
+scribe /path/to/file.mp3               # local file — just works
+scribe transcribe "<url>"              # explicit subcommand (also works)
 ```
 
 > **Important:** Always wrap URLs in quotes. Shells like zsh treat `?` as a special character, which breaks unquoted YouTube URLs. Local file paths don't need quotes.
@@ -88,17 +89,17 @@ ascli transcribe /path/to/file.mp3
 
 ```bash
 # 1. Pass a URL as an argument (always use quotes)
-ascli transcribe "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+scribe "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
 
 # 2. Pass a local audio/video file
-ascli transcribe /path/to/podcast.mp3
-ascli transcribe ~/recordings/meeting.m4a
+scribe /path/to/podcast.mp3
+scribe ~/recordings/meeting.m4a
 
 # 3. Run without input — you'll be prompted to paste a URL or file path
-ascli transcribe
+scribe transcribe
 
 # 4. Copy a URL to your clipboard, then:
-ascli transcribe --clipboard
+scribe --clipboard
 ```
 
 ### Flags
@@ -116,35 +117,35 @@ ascli transcribe --clipboard
 
 ```bash
 # YouTube video (always quote the URL)
-ascli transcribe "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+scribe "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
 
 # Instagram reel
-ascli transcribe "https://www.instagram.com/reel/C17LiBLyIOe/"
+scribe "https://www.instagram.com/reel/C17LiBLyIOe/"
 
 # Local audio/video file
-ascli transcribe /path/to/podcast.mp3
-ascli transcribe ~/recordings/meeting.m4a
-ascli transcribe ./interview.opus
+scribe /path/to/podcast.mp3
+scribe ~/recordings/meeting.m4a
+scribe ./interview.opus
 
 # Interactive — paste URL or file path when prompted
-ascli transcribe
+scribe transcribe
 
 # From clipboard
-ascli transcribe --clipboard
+scribe --clipboard
 
 # Specify language (skip auto-detection)
-ascli transcribe "https://youtube.com/watch?v=abc123" --language es
+scribe "https://youtube.com/watch?v=abc123" --language es
 
 # Keep the audio file alongside the transcript
-ascli transcribe "https://youtube.com/watch?v=abc123" --keep-media
+scribe "https://youtube.com/watch?v=abc123" --keep-media
 
 # JSON output — for scripts, AI agents, or piping to other tools
-ascli transcribe "https://youtube.com/watch?v=abc123" --json
+scribe "https://youtube.com/watch?v=abc123" --json
 ```
 
 ### JSON Output
 
-When you use `--json`, ascli prints structured JSON to stdout (progress goes to stderr):
+When you use `--json`, scribe prints structured JSON to stdout (progress goes to stderr):
 
 ```json
 {
@@ -168,7 +169,7 @@ On error:
 }
 ```
 
-> **Scripting tip:** Use `--json --quiet` together to get clean JSON with no extra output. Pipe to `jq` for filtering: `ascli transcribe <url> --json -q | jq '.file'`
+> **Scripting tip:** Use `--json --quiet` together to get clean JSON with no extra output. Pipe to `jq` for filtering: `scribe "url" --json -q | jq '.file'`
 
 ### Supported Inputs
 
@@ -180,12 +181,12 @@ On error:
 
 ---
 
-## ascli batch
+## scribe batch
 
 Transcribe multiple URLs or local files from a list. One entry per line, blank lines and `#comments` are skipped.
 
 ```bash
-ascli batch urls.txt
+scribe batch urls.txt
 ```
 
 ### Flags
@@ -212,23 +213,23 @@ https://instagram.com/reel/xyz789
 EOF
 
 # Transcribe all
-ascli batch urls.txt
+scribe batch urls.txt
 
 # Stop if any fail
-ascli batch urls.txt --stop-on-error
+scribe batch urls.txt --stop-on-error
 
 # JSON output for scripting
-ascli batch urls.txt --json
+scribe batch urls.txt --json
 ```
 
 ---
 
-## ascli download
+## scribe download
 
 Download video or audio from a URL — no transcription. Useful when you just want the file.
 
 ```bash
-ascli download "<url>"
+scribe download "<url>"
 ```
 
 Saves to `~/.anyscribecli/downloads/video/<platform>/` (default) or `~/.anyscribecli/downloads/audio/<platform>/` with `--audio-only`.
@@ -246,31 +247,31 @@ Saves to `~/.anyscribecli/downloads/video/<platform>/` (default) or `~/.anyscrib
 
 ```bash
 # Download video
-ascli download "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+scribe download "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
 
 # Download audio only (no video)
-ascli download "https://www.youtube.com/watch?v=dQw4w9WgXcQ" --audio-only
+scribe download "https://www.youtube.com/watch?v=dQw4w9WgXcQ" --audio-only
 
 # From clipboard
-ascli download --clipboard
+scribe download --clipboard
 
 # Interactive (paste URL when prompted)
-ascli download
+scribe download
 
 # JSON output
-ascli download "https://youtube.com/watch?v=abc123" --json
+scribe download "https://youtube.com/watch?v=abc123" --json
 ```
 
 ---
 
-## ascli config
+## scribe config
 
 View and change settings.
 
 ```bash
-ascli config show           # display all settings
-ascli config set key value  # change a setting
-ascli config path           # print config file location
+scribe config show           # display all settings
+scribe config set key value  # change a setting
+scribe config path           # print config file location
 ```
 
 ### Flags
@@ -283,34 +284,34 @@ ascli config path           # print config file location
 
 ```bash
 # Show current config
-ascli config show
+scribe config show
 
 # Change provider
-ascli config set provider elevenlabs
+scribe config set provider elevenlabs
 
 # Change language
-ascli config set language hi
+scribe config set language hi
 
 # Set Instagram credentials
-ascli config set instagram.username myuser
-ascli config set instagram.password mypass
+scribe config set instagram.username myuser
+scribe config set instagram.password mypass
 
 # Get JSON output
-ascli config show --json
+scribe config show --json
 ```
 
 > **Dot-notation:** Use dots for nested keys like `instagram.username`.
 
 ---
 
-## ascli providers
+## scribe providers
 
 Manage transcription providers.
 
 ```bash
-ascli providers list          # show all providers
-ascli providers test          # test active provider
-ascli providers test openai   # test a specific provider
+scribe providers list          # show all providers
+scribe providers test          # test active provider
+scribe providers test openai   # test a specific provider
 ```
 
 ### Flags
@@ -333,15 +334,15 @@ ascli providers test openai   # test a specific provider
 
 ---
 
-## ascli install-skill
+## scribe install-skill
 
-Install the ascli skill for [Claude Code](https://docs.anthropic.com/en/docs/claude-code). This teaches Claude how to transcribe, configure providers, and troubleshoot ascli on your behalf.
+Manually install or update the scribe skill for [Claude Code](https://docs.anthropic.com/en/docs/claude-code). This teaches Claude how to transcribe, configure providers, and troubleshoot scribe on your behalf.
 
 ```bash
-ascli install-skill
+scribe install-skill
 ```
 
-Copies skill files from the ascli package to `~/.claude/skills/ascli/`. Requires Claude Code to be installed (`~/.claude/` must exist).
+Copies skill files from the scribe package to `~/.claude/skills/scribe/`. Requires Claude Code to be installed (`~/.claude/` must exist).
 
 ### Flags
 
@@ -349,16 +350,16 @@ Copies skill files from the ascli package to `~/.claude/skills/ascli/`. Requires
 |------|-------|-------------|
 | `--force` | `-f` | Overwrite existing skill files |
 
-> **Tip:** You don't need to run this manually if you went through `ascli onboard` — the wizard auto-detects Claude Code and offers to install the skill for you.
+> **Tip:** You usually don't need to run this manually. The skill **auto-installs** when Claude Code is detected and **auto-updates** on every CLI invocation when the version changes. Use `--force` only if you need to repair a corrupted install.
 
 ---
 
-## ascli update
+## scribe update
 
-Update ascli to the latest version by pulling from git and reinstalling.
+Update scribe to the latest version by pulling from git and reinstalling.
 
 ```bash
-ascli update
+scribe update
 ```
 
 ### Flags
@@ -372,69 +373,70 @@ ascli update
 
 ```bash
 # Check for updates without installing
-ascli update --check
+scribe update --check
 
 # Update to latest
-ascli update
+scribe update
 
 # Force update (stashes any local changes)
-ascli update --force
+scribe update --force
 ```
 
 ---
 
-## ascli doctor
+## scribe doctor
 
 Run diagnostic checks on your system. Useful when something isn't working.
 
 ```bash
-ascli doctor
+scribe doctor
 ```
 
 **What it checks:**
 1. System dependencies (Python, yt-dlp, ffmpeg, ffprobe)
 2. Configuration (app directory, config.yaml, .env, workspace vault, workspace index)
 3. Installation info (version, install type, repo path)
-4. Available updates
+4. Claude Code skill (installed, version, current or outdated)
+5. Available updates
 
-> **Tip:** If you're reporting a bug or asking for help, run `ascli doctor` and include the output — it gives all the info needed to debug.
+> **Tip:** If you're reporting a bug or asking for help, run `scribe doctor` and include the output — it gives all the info needed to debug.
 
 ---
 
-## ascli --version
+## scribe --version
 
 Print the installed version.
 
 ```bash
-ascli --version
-# Output: ascli v0.3.1
+scribe --version
+# Output: scribe v0.6.0
 ```
 
 ---
 
-## ascli --help
+## scribe --help
 
 Show all available commands and global options.
 
 ```bash
-ascli --help
+scribe --help
 ```
 
 Every command also has its own help:
 
 ```bash
-ascli transcribe --help
-ascli onboard --help
+scribe transcribe --help
+scribe onboard --help
 ```
 
 ---
 
 ## Shell Completion
 
-ascli supports tab-completion for bash, zsh, and fish. Install it once:
+scribe supports tab-completion for bash, zsh, and fish. Install it once:
 
 ```bash
-ascli --install-completion
+scribe --install-completion
 ```
 
 After restarting your shell, you can press Tab to autocomplete commands and flags.
