@@ -15,8 +15,13 @@ from anyscribecli.config.paths import (
 console = Console()
 
 
-def copy_skill_files() -> Path:
-    """Copy bundled skill files to ~/.claude/skills/scribe/. Returns target path."""
+def copy_skill_files(quiet: bool = False) -> Path:
+    """Copy bundled skill files to ~/.claude/skills/scribe/. Returns target path.
+
+    Also writes a .version marker so the auto-updater can detect staleness.
+    """
+    from anyscribecli import __version__
+
     source = get_skill_source_dir()
 
     # Create target directories
@@ -32,6 +37,9 @@ def copy_skill_files() -> Path:
     for name in ("commands.md", "providers.md", "troubleshooting.md", "config.md"):
         with as_file(refs_source.joinpath(name)) as src:
             (refs_dir / name).write_text(src.read_text())
+
+    # Write version marker for auto-update detection
+    (ASCLI_SKILL_TARGET / ".version").write_text(__version__)
 
     return ASCLI_SKILL_TARGET
 

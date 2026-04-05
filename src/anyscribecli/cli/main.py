@@ -6,12 +6,13 @@ from typing import Optional
 
 import click
 import typer
+from typer.core import TyperGroup
 from rich.console import Console
 
 from anyscribecli import __version__
 
 
-class DefaultToTranscribe(click.Group):
+class DefaultToTranscribe(TyperGroup):
     """Route bare URLs/paths to the transcribe command automatically.
 
     If the first argument isn't a known subcommand or a flag,
@@ -42,6 +43,60 @@ def version_callback(value: bool) -> None:
     if value:
         console.print(f"scribe v{__version__}")
         raise typer.Exit()
+
+
+def _auto_update_skill() -> None:
+    """Silently update the Claude Code skill if the version has changed.
+
+    Checks a .version marker file in the installed skill directory.
+    If it doesn't match the current package version, re-copies all skill files.
+    This runs on every invocation but is fast (one file read + string compare).
+
+    Also handles one-time migration from the old ``ascli`` skill dir to ``scribe``.
+    """
+    import shutil
+
+    from anyscribecli.config.paths import ASCLI_SKILL_TARGET, CLAUDE_SKILLS_DIR
+
+    # Migrate old 'ascli' skill → 'scribe' (one-time, v0.5.4 → v0.5.5+)
+    old_skill_dir = CLAUDE_SKILLS_DIR / "ascli"
+    had_old_skill = False
+    if old_skill_dir.exists():
+        had_old_skill = True
+        try:
+            shutil.rmtree(old_skill_dir)
+        except Exception:
+            pass
+
+    if not ASCLI_SKILL_TARGET.exists():
+        if had_old_skill:
+            # Old skill was removed — install at new path to complete migration
+            try:
+                from anyscribecli.cli.skill_cmd import copy_skill_files
+
+                copy_skill_files(quiet=True)
+            except Exception:
+                pass
+        # else: skill never installed — don't auto-install (user hasn't opted in)
+        return
+
+    # Skill exists — check version marker
+    version_marker = ASCLI_SKILL_TARGET / ".version"
+    try:
+        installed_version = version_marker.read_text().strip()
+    except (FileNotFoundError, OSError):
+        installed_version = ""
+
+    if installed_version == __version__:
+        return  # Already up to date
+
+    # Version mismatch — silently update
+    try:
+        from anyscribecli.cli.skill_cmd import copy_skill_files
+
+        copy_skill_files(quiet=True)
+    except Exception:
+        pass  # Never block CLI on skill update failure
 
 
 def _check_path_windows() -> None:
@@ -90,6 +145,7 @@ def main(
     ),
 ) -> None:
     """[bold]scribe[/bold] — download, transcribe, and convert video/audio to structured markdown."""
+    _auto_update_skill()
     _check_path_windows()
 
 
@@ -175,6 +231,36 @@ def doctor() -> None:
         console.print(f"  Repo path: {repo}")
     else:
         console.print("  Install type: pip package")
+
+    # Claude Code skill
+    from anyscribecli.config.paths import ASCLI_SKILL_TARGET
+
+    console.print("\n[bold]4. Claude Code Skill[/bold]\n")
+    if not ASCLI_SKILL_TARGET.exists():
+        console.print("  Skill: [yellow]Not installed[/yellow]")
+        console.print("  [dim]Run [bold]scribe install-skill[/bold] to install.[/dim]")
+    else:
+        version_marker = ASCLI_SKILL_TARGET / ".version"
+        try:
+            installed_version = version_marker.read_text().strip()
+        except (FileNotFoundError, OSError):
+            installed_version = "unknown"
+
+        if installed_version == __version__:
+            console.print(f"  Skill: [green]Installed (v{installed_version})[/green]")
+        elif installed_version == "unknown":
+            console.print("  Skill: [yellow]Installed (version unknown — pre-0.5.5)[/yellow]")
+            console.print(
+                "  [dim]Run [bold]scribe install-skill --force[/bold] to update.[/dim]"
+            )
+        else:
+            console.print(
+                f"  Skill: [yellow]Outdated (v{installed_version} → v{__version__})[/yellow]"
+            )
+            console.print(
+                "  [dim]Run [bold]scribe install-skill --force[/bold] to update.[/dim]"
+            )
+        console.print(f"  Path: {ASCLI_SKILL_TARGET}")
 
     # Updates
     console.print()
