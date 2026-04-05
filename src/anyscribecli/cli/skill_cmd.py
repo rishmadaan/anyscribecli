@@ -1,4 +1,4 @@
-"""Install the ascli Claude Code skill to ~/.claude/skills/ascli/."""
+"""Install the scribe Claude Code skill to ~/.claude/skills/scribe/."""
 
 from importlib.resources import as_file
 from pathlib import Path
@@ -16,7 +16,7 @@ console = Console()
 
 
 def copy_skill_files() -> Path:
-    """Copy bundled skill files to ~/.claude/skills/ascli/. Returns target path."""
+    """Copy bundled skill files to ~/.claude/skills/scribe/. Returns target path."""
     source = get_skill_source_dir()
 
     # Create target directories
@@ -39,7 +39,7 @@ def copy_skill_files() -> Path:
 def install_skill(
     force: bool = typer.Option(False, "--force", "-f", help="Overwrite existing skill files"),
 ) -> None:
-    """Install the ascli skill for Claude Code."""
+    """Install the scribe skill for Claude Code."""
     if not CLAUDE_HOME.exists():
         console.print("\n  [yellow]Claude Code not detected.[/yellow] ~/.claude/ does not exist.")
         console.print("  Install Claude Code first: https://docs.anthropic.com/en/docs/claude-code")
@@ -53,6 +53,6 @@ def install_skill(
     target = copy_skill_files()
     console.print(f"\n  [green]✓[/green] Skill installed to [cyan]{target}[/cyan]")
     console.print(
-        "  Claude Code can now use [bold]/ascli[/bold] or auto-activate "
+        "  Claude Code can now use [bold]/scribe[/bold] or auto-activate "
         "when you ask it to transcribe."
     )

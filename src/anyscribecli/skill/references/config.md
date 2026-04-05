@@ -34,7 +34,7 @@ instagram:
 
 **keep_media** — When true, saves downloaded audio to `~/.anyscribecli/downloads/audio/<platform>/`. A 10-min video at 64kbps mono is ~5 MB.
 
-**workspace_path** — Where transcripts are stored. Empty string (default) means `~/anyscribe/`. Set a custom path to use an existing Obsidian vault or preferred location. Check resolved path with `ascli config show`.
+**workspace_path** — Where transcripts are stored. Empty string (default) means `~/anyscribe/`. Set a custom path to use an existing Obsidian vault or preferred location. Check resolved path with `scribe config show`.
 
 **output_format** — `clean` outputs paragraphs only. `timestamped` adds `[mm:ss]` markers per segment.
 
@@ -75,7 +75,7 @@ ASCLI_LOCAL_MODEL=base                           # Optional: tiny|base|small|med
 
 **Organization:** Files grouped by platform. Slugs are lowercase, hyphenated, max 60 chars. Duplicate slugs get `-2`, `-3`, etc.
 
-**Downloads are separate:** Audio/video files live in `~/.anyscribecli/downloads/`, not in the workspace. The vault stays lightweight — pure markdown. Use `ascli config show` to see the resolved workspace path.
+**Downloads are separate:** Audio/video files live in `~/.anyscribecli/downloads/`, not in the workspace. The vault stays lightweight — pure markdown. Use `scribe config show` to see the resolved workspace path.
 
 ## Transcript File Format
 
@@ -115,7 +115,7 @@ The transcript text goes here...
 
 ## Viewing in Obsidian
 
-Open Obsidian → "Open folder as vault" → `~/anyscribe/` (or the custom workspace path from `ascli config show`).
+Open Obsidian → "Open folder as vault" → `~/anyscribe/` (or the custom workspace path from `scribe config show`).
 
 The default workspace is in the home directory — visible in Finder and file pickers without navigating to hidden folders.
 

@@ -1,33 +1,33 @@
 ---
-name: ascli
+name: scribe
 description: >
-  Use anyscribecli (ascli) to transcribe video/audio from YouTube, Instagram,
+  Use scribe (anyscribecli) to transcribe video/audio from YouTube, Instagram,
   or local files into markdown. Activate when the user wants to transcribe a URL
-  or file, download media, configure transcription providers, manage their ascli
-  setup, batch-process multiple URLs, or troubleshoot ascli issues.
-allowed-tools: Bash(ascli *), Read
+  or file, download media, configure transcription providers, manage their scribe
+  setup, batch-process multiple URLs, or troubleshoot scribe issues.
+allowed-tools: Bash(scribe *), Read
 ---
 
-# ascli — Transcription CLI Operator Guide
+# scribe — Transcription CLI Operator Guide
 
-You are an expert operator of `ascli` (anyscribecli), a CLI tool that transcribes video/audio into structured markdown files in an Obsidian vault.
+You are an expert operator of `scribe` (anyscribecli), a CLI tool that transcribes video/audio into structured markdown files in an Obsidian vault.
 
 ## Before Running Any Command
 
-**Pre-flight check** — on first use in a session, verify ascli is available:
+**Pre-flight check** — on first use in a session, verify scribe is available:
 
 ```bash
-ascli --version
+scribe --version
 ```
 
-If not installed: suggest `pip install anyscribecli`. If installed but not configured (no `~/.anyscribecli/config.yaml`): guide the user through `ascli onboard`.
+If not installed: suggest `pip install anyscribecli`. If installed but not configured (no `~/.anyscribecli/config.yaml`): guide the user through `scribe onboard`.
 
 ## Core Principle: Use --json for Machine Output
 
-When YOU run ascli commands, always use `--json --quiet` flags so you can parse structured output. Show the user a clean summary, not raw JSON.
+When YOU run scribe commands, always use `--json --quiet` flags so you can parse structured output. Show the user a clean summary, not raw JSON.
 
 ```bash
-ascli transcribe "URL" --json --quiet
+scribe "URL" --json --quiet
 ```
 
 Parse the JSON result and present it conversationally:
@@ -40,31 +40,31 @@ When the USER wants to run commands themselves, show them the human-readable for
 
 | User wants to... | Command |
 |---|---|
-| Transcribe a URL or local file | `ascli transcribe "url"` or `ascli transcribe /path/to/file` |
-| Transcribe multiple URLs | `ascli batch urls.txt` |
-| Download video/audio only | `ascli download "url"` or `ascli download "url" --audio-only` |
-| Change settings | `ascli config set <key> <value>` |
-| See current config | `ascli config show` |
-| Switch provider | `ascli config set provider <name>` |
-| Test a provider | `ascli providers test <name>` |
-| List providers | `ascli providers list` |
-| Initial setup or reconfigure | `ascli onboard` (or `--force` to re-run) |
-| Diagnose problems | `ascli doctor` |
-| Update ascli | `ascli update` |
-| Check for updates | `ascli update --check` |
+| Transcribe a URL or local file | `scribe "url"` or `scribe /path/to/file` |
+| Transcribe multiple URLs | `scribe batch urls.txt` |
+| Download video/audio only | `scribe download "url"` or `scribe download "url" --audio-only` |
+| Change settings | `scribe config set <key> <value>` |
+| See current config | `scribe config show` |
+| Switch provider | `scribe config set provider <name>` |
+| Test a provider | `scribe providers test <name>` |
+| List providers | `scribe providers list` |
+| Initial setup or reconfigure | `scribe onboard` (or `--force` to re-run) |
+| Diagnose problems | `scribe doctor` |
+| Update scribe | `scribe update` |
+| Check for updates | `scribe update --check` |
 
 For complete command syntax and all flags, read [references/commands.md](references/commands.md).
 
 ## URL Handling — Critical
 
-**Always wrap URLs in double quotes** when passing to ascli. Shells interpret `?` and `&` as special characters:
+**Always wrap URLs in double quotes** when passing to scribe. Shells interpret `?` and `&` as special characters:
 
 ```bash
 # Correct
-ascli transcribe "https://www.youtube.com/watch?v=abc123"
+scribe "https://www.youtube.com/watch?v=abc123"
 
 # Wrong — shell breaks the URL
-ascli transcribe https://www.youtube.com/watch?v=abc123
+scribe https://www.youtube.com/watch?v=abc123
 ```
 
 ## Supported Sources
@@ -95,37 +95,37 @@ After a successful transcription:
 1. Tell the user the file path
 2. Offer to read the transcript: `Read the file at the output path`
 3. Mention the word count and duration
-4. If they use Obsidian, remind them to check their workspace location with `ascli config show`
+4. If they use Obsidian, remind them to check their workspace location with `scribe config show`
 
 ## Batch Transcription
 
-For multiple URLs, create a temporary file and use `ascli batch`:
+For multiple URLs, create a temporary file and use `scribe batch`:
 
 ```bash
 # Write URLs to a temp file (one per line)
-cat > /tmp/ascli-urls.txt << 'EOF'
+cat > /tmp/scribe-urls.txt << 'EOF'
 https://youtube.com/watch?v=abc123
 https://youtube.com/watch?v=def456
 EOF
 
-ascli batch /tmp/ascli-urls.txt --json --quiet
+scribe batch /tmp/scribe-urls.txt --json --quiet
 ```
 
 ## Troubleshooting
 
 When something goes wrong:
 
-1. **First:** Run `ascli doctor` to get system diagnostics
+1. **First:** Run `scribe doctor` to get system diagnostics
 2. **Check** the error message — most are self-explanatory
 3. **Common fixes:** Read [references/troubleshooting.md](references/troubleshooting.md)
 
 ## Safety Rules
 
 1. **Never read or display `~/.anyscribecli/.env`** — it contains API keys and passwords
-2. **Use `ascli config show`** to display settings (it masks sensitive values)
+2. **Use `scribe config show`** to display settings (it masks sensitive values)
 3. **Never hardcode API keys** in commands or output
-4. **Don't run `ascli onboard`** without telling the user first — it's interactive and takes control of the terminal
-5. **Warn before `ascli update`** — it modifies the installed package
+4. **Don't run `scribe onboard`** without telling the user first — it's interactive and takes control of the terminal
+5. **Warn before `scribe update`** — it modifies the installed package
 
 ## Configuration
 
@@ -133,12 +133,12 @@ App config lives at `~/.anyscribecli/`. Transcripts default to `~/anyscribe/` (c
 
 Quick config changes:
 ```bash
-ascli config set provider elevenlabs    # Switch provider
-ascli config set language hi            # Set default language
-ascli config set keep_media true        # Keep audio files
+scribe config set provider elevenlabs    # Switch provider
+scribe config set language hi            # Set default language
+scribe config set keep_media true        # Keep audio files
 ```
 
-## What ascli Outputs
+## What scribe Outputs
 
 Each transcription creates a markdown file with YAML frontmatter (title, source URL, duration, language, word count, reading time, tags) followed by the transcript text. Files are organized by source platform and date:
 

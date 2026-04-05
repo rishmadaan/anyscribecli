@@ -39,7 +39,7 @@ def get_workspace_dir() -> Path:
 # Claude Code skill installation
 CLAUDE_HOME = Path.home() / ".claude"
 CLAUDE_SKILLS_DIR = CLAUDE_HOME / "skills"
-ASCLI_SKILL_TARGET = CLAUDE_SKILLS_DIR / "ascli"
+ASCLI_SKILL_TARGET = CLAUDE_SKILLS_DIR / "scribe"
 
 
 def get_skill_source_dir():

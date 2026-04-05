@@ -1,6 +1,6 @@
 # Transcription Providers
 
-ascli supports 5 providers. Each has different strengths.
+scribe supports 5 providers. Each has different strengths.
 
 ## Quick Comparison
 
@@ -45,7 +45,7 @@ Specialized for Indian languages. Dramatically better than Whisper for Hindi, Ta
 - **Model:** saaras:v2
 - **Cost:** ~$0.35/hr; free tier ~$12 in credits
 - **Supported:** Hindi, Tamil, Telugu, Kannada, Malayalam, Bengali, Gujarati, Marathi, Punjabi, Odia, Assamese, Urdu, Sanskrit, and more
-- **Chunking:** REST API limited to 30 seconds — ascli auto-chunks into 30-sec segments
+- **Chunking:** REST API limited to 30 seconds — scribe auto-chunks into 30-sec segments
 - **Get key:** https://dashboard.sarvam.ai
 
 **When to recommend:** Any content in Indian languages. Handles code-mixed audio (e.g., Hindi-English) well. Not suited for non-Indian languages.
@@ -88,17 +88,17 @@ Runs entirely on-device. No API key, no internet, no cost.
 
 **Change default:**
 ```bash
-ascli config set provider elevenlabs
+scribe config set provider elevenlabs
 ```
 
 **Override for one transcription:**
 ```bash
-ascli transcribe "url" --provider local
+scribe transcribe "url" --provider local
 ```
 
 **Add/update API keys:**
 ```bash
-ascli onboard --force    # Interactive — re-enter keys
+scribe onboard --force    # Interactive — re-enter keys
 ```
 
 Or edit `~/.anyscribecli/.env` directly (never display this file to the user).

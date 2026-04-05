@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A Python CLI tool (`ascli`) that downloads video/audio from YouTube/Instagram, transcribes it via API, and outputs structured markdown into an Obsidian vault at `~/anyscribe/` (configurable via `workspace_path` in config).
+A Python CLI tool (`scribe`) that downloads video/audio from YouTube/Instagram, transcribes it via API, and outputs structured markdown into an Obsidian vault at `~/anyscribe/` (configurable via `workspace_path` in config). The PyPI package is `anyscribecli`; the CLI command is `scribe` (with `ascli` as a backward-compatible alias).
 
 ## Architecture
 
@@ -17,6 +17,19 @@ src/anyscribecli/
 ```
 
 Flow: `CLI command -> orchestrator -> downloader + provider -> vault writer -> index update`
+
+## Claude Code Skill — Primary Usage Path
+
+The Claude Code skill (`src/anyscribecli/skill/`) is the **primary way users interact with anyscribe**. Most users invoke scribe through Claude Code rather than typing CLI commands directly. This means:
+
+- **The skill files are first-class artifacts**, not an afterthought. Treat them with the same rigor as the CLI source code.
+- **Keep the skill in sync with every CLI change.** If you add/change a command, flag, provider, or behavior, update the corresponding skill files in the same commit:
+  - `skill/SKILL.md` — operator guide (command table, safety rules, decision tree)
+  - `skill/references/commands.md` — full command reference with examples
+  - `skill/references/providers.md` — provider comparison and switching
+  - `skill/references/config.md` — configuration and workspace details
+  - `skill/references/troubleshooting.md` — common errors and fixes
+- **Stale skill docs = broken product.** If Claude Code gives users outdated commands or wrong flags because the skill wasn't updated, that's a bug — same severity as a broken CLI command.
 
 ## Key Patterns
 

@@ -1,14 +1,15 @@
-# ascli Command Reference
+# scribe Command Reference
 
-## ascli transcribe
+## scribe (default: transcribe)
 
-Transcribe a URL or local audio/video file to markdown.
+Transcribe a URL or local audio/video file to markdown. A bare URL routes to transcribe automatically — no subcommand needed.
 
 ```bash
-ascli transcribe "<url>"              # YouTube/Instagram URL (always quote)
-ascli transcribe /path/to/file.mp3    # Local audio/video file
-ascli transcribe                      # Interactive prompt (no quoting needed)
-ascli transcribe --clipboard          # Read URL from clipboard
+scribe "<url>"                         # YouTube/Instagram URL (always quote)
+scribe /path/to/file.mp3              # Local audio/video file
+scribe transcribe                     # Interactive prompt (no quoting needed)
+scribe --clipboard                    # Read URL from clipboard
+scribe transcribe "<url>"             # Explicit subcommand (also works)
 ```
 
 ### Flags
@@ -52,43 +53,43 @@ On error:
 ### Examples
 
 ```bash
-# YouTube video
-ascli transcribe "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+# YouTube video (bare URL — transcribes directly)
+scribe "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
 
 # YouTube short
-ascli transcribe "https://www.youtube.com/shorts/abc123"
+scribe "https://www.youtube.com/shorts/abc123"
 
 # Instagram reel
-ascli transcribe "https://www.instagram.com/reel/C17LiBLyIOe/"
+scribe "https://www.instagram.com/reel/C17LiBLyIOe/"
 
 # Local file
-ascli transcribe /path/to/podcast.mp3
-ascli transcribe ~/recordings/meeting.m4a
+scribe /path/to/podcast.mp3
+scribe ~/recordings/meeting.m4a
 
 # Override provider for one transcription
-ascli transcribe "https://youtube.com/watch?v=abc123" --provider elevenlabs
+scribe "https://youtube.com/watch?v=abc123" --provider elevenlabs
 
 # Force language detection
-ascli transcribe "https://youtube.com/watch?v=abc123" --language hi
+scribe "https://youtube.com/watch?v=abc123" --language hi
 
 # Machine-readable output for scripting
-ascli transcribe "https://youtube.com/watch?v=abc123" --json --quiet
+scribe "https://youtube.com/watch?v=abc123" --json --quiet
 
 # From clipboard
-ascli transcribe --clipboard
+scribe --clipboard
 ```
 
 ---
 
-## ascli download
+## scribe download
 
 Download video or audio without transcribing.
 
 ```bash
-ascli download "<url>"                 # Download video
-ascli download "<url>" --audio-only    # Download audio only
-ascli download                         # Interactive prompt
-ascli download --clipboard             # From clipboard
+scribe download "<url>"                 # Download video
+scribe download "<url>" --audio-only    # Download audio only
+scribe download                         # Interactive prompt
+scribe download --clipboard             # From clipboard
 ```
 
 ### Flags
@@ -107,12 +108,12 @@ ascli download --clipboard             # From clipboard
 
 ---
 
-## ascli batch
+## scribe batch
 
 Transcribe multiple URLs or files from a list.
 
 ```bash
-ascli batch urls.txt
+scribe batch urls.txt
 ```
 
 ### Input file format
@@ -153,15 +154,15 @@ https://youtube.com/watch?v=def456
 
 ---
 
-## ascli config
+## scribe config
 
 View and change settings.
 
 ```bash
-ascli config show                      # Display all settings
-ascli config show --json               # Output as JSON
-ascli config set <key> <value>         # Change a setting
-ascli config path                      # Print config file location
+scribe config show                      # Display all settings
+scribe config show --json               # Output as JSON
+scribe config set <key> <value>         # Change a setting
+scribe config path                      # Print config file location
 ```
 
 ### Settable keys
@@ -177,76 +178,76 @@ ascli config path                      # Print config file location
 | `instagram.username` | string | Instagram username |
 | `instagram.password` | string | Instagram password |
 
-Use dot-notation for nested keys: `ascli config set instagram.username myuser`
+Use dot-notation for nested keys: `scribe config set instagram.username myuser`
 
 ---
 
-## ascli providers
+## scribe providers
 
 Manage transcription providers.
 
 ```bash
-ascli providers list                   # Show available providers
-ascli providers list --json            # Output as JSON
-ascli providers test                   # Test active provider
-ascli providers test <name>            # Test a specific provider
+scribe providers list                   # Show available providers
+scribe providers list --json            # Output as JSON
+scribe providers test                   # Test active provider
+scribe providers test <name>            # Test a specific provider
 ```
 
 ---
 
-## ascli onboard
+## scribe onboard
 
 Interactive setup wizard. Configures providers, API keys, preferences.
 
 ```bash
-ascli onboard                          # First-time setup
-ascli onboard --force                  # Re-run everything
-ascli onboard --skip-deps              # Skip dependency check
-ascli onboard --force --skip-deps      # Reconfigure, skip deps
+scribe onboard                          # First-time setup
+scribe onboard --force                  # Re-run everything
+scribe onboard --skip-deps              # Skip dependency check
+scribe onboard --force --skip-deps      # Reconfigure, skip deps
 ```
 
 **Note:** This is interactive — it takes over the terminal with arrow-key selectors. Don't run it programmatically.
 
 ---
 
-## ascli doctor
+## scribe doctor
 
 Run diagnostic checks. Reports on dependencies, config, installation, and updates.
 
 ```bash
-ascli doctor
+scribe doctor
 ```
 
 Output includes everything needed for debugging. Suggest this when users report issues.
 
 ---
 
-## ascli update
+## scribe update
 
-Update ascli to the latest version.
+Update scribe to the latest version.
 
 ```bash
-ascli update                           # Update to latest
-ascli update --check                   # Check without installing
-ascli update --force                   # Force update (stashes local changes)
+scribe update                           # Update to latest
+scribe update --check                   # Check without installing
+scribe update --force                   # Force update (stashes local changes)
 ```
 
 ---
 
-## ascli --version
+## scribe --version
 
 ```bash
-ascli --version
-# Output: ascli v0.4.0
+scribe --version
+# Output: scribe v0.5.5
 ```
 
 ---
 
-## ascli --help
+## scribe --help
 
 ```bash
-ascli --help                           # All commands
-ascli transcribe --help                # Command-specific help
+scribe --help                           # All commands
+scribe transcribe --help                # Command-specific help
 ```
 
 ---
@@ -254,7 +255,7 @@ ascli transcribe --help                # Command-specific help
 ## Shell Completion
 
 ```bash
-ascli --install-completion             # Install tab completion for your shell
+scribe --install-completion             # Install tab completion for your shell
 ```
 
 Restart your shell after installing.
