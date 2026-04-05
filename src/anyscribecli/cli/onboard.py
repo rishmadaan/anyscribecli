@@ -11,7 +11,6 @@ from rich.panel import Panel
 
 from anyscribecli.config.paths import (
     APP_HOME,
-    ASCLI_SKILL_TARGET,
     CLAUDE_HOME,
     CONFIG_FILE,
     DEFAULT_WORKSPACE,
@@ -454,26 +453,16 @@ def onboard(
     # Create vault
     workspace = create_vault()
 
-    # Step 12: Claude Code skill installation
+    # Step 12: Claude Code skill (auto-installed — AI-first app)
     skill_status = ""
     if CLAUDE_HOME.exists():
-        if not ASCLI_SKILL_TARGET.exists():
-            console.print("\n  [bold]Claude Code detected![/bold]")
-            console.print(
-                "  scribe includes a skill that teaches Claude Code how to\n"
-                "  transcribe, configure providers, and troubleshoot for you."
-            )
-            if bconfirm("  Install scribe skill for Claude Code?"):
-                from anyscribecli.cli.skill_cmd import copy_skill_files
+        from anyscribecli.cli.skill_cmd import copy_skill_files
 
-                copy_skill_files()
-                skill_status = "installed"
-                console.print("  [green]✓[/green] Skill installed to ~/.claude/skills/scribe/")
-            else:
-                skill_status = "skipped"
-        else:
-            skill_status = "installed"
-            console.print("\n  [bold]Claude Code skill:[/bold] [green]installed[/green]")
+        copy_skill_files(quiet=True)
+        skill_status = "installed"
+        console.print(
+            "\n  [green]✓[/green] Claude Code skill installed to ~/.claude/skills/scribe/"
+        )
 
     # Summary
     configured_keys = ", ".join(env_keys.keys()) if env_keys else "none"

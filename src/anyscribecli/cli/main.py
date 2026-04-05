@@ -46,7 +46,10 @@ def version_callback(value: bool) -> None:
 
 
 def _auto_update_skill() -> None:
-    """Silently update the Claude Code skill if the version has changed.
+    """Silently install or update the Claude Code skill.
+
+    AI-first app: if Claude Code is present (~/.claude/ exists), the skill
+    is always installed and kept current. No opt-in required.
 
     Checks a .version marker file in the installed skill directory.
     If it doesn't match the current package version, re-copies all skill files.
@@ -56,28 +59,28 @@ def _auto_update_skill() -> None:
     """
     import shutil
 
-    from anyscribecli.config.paths import ASCLI_SKILL_TARGET, CLAUDE_SKILLS_DIR
+    from anyscribecli.config.paths import ASCLI_SKILL_TARGET, CLAUDE_HOME, CLAUDE_SKILLS_DIR
+
+    # No Claude Code → nothing to do
+    if not CLAUDE_HOME.exists():
+        return
 
     # Migrate old 'ascli' skill → 'scribe' (one-time, v0.5.4 → v0.5.5+)
     old_skill_dir = CLAUDE_SKILLS_DIR / "ascli"
-    had_old_skill = False
     if old_skill_dir.exists():
-        had_old_skill = True
         try:
             shutil.rmtree(old_skill_dir)
         except Exception:
             pass
 
     if not ASCLI_SKILL_TARGET.exists():
-        if had_old_skill:
-            # Old skill was removed — install at new path to complete migration
-            try:
-                from anyscribecli.cli.skill_cmd import copy_skill_files
+        # Claude Code present but skill not installed — auto-install
+        try:
+            from anyscribecli.cli.skill_cmd import copy_skill_files
 
-                copy_skill_files(quiet=True)
-            except Exception:
-                pass
-        # else: skill never installed — don't auto-install (user hasn't opted in)
+            copy_skill_files(quiet=True)
+        except Exception:
+            pass
         return
 
     # Skill exists — check version marker
