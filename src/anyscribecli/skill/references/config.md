@@ -39,7 +39,7 @@ instagram:
 
 **output_format** — `clean` outputs paragraphs only. `timestamped` adds `[mm:ss]` markers per segment. `diarized` groups consecutive speaker turns into blocks with timestamps.
 
-**diarize** — When true, enables speaker diarization (identifying who said what). Supported by OpenAI, Deepgram, and Sarvam providers. Can also be enabled per-run with `--diarize` flag.
+**diarize** — When true, enables speaker diarization (identifying who said what). Supported by OpenAI, Deepgram, and Sarvam providers. Can also be enabled per-run with `--diarize` flag. When diarization is active and no provider is explicitly specified, scribe auto-switches to Deepgram if configured.
 
 **prompt_download** — After each transcription: `never` (just transcribe), `ask` (prompt to download video/audio), `always` (auto-download video too).
 

@@ -110,7 +110,7 @@ scribe --clipboard
 | `--language` | `-l` | Language code for transcription | `auto` (auto-detect) |
 | `--json` | `-j` | Output result as JSON | Off |
 | `--keep-media` | | Keep the downloaded audio file | From config (false) |
-| `--diarize` | `-d` | Enable speaker diarization (multi-speaker transcripts) | Off |
+| `--diarize` | `-d` | Enable speaker diarization (auto-routes to Deepgram if configured) | Off |
 | `--quiet` | `-q` | No progress output (just the result) | Off |
 | `--clipboard` | `-c` | Read URL from system clipboard | Off |
 
@@ -140,10 +140,13 @@ scribe "https://youtube.com/watch?v=abc123" --language es
 # Keep the audio file alongside the transcript
 scribe "https://youtube.com/watch?v=abc123" --keep-media
 
-# Enable speaker diarization (multi-speaker transcripts)
+# Enable speaker diarization (auto-switches to Deepgram if configured)
 scribe "https://youtube.com/watch?v=abc123" --diarize
 
-# Diarize with Deepgram (best for Hindi Latin / Hinglish)
+# Diarize with a specific provider (overrides auto-routing)
+scribe "https://youtube.com/watch?v=abc123" --diarize --provider openai
+
+# Diarize Hinglish to Latin script
 scribe "https://youtube.com/watch?v=abc123" --diarize --provider deepgram --language hi-Latn
 
 # JSON output — for scripts, AI agents, or piping to other tools
@@ -300,6 +303,10 @@ scribe config set provider elevenlabs
 # Change language
 scribe config set language hi
 
+# Set an API key (stored in .env, not config.yaml)
+scribe config set deepgram_api_key YOUR_KEY
+scribe config set openai_api_key YOUR_KEY
+
 # Set Instagram credentials
 scribe config set instagram.username myuser
 scribe config set instagram.password mypass
@@ -309,6 +316,8 @@ scribe config show --json
 ```
 
 > **Dot-notation:** Use dots for nested keys like `instagram.username`.
+>
+> **API keys:** `scribe config set` also accepts API key names (e.g., `deepgram_api_key`, `openai_api_key`, `elevenlabs_api_key`, `sargam_api_key`, `openrouter_api_key`). These are stored in `~/.anyscribecli/.env`, not in config.yaml.
 
 ---
 

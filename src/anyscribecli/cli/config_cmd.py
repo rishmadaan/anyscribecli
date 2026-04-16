@@ -13,8 +13,17 @@ from rich.console import Console
 from rich.table import Table
 
 from anyscribecli.config.paths import CONFIG_FILE
-from anyscribecli.config.settings import load_config, save_config, load_env
+from anyscribecli.config.settings import load_config, save_config, load_env, save_env
 from anyscribecli.providers import list_providers, get_provider
+
+# API key names that should be stored in .env, not config.yaml
+_API_KEY_MAP = {
+    "openai_api_key": "OPENAI_API_KEY",
+    "openrouter_api_key": "OPENROUTER_API_KEY",
+    "elevenlabs_api_key": "ELEVENLABS_API_KEY",
+    "sargam_api_key": "SARGAM_API_KEY",
+    "deepgram_api_key": "DEEPGRAM_API_KEY",
+}
 
 console = Console()
 err_console = Console(stderr=True)
@@ -62,6 +71,14 @@ def config_set(
 
     Use dot-notation for nested keys: `scribe config set instagram.username myuser`
     """
+    # Handle API keys — store in .env, not config.yaml
+    key_lower = key.lower().replace("-", "_")
+    if key_lower in _API_KEY_MAP:
+        env_var = _API_KEY_MAP[key_lower]
+        save_env({env_var: value})
+        console.print(f"[green]Saved[/green] {env_var} to ~/.anyscribecli/.env")
+        return
+
     settings = load_config()
     data = settings.to_dict()
 

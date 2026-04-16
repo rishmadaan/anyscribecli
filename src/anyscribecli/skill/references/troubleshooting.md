@@ -40,7 +40,8 @@ The required API key is missing from `~/.anyscribecli/.env`.
 
 **Fix:**
 ```bash
-scribe onboard --force    # Re-run setup to enter keys
+scribe config set openai_api_key sk-proj-...    # Quick — set key directly
+scribe onboard --force                           # Or re-run setup wizard
 ```
 
 ### "yt-dlp download failed: Video unavailable"

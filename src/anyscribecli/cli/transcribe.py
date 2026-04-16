@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
 from typing import Optional
 
@@ -82,6 +83,16 @@ def transcribe(
         settings.diarize = True
         if settings.output_format == "clean":
             settings.output_format = "diarized"
+        # Auto-switch to Deepgram for diarization — it handles large files
+        # natively and produces consistent speaker labels without chunking.
+        # Only if user didn't explicitly pick a provider.
+        if not provider and settings.provider != "deepgram":
+            if os.environ.get("DEEPGRAM_API_KEY"):
+                if not quiet:
+                    err_console.print(
+                        f"  [dim]Switching from {settings.provider} → deepgram for diarization[/dim]"
+                    )
+                settings.provider = "deepgram"
 
     try:
         result = process(url, settings, quiet=quiet)

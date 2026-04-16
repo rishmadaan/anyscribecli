@@ -100,6 +100,8 @@ Whether to enable speaker diarization (identifying who said what) by default. De
 
 When enabled, providers that support diarization (OpenAI, Deepgram, Sarvam) will label each speaker in the transcript. You can also enable per-transcription with `--diarize` without changing this default.
 
+> **Auto-routing:** When `--diarize` is used (or this is set to `true`) without an explicit `--provider`, scribe automatically switches to Deepgram if a Deepgram API key is configured. Deepgram handles large files natively and produces the most consistent speaker labels. Override with `--provider openai` if needed.
+
 > **When to enable:** If you primarily transcribe meetings, interviews, or podcasts with multiple speakers. Leave off for single-speaker content like YouTube videos.
 
 #### prompt_download
@@ -145,7 +147,19 @@ INSTAGRAM_PASSWORD=your-password
 
 ### Changing your API key
 
-The easiest way is to re-run onboarding:
+The easiest way is to use `scribe config set`:
+
+```bash
+scribe config set openai_api_key sk-proj-...
+scribe config set deepgram_api_key YOUR_KEY
+scribe config set elevenlabs_api_key xi-...
+scribe config set sargam_api_key YOUR_KEY
+scribe config set openrouter_api_key sk-or-...
+```
+
+These are stored in `~/.anyscribecli/.env` automatically.
+
+Or re-run onboarding:
 
 ```bash
 scribe onboard --force

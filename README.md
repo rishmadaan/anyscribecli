@@ -196,8 +196,8 @@ The onboarding wizard checks for these and offers to install them:
 
 | Provider | Best for | API key |
 |----------|----------|---------|
-| **OpenAI Whisper** (default) | General purpose, multilingual, diarization | `OPENAI_API_KEY` |
-| **Deepgram Nova** | Fast diarization, Hinglish (hi-Latn) | `DEEPGRAM_API_KEY` |
+| **OpenAI Whisper** (default) | General purpose, multilingual | `OPENAI_API_KEY` |
+| **Deepgram Nova** | Diarization (auto-selected with `--diarize`), Hinglish | `DEEPGRAM_API_KEY` |
 | **ElevenLabs Scribe** | High accuracy, 99 languages, word timestamps | `ELEVENLABS_API_KEY` |
 | **Sarvam AI** | Indic languages (Hindi, Tamil, Telugu, etc.) | `SARGAM_API_KEY` |
 | **OpenRouter** | Access to various AI models | `OPENROUTER_API_KEY` |
@@ -219,7 +219,14 @@ local_file_media: skip     # skip | copy | move | ask — what to do with local 
 workspace_path: ""         # empty = ~/anyscribe (default), or set a custom path
 ```
 
-API keys and passwords live in `~/.anyscribecli/.env` (separate from config, never committed).
+API keys and passwords live in `~/.anyscribecli/.env` (separate from config, never committed). You can set API keys directly:
+
+```bash
+ascli config set deepgram_api_key YOUR_KEY
+ascli config set openai_api_key YOUR_KEY
+```
+
+> **Diarization auto-routing:** When you use `--diarize` without specifying a provider, scribe automatically switches to Deepgram (if configured) for best speaker detection. Override with `-p openai` if needed.
 
 See [Configuration Guide](docs/user/configuration.md) for all options.
 

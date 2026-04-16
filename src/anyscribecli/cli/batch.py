@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -59,6 +60,13 @@ def batch(
         settings.diarize = True
         if settings.output_format == "clean":
             settings.output_format = "diarized"
+        if not provider and settings.provider != "deepgram":
+            if os.environ.get("DEEPGRAM_API_KEY"):
+                if not quiet:
+                    err_console.print(
+                        f"  [dim]Switching from {settings.provider} → deepgram for diarization[/dim]"
+                    )
+                settings.provider = "deepgram"
 
     results: list[dict] = []
     succeeded = 0

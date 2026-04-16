@@ -110,7 +110,10 @@ scribe transcribe "url" --provider local
 
 **Add/update API keys:**
 ```bash
-scribe onboard --force    # Interactive — re-enter keys
+scribe config set deepgram_api_key YOUR_KEY     # Quick — stored in .env
+scribe onboard --force                           # Interactive — re-enter keys
 ```
 
 Or edit `~/.anyscribecli/.env` directly (never display this file to the user).
+
+**Diarization auto-routing:** When `--diarize` is used without `-p`, scribe auto-switches to Deepgram if configured. Deepgram handles large files natively with consistent speaker labels.

@@ -20,7 +20,7 @@ scribe transcribe "<url>"             # Explicit subcommand (also works)
 | `--language` | `-l` | Language code (en, es, fr, hi, hi-Latn, etc.) or "auto" | From config (auto) |
 | `--json` | `-j` | Output result as JSON | Off |
 | `--keep-media` | | Keep downloaded audio in `~/.anyscribecli/downloads/audio/` | From config |
-| `--diarize` | `-d` | Enable speaker diarization (multi-speaker transcripts) | Off |
+| `--diarize` | `-d` | Enable speaker diarization (auto-routes to Deepgram if configured) | Off |
 | `--quiet` | `-q` | Suppress progress output | Off |
 | `--clipboard` | `-c` | Read URL from system clipboard | Off |
 
@@ -170,16 +170,26 @@ scribe config path                      # Print config file location
 
 | Key | Values | Description |
 |-----|--------|-------------|
-| `provider` | openai, elevenlabs, sargam, openrouter, local | Default transcription provider |
+| `provider` | openai, deepgram, elevenlabs, sargam, openrouter, local | Default transcription provider |
 | `language` | auto, en, es, fr, hi, ar, zh, ja, ko, ... | Default language |
 | `keep_media` | true, false | Keep audio after transcription |
-| `output_format` | clean, timestamped | Transcript format |
+| `output_format` | clean, timestamped, diarized | Transcript format |
 | `prompt_download` | never, ask, always | Download video after transcription |
 | `local_file_media` | skip, copy, move, ask | Handle local file originals |
 | `instagram.username` | string | Instagram username |
 | `instagram.password` | string | Instagram password |
+| `openai_api_key` | string | OpenAI API key (stored in .env) |
+| `deepgram_api_key` | string | Deepgram API key (stored in .env) |
+| `elevenlabs_api_key` | string | ElevenLabs API key (stored in .env) |
+| `sargam_api_key` | string | Sarvam AI API key (stored in .env) |
+| `openrouter_api_key` | string | OpenRouter API key (stored in .env) |
 
 Use dot-notation for nested keys: `scribe config set instagram.username myuser`
+
+API key names are also accepted — they are stored in `~/.anyscribecli/.env`, not config.yaml:
+```bash
+scribe config set deepgram_api_key YOUR_KEY
+```
 
 ---
 

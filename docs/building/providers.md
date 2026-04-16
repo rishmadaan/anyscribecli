@@ -1,6 +1,6 @@
 # Providers
 
-**Last updated:** 2026-04-16 (v0.7.0)
+**Last updated:** 2026-04-16 (v0.7.2)
 
 ## Available Providers
 
@@ -19,8 +19,9 @@
 - Uses `whisper-1` model (default) or `gpt-4o-transcribe-diarize` when `diarize=True`
 - `verbose_json` response format, segment-level timestamps
 - 25MB file limit — auto-chunked into 18-min segments (standard mode)
-- Diarize mode: server-side chunking via `chunking_strategy=auto`, bypasses client-side chunking
+- Diarize mode: `gpt-4o-transcribe-diarize` model, 25MB upload limit applies (same as standard)
 - Diarize response includes `speaker` field per segment
+- **Note (v0.7.2):** `--diarize` auto-routes to Deepgram when no explicit `-p` is given and Deepgram key is configured. OpenAI diarize has a 25MB limit with no client-side chunking support for diarization — Deepgram handles large files natively.
 
 ### Deepgram (`providers/deepgram.py`)
 - Uses `nova-3` model with `smart_format=true`

@@ -170,6 +170,7 @@ tags: [transcript, youtube]
 - **Transcribe more** — `scribe "url"` with any YouTube or Instagram link, or `scribe /path/to/file.mp3` for local files
 - **Download video** — `scribe download "url"` to save video without transcribing
 - **Batch process** — `scribe batch urls.txt` to transcribe a list of URLs
+- **Add a provider key** — `scribe config set deepgram_api_key YOUR_KEY`
 - **Switch providers** — `scribe config set provider elevenlabs`
 - **Try JSON output** — `scribe "url" --json` for scripting
 - **Check health** — `scribe doctor` verifies everything is working
@@ -200,7 +201,7 @@ To make the `scribe` shortcut work, add your Python Scripts directory to PATH:
   Then restart your terminal.
 
 **"OPENAI_API_KEY not set"**
-Run `scribe onboard --force` to re-enter your API key, or edit `~/.anyscribecli/.env` directly.
+Set the key directly: `scribe config set openai_api_key YOUR_KEY`. Or run `scribe onboard --force` to re-enter it interactively.
 
 **"No matches found" when pasting a URL**
 Your shell is interpreting `?` as a special character. Wrap the URL in quotes:

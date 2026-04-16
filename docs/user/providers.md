@@ -15,7 +15,7 @@ scribe supports 6 transcription providers. Here's how they compare and when to u
 
 | | OpenAI Whisper | Deepgram Nova | ElevenLabs Scribe | Sarvam AI | OpenRouter | Local |
 |---|---|---|---|---|---|---|
-| **Best for** | General purpose | Diarization + Hinglish | High accuracy | Indian languages | Model flexibility | Offline / free |
+| **Best for** | General purpose | Diarization (auto-selected) + Hinglish | High accuracy | Indian languages | Model flexibility | Offline / free |
 | **Languages** | 99 | 36+ | 99 | 22 Indian + English | Model-dependent | 99 |
 | **Timestamps** | Segment-level | Word-level | Word-level | No (REST API) | No | Segment-level |
 | **Diarization** | Yes (`--diarize`) | Yes (`--diarize`) | No (via scribe) | Yes (`--diarize`) | No | No |
@@ -157,26 +157,38 @@ scribe "<url>" --provider local
 
 ## Adding API Keys
 
-The onboarding wizard (`scribe onboard`) asks for API keys. To add more later:
-
-Edit `~/.anyscribecli/.env` directly:
+The quickest way to add an API key:
 
 ```bash
-OPENAI_API_KEY=sk-...
-DEEPGRAM_API_KEY=...
-ELEVENLABS_API_KEY=xi-...
-OPENROUTER_API_KEY=sk-or-...
-SARGAM_API_KEY=...
+scribe config set deepgram_api_key YOUR_KEY
+scribe config set openai_api_key sk-proj-...
+scribe config set elevenlabs_api_key xi-...
+scribe config set openrouter_api_key sk-or-...
+scribe config set sargam_api_key YOUR_KEY
 ```
 
-Or re-run onboarding:
+These are stored in `~/.anyscribecli/.env` automatically.
+
+Or use the onboarding wizard:
 
 ```bash
 scribe onboard --force
 ```
 
+Or edit `~/.anyscribecli/.env` directly.
+
 Test that a provider works:
 
 ```bash
 scribe providers test elevenlabs
+```
+
+## Diarization Auto-Routing
+
+When you use `--diarize` without specifying a provider (`-p`), scribe automatically switches to **Deepgram** if a Deepgram API key is configured. This is because Deepgram handles large files natively (no chunking needed) and produces the most consistent speaker labels across long recordings.
+
+To override and use a specific provider for diarization:
+
+```bash
+scribe "url" --diarize --provider openai
 ```
