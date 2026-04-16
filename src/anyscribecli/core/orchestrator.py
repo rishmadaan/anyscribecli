@@ -67,15 +67,18 @@ def process(url: str, settings: Settings, quiet: bool = False) -> ProcessResult:
     tmp_dir = Path(tempfile.mkdtemp(dir=TMP_DIR))
 
     try:
-        # Step 1: Download
+        # Step 1: Download / prepare
+        is_local = not url.startswith("http://") and not url.startswith("https://")
         if not quiet:
-            err_console.print("[bold blue]Downloading audio...[/bold blue]")
+            label = "Preparing audio" if is_local else "Downloading audio"
+            err_console.print(f"[bold blue]{label}...[/bold blue]")
 
         downloader = get_downloader(url)
         download = downloader.download(url, tmp_dir)
 
         if not quiet:
-            err_console.print(f"  [green]Downloaded:[/green] {download.title}")
+            status = "Ready" if is_local else "Downloaded"
+            err_console.print(f"  [green]{status}:[/green] {download.title}")
 
         # Step 2: Transcribe
         if not quiet:
