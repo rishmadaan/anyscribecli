@@ -2,6 +2,7 @@
 
 | Date | Type | Entry | TL;DR |
 |------|------|-------|-------|
+| 2026-04-16 | plan | [[web-ui-spec.md\|Web UI Frontend Spec]] | Architecture decision (local web UI → Tauri → Swift), full frontend spec: React+Vite SPA, 4 screens, API contract, WebSocket protocol, color system, responsive layout. |
 | 2026-04-16 | project-note | [[journal/2026-04-16-v0723-deepgram-hi-latn-nova-fallback.md\|v0.7.2.2–v0.7.2.3 Deepgram hi-Latn Nova Fallback]] | Deepgram Nova 3 doesn't support hi-Latn — falls back to Nova model. Misleading API error. Skill defaults Hindi + speakers to `--diarize --language hi-Latn`. |
 | 2026-04-16 | project-note | [[journal/2026-04-16-v072-config-set-keys-diarize-routing.md\|v0.7.2 API Key Config + Diarize Routing]] | `scribe config set` handles API keys (routes to .env). `--diarize` auto-switches to Deepgram when configured. Fixes OpenAI 25MB diarize limit for large files. |
 | 2026-04-16 | project-note | [[journal/2026-04-16-v070-diarization-deepgram.md\|v0.7.0 Diarization + Deepgram]] | Added multi-speaker diarization with `--diarize` flag. New Deepgram Nova provider with native diarization + hi-Latn. Upgraded OpenAI (gpt-4o-transcribe-diarize) and Sarvam. New "diarized" output format with speaker-grouped turns. |
