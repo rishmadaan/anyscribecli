@@ -31,11 +31,11 @@ Default provider. Reliable, well-documented, good across most languages. Support
 
 Fast, accurate transcription with native speaker diarization and Hindi Latin script support.
 
-- **Model:** nova-3
+- **Model:** nova-3 (auto-falls back to nova for hi-Latn, which isn't supported on nova-3 yet)
 - **Cost:** ~$0.005/min ($0.30/hr). $200 free credit on signup, no credit card needed.
 - **No file size limit** — processes files of any length in a single request
 - **Diarization:** Native — automatically detects the number of speakers from audio. No need to specify a speaker count.
-- **Hindi Latin:** Use `--language hi-Latn` for romanized Hindi (Hinglish) output
+- **Hindi Latin:** Use `--language hi-Latn` for romanized Hindi (Hinglish) output — this is the recommended default for any Hindi multi-speaker content
 - **Get key:** https://console.deepgram.com/
 - **Quick setup:** `scribe config set deepgram_api_key YOUR_KEY`
 

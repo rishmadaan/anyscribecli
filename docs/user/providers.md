@@ -54,7 +54,7 @@ scribe config set deepgram_api_key YOUR_KEY    # $200 free credit on signup
 - **API key env var:** `DEEPGRAM_API_KEY`
 - **Get a key:** [console.deepgram.com](https://console.deepgram.com/) — $200 free credit, no credit card required
 - **Cost:** ~$0.30/hour
-- **Model:** `nova-3`
+- **Model:** `nova-3` (auto-falls back to `nova` for `hi-Latn`, which isn't supported on nova-3 yet)
 - **No file size limit** — processes files of any length in a single request (unlike OpenAI's 25MB limit)
 - **Diarization:** Native — automatically detects the number of speakers from audio characteristics. No need to specify a speaker count.
 - **Hindi Latin:** Set `--language hi-Latn` for romanized Hindi / Hinglish output

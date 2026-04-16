@@ -1,6 +1,6 @@
 # Providers
 
-**Last updated:** 2026-04-16 (v0.7.2)
+**Last updated:** 2026-04-16 (v0.7.2.3)
 
 ## Available Providers
 
@@ -24,7 +24,7 @@
 - **Note (v0.7.2):** `--diarize` auto-routes to Deepgram when no explicit `-p` is given and Deepgram key is configured. OpenAI diarize has a 25MB limit with no client-side chunking support for diarization — Deepgram handles large files natively.
 
 ### Deepgram (`providers/deepgram.py`)
-- Uses `nova-3` model with `smart_format=true`
+- Uses `nova-3` model with `smart_format=true` (auto-falls back to `nova` for `hi-Latn` — nova-3 doesn't support that language yet)
 - Raw audio POST to `https://api.deepgram.com/v1/listen`
 - `Token` auth header (not `Bearer`)
 - Native `diarize=true` query param — returns per-word speaker IDs

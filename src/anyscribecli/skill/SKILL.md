@@ -44,7 +44,7 @@ When the USER wants to run commands themselves, show them the human-readable for
 |---|---|
 | Transcribe a URL or local file | `scribe "url"` or `scribe /path/to/file` |
 | Transcribe with speaker diarization | `scribe "url" --diarize` (auto-routes to Deepgram if configured) |
-| Transcribe Hinglish to Latin script | `scribe "url" --diarize -p deepgram -l hi-Latn` |
+| Hindi / Hinglish with speakers | `scribe "url" --diarize --language hi-Latn` — **always use this combo for Hindi content with multiple speakers** |
 | Transcribe multiple URLs | `scribe batch urls.txt` |
 | Download video/audio only | `scribe download "url"` or `scribe download "url" --audio-only` |
 | Change settings | `scribe config set <key> <value>` |
@@ -87,7 +87,7 @@ When the user asks which provider to use, or when you need to suggest one:
 |---|---|---|
 | General purpose, most languages | **openai** | Best balance of cost, accuracy, language coverage |
 | Multi-speaker (meetings, interviews) | `--diarize` (auto-routes to **deepgram**) | Native diarization, auto-detects speaker count, no file size limit |
-| Hinglish / Hindi-English calls | `--diarize -l hi-Latn` | Romanized Hindi output, code-switching support (auto-routes to Deepgram) |
+| Hindi with speakers (meetings, calls) | `--diarize --language hi-Latn` | **Default for any Hindi/Hinglish multi-speaker content.** Romanized Latin script output, speaker labels, auto-routes to Deepgram Nova |
 | Mostly English + some Hindi | `--diarize` (no language flag needed) | Auto-detect handles English well, Hindi words transcribed phonetically |
 | Indian languages (Hindi, Tamil, Telugu...) | **sargam** | Specialized for 22 Indian languages, much better than Whisper |
 | Highest accuracy, word timestamps | **elevenlabs** | Word-level timestamps, 99 languages |
