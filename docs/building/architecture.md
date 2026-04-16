@@ -1,6 +1,6 @@
 # Architecture
 
-**Last updated:** 2026-04-05 (v0.6.0)
+**Last updated:** 2026-04-16 (v0.7.0)
 
 ## Overview
 
@@ -11,7 +11,7 @@ URL input -> Platform detection -> Download (yt-dlp / instaloader)
           -> Audio optimization (16kHz, mono, 64kbps mp3)
           -> Chunking if needed (18-min for Whisper, 30s for Sarvam)
           -> Transcription (pluggable provider)
-          -> Markdown generation (frontmatter + body, clean or timestamped)
+          -> Markdown generation (frontmatter + body, clean/timestamped/diarized)
           -> Vault indexing (_index.md + daily log)
 ```
 
@@ -53,20 +53,24 @@ URL input -> Platform detection -> Download (yt-dlp / instaloader)
 - Registry dispatches URL to correct downloader
 
 ### Provider Layer (`providers/`)
-- Abstract base with `transcribe(audio_path) -> TranscriptResult`
-- 5 providers implemented:
-  - **OpenAI** (default): Whisper API, verbose_json, segment timestamps
+- Abstract base with `transcribe(audio_path, language, diarize) -> TranscriptResult`
+- `TranscriptSegment` includes optional `speaker` field for diarization
+- 6 providers implemented:
+  - **OpenAI** (default): Whisper API or `gpt-4o-transcribe-diarize` with `--diarize`
+  - **Deepgram**: Nova-3, native diarization, `hi-Latn` support
   - **ElevenLabs**: Scribe v1, word-level timestamps, 99 languages
   - **OpenRouter**: Audio-via-chat (GPT-4o-audio-preview), no timestamps
-  - **Sargam/Sarvam**: Indic languages, auto-chunks to 30s REST API limit
+  - **Sargam/Sarvam**: Indic languages, auto-chunks to 30s REST API limit, diarization support
   - **Local**: faster-whisper, offline, CPU/GPU, no API key
 - Lazy-import registry — each provider only loaded when requested
 - Provider selected via config, overridable per-run with `--provider`
+- Diarization enabled per-run with `--diarize` flag or `diarize: true` in config
 
 ### Vault Layer (`vault/`)
 - Scaffold creates Obsidian vault with .obsidian/ config
 - Writer generates markdown with YAML frontmatter
-- Supports `clean` (default) and `timestamped` output formats
+- Supports `clean` (default), `timestamped`, and `diarized` output formats
+- Diarized format groups consecutive same-speaker segments into blocks: `**Speaker** *[ts]*: text`
 - Index maintains _index.md MOC and daily processing logs
 
 ### Core Layer (`core/`)

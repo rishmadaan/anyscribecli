@@ -9,19 +9,20 @@ read_when:
 
 # Providers
 
-scribe supports 5 transcription providers. Here's how they compare and when to use each.
+scribe supports 6 transcription providers. Here's how they compare and when to use each.
 
 ## Quick Comparison
 
-| | OpenAI Whisper | ElevenLabs Scribe | Sarvam AI | OpenRouter | Local |
-|---|---|---|---|---|---|
-| **Best for** | General purpose | High accuracy | Indian languages | Model flexibility | Offline / free |
-| **Languages** | 99 | 99 | 22 Indian + English | Model-dependent | 99 |
-| **Timestamps** | Segment-level | Word-level | No (REST API) | No | Segment-level |
-| **Pricing** | ~$0.36/hr | ~$0.22–0.40/hr | ~$0.35/hr | Varies by model | Free |
-| **File limit** | 25 MB (auto-chunked) | 25 MB (auto-chunked) | 30s (auto-chunked) | 25 MB (auto-chunked) | RAM only |
-| **Offline** | No | No | No | No | Yes |
-| **API key** | Required | Required | Required | Required | Not needed |
+| | OpenAI Whisper | Deepgram Nova | ElevenLabs Scribe | Sarvam AI | OpenRouter | Local |
+|---|---|---|---|---|---|---|
+| **Best for** | General purpose | Diarization + Hinglish | High accuracy | Indian languages | Model flexibility | Offline / free |
+| **Languages** | 99 | 36+ | 99 | 22 Indian + English | Model-dependent | 99 |
+| **Timestamps** | Segment-level | Word-level | Word-level | No (REST API) | No | Segment-level |
+| **Diarization** | Yes (`--diarize`) | Yes (`--diarize`) | No (via scribe) | Yes (`--diarize`) | No | No |
+| **Pricing** | ~$0.36/hr | ~$0.30/hr | ~$0.22–0.40/hr | ~$0.35/hr | Varies by model | Free |
+| **File limit** | 25 MB (auto-chunked) | No hard limit | 25 MB (auto-chunked) | 30s (auto-chunked) | 25 MB (auto-chunked) | RAM only |
+| **Offline** | No | No | No | No | No | Yes |
+| **API key** | Required | Required | Required | Required | Required | Not needed |
 
 ## Provider Details
 
@@ -37,9 +38,27 @@ scribe config set provider openai
 - **Get a key:** [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
 - **Cost:** ~$0.006 per minute ($0.36/hour)
 - **File limit:** 25 MB — scribe automatically chunks larger files into 18-minute segments
-- **Model:** `whisper-1`
+- **Model:** `whisper-1` (standard), `gpt-4o-transcribe-diarize` (with `--diarize`)
+- **Diarization:** Yes — use `--diarize` flag to enable speaker-labeled transcripts
 
-> **When to use:** Good default for most use cases. Best balance of cost, accuracy, and language coverage.
+> **When to use:** Good default for most use cases. Best balance of cost, accuracy, and language coverage. Use `--diarize` for meetings and multi-speaker content.
+
+### Deepgram Nova
+
+Fast, accurate speech-to-text with native speaker diarization and Hindi Latin script (`hi-Latn`) support. Excellent for Hinglish (Hindi-English code-switching) transcription.
+
+```bash
+scribe config set provider deepgram
+```
+
+- **API key env var:** `DEEPGRAM_API_KEY`
+- **Get a key:** [console.deepgram.com](https://console.deepgram.com/)
+- **Cost:** ~$0.30/hour ($200 free credit on signup)
+- **Model:** `nova-3`
+- **Diarization:** Native — use `--diarize` flag
+- **Hindi Latin:** Set `--language hi-Latn` for romanized Hindi output
+
+> **When to use:** Best choice for multi-speaker transcripts (meetings, interviews, podcasts). Excellent for Hinglish content with `--language hi-Latn`. Native diarization is faster and more accurate than post-processing approaches.
 
 ### ElevenLabs Scribe
 
@@ -144,6 +163,7 @@ Edit `~/.anyscribecli/.env` directly:
 
 ```bash
 OPENAI_API_KEY=sk-...
+DEEPGRAM_API_KEY=...
 ELEVENLABS_API_KEY=xi-...
 OPENROUTER_API_KEY=sk-or-...
 SARGAM_API_KEY=...

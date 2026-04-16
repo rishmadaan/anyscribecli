@@ -26,8 +26,10 @@ The `0.x` prefix means pre-stable — breaking changes are allowed between minor
 | 0.5.1 | Rename media/ to downloads/ for clarity | Released 2026-03-30 |
 | 0.5.2 | Flatten workspace structure — remove date folders, auto-migrate | Released 2026-03-30 |
 | 0.5.3 | Auto-update stale yt-dlp before download | Released 2026-03-31 |
-| 0.5.4 | Windows compatibility — cross-platform yt-dlp invocation | **Current** |
-| 0.6.0 | Cache/dedup, test suite, error handling | Next |
+| 0.5.4 | Windows compatibility — cross-platform yt-dlp invocation | Released 2026-04-01 |
+| 0.6.0 | scribe rename, MCP server, skill auto-install/update | Released 2026-04-05 |
+| 0.7.0 | Multi-speaker diarization, Deepgram provider, diarized output | **Current** |
+| 0.8.0 | Cache/dedup, test suite, error handling | Next |
 | 1.0.0 | Stable: full test coverage, CI/CD pipeline | Future |
 
 ### How to bump versions

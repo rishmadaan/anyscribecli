@@ -1,23 +1,35 @@
 # Providers
 
-**Last updated:** 2026-03-29 (v0.3.1)
+**Last updated:** 2026-04-16 (v0.7.0)
 
 ## Available Providers
 
-| Name | API | Status | Best For | Env Var |
-|------|-----|--------|----------|---------|
-| openai | Whisper API | Active (default) | General purpose, multilingual | `OPENAI_API_KEY` |
-| elevenlabs | ElevenLabs Scribe v1 | Active | High accuracy, word timestamps, 99 langs | `ELEVENLABS_API_KEY` |
-| openrouter | OpenRouter chat API | Active | Model flexibility (audio-via-chat) | `OPENROUTER_API_KEY` |
-| sargam | Sarvam AI REST API | Active | Indic languages (Hindi, Tamil, etc.) | `SARGAM_API_KEY` |
-| local | faster-whisper | Active | Offline, free, CPU/GPU | None |
+| Name | API | Status | Best For | Env Var | Diarization |
+|------|-----|--------|----------|---------|-------------|
+| openai | Whisper / gpt-4o-transcribe-diarize | Active (default) | General purpose, multilingual | `OPENAI_API_KEY` | Yes |
+| deepgram | Deepgram Nova-3 | Active | Diarization, Hinglish, hi-Latn | `DEEPGRAM_API_KEY` | Yes |
+| elevenlabs | ElevenLabs Scribe v1 | Active | High accuracy, word timestamps, 99 langs | `ELEVENLABS_API_KEY` | No |
+| openrouter | OpenRouter chat API | Active | Model flexibility (audio-via-chat) | `OPENROUTER_API_KEY` | No |
+| sargam | Sarvam AI REST API | Active | Indic languages (Hindi, Tamil, etc.) | `SARGAM_API_KEY` | Yes |
+| local | faster-whisper | Active | Offline, free, CPU/GPU | None | No |
 
 ## Provider-Specific Notes
 
 ### OpenAI (`providers/openai.py`)
-- Uses `whisper-1` model, `verbose_json` response format
-- Returns segment-level timestamps
-- 25MB file limit — auto-chunked into 18-min segments
+- Uses `whisper-1` model (default) or `gpt-4o-transcribe-diarize` when `diarize=True`
+- `verbose_json` response format, segment-level timestamps
+- 25MB file limit — auto-chunked into 18-min segments (standard mode)
+- Diarize mode: server-side chunking via `chunking_strategy=auto`, bypasses client-side chunking
+- Diarize response includes `speaker` field per segment
+
+### Deepgram (`providers/deepgram.py`)
+- Uses `nova-3` model with `smart_format=true`
+- Raw audio POST to `https://api.deepgram.com/v1/listen`
+- `Token` auth header (not `Bearer`)
+- Native `diarize=true` query param — returns per-word speaker IDs
+- Supports `hi-Latn` language code for romanized Hindi
+- Response parsed from word-level: consecutive words by same speaker grouped into segments
+- Without diarize: words grouped into ~30-word segments for timestamps
 
 ### ElevenLabs (`providers/elevenlabs.py`)
 - Uses `scribe_v1` model, `xi-api-key` auth header
@@ -37,6 +49,8 @@
 - Auto-chunks audio into 30s segments (different from the standard 18-min Whisper chunks)
 - `api-subscription-key` auth header
 - Best for Indian languages; not suited for non-Indian languages
+- Diarize support: `with_diarization=true` param, parses speaker turns from response
+- Note: 30s chunks mean speaker IDs may restart per chunk — known limitation
 
 ### Local (`providers/local.py`)
 - Uses `faster-whisper` (CTranslate2-based, up to 4x faster than original Whisper)
@@ -67,13 +81,21 @@ class TranscriptionProvider(ABC):
     def name(self) -> str: ...
 
     @abstractmethod
-    def transcribe(self, audio_path: Path, language: str = "auto") -> TranscriptResult: ...
+    def transcribe(self, audio_path: Path, language: str = "auto", diarize: bool = False) -> TranscriptResult: ...
 ```
 
 ## TranscriptResult Fields
 
 - `text`: Full transcript text
 - `language`: Detected or specified language code
-- `segments`: List of `TranscriptSegment(id, start, end, text)` (for timestamped output)
+- `segments`: List of `TranscriptSegment(id, start, end, text, speaker)` (for timestamped/diarized output)
 - `duration`: Audio duration in seconds
 - `word_count`: Total word count (auto-calculated if not set)
+
+## TranscriptSegment Fields
+
+- `id`: Segment index
+- `start`: Start time in seconds
+- `end`: End time in seconds
+- `text`: Segment text content
+- `speaker`: Speaker label (e.g. "Speaker 0") or None if not diarized

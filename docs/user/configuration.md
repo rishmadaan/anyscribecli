@@ -37,6 +37,7 @@ provider: openai          # Which transcription service to use
 language: auto             # Language for transcription
 keep_media: false          # Whether to save audio files
 output_format: clean       # How to format transcripts
+diarize: false             # Enable speaker diarization by default
 prompt_download: never     # Ask to download video after transcription
 local_file_media: skip     # What to do with local files after transcription
 workspace_path: ""         # Empty = ~/anyscribe (default), or set a custom path
@@ -55,6 +56,7 @@ Which API to use for transcription. Default: `openai`.
 | Value | Service | What you need |
 |-------|---------|---------------|
 | `openai` | OpenAI Whisper API | `OPENAI_API_KEY` in .env |
+| `deepgram` | Deepgram Nova (diarization + hi-Latn) | `DEEPGRAM_API_KEY` |
 | `openrouter` | OpenRouter (audio-via-chat models) | `OPENROUTER_API_KEY` |
 | `elevenlabs` | ElevenLabs Scribe (99 languages) | `ELEVENLABS_API_KEY` |
 | `sargam` | Sarvam AI (Indic languages) | `SARGAM_API_KEY` |
@@ -88,6 +90,17 @@ How to format the transcript text. Default: `clean`.
 |-------|-------------|
 | `clean` | Plain text transcript, paragraphs only |
 | `timestamped` | Transcript with `[mm:ss]` timestamps per segment |
+| `diarized` | Speaker-grouped turns with timestamps (for multi-speaker audio) |
+
+> **Tip:** When you use `--diarize`, the output format is automatically set to `diarized` unless you've explicitly set it to `timestamped`.
+
+#### diarize
+
+Whether to enable speaker diarization (identifying who said what) by default. Default: `false`.
+
+When enabled, providers that support diarization (OpenAI, Deepgram, Sarvam) will label each speaker in the transcript. You can also enable per-transcription with `--diarize` without changing this default.
+
+> **When to enable:** If you primarily transcribe meetings, interviews, or podcasts with multiple speakers. Leave off for single-speaker content like YouTube videos.
 
 #### prompt_download
 
@@ -121,6 +134,7 @@ API keys and passwords are stored separately from config for security:
 ```bash
 # ~/.anyscribecli/.env
 OPENAI_API_KEY=sk-proj-...
+DEEPGRAM_API_KEY=...
 INSTAGRAM_PASSWORD=your-password
 # ELEVENLABS_API_KEY=xi-...
 # OPENROUTER_API_KEY=sk-or-...

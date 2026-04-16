@@ -110,6 +110,7 @@ scribe --clipboard
 | `--language` | `-l` | Language code for transcription | `auto` (auto-detect) |
 | `--json` | `-j` | Output result as JSON | Off |
 | `--keep-media` | | Keep the downloaded audio file | From config (false) |
+| `--diarize` | `-d` | Enable speaker diarization (multi-speaker transcripts) | Off |
 | `--quiet` | `-q` | No progress output (just the result) | Off |
 | `--clipboard` | `-c` | Read URL from system clipboard | Off |
 
@@ -138,6 +139,12 @@ scribe "https://youtube.com/watch?v=abc123" --language es
 
 # Keep the audio file alongside the transcript
 scribe "https://youtube.com/watch?v=abc123" --keep-media
+
+# Enable speaker diarization (multi-speaker transcripts)
+scribe "https://youtube.com/watch?v=abc123" --diarize
+
+# Diarize with Deepgram (best for Hindi Latin / Hinglish)
+scribe "https://youtube.com/watch?v=abc123" --diarize --provider deepgram --language hi-Latn
 
 # JSON output — for scripts, AI agents, or piping to other tools
 scribe "https://youtube.com/watch?v=abc123" --json
@@ -197,6 +204,7 @@ scribe batch urls.txt
 | `--language` | `-l` | Override language | `auto` |
 | `--json` | `-j` | Output results as JSON | Off |
 | `--keep-media` | | Keep audio files | From config |
+| `--diarize` | `-d` | Enable speaker diarization | Off |
 | `--quiet` | `-q` | Suppress progress | Off |
 | `--stop-on-error` | | Stop at first failure | Off (continues) |
 
@@ -324,9 +332,10 @@ scribe providers test openai   # test a specific provider
 
 | Provider | API Key Env Var | Best For |
 |----------|-----------------|----------|
-| `openai` | `OPENAI_API_KEY` | General purpose, multilingual (default) |
+| `openai` | `OPENAI_API_KEY` | General purpose, multilingual, diarization (default) |
+| `deepgram` | `DEEPGRAM_API_KEY` | Fast, accurate, native diarization + Hindi Latin |
 | `openrouter` | `OPENROUTER_API_KEY` | Access to various models |
-| `elevenlabs` | `ELEVENLABS_API_KEY` | High accuracy, 99 languages, diarization |
+| `elevenlabs` | `ELEVENLABS_API_KEY` | High accuracy, 99 languages |
 | `sargam` | `SARGAM_API_KEY` | Indic languages (Hindi, Tamil, Telugu, etc.) |
 | `local` | None needed | Offline, free, runs on your machine |
 
@@ -409,7 +418,7 @@ Print the installed version.
 
 ```bash
 scribe --version
-# Output: scribe v0.6.0
+# Output: scribe v0.7.0
 ```
 
 ---

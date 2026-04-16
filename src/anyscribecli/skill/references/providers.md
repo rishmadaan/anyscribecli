@@ -1,31 +1,43 @@
 # Transcription Providers
 
-scribe supports 5 providers. Each has different strengths.
+scribe supports 6 providers. Each has different strengths.
 
 ## Quick Comparison
 
-| | OpenAI Whisper | ElevenLabs Scribe | Sarvam AI | OpenRouter | Local |
-|---|---|---|---|---|---|
-| **Best for** | General purpose | Highest accuracy | Indian languages | Model variety | Offline / free |
-| **Languages** | 99 | 99 | 22 Indian + English | Varies | 99 |
-| **Timestamps** | Segment-level | Word-level | No | No | Segment-level |
-| **Speaker ID** | No | Yes (up to 32) | No | No | No |
-| **Cost** | ~$0.36/hr | ~$0.22–0.40/hr | ~$0.35/hr | Varies | Free |
-| **File limit** | 25 MB | 25 MB | 30 sec | 25 MB | RAM only |
-| **Chunking** | 18-min segments | 25 MB chunks | 30-sec segments | 25 MB chunks | No limit |
-| **Offline** | No | No | No | No | Yes |
-| **API key env** | `OPENAI_API_KEY` | `ELEVENLABS_API_KEY` | `SARGAM_API_KEY` | `OPENROUTER_API_KEY` | None |
+| | OpenAI Whisper | Deepgram Nova | ElevenLabs Scribe | Sarvam AI | OpenRouter | Local |
+|---|---|---|---|---|---|---|
+| **Best for** | General purpose | Diarization + Hinglish | Highest accuracy | Indian languages | Model variety | Offline / free |
+| **Languages** | 99 | 36+ | 99 | 22 Indian + English | Varies | 99 |
+| **Timestamps** | Segment-level | Word-level | Word-level | No | No | Segment-level |
+| **Diarization** | Yes (`--diarize`) | Yes (`--diarize`) | No | Yes (`--diarize`) | No | No |
+| **Cost** | ~$0.36/hr | ~$0.30/hr | ~$0.22–0.40/hr | ~$0.35/hr | Varies | Free |
+| **File limit** | 25 MB | No hard limit | 25 MB | 30 sec | 25 MB | RAM only |
+| **Offline** | No | No | No | No | No | Yes |
+| **API key env** | `OPENAI_API_KEY` | `DEEPGRAM_API_KEY` | `ELEVENLABS_API_KEY` | `SARGAM_API_KEY` | `OPENROUTER_API_KEY` | None |
 
 ## OpenAI Whisper (provider: `openai`)
 
-Default provider. Reliable, well-documented, good across most languages.
+Default provider. Reliable, well-documented, good across most languages. Supports diarization.
 
-- **Model:** whisper-1
+- **Model:** whisper-1 (standard) or gpt-4o-transcribe-diarize (with `--diarize`)
 - **Cost:** ~$0.006/min ($0.36/hr). A 10-min video costs ~6 cents.
-- **Auto-chunking:** Files >25 MB split into 18-min segments, transcribed separately, merged.
+- **Auto-chunking:** Files >25 MB split into 18-min segments (standard mode). Diarize mode uses server-side chunking.
+- **Diarization:** Yes — use `--diarize` flag for speaker-labeled transcripts
 - **Get key:** https://platform.openai.com/api-keys
 
-**When to recommend:** Default choice. Best cost/accuracy/language balance.
+**When to recommend:** Default choice. Best cost/accuracy/language balance. Use `--diarize` for multi-speaker content.
+
+## Deepgram Nova (provider: `deepgram`)
+
+Fast, accurate transcription with native speaker diarization and Hindi Latin script support.
+
+- **Model:** nova-3
+- **Cost:** ~$0.005/min ($0.30/hr). $200 free credit on signup.
+- **Diarization:** Native — use `--diarize` flag for per-speaker labels
+- **Hindi Latin:** Use `--language hi-Latn` for romanized Hindi (Hinglish) output
+- **Get key:** https://console.deepgram.com/
+
+**When to recommend:** Best for multi-speaker transcripts (meetings, interviews, podcasts). Ideal for Hinglish content with `--language hi-Latn`. Fast and accurate diarization.
 
 ## ElevenLabs Scribe (provider: `elevenlabs`)
 

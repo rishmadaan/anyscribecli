@@ -15,10 +15,11 @@
 ## config.yaml Settings
 
 ```yaml
-provider: openai          # openai | elevenlabs | sargam | openrouter | local
-language: auto            # auto | ISO code (en, es, fr, hi, ar, zh, ja, ko...)
+provider: openai          # openai | deepgram | elevenlabs | sargam | openrouter | local
+language: auto            # auto | ISO code (en, es, fr, hi, hi-Latn, ar, zh, ja, ko...)
 keep_media: false         # Keep audio files after transcription
-output_format: clean      # clean | timestamped
+output_format: clean      # clean | timestamped | diarized
+diarize: false            # Enable speaker diarization by default
 prompt_download: never    # never | ask | always
 local_file_media: skip    # skip | copy | move | ask
 workspace_path: ""        # empty = ~/anyscribe (default), or custom path
@@ -36,7 +37,9 @@ instagram:
 
 **workspace_path** — Where transcripts are stored. Empty string (default) means `~/anyscribe/`. Set a custom path to use an existing Obsidian vault or preferred location. Check resolved path with `scribe config show`.
 
-**output_format** — `clean` outputs paragraphs only. `timestamped` adds `[mm:ss]` markers per segment.
+**output_format** — `clean` outputs paragraphs only. `timestamped` adds `[mm:ss]` markers per segment. `diarized` groups consecutive speaker turns into blocks with timestamps.
+
+**diarize** — When true, enables speaker diarization (identifying who said what). Supported by OpenAI, Deepgram, and Sarvam providers. Can also be enabled per-run with `--diarize` flag.
 
 **prompt_download** — After each transcription: `never` (just transcribe), `ask` (prompt to download video/audio), `always` (auto-download video too).
 
@@ -48,6 +51,7 @@ instagram:
 
 ```bash
 OPENAI_API_KEY=sk-proj-...
+DEEPGRAM_API_KEY=...
 ELEVENLABS_API_KEY=xi-...
 OPENROUTER_API_KEY=sk-or-...
 SARGAM_API_KEY=...

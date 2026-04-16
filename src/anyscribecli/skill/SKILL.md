@@ -41,6 +41,8 @@ When the USER wants to run commands themselves, show them the human-readable for
 | User wants to... | Command |
 |---|---|
 | Transcribe a URL or local file | `scribe "url"` or `scribe /path/to/file` |
+| Transcribe with speaker diarization | `scribe "url" --diarize` |
+| Transcribe Hinglish to Latin script | `scribe "url" --diarize -p deepgram -l hi-Latn` |
 | Transcribe multiple URLs | `scribe batch urls.txt` |
 | Download video/audio only | `scribe download "url"` or `scribe download "url" --audio-only` |
 | Change settings | `scribe config set <key> <value>` |
@@ -82,8 +84,10 @@ When the user asks which provider to use, or when you need to suggest one:
 | Scenario | Recommend | Why |
 |---|---|---|
 | General purpose, most languages | **openai** | Best balance of cost, accuracy, language coverage |
-| Highest accuracy, speaker ID | **elevenlabs** | Word-level timestamps, up to 32 speakers |
+| Multi-speaker (meetings, interviews) | **deepgram** with `--diarize` | Native diarization, fast, accurate speaker labels |
+| Hinglish / Hindi-English calls | **deepgram** with `-l hi-Latn --diarize` | Romanized Hindi output, code-switching support |
 | Indian languages (Hindi, Tamil, Telugu...) | **sargam** | Specialized for 22 Indian languages, much better than Whisper |
+| Highest accuracy, word timestamps | **elevenlabs** | Word-level timestamps, 99 languages |
 | Offline / no API key / free | **local** | Runs locally with faster-whisper, zero cost |
 | Specific model needed | **openrouter** | Access to various models, but slower and pricier |
 

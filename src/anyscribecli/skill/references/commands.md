@@ -16,10 +16,11 @@ scribe transcribe "<url>"             # Explicit subcommand (also works)
 
 | Flag | Short | Description | Default |
 |------|-------|-------------|---------|
-| `--provider` | `-p` | Override provider: openai, elevenlabs, sargam, openrouter, local | From config |
-| `--language` | `-l` | Language code (en, es, fr, hi, ar, etc.) or "auto" | From config (auto) |
+| `--provider` | `-p` | Override provider: openai, deepgram, elevenlabs, sargam, openrouter, local | From config |
+| `--language` | `-l` | Language code (en, es, fr, hi, hi-Latn, etc.) or "auto" | From config (auto) |
 | `--json` | `-j` | Output result as JSON | Off |
 | `--keep-media` | | Keep downloaded audio in `~/.anyscribecli/downloads/audio/` | From config |
+| `--diarize` | `-d` | Enable speaker diarization (multi-speaker transcripts) | Off |
 | `--quiet` | `-q` | Suppress progress output | Off |
 | `--clipboard` | `-c` | Read URL from system clipboard | Off |
 

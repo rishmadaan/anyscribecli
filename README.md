@@ -15,7 +15,8 @@
 URL or local file → Download/convert audio → Transcribe → Formatted Markdown → Obsidian Vault
 ```
 
-- **5 transcription providers** — OpenAI Whisper, ElevenLabs, OpenRouter, Sarvam AI, Local (offline)
+- **6 transcription providers** — OpenAI Whisper, Deepgram Nova, ElevenLabs, OpenRouter, Sarvam AI, Local (offline)
+- **Speaker diarization** — `--diarize` flag for multi-speaker transcripts (meetings, interviews, podcasts)
 - **3 input sources** — YouTube, Instagram (reels + posts), local files (mp3, mp4, m4a, wav, opus, ogg, flac, webm)
 - **Obsidian-native output** — YAML frontmatter, word count, reading time, tags
 - **Master index + daily logs** — browse everything in Obsidian
@@ -99,8 +100,9 @@ ascli download "https://www.youtube.com/watch?v=VIDEO_ID" --audio-only  # audio
 
 ```bash
 ascli transcribe "<url>"
-  --provider, -p <name>    # Override provider (openai, elevenlabs, local, etc.)
+  --provider, -p <name>    # Override provider (openai, deepgram, elevenlabs, local, etc.)
   --language, -l <code>    # Language code (default: auto-detect)
+  --diarize, -d            # Enable speaker diarization (multi-speaker transcripts)
   --json, -j               # JSON output for scripting/AI agents
   --keep-media             # Keep the downloaded audio file
   --clipboard, -c          # Read URL from clipboard
@@ -194,7 +196,8 @@ The onboarding wizard checks for these and offers to install them:
 
 | Provider | Best for | API key |
 |----------|----------|---------|
-| **OpenAI Whisper** (default) | General purpose, multilingual | `OPENAI_API_KEY` |
+| **OpenAI Whisper** (default) | General purpose, multilingual, diarization | `OPENAI_API_KEY` |
+| **Deepgram Nova** | Fast diarization, Hinglish (hi-Latn) | `DEEPGRAM_API_KEY` |
 | **ElevenLabs Scribe** | High accuracy, 99 languages, word timestamps | `ELEVENLABS_API_KEY` |
 | **Sarvam AI** | Indic languages (Hindi, Tamil, Telugu, etc.) | `SARGAM_API_KEY` |
 | **OpenRouter** | Access to various AI models | `OPENROUTER_API_KEY` |
@@ -209,7 +212,8 @@ See [Provider Guide](docs/user/providers.md) for detailed comparison, pricing, a
 provider: openai          # Transcription provider
 language: auto             # Language (auto-detect or ISO code)
 keep_media: false          # Keep audio files after transcription
-output_format: clean       # clean | timestamped
+output_format: clean       # clean | timestamped | diarized
+diarize: false             # enable speaker diarization
 prompt_download: never     # never | ask | always — download video after transcription
 local_file_media: skip     # skip | copy | move | ask — what to do with local files
 workspace_path: ""         # empty = ~/anyscribe (default), or set a custom path
