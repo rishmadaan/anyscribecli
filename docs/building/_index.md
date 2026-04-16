@@ -2,6 +2,7 @@
 
 | Date | Type | Entry | TL;DR |
 |------|------|-------|-------|
+| 2026-04-16 | project-note | [[journal/2026-04-16-v072-config-set-keys-diarize-routing.md\|v0.7.2 API Key Config + Diarize Routing]] | `scribe config set` handles API keys (routes to .env). `--diarize` auto-switches to Deepgram when configured. Fixes OpenAI 25MB diarize limit for large files. |
 | 2026-04-16 | project-note | [[journal/2026-04-16-v070-diarization-deepgram.md\|v0.7.0 Diarization + Deepgram]] | Added multi-speaker diarization with `--diarize` flag. New Deepgram Nova provider with native diarization + hi-Latn. Upgraded OpenAI (gpt-4o-transcribe-diarize) and Sarvam. New "diarized" output format with speaker-grouped turns. |
 | 2026-04-05 | project-note | [[journal/2026-04-05-v060-scribe-rename-mcp.md\|v0.6.0 scribe Rename + MCP Server]] | Renamed CLI to `scribe` with bare-URL routing, added MCP server (9 tools), skill auto-install/update, published to PyPI. |
 | 2026-04-01 | project-note | [[journal/2026-04-01-v054-windows-compatibility.md\|v0.5.4 Windows Compatibility]] | Fixed Windows by invoking yt-dlp as `python -m yt_dlp` instead of bare command, fixing Python detection, and using `sys.executable -m pip` for installs. |

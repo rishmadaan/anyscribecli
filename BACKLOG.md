@@ -28,7 +28,9 @@ The `0.x` prefix means pre-stable — breaking changes are allowed between minor
 | 0.5.3 | Auto-update stale yt-dlp before download | Released 2026-03-31 |
 | 0.5.4 | Windows compatibility — cross-platform yt-dlp invocation | Released 2026-04-01 |
 | 0.6.0 | scribe rename, MCP server, skill auto-install/update | Released 2026-04-05 |
-| 0.7.0 | Multi-speaker diarization, Deepgram provider, diarized output | **Current** |
+| 0.7.0 | Multi-speaker diarization, Deepgram provider, diarized output | Released 2026-04-16 |
+| 0.7.1 | Fix stale skill files in PyPI, add Windows note to skill | Released 2026-04-16 |
+| 0.7.2 | API key config via `config set`, diarize auto-routes to Deepgram | **Current** |
 | 0.8.0 | Cache/dedup, test suite, error handling | Next |
 | 1.0.0 | Stable: full test coverage, CI/CD pipeline | Future |
 
@@ -216,7 +218,50 @@ All features originally planned for v0.2.0–v0.5.0, built in one session:
 
 ---
 
-## v0.6.0 — Cache, Dedup, Quality
+## v0.6.0 — scribe Rename, MCP Server ✅
+
+**Released:** 2026-04-05
+
+- [x] **Renamed CLI** from `ascli` to `scribe` with `ascli` as backward-compatible alias
+- [x] **Bare-URL routing** — `scribe "url"` routes to transcribe automatically
+- [x] **MCP server** — 9 tools for Claude Desktop, Cursor, and other AI harnesses
+- [x] **Skill auto-install/update** — detects Claude Code, installs on first run, updates on version change
+- [x] Published to PyPI
+
+---
+
+## v0.7.0 — Multi-Speaker Diarization + Deepgram ✅
+
+**Released:** 2026-04-16
+
+- [x] **Speaker diarization** — `--diarize` flag for multi-speaker transcripts
+- [x] **Deepgram Nova provider** — native diarization, hi-Latn (Hinglish), $200 free credit
+- [x] **OpenAI diarize model** — `gpt-4o-transcribe-diarize` for speaker-labeled transcripts
+- [x] **Diarized output format** — speaker-grouped turns with timestamps
+- [x] Sarvam diarization support
+
+---
+
+## v0.7.1 — Skill Fix ✅
+
+**Released:** 2026-04-16
+
+- [x] Fix stale skill files in PyPI package
+- [x] Add Windows note to skill docs
+
+---
+
+## v0.7.2 — API Key Config + Diarize Auto-Routing ✅
+
+**Released:** 2026-04-16
+
+- [x] **`scribe config set` handles API keys** — `scribe config set deepgram_api_key KEY` stores in .env automatically. Supports all providers: openai, deepgram, elevenlabs, sargam, openrouter.
+- [x] **`--diarize` auto-routes to Deepgram** — when no explicit `-p` is given and Deepgram key is configured, auto-switches to Deepgram for best speaker detection. Override with `-p openai` if needed.
+- [x] Updated all docs (README, 4 user docs, 5 skill files, building/providers.md)
+
+---
+
+## v0.8.0 — Cache, Dedup, Quality
 
 - [ ] **Duplicate/cache checking** (inspired by AnyScribe web app's FindStamp pattern):
   - Before transcribing: check if URL was already transcribed (lookup by source URL in _index.md or a cache file)
@@ -250,7 +295,6 @@ See `docs/building/ops/pypi-guide.md` for PyPI setup, tokens, and troubleshootin
 
 - **Windows zero-config PATH**: Current v0.5.4 workaround is `python -m anyscribecli` as one-time bootstrap (prints PowerShell PATH fix on first run). Acceptable but not great — user has to know the `python -m` incantation. Explore: custom Windows installer (`.msi` or `winget` package), PowerShell install script (`install.ps1` analogous to `install.sh`), or a shim that pip can place in a well-known location. The goal: `pip install anyscribecli` → `ascli` just works, no extra steps.
 - GUI (web UI via FastAPI + React, or TUI via Textual)
-- Speaker diarization (who said what)
 - AI-generated summaries (TL;DR via LLM after transcription)
 - Chapter/section detection
 - Search across all transcripts (`ascli search <query>`)

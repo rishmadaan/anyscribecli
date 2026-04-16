@@ -249,7 +249,7 @@ scribe update --force                   # Force update (stashes local changes)
 
 ```bash
 scribe --version
-# Output: scribe v0.5.5
+# Output: scribe v0.7.2
 ```
 
 ---
