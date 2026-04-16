@@ -18,6 +18,7 @@ import httpx
 from anyscribecli.providers.base import (
     TranscriptionProvider,
     TranscriptResult,
+    TranscriptSegment,
 )
 
 # Sarvam REST API limit: 30 seconds per request
@@ -43,7 +44,9 @@ class SargamProvider(TranscriptionProvider):
             raise RuntimeError("SARGAM_API_KEY not set. Add it to ~/.anyscribecli/.env")
         return key
 
-    def _transcribe_single(self, audio_path: Path, language: str, api_key: str) -> dict:
+    def _transcribe_single(
+        self, audio_path: Path, language: str, api_key: str, diarize: bool = False
+    ) -> dict:
         """Transcribe a single audio file via Sarvam API (must be <=30s)."""
         with open(audio_path, "rb") as f:
             files = {"file": (audio_path.name, f, "audio/mpeg")}
@@ -52,6 +55,8 @@ class SargamProvider(TranscriptionProvider):
             }
             if language != "auto":
                 data["language_code"] = language
+            if diarize:
+                data["with_diarization"] = "true"
 
             response = httpx.post(
                 self.API_URL,
@@ -110,20 +115,27 @@ class SargamProvider(TranscriptionProvider):
 
         return chunks
 
-    def transcribe(self, audio_path: Path, language: str = "auto") -> TranscriptResult:
+    def transcribe(
+        self, audio_path: Path, language: str = "auto", diarize: bool = False
+    ) -> TranscriptResult:
         api_key = self._get_api_key()
 
         chunks = self._chunk_for_sarvam(audio_path)
         all_text_parts: list[str] = []
+        all_segments: list[TranscriptSegment] = []
         detected_language = ""
+        segment_id = 0
 
         for chunk_path, offset in chunks:
             try:
-                resp = self._transcribe_single(chunk_path, language, api_key)
-                result = self._parse_response(resp)
+                resp = self._transcribe_single(chunk_path, language, api_key, diarize=diarize)
+                result = self._parse_response(resp, offset=offset, start_id=segment_id)
                 all_text_parts.append(result.text)
                 if not detected_language:
                     detected_language = result.language
+                for seg in result.segments:
+                    all_segments.append(seg)
+                    segment_id += 1
             finally:
                 # Don't delete the original file
                 if chunk_path != audio_path:
@@ -134,18 +146,41 @@ class SargamProvider(TranscriptionProvider):
             text=full_text,
             language=detected_language,
             duration=None,
-            segments=[],
+            segments=all_segments,
             word_count=len(full_text.split()),
         )
 
-    def _parse_response(self, data: dict) -> TranscriptResult:
+    def _parse_response(
+        self, data: dict, offset: float = 0.0, start_id: int = 0
+    ) -> TranscriptResult:
         """Parse Sarvam response into TranscriptResult."""
         transcript = data.get("transcript", "")
         language = data.get("language_code", "unknown")
+
+        segments: list[TranscriptSegment] = []
+
+        # Parse diarized output if available
+        turns = data.get("turns") or data.get("diarized_transcript") or []
+        if turns:
+            for i, turn in enumerate(turns):
+                speaker = turn.get("speaker") or turn.get("speaker_id")
+                text = turn.get("text") or turn.get("transcript", "")
+                start = turn.get("start", 0.0) + offset
+                end = turn.get("end", start) + offset
+                if text.strip():
+                    segments.append(
+                        TranscriptSegment(
+                            id=start_id + i,
+                            start=start,
+                            end=end,
+                            text=text.strip(),
+                            speaker=str(speaker) if speaker is not None else None,
+                        )
+                    )
 
         return TranscriptResult(
             text=transcript,
             language=language,
             duration=None,
-            segments=[],
+            segments=segments,
         )

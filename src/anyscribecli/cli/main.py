@@ -253,16 +253,12 @@ def doctor() -> None:
             console.print(f"  Skill: [green]Installed (v{installed_version})[/green]")
         elif installed_version == "unknown":
             console.print("  Skill: [yellow]Installed (version unknown — pre-0.5.5)[/yellow]")
-            console.print(
-                "  [dim]Run [bold]scribe install-skill --force[/bold] to update.[/dim]"
-            )
+            console.print("  [dim]Run [bold]scribe install-skill --force[/bold] to update.[/dim]")
         else:
             console.print(
                 f"  Skill: [yellow]Outdated (v{installed_version} → v{__version__})[/yellow]"
             )
-            console.print(
-                "  [dim]Run [bold]scribe install-skill --force[/bold] to update.[/dim]"
-            )
+            console.print("  [dim]Run [bold]scribe install-skill --force[/bold] to update.[/dim]")
         console.print(f"  Path: {ASCLI_SKILL_TARGET}")
 
     # Updates

@@ -133,13 +133,15 @@ def rebuild_master_index(workspace: Path | None = None) -> None:
             if not isinstance(fm, dict):
                 continue
             rel_path = md_file.relative_to(ws)
-            entries.append({
-                "date": fm.get("date_processed", ""),
-                "platform": fm.get("platform", ""),
-                "title": fm.get("title", md_file.stem),
-                "duration": fm.get("duration", ""),
-                "link": f"[[{rel_path}|{fm.get('title', md_file.stem)}]]",
-            })
+            entries.append(
+                {
+                    "date": fm.get("date_processed", ""),
+                    "platform": fm.get("platform", ""),
+                    "title": fm.get("title", md_file.stem),
+                    "duration": fm.get("duration", ""),
+                    "link": f"[[{rel_path}|{fm.get('title', md_file.stem)}]]",
+                }
+            )
         except Exception:
             continue
 

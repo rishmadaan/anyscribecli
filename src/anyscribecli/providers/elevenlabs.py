@@ -56,7 +56,9 @@ class ElevenLabsProvider(TranscriptionProvider):
             raise RuntimeError(f"ElevenLabs API error ({response.status_code}): {response.text}")
         return response.json()
 
-    def transcribe(self, audio_path: Path, language: str = "auto") -> TranscriptResult:
+    def transcribe(
+        self, audio_path: Path, language: str = "auto", diarize: bool = False
+    ) -> TranscriptResult:
         api_key = self._get_api_key()
 
         if not needs_chunking(audio_path):

@@ -27,6 +27,9 @@ def transcribe(
         False, "--json", "-j", help="Output result as JSON (for scripting/agents)."
     ),
     keep_media: bool = typer.Option(False, "--keep-media", help="Keep downloaded audio file."),
+    diarize: bool = typer.Option(
+        False, "--diarize", "-d", help="Enable speaker diarization (multi-speaker transcripts)."
+    ),
     quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress progress output."),
     clipboard: bool = typer.Option(False, "--clipboard", "-c", help="Read URL from clipboard."),
 ) -> None:
@@ -75,6 +78,10 @@ def transcribe(
         settings.language = language
     if keep_media:
         settings.keep_media = True
+    if diarize:
+        settings.diarize = True
+        if settings.output_format == "clean":
+            settings.output_format = "diarized"
 
     try:
         result = process(url, settings, quiet=quiet)

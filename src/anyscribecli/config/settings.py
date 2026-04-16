@@ -22,7 +22,8 @@ class Settings:
     provider: str = "openai"
     language: str = "auto"
     keep_media: bool = False
-    output_format: str = "clean"  # clean | timestamped
+    output_format: str = "clean"  # clean | timestamped | diarized
+    diarize: bool = False
     prompt_download: str = "never"  # never | always | ask (prompt after transcription)
     local_file_media: str = "skip"  # skip | copy | move | ask
     workspace_path: str = ""  # empty = ~/anyscribe (default)

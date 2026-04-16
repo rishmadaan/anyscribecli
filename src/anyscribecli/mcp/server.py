@@ -46,6 +46,7 @@ def transcribe(
     url: str,
     provider: Optional[str] = None,
     language: Optional[str] = None,
+    diarize: bool = False,
 ) -> str:
     """Transcribe a video/audio URL or local file to markdown.
 
@@ -54,8 +55,9 @@ def transcribe(
 
     Args:
         url: YouTube/Instagram URL or local file path. Always quote URLs.
-        provider: Override provider (openai, elevenlabs, sargam, openrouter, local).
-        language: Language code (en, es, fr, hi, etc.) or "auto" for detection.
+        provider: Override provider (openai, elevenlabs, sargam, deepgram, openrouter, local).
+        language: Language code (en, es, fr, hi, hi-Latn, etc.) or "auto" for detection.
+        diarize: Enable speaker diarization for multi-speaker transcripts.
 
     Returns:
         JSON with success status, file path, title, duration, word count, provider.
@@ -67,19 +69,25 @@ def transcribe(
         settings.provider = provider
     if language:
         settings.language = language
+    if diarize:
+        settings.diarize = True
+        if settings.output_format == "clean":
+            settings.output_format = "diarized"
 
     try:
         result = process(url, settings, quiet=True)
-        return json.dumps({
-            "success": True,
-            "file": str(result.file_path),
-            "title": result.title,
-            "platform": result.platform,
-            "duration": result.duration,
-            "language": result.language,
-            "word_count": result.word_count,
-            "provider": result.provider,
-        })
+        return json.dumps(
+            {
+                "success": True,
+                "file": str(result.file_path),
+                "title": result.title,
+                "platform": result.platform,
+                "duration": result.duration,
+                "language": result.language,
+                "word_count": result.word_count,
+                "provider": result.provider,
+            }
+        )
     except Exception as e:
         return json.dumps({"success": False, "error": str(e)})
 
@@ -89,6 +97,7 @@ def batch_transcribe(
     urls: list[str],
     provider: Optional[str] = None,
     language: Optional[str] = None,
+    diarize: bool = False,
     stop_on_error: bool = False,
 ) -> str:
     """Transcribe multiple URLs or file paths.
@@ -99,6 +108,7 @@ def batch_transcribe(
         urls: List of YouTube/Instagram URLs or local file paths.
         provider: Override provider for all transcriptions.
         language: Override language for all transcriptions.
+        diarize: Enable speaker diarization for multi-speaker transcripts.
         stop_on_error: Stop processing at first failure.
 
     Returns:
@@ -111,6 +121,10 @@ def batch_transcribe(
         settings.provider = provider
     if language:
         settings.language = language
+    if diarize:
+        settings.diarize = True
+        if settings.output_format == "clean":
+            settings.output_format = "diarized"
 
     results = []
     succeeded = 0
@@ -120,32 +134,38 @@ def batch_transcribe(
         try:
             result = process(url, settings, quiet=True)
             succeeded += 1
-            results.append({
-                "success": True,
-                "url": url,
-                "file": str(result.file_path),
-                "title": result.title,
-                "platform": result.platform,
-                "duration": result.duration,
-                "language": result.language,
-                "word_count": result.word_count,
-            })
+            results.append(
+                {
+                    "success": True,
+                    "url": url,
+                    "file": str(result.file_path),
+                    "title": result.title,
+                    "platform": result.platform,
+                    "duration": result.duration,
+                    "language": result.language,
+                    "word_count": result.word_count,
+                }
+            )
         except Exception as e:
             failed += 1
-            results.append({
-                "success": False,
-                "url": url,
-                "error": str(e),
-            })
+            results.append(
+                {
+                    "success": False,
+                    "url": url,
+                    "error": str(e),
+                }
+            )
             if stop_on_error:
                 break
 
-    return json.dumps({
-        "total": len(urls),
-        "succeeded": succeeded,
-        "failed": failed,
-        "results": results,
-    })
+    return json.dumps(
+        {
+            "total": len(urls),
+            "succeeded": succeeded,
+            "failed": failed,
+            "results": results,
+        }
+    )
 
 
 # ── Download ─────────────────────────────────────────────────
@@ -187,14 +207,16 @@ def download(
             dest_dir.mkdir(parents=True, exist_ok=True)
             dest = dest_dir / f"{slug}{dl_result.audio_path.suffix}"
             shutil.copy2(dl_result.audio_path, dest)
-            return json.dumps({
-                "success": True,
-                "file": str(dest),
-                "title": dl_result.title,
-                "platform": platform,
-                "type": "audio",
-                "duration": dl_result.duration,
-            })
+            return json.dumps(
+                {
+                    "success": True,
+                    "file": str(dest),
+                    "title": dl_result.title,
+                    "platform": platform,
+                    "type": "audio",
+                    "duration": dl_result.duration,
+                }
+            )
         else:
             from anyscribecli.cli.download import _download_video
 
@@ -255,17 +277,19 @@ def list_transcripts(
             fm = yaml.safe_load(text[3:end])
             if not isinstance(fm, dict):
                 continue
-            entries.append({
-                "title": fm.get("title", md_file.stem),
-                "date": fm.get("date_processed", ""),
-                "platform": fm.get("platform", ""),
-                "duration": fm.get("duration", ""),
-                "language": fm.get("language", ""),
-                "word_count": fm.get("word_count", 0),
-                "provider": fm.get("provider", ""),
-                "source_url": fm.get("source", ""),
-                "file": str(md_file),
-            })
+            entries.append(
+                {
+                    "title": fm.get("title", md_file.stem),
+                    "date": fm.get("date_processed", ""),
+                    "platform": fm.get("platform", ""),
+                    "duration": fm.get("duration", ""),
+                    "language": fm.get("language", ""),
+                    "word_count": fm.get("word_count", 0),
+                    "provider": fm.get("provider", ""),
+                    "source_url": fm.get("source", ""),
+                    "file": str(md_file),
+                }
+            )
         except Exception:
             continue
 
@@ -324,11 +348,13 @@ def set_config(key: str, value: str) -> str:
     final_key = keys[-1]
     if final_key not in target:
         available = list(data.keys())
-        return json.dumps({
-            "success": False,
-            "error": f"Unknown key: {key}",
-            "available_keys": available,
-        })
+        return json.dumps(
+            {
+                "success": False,
+                "error": f"Unknown key: {key}",
+                "available_keys": available,
+            }
+        )
 
     # Type coercion
     old_value = target[final_key]
@@ -365,10 +391,7 @@ def list_providers() -> str:
     active = settings.provider
     providers = _list_providers()
 
-    return json.dumps([
-        {"name": p, "active": p == active}
-        for p in providers
-    ])
+    return json.dumps([{"name": p, "active": p == active} for p in providers])
 
 
 @mcp.tool()
@@ -391,6 +414,7 @@ def test_provider(name: Optional[str] = None) -> str:
         "openrouter": "OPENROUTER_API_KEY",
         "elevenlabs": "ELEVENLABS_API_KEY",
         "sargam": "SARGAM_API_KEY",
+        "deepgram": "DEEPGRAM_API_KEY",
     }
 
     try:
@@ -403,14 +427,16 @@ def test_provider(name: Optional[str] = None) -> str:
     if env_var:
         api_key_set = bool(os.environ.get(env_var))
 
-    return json.dumps({
-        "success": True,
-        "provider": provider_name,
-        "class": provider.__class__.__name__,
-        "api_key_env": env_var,
-        "api_key_set": api_key_set,
-        "requires_api_key": env_var is not None,
-    })
+    return json.dumps(
+        {
+            "success": True,
+            "provider": provider_name,
+            "class": provider.__class__.__name__,
+            "api_key_env": env_var,
+            "api_key_set": api_key_set,
+            "requires_api_key": env_var is not None,
+        }
+    )
 
 
 # ── Diagnostics ──────────────────────────────────────────────
@@ -439,12 +465,14 @@ def doctor() -> str:
     dep_results = check_dependencies()
     deps = []
     for r in dep_results:
-        deps.append({
-            "name": r.dep.name,
-            "found": r.found,
-            "version": r.version,
-            "required": r.dep.required,
-        })
+        deps.append(
+            {
+                "name": r.dep.name,
+                "found": r.found,
+                "version": r.version,
+                "required": r.dep.required,
+            }
+        )
 
     # Config
     config = {
@@ -474,12 +502,14 @@ def doctor() -> str:
             skill["version"] = "unknown"
         skill["current"] = skill.get("version") == __version__
 
-    return json.dumps({
-        "dependencies": deps,
-        "config": config,
-        "installation": install,
-        "skill": skill,
-    })
+    return json.dumps(
+        {
+            "dependencies": deps,
+            "config": config,
+            "installation": install,
+            "skill": skill,
+        }
+    )
 
 
 # ── Resources ────────────────────────────────────────────────
@@ -518,12 +548,14 @@ def resource_workspace() -> str:
                 except (IndexError, ValueError):
                     pass
 
-    return json.dumps({
-        "workspace_path": str(ws),
-        "exists": ws.exists(),
-        "total_transcripts": count,
-        "by_platform": platforms,
-    })
+    return json.dumps(
+        {
+            "workspace_path": str(ws),
+            "exists": ws.exists(),
+            "total_transcripts": count,
+            "by_platform": platforms,
+        }
+    )
 
 
 # ── Entry point ──────────────────────────────────────────────

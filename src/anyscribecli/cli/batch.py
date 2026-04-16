@@ -23,6 +23,7 @@ def batch(
     language: str | None = typer.Option(None, "--language", "-l", help="Override language."),
     output_json: bool = typer.Option(False, "--json", "-j", help="Output results as JSON."),
     keep_media: bool = typer.Option(False, "--keep-media", help="Keep audio files."),
+    diarize: bool = typer.Option(False, "--diarize", "-d", help="Enable speaker diarization."),
     quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress progress."),
     stop_on_error: bool = typer.Option(False, "--stop-on-error", help="Stop at first failure."),
 ) -> None:
@@ -54,6 +55,10 @@ def batch(
         settings.language = language
     if keep_media:
         settings.keep_media = True
+    if diarize:
+        settings.diarize = True
+        if settings.output_format == "clean":
+            settings.output_format = "diarized"
 
     results: list[dict] = []
     succeeded = 0

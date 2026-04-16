@@ -60,6 +60,12 @@ PROVIDER_INFO = {
         "env_var": "SARGAM_API_KEY",
         "key_url": "https://dashboard.sarvam.ai",
     },
+    "deepgram": {
+        "label": "Deepgram Nova",
+        "description": "Fast, accurate, native diarization + Hindi Latin support",
+        "env_var": "DEEPGRAM_API_KEY",
+        "key_url": "https://console.deepgram.com/",
+    },
     "local": {
         "label": "Local (faster-whisper)",
         "description": "Offline, free, runs on your machine (CPU or GPU)",

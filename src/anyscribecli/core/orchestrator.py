@@ -60,6 +60,7 @@ def process(url: str, settings: Settings, quiet: bool = False) -> ProcessResult:
         err_console.print(f"  [yellow]Flattened {flattened} files out of date folders[/yellow]")
     if flattened:
         from anyscribecli.vault.index import rebuild_master_index
+
         rebuild_master_index()
 
     TMP_DIR.mkdir(parents=True, exist_ok=True)
@@ -81,7 +82,9 @@ def process(url: str, settings: Settings, quiet: bool = False) -> ProcessResult:
             err_console.print(f"[bold blue]Transcribing with {settings.provider}...[/bold blue]")
 
         provider = get_provider(settings.provider)
-        transcript = provider.transcribe(download.audio_path, settings.language)
+        transcript = provider.transcribe(
+            download.audio_path, settings.language, diarize=settings.diarize
+        )
 
         if not quiet:
             err_console.print(

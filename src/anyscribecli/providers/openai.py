@@ -60,8 +60,41 @@ class OpenAIProvider(TranscriptionProvider):
             raise RuntimeError(f"Whisper API error ({response.status_code}): {response.text}")
         return response.json()
 
-    def transcribe(self, audio_path: Path, language: str = "auto") -> TranscriptResult:
+    def _transcribe_diarize(self, audio_path: Path, language: str, api_key: str) -> dict:
+        """Transcribe with speaker diarization using gpt-4o-transcribe-diarize."""
+        with open(audio_path, "rb") as f:
+            files = {"file": (audio_path.name, f, "audio/mpeg")}
+            data: dict[str, str] = {
+                "model": "gpt-4o-transcribe-diarize",
+                "response_format": "verbose_json",
+            }
+            if language != "auto":
+                data["language"] = language
+
+            response = httpx.post(
+                self.API_URL,
+                headers={"Authorization": f"Bearer {api_key}"},
+                files=files,
+                data=data,
+                timeout=600.0,
+            )
+
+        if response.status_code != 200:
+            raise RuntimeError(
+                f"OpenAI diarize API error ({response.status_code}): {response.text}"
+            )
+        return response.json()
+
+    def transcribe(
+        self, audio_path: Path, language: str = "auto", diarize: bool = False
+    ) -> TranscriptResult:
         api_key = self._get_api_key()
+
+        if diarize:
+            # gpt-4o-transcribe-diarize handles chunking server-side
+            return self._parse_response(
+                self._transcribe_diarize(audio_path, language, api_key), diarize=True
+            )
 
         if not needs_chunking(audio_path):
             return self._parse_response(self._transcribe_single(audio_path, language, api_key))
@@ -105,17 +138,22 @@ class OpenAIProvider(TranscriptionProvider):
             word_count=len(full_text.split()),
         )
 
-    def _parse_response(self, data: dict) -> TranscriptResult:
-        """Parse Whisper API verbose_json response into TranscriptResult."""
-        segments = [
-            TranscriptSegment(
-                id=seg.get("id", i),
-                start=seg["start"],
-                end=seg["end"],
-                text=seg["text"].strip(),
+    def _parse_response(self, data: dict, diarize: bool = False) -> TranscriptResult:
+        """Parse Whisper/diarize API verbose_json response into TranscriptResult."""
+        segments = []
+        for i, seg in enumerate(data.get("segments", [])):
+            speaker = None
+            if diarize:
+                speaker = seg.get("speaker")
+            segments.append(
+                TranscriptSegment(
+                    id=seg.get("id", i),
+                    start=seg["start"],
+                    end=seg["end"],
+                    text=seg["text"].strip(),
+                    speaker=speaker,
+                )
             )
-            for i, seg in enumerate(data.get("segments", []))
-        ]
 
         text = data.get("text", "")
         return TranscriptResult(

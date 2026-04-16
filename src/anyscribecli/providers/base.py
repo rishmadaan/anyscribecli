@@ -15,6 +15,7 @@ class TranscriptSegment:
     start: float  # seconds
     end: float  # seconds
     text: str
+    speaker: str | None = None  # speaker label (e.g. "Speaker 0")
 
 
 @dataclass
@@ -41,5 +42,7 @@ class TranscriptionProvider(ABC):
         """Provider name for display and config."""
 
     @abstractmethod
-    def transcribe(self, audio_path: Path, language: str = "auto") -> TranscriptResult:
+    def transcribe(
+        self, audio_path: Path, language: str = "auto", diarize: bool = False
+    ) -> TranscriptResult:
         """Transcribe an audio file. Returns structured result."""

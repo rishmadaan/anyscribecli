@@ -65,7 +65,9 @@ class LocalProvider(TranscriptionProvider):
 
         return WhisperModel(model_size, device=device, compute_type=compute_type)
 
-    def transcribe(self, audio_path: Path, language: str = "auto") -> TranscriptResult:
+    def transcribe(
+        self, audio_path: Path, language: str = "auto", diarize: bool = False
+    ) -> TranscriptResult:
         model = self._get_model()
 
         kwargs = {}

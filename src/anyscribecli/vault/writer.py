@@ -10,7 +10,7 @@ from pathlib import Path
 from anyscribecli.config.paths import get_workspace_dir, AUDIO_DIR
 from anyscribecli.config.settings import Settings
 from anyscribecli.downloaders.base import DownloadResult
-from anyscribecli.providers.base import TranscriptResult
+from anyscribecli.providers.base import TranscriptResult, TranscriptSegment
 
 
 def slugify(text: str, max_length: int = 60) -> str:
@@ -73,23 +73,30 @@ def write_transcript(
     word_count = transcript.word_count
     reading_time = estimate_reading_time(word_count)
 
-    frontmatter = (
-        f"---\n"
-        f"source: {download.original_url}\n"
-        f"platform: {download.platform}\n"
-        f'title: "{download.title}"\n'
-        f'duration: "{duration_str}"\n'
-        f"language: {transcript.language}\n"
-        f"provider: {settings.provider}\n"
-        f"date_processed: {today}\n"
-        f"word_count: {word_count}\n"
-        f'reading_time: "{reading_time}"\n'
-        f"tags:\n"
-        f"  - transcript\n"
-        f"  - {download.platform}\n"
-        f'tldr: "{download.title}"\n'
-        f"---\n"
+    fm_lines = [
+        "---",
+        f"source: {download.original_url}",
+        f"platform: {download.platform}",
+        f'title: "{download.title}"',
+        f'duration: "{duration_str}"',
+        f"language: {transcript.language}",
+        f"provider: {settings.provider}",
+        f"date_processed: {today}",
+        f"word_count: {word_count}",
+        f'reading_time: "{reading_time}"',
+    ]
+    if settings.diarize:
+        fm_lines.append("diarized: true")
+    fm_lines.extend(
+        [
+            "tags:",
+            "  - transcript",
+            f"  - {download.platform}",
+            f'tldr: "{download.title}"',
+            "---",
+        ]
     )
+    frontmatter = "\n".join(fm_lines) + "\n"
 
     # Build body
     body_parts = [
@@ -109,7 +116,10 @@ def write_transcript(
     body_parts.append("\n---\n")
 
     # Transcript body — format depends on output_format setting
-    if settings.output_format == "timestamped" and transcript.segments:
+    if settings.output_format == "diarized" and transcript.segments:
+        body_parts.append("\n## Transcript\n")
+        body_parts.append(_format_diarized(transcript.segments))
+    elif settings.output_format == "timestamped" and transcript.segments:
         body_parts.append("\n## Transcript\n")
         for seg in transcript.segments:
             ts = format_duration(seg.start)
@@ -131,6 +141,55 @@ def write_transcript(
         shutil.copy2(download.audio_path, dest)
 
     return out_path
+
+
+def _format_diarized(segments: list[TranscriptSegment]) -> str:
+    """Format segments as speaker-grouped turns with timestamps.
+
+    Groups consecutive segments by the same speaker into a single block.
+    Matches the dashing-kx/Fireflies transcript format:
+      **Speaker 0** *[00:01:15]*: sentence1 sentence2
+
+      **Speaker 1** *[00:02:30]*: response text
+    """
+    # Check if any segment has speaker data; fall back to timestamped if not
+    has_speakers = any(seg.speaker is not None for seg in segments)
+    if not has_speakers:
+        # Fallback: timestamped format without speakers
+        parts = []
+        for seg in segments:
+            ts = format_duration(seg.start)
+            parts.append(f"\n**[{ts}]** {seg.text}\n")
+        return "".join(parts)
+
+    parts: list[str] = []
+    current_speaker: str | None = None
+    current_words: list[str] = []
+    block_start = 0.0
+
+    for seg in segments:
+        speaker = seg.speaker or "Speaker"
+
+        if speaker != current_speaker and current_words:
+            # Emit previous block
+            ts = format_duration(block_start)
+            label = current_speaker or "Speaker"
+            parts.append(f"\n**{label}** *[{ts}]*: {' '.join(current_words)}\n")
+            current_words = []
+
+        if not current_words:
+            block_start = seg.start
+            current_speaker = speaker
+
+        current_words.append(seg.text)
+
+    # Emit final block
+    if current_words:
+        ts = format_duration(block_start)
+        label = current_speaker or "Speaker"
+        parts.append(f"\n**{label}** *[{ts}]*: {' '.join(current_words)}\n")
+
+    return "".join(parts)
 
 
 def _handle_local_file_media(
