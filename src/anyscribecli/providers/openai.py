@@ -91,7 +91,17 @@ class OpenAIProvider(TranscriptionProvider):
         api_key = self._get_api_key()
 
         if diarize:
-            # gpt-4o-transcribe-diarize handles chunking server-side
+            if needs_chunking(audio_path):
+                size_mb = audio_path.stat().st_size / (1024 * 1024)
+                raise RuntimeError(
+                    f"File is {size_mb:.0f}MB — OpenAI's diarize endpoint has a 25MB limit "
+                    f"and doesn't support chunking.\n\n"
+                    f"Use Deepgram instead (handles large files natively with better speaker detection):\n"
+                    f"  scribe config set deepgram_api_key YOUR_KEY\n"
+                    f"  scribe \"{audio_path.name}\" --diarize\n\n"
+                    f"Or transcribe without diarization (will chunk automatically):\n"
+                    f"  scribe \"{audio_path.name}\" -p openai"
+                )
             return self._parse_response(
                 self._transcribe_diarize(audio_path, language, api_key), diarize=True
             )
