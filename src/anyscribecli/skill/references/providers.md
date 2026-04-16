@@ -32,12 +32,19 @@ Default provider. Reliable, well-documented, good across most languages. Support
 Fast, accurate transcription with native speaker diarization and Hindi Latin script support.
 
 - **Model:** nova-3
-- **Cost:** ~$0.005/min ($0.30/hr). $200 free credit on signup.
-- **Diarization:** Native — use `--diarize` flag for per-speaker labels
+- **Cost:** ~$0.005/min ($0.30/hr). $200 free credit on signup, no credit card needed.
+- **No file size limit** — processes files of any length in a single request
+- **Diarization:** Native — automatically detects the number of speakers from audio. No need to specify a speaker count.
 - **Hindi Latin:** Use `--language hi-Latn` for romanized Hindi (Hinglish) output
 - **Get key:** https://console.deepgram.com/
+- **Quick setup:** `scribe config set deepgram_api_key YOUR_KEY`
 
-**When to recommend:** Best for multi-speaker transcripts (meetings, interviews, podcasts). Ideal for Hinglish content with `--language hi-Latn`. Fast and accurate diarization.
+**Language guide for diarization:**
+- Mostly English (with some Hindi words) → no language flag needed, auto-detect works
+- Mostly Hindi / Hinglish → `--language hi-Latn` for romanized Latin script
+- Pure Hindi (Devanagari) → `--language hi`
+
+**When to recommend:** Best for multi-speaker transcripts (meetings, interviews, podcasts). Handles long recordings (3+ hours) without chunking. Ideal for Hinglish content with `--language hi-Latn`. This is the provider scribe auto-selects when `--diarize` is used.
 
 ## ElevenLabs Scribe (provider: `elevenlabs`)
 

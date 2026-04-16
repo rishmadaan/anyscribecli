@@ -45,20 +45,29 @@ scribe config set provider openai
 
 ### Deepgram Nova
 
-Fast, accurate speech-to-text with native speaker diarization and Hindi Latin script (`hi-Latn`) support. Excellent for Hinglish (Hindi-English code-switching) transcription.
+Fast, accurate speech-to-text with native speaker diarization and Hindi Latin script (`hi-Latn`) support. **The default provider for diarization** — scribe auto-routes `--diarize` to Deepgram when configured.
 
 ```bash
-scribe config set provider deepgram
+scribe config set deepgram_api_key YOUR_KEY    # $200 free credit on signup
 ```
 
 - **API key env var:** `DEEPGRAM_API_KEY`
-- **Get a key:** [console.deepgram.com](https://console.deepgram.com/)
-- **Cost:** ~$0.30/hour ($200 free credit on signup)
+- **Get a key:** [console.deepgram.com](https://console.deepgram.com/) — $200 free credit, no credit card required
+- **Cost:** ~$0.30/hour
 - **Model:** `nova-3`
-- **Diarization:** Native — use `--diarize` flag
-- **Hindi Latin:** Set `--language hi-Latn` for romanized Hindi output
+- **No file size limit** — processes files of any length in a single request (unlike OpenAI's 25MB limit)
+- **Diarization:** Native — automatically detects the number of speakers from audio characteristics. No need to specify a speaker count.
+- **Hindi Latin:** Set `--language hi-Latn` for romanized Hindi / Hinglish output
 
-> **When to use:** Best choice for multi-speaker transcripts (meetings, interviews, podcasts). Excellent for Hinglish content with `--language hi-Latn`. Native diarization is faster and more accurate than post-processing approaches.
+**Diarization language guide:**
+
+| Your audio | Language flag | Why |
+|-----------|--------------|-----|
+| English (or mostly English with some Hindi) | None (auto-detect) | Auto-detect handles English well, Hindi words transcribed phonetically |
+| Mostly Hindi / Hinglish (Hindi-English mix) | `--language hi-Latn` | Outputs romanized Hindi in Latin script, better code-switching |
+| Pure Hindi (want Devanagari) | `--language hi` | Outputs in Devanagari script |
+
+> **When to use:** Best choice for multi-speaker transcripts (meetings, interviews, podcasts). Handles long recordings (3+ hours) without chunking. Excellent for Hinglish content with `--language hi-Latn`. This is the provider scribe auto-selects when you use `--diarize`.
 
 ### ElevenLabs Scribe
 

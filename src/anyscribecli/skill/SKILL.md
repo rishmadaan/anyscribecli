@@ -86,8 +86,9 @@ When the user asks which provider to use, or when you need to suggest one:
 | Scenario | Recommend | Why |
 |---|---|---|
 | General purpose, most languages | **openai** | Best balance of cost, accuracy, language coverage |
-| Multi-speaker (meetings, interviews) | `--diarize` (auto-routes to **deepgram**) | Native diarization, fast, consistent speaker labels |
-| Hinglish / Hindi-English calls | **deepgram** with `-l hi-Latn --diarize` | Romanized Hindi output, code-switching support |
+| Multi-speaker (meetings, interviews) | `--diarize` (auto-routes to **deepgram**) | Native diarization, auto-detects speaker count, no file size limit |
+| Hinglish / Hindi-English calls | `--diarize -l hi-Latn` | Romanized Hindi output, code-switching support (auto-routes to Deepgram) |
+| Mostly English + some Hindi | `--diarize` (no language flag needed) | Auto-detect handles English well, Hindi words transcribed phonetically |
 | Indian languages (Hindi, Tamil, Telugu...) | **sargam** | Specialized for 22 Indian languages, much better than Whisper |
 | Highest accuracy, word timestamps | **elevenlabs** | Word-level timestamps, 99 languages |
 | Offline / no API key / free | **local** | Runs locally with faster-whisper, zero cost |

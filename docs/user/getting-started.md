@@ -168,6 +168,7 @@ tags: [transcript, youtube]
 ## What to do next
 
 - **Transcribe more** — `scribe "url"` with any YouTube or Instagram link, or `scribe /path/to/file.mp3` for local files
+- **Speaker diarization** — `scribe "url" --diarize` identifies who said what (auto-detects number of speakers). Set up Deepgram first: `scribe config set deepgram_api_key YOUR_KEY` ($200 free credit at [console.deepgram.com](https://console.deepgram.com/))
 - **Download video** — `scribe download "url"` to save video without transcribing
 - **Batch process** — `scribe batch urls.txt` to transcribe a list of URLs
 - **Add a provider key** — `scribe config set deepgram_api_key YOUR_KEY`

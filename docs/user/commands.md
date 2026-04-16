@@ -141,13 +141,14 @@ scribe "https://youtube.com/watch?v=abc123" --language es
 scribe "https://youtube.com/watch?v=abc123" --keep-media
 
 # Enable speaker diarization (auto-switches to Deepgram if configured)
+# Deepgram auto-detects the number of speakers — no need to specify a count
 scribe "https://youtube.com/watch?v=abc123" --diarize
 
 # Diarize with a specific provider (overrides auto-routing)
 scribe "https://youtube.com/watch?v=abc123" --diarize --provider openai
 
-# Diarize Hinglish to Latin script
-scribe "https://youtube.com/watch?v=abc123" --diarize --provider deepgram --language hi-Latn
+# Diarize a mostly-Hindi or Hinglish recording (romanized Latin script output)
+scribe "https://youtube.com/watch?v=abc123" --diarize --language hi-Latn
 
 # JSON output — for scripts, AI agents, or piping to other tools
 scribe "https://youtube.com/watch?v=abc123" --json
@@ -180,6 +181,41 @@ On error:
 ```
 
 > **Scripting tip:** Use `--json --quiet` together to get clean JSON with no extra output. Pipe to `jq` for filtering: `scribe "url" --json -q | jq '.file'`
+
+### Speaker Diarization
+
+The `--diarize` flag enables multi-speaker transcription — scribe identifies who said what and labels each turn.
+
+**How it works:**
+- **Automatic speaker detection** — the number of speakers is detected automatically from audio characteristics (pitch, tone, cadence). You never need to specify how many speakers are in the recording.
+- **Speaker labels** — each speaker gets a label (`Speaker 0`, `Speaker 1`, `Speaker 2`, etc.) assigned in the order they first appear.
+- **Auto-routing to Deepgram** — when `--diarize` is used without `-p`, scribe automatically switches to Deepgram if a Deepgram API key is configured. Deepgram handles files of any size natively and produces consistent speaker labels. Override with `-p openai` if needed.
+- **No file size limit with Deepgram** — unlike OpenAI (25MB limit for diarization), Deepgram processes the full audio in one shot regardless of length.
+
+**Language and diarization:**
+- **Auto-detect (default)** — works well for English and English-with-some-Hindi conversations. Use this for most meetings.
+- **`--language hi-Latn`** — use when the conversation is predominantly Hindi or Hinglish. Outputs romanized Hindi in Latin script instead of Devanagari. Deepgram handles code-switching (Hindi-English mixing) well in this mode.
+- **Auto-detect vs `hi-Latn`** — if the meeting is mostly English with some Hindi words sprinkled in, auto-detect is fine. If it's mostly Hindi with some English, use `hi-Latn`.
+
+**Output format:** Each speaker turn is a separate block with the speaker label and timestamp:
+
+```markdown
+**Speaker 0** *[0:00]*: Welcome everyone to the meeting...
+
+**Speaker 1** *[0:15]*: Thanks for having me. So about the project...
+
+**Speaker 0** *[0:30]*: Right, let's dive in.
+```
+
+**Quick setup:**
+```bash
+# 1. Add your Deepgram key (free $200 credit on signup at console.deepgram.com)
+scribe config set deepgram_api_key YOUR_KEY
+
+# 2. Transcribe with speakers
+scribe "url" --diarize                        # English / auto-detect
+scribe "url" --diarize --language hi-Latn     # Hindi / Hinglish
+```
 
 ### Supported Inputs
 

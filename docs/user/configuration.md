@@ -102,6 +102,10 @@ When enabled, providers that support diarization (OpenAI, Deepgram, Sarvam) will
 
 > **Auto-routing:** When `--diarize` is used (or this is set to `true`) without an explicit `--provider`, scribe automatically switches to Deepgram if a Deepgram API key is configured. Deepgram handles large files natively and produces the most consistent speaker labels. Override with `--provider openai` if needed.
 
+> **Automatic speaker detection:** The number of speakers is detected automatically from the audio — you never need to specify how many speakers are in the recording. Deepgram analyzes voice characteristics (pitch, tone, cadence) to distinguish speakers.
+
+> **Language tip:** For mostly-English meetings, auto-detect works well. For Hindi or Hinglish (Hindi-English mix), add `--language hi-Latn` for romanized Latin script output. See [Providers](providers.md) for the full language guide.
+
 > **When to enable:** If you primarily transcribe meetings, interviews, or podcasts with multiple speakers. Leave off for single-speaker content like YouTube videos.
 
 #### prompt_download
