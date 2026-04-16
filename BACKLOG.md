@@ -31,7 +31,8 @@ The `0.x` prefix means pre-stable — breaking changes are allowed between minor
 | 0.7.0 | Multi-speaker diarization, Deepgram provider, diarized output | Released 2026-04-16 |
 | 0.7.1 | Fix stale skill files in PyPI, add Windows note to skill | Released 2026-04-16 |
 | 0.7.2 | API key config via `config set`, diarize auto-routes to Deepgram | Released 2026-04-16 |
-| 0.7.2.1 | Clear error for OpenAI diarize 25MB limit, "Preparing audio" for local files | **Current** |
+| 0.7.2.1 | Clear error for OpenAI diarize 25MB limit, "Preparing audio" for local files | Released 2026-04-16 |
+| 0.7.2.2 | Fix Deepgram hi-Latn — fall back to Nova model for unsupported Nova 3 languages | **Current** |
 | 0.8.0 | Cache/dedup, test suite, error handling | Next |
 | 1.0.0 | Stable: full test coverage, CI/CD pipeline | Future |
 
