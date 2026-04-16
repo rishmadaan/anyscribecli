@@ -30,7 +30,8 @@ The `0.x` prefix means pre-stable — breaking changes are allowed between minor
 | 0.6.0 | scribe rename, MCP server, skill auto-install/update | Released 2026-04-05 |
 | 0.7.0 | Multi-speaker diarization, Deepgram provider, diarized output | Released 2026-04-16 |
 | 0.7.1 | Fix stale skill files in PyPI, add Windows note to skill | Released 2026-04-16 |
-| 0.7.2 | API key config via `config set`, diarize auto-routes to Deepgram | **Current** |
+| 0.7.2 | API key config via `config set`, diarize auto-routes to Deepgram | Released 2026-04-16 |
+| 0.7.2.1 | Clear error for OpenAI diarize 25MB limit, "Preparing audio" for local files | **Current** |
 | 0.8.0 | Cache/dedup, test suite, error handling | Next |
 | 1.0.0 | Stable: full test coverage, CI/CD pipeline | Future |
 
@@ -258,6 +259,15 @@ All features originally planned for v0.2.0–v0.5.0, built in one session:
 - [x] **`scribe config set` handles API keys** — `scribe config set deepgram_api_key KEY` stores in .env automatically. Supports all providers: openai, deepgram, elevenlabs, sargam, openrouter.
 - [x] **`--diarize` auto-routes to Deepgram** — when no explicit `-p` is given and Deepgram key is configured, auto-switches to Deepgram for best speaker detection. Override with `-p openai` if needed.
 - [x] Updated all docs (README, 4 user docs, 5 skill files, building/providers.md)
+
+---
+
+## v0.7.2.1 — UX Polish ✅
+
+**Released:** 2026-04-16
+
+- [x] **Clear error for OpenAI diarize 25MB limit** — instead of cryptic "corrupted or unsupported" passthrough, shows file size, explains the limit, and suggests Deepgram setup
+- [x] **"Preparing audio" for local files** — orchestrator now shows "Preparing audio..." / "Ready:" instead of misleading "Downloading audio..." / "Downloaded:" for local file transcription
 
 ---
 

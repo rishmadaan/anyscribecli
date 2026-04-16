@@ -427,7 +427,7 @@ Print the installed version.
 
 ```bash
 scribe --version
-# Output: scribe v0.7.2
+# Output: scribe v0.7.2.1
 ```
 
 ---

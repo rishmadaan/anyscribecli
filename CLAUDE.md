@@ -126,6 +126,20 @@ Version lives in TWO places that must match: `src/anyscribecli/__init__.py` and 
 ./scripts/release.sh X.Y.Z "description"
 ```
 
+### Version Tag Checklist
+
+**Every time a git tag is created (any version bump), you MUST also update:**
+
+1. `src/anyscribecli/__init__.py` — `__version__` matches the tag
+2. `pyproject.toml` — `version` field matches the tag
+3. `BACKLOG.md` — version table updated, release section added/updated
+4. `docs/building/_index.md` — new row if there's a building journal entry
+5. `docs/building/journal/` — new entry for significant changes
+6. All docs with hardcoded version strings (grep for the old version)
+7. Skill files if behavior changed
+
+**Do not create a tag without updating these files.** Stale version metadata is a bug.
+
 ## Testing
 
 ```bash
