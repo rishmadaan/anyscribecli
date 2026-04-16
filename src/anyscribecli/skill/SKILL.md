@@ -22,6 +22,8 @@ scribe --version
 
 If not installed: suggest `pip install anyscribecli`. If installed but not configured (no `~/.anyscribecli/config.yaml`): guide the user through `scribe onboard`.
 
+**Windows note:** If `scribe` is not on PATH (common on Windows), use `python -m anyscribecli` instead of `scribe` for all commands. Example: `python -m anyscribecli "url" --json --quiet`.
+
 ## Core Principle: Use --json for Machine Output
 
 When YOU run scribe commands, always use `--json --quiet` flags so you can parse structured output. Show the user a clean summary, not raw JSON.
