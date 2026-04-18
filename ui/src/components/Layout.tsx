@@ -134,12 +134,12 @@ export default function Layout() {
 
         {/* Decorative doodle — bottom of content area */}
         <div
-          className="pointer-events-none fixed bottom-0 right-0 w-[calc(100%-14rem)] h-64 bg-bottom bg-no-repeat bg-contain opacity-[0.04] hidden md:block"
-          style={{ backgroundImage: "url('/doodles-desktop-2.png')" }}
+          className="pointer-events-none fixed bottom-0 right-0 w-[calc(100%-14rem)] h-[50vh] bg-bottom bg-no-repeat opacity-[0.12] hidden md:block"
+          style={{ backgroundImage: "url('/doodles-desktop-2.png')", backgroundSize: "100% auto" }}
         />
         <div
-          className="pointer-events-none fixed bottom-0 right-0 w-[calc(100%-14rem)] h-64 bg-bottom bg-no-repeat bg-contain opacity-[0.04] md:hidden"
-          style={{ backgroundImage: "url('/doodles-mobile-2.png')" }}
+          className="pointer-events-none fixed bottom-0 right-0 w-[calc(100%-14rem)] h-[60vh] bg-bottom bg-no-repeat opacity-[0.12] md:hidden"
+          style={{ backgroundImage: "url('/doodles-mobile-2.png')", backgroundSize: "100% auto" }}
         />
       </main>
     </div>
