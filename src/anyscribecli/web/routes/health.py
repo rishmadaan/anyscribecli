@@ -14,7 +14,7 @@ async def health() -> dict:
     from anyscribecli.core.deps import check_dependencies
 
     results = check_dependencies()
-    deps = {name: found for name, found, _ in results}
+    deps = {r.dep.name: r.found for r in results}
     return {
         "ok": all(deps.values()),
         "version": __version__,

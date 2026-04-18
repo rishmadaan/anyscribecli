@@ -178,7 +178,16 @@ def ui(
 
     Starts a local web server and opens the scribe dashboard.
     """
+    import socket
+
     from anyscribecli.web.app import run
+
+    # Check for port conflict before starting
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        if s.connect_ex(("127.0.0.1", port)) == 0:
+            err_console.print(f"[red]Port {port} is already in use.[/red]")
+            err_console.print(f"Try: [bold]scribe ui --port {port + 1}[/bold]")
+            raise typer.Exit(code=1)
 
     console.print(f"[bold]scribe ui[/bold] → http://127.0.0.1:{port}")
     try:
