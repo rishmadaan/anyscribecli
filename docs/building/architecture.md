@@ -20,7 +20,7 @@ URL input -> Platform detection -> Download (yt-dlp / instaloader)
 ### CLI Layer (`cli/`)
 - Typer app with `rich_markup_mode="rich"`, custom `DefaultToTranscribe(TyperGroup)` class for bare-URL routing
 - Primary command: `scribe` (alias: `ascli` for backward compat)
-- Commands: `onboard`, `transcribe`, `download`, `batch`, `config`, `providers`, `ui`, `update`, `doctor`, `install-skill`
+- Commands: `onboard`, `transcribe`, `download`, `batch`, `config`, `providers`, `local`, `model`, `ui`, `update`, `doctor`, `install-skill`
 - Bare URL: `scribe "url"` auto-routes to transcribe (first arg not a known subcommand → prepend `transcribe`)
 - `--json` and `--quiet` available on main commands (transcribe, download, batch, config show, providers list)
 - `--json` for AI agent and scripting integration

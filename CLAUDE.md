@@ -8,13 +8,13 @@ A Python CLI tool (`scribe`) that downloads video/audio from YouTube/Instagram, 
 
 ```
 src/anyscribecli/
-├── cli/           # Typer commands (main.py, onboard.py, transcribe.py, download.py, batch.py, config_cmd.py)
+├── cli/           # Typer commands (main.py, onboard.py, transcribe.py, download.py, batch.py, config_cmd.py, local_cmd.py, models_cmd.py, skill_cmd.py)
 ├── config/        # Paths + settings (paths.py, settings.py)
 ├── downloaders/   # Platform downloaders (base.py, youtube.py, instagram.py, registry.py)
-├── providers/     # Transcription APIs (base.py, openai.py, openrouter.py, elevenlabs.py, sargam.py, local.py)
+├── providers/     # Transcription APIs (base.py, openai.py, openrouter.py, elevenlabs.py, sargam.py, deepgram.py, local.py, local_models.py, languages.py)
 ├── vault/         # Obsidian vault management (scaffold.py, writer.py, index.py)
-├── core/          # Orchestration + audio + deps + updater + migrations (orchestrator.py, audio.py, deps.py, updater.py, migrate.py)
-└── web/           # Web UI — FastAPI backend + built React SPA (app.py, jobs.py, routes/, static/)
+├── core/          # Orchestration + audio + deps + updater + migrations + local setup + headless onboarding (orchestrator.py, audio.py, deps.py, updater.py, migrate.py, local_setup.py, onboard_headless.py)
+└── web/           # Web UI — FastAPI backend + built React SPA (app.py, jobs.py, routes/{config,health,history,local,models,onboarding,system,transcribe}.py, static/)
 
 ui/                # Frontend source (React + TypeScript + Vite + Tailwind) — builds to web/static/
 ```
@@ -37,7 +37,7 @@ The Claude Code skill (`src/anyscribecli/skill/`) is the **primary way users int
 
 ## Key Patterns
 
-- **Providers** implement `TranscriptionProvider` ABC from `providers/base.py` (5 active: openai, elevenlabs, openrouter, sargam, local)
+- **Providers** implement `TranscriptionProvider` ABC from `providers/base.py` (6 active: openai, deepgram, elevenlabs, openrouter, sargam, local)
 - **Downloaders** implement `AbstractDownloader` ABC from `downloaders/base.py` (youtube, instagram)
 - **Config** at `~/.anyscribecli/config.yaml` — secrets in `.env` (API keys, Instagram password)
 - **All paths** use `pathlib.Path` via `config/paths.py` — no hardcoded separators
@@ -49,6 +49,8 @@ The Claude Code skill (`src/anyscribecli/skill/`) is the **primary way users int
 - **Audio params** optimized for Whisper: 16kHz, mono, 64kbps mp3
 - **Chunking** — 18-min segments for Whisper (25MB limit), 30s segments for Sarvam (REST API limit)
 - **Web UI** — `scribe ui` launches FastAPI + built React SPA at `127.0.0.1:8457`. REST API for config/history, WebSocket for real-time transcription progress. Frontend source in `ui/`, builds to `src/anyscribecli/web/static/`. Server stashed on `app.state` for graceful `/shutdown`. Orchestrator accepts optional `on_progress` callback — web layer bridges sync→async via ThreadPoolExecutor + asyncio.Queue
+- **Three-surface onboarding parity** — `scribe onboard` (interactive TUI), `scribe onboard --yes --provider X ...` (headless for agents), and the Web UI first-run wizard all call `core/onboard_headless.py::run_headless_onboard()`. Each surface is a thin flow controller; the backend state transitions are identical. Rule documented in `docs/building/architecture.md` → "CLI ↔ Web UI: shared backend, asymmetric surfaces"
+- **Local transcription is opt-in** — setup installs `faster-whisper` via pip subprocess on demand (`core/local_setup.py`), then downloads a Whisper model via `huggingface_hub`. CLI: `scribe local setup --model <size>`. Web UI: "Set up local transcription" button on the Local provider card. `scribe model {list, pull, rm, reinstall, info}` for day-to-day cache management. The `--model` flag is **always required** on `scribe local setup` — no silent defaults, even in a TTY
 
 ## Documentation Ethic
 

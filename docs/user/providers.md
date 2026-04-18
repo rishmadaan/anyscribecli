@@ -125,15 +125,17 @@ Runs entirely on your machine. No API key, no internet connection, no cost. Uses
 
 > **Also needs `ffmpeg`** on your system PATH. scribe uses ffmpeg to pre-process audio before handing it to Whisper — if ffmpeg isn't installed, local transcription will fail even after setup. Install via `brew install ffmpeg` (macOS), `winget install Gyan.FFmpeg` (Windows), or your distro's package manager (Linux).
 
-**Setup is a single action** — pick whichever path fits your workflow; all three do the same thing:
+**Setup is a single action** — pick whichever path fits your workflow; all four do the same thing:
 
 ```bash
 scribe local setup --model base
 ```
 
-or in the Web UI: **Settings → Providers → Local → "Set up local transcription"**.
+or in the Web UI, either:
+- **First-run onboarding wizard** (opens automatically on your first `scribe ui` launch) — pick "local" as your provider, or say Yes to the "Also enable offline transcription?" step.
+- **Settings → Providers → Local → "Set up local transcription"** at any time after onboarding.
 
-or during `scribe onboard`, answer **Yes** when asked *"Also enable offline/local transcription?"*.
+or during the terminal wizard, answer **Yes** when `scribe onboard` asks *"Also enable offline/local transcription?"*.
 
 Setup installs `faster-whisper` into the same Python environment as scribe, downloads the Whisper model you picked, and records it as your local default. After that, local transcription is fully offline.
 

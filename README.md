@@ -51,11 +51,13 @@ pip install anyscribecli
 scribe ui    # opens web dashboard — guides you through setup
 ```
 
-The web UI detects missing dependencies and walks you through setting up a transcription provider API key.
+On first launch the web UI opens a full-screen **onboarding wizard** — pick a provider, paste the API key (with a live Test button), optionally enable offline transcription, confirm your workspace, done.
 
 > **Windows:** If `scribe` isn't recognized, use `python -m anyscribecli ui`
 >
-> **Alternative:** `scribe onboard` runs a CLI setup wizard for terminal-based configuration.
+> **Alternative paths** (same end state):
+> - `scribe onboard` — interactive terminal wizard.
+> - `scribe onboard --provider openai --api-key "$OPENAI_API_KEY" --yes --json` — headless mode for agents, CI, and scripts.
 
 ### Transcribe
 
@@ -80,12 +82,16 @@ scribe download "https://www.youtube.com/watch?v=VIDEO_ID" --audio-only  # audio
 
 | Command | Description |
 |---------|-------------|
-| `scribe onboard` | Interactive setup wizard |
+| `scribe onboard` | Interactive setup wizard (TUI) |
+| `scribe onboard --provider X --api-key $KEY --yes` | Headless setup for agents / CI |
 | `scribe transcribe "<url or file>"` | Transcribe a video or local file to markdown |
 | `scribe download "<url>"` | Download video or audio only |
 | `scribe batch <file>` | Batch transcribe URLs or file paths from a file |
 | `scribe config show/set/path` | View and change settings |
 | `scribe providers list/test` | Manage transcription providers |
+| `scribe local setup --model <size>` | Install faster-whisper + download a Whisper model |
+| `scribe local status` / `scribe local teardown` | Report / remove offline transcription |
+| `scribe model list / pull / rm / reinstall / info` | Manage cached Whisper model weights |
 | `scribe ui` | Launch the web UI in your browser |
 | `scribe install-skill` | Install Claude Code skill |
 | `scribe update` | Update to the latest version |
