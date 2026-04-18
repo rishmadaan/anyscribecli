@@ -34,7 +34,7 @@ The `0.x` prefix means pre-stable — breaking changes are allowed between minor
 | 0.7.2.1 | Clear error for OpenAI diarize 25MB limit, "Preparing audio" for local files | Released 2026-04-16 |
 | 0.7.2.2 | Fix Deepgram hi-Latn — fall back to Nova model for unsupported Nova 3 languages | Released 2026-04-16 |
 | 0.7.2.3 | Update skill + docs for Hindi diarization defaults, version strings | Released 2026-04-16 |
-| 0.7.2.3-ui | Web UI — `scribe ui` with FastAPI backend + React SPA | **Current** |
+| 0.7.4 | Web UI — `scribe ui` with FastAPI backend + React SPA, 17 smoke tests | **Current** |
 | 0.8.0 | Cache/dedup, test suite, error handling | Next |
 | 1.0.0 | Stable: full test coverage, CI/CD pipeline | Future |
 
