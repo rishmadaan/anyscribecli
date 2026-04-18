@@ -42,7 +42,8 @@ The `0.x` prefix means pre-stable — breaking changes are allowed between minor
 | 0.7.4.5 | Cross-platform install scripts, web UI setup banner, shutdown button | Released 2026-04-18 |
 | 0.7.4.6 | Sidebar quit button, close tab on shutdown | Released 2026-04-18 |
 | 0.7.4.6.1 | File browse button for local transcription, upload endpoint | Released 2026-04-18 |
-| 0.7.4.7 | Per-provider language `<datalist>` picker + provider key clarity (disabled options + Settings CTA) | **Current** |
+| 0.7.4.7 | Per-provider language `<datalist>` picker + provider key clarity (disabled options + Settings CTA) | Released 2026-04-18 |
+| 0.7.4.7.1 | Fix language datalist popup showing nothing — clear input on focus so all options are visible | **Current** |
 | 0.8.0 | Cache/dedup, test suite, error handling | Next |
 | 1.0.0 | Stable: full test coverage, CI/CD pipeline | Future |
 

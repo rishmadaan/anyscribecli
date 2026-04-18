@@ -19,6 +19,14 @@ export default function LanguageInput({ provider, value, onChange, onBlur, class
   const listId = useId();
   const [languages, setLanguages] = useState<LanguageOption[]>([AUTO_OPTION]);
   const [freeform, setFreeform] = useState(false);
+  // Local display value: temporarily blanked on focus so the <datalist>
+  // popup shows ALL options instead of filtering by the current value
+  // (native datalists filter the popup by whatever's already in the input).
+  const [displayValue, setDisplayValue] = useState(value);
+
+  useEffect(() => {
+    setDisplayValue(value);
+  }, [value]);
 
   useEffect(() => {
     if (!provider) return;
@@ -39,15 +47,38 @@ export default function LanguageInput({ provider, value, onChange, onBlur, class
     };
   }, [provider]);
 
-  const placeholder = freeform ? "e.g. Spanish (free text)" : "auto";
+  const placeholder = freeform ? "e.g. Spanish (free text)" : value || "auto";
+
+  const handleFocus = () => {
+    // Datalists filter their popup by the input's current value. With "auto"
+    // pre-filled, the popup would show only the "auto" entry. Clearing the
+    // visible value on focus lets the popup show every supported language.
+    if (!freeform) setDisplayValue("");
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const typed = e.target.value;
+    // If the user cleared the field and didn't pick or type anything, restore
+    // the previous value rather than committing an empty string.
+    const finalValue = typed.trim() === "" ? value : typed;
+    if (finalValue !== value) onChange(finalValue);
+    setDisplayValue(finalValue);
+    if (onBlur) onBlur(finalValue);
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setDisplayValue(e.target.value);
+    onChange(e.target.value);
+  };
 
   return (
     <>
       <input
         type="text"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onBlur={onBlur ? (e) => onBlur(e.target.value) : undefined}
+        value={displayValue}
+        onChange={handleChange}
+        onFocus={handleFocus}
+        onBlur={handleBlur}
         placeholder={placeholder}
         list={freeform ? undefined : listId}
         className={className ?? INPUT_CLS}
