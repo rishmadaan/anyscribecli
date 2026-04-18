@@ -170,6 +170,24 @@ app.add_typer(providers_app, name="providers")
 
 
 @app.command()
+def ui(
+    port: int = typer.Option(8457, "--port", "-p", help="Port to listen on."),
+    no_open: bool = typer.Option(False, "--no-open", help="Don't auto-open browser."),
+) -> None:
+    """Launch the [bold]web UI[/bold] in your browser.
+
+    Starts a local web server and opens the scribe dashboard.
+    """
+    from anyscribecli.web.app import run
+
+    console.print(f"[bold]scribe ui[/bold] → http://127.0.0.1:{port}")
+    try:
+        run(port=port, open_browser=not no_open)
+    except KeyboardInterrupt:
+        console.print("\n[dim]stopped.[/dim]")
+
+
+@app.command()
 def update(
     force: bool = typer.Option(
         False, "--force", "-f", help="Force update even with local changes."

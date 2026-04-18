@@ -24,6 +24,10 @@ build/
 # Claude Code (skills are installed from the package, not the repo)
 .claude/skills/
 
+# Node.js (frontend build tooling)
+ui/node_modules/
+ui/dist/
+
 # IDE
 .vscode/
 .idea/

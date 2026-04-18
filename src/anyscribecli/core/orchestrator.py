@@ -6,6 +6,7 @@ import shutil
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Callable
 
 from rich.console import Console
 
@@ -17,6 +18,9 @@ from anyscribecli.vault.writer import write_transcript, format_duration
 from anyscribecli.vault.index import update_indexes
 
 err_console = Console(stderr=True)
+
+# Type alias for progress callbacks (used by web UI)
+OnProgress = Callable[..., None] | None
 
 
 @dataclass
@@ -32,13 +36,20 @@ class ProcessResult:
     provider: str
 
 
-def process(url: str, settings: Settings, quiet: bool = False) -> ProcessResult:
+def process(
+    url: str,
+    settings: Settings,
+    quiet: bool = False,
+    on_progress: OnProgress = None,
+) -> ProcessResult:
     """Full pipeline: download -> transcribe -> write -> index.
 
     Args:
         url: Video/audio URL to process.
         settings: App settings.
         quiet: Suppress progress output.
+        on_progress: Optional callback for progress events (used by web UI).
+            Signature: (step, status, message, **kwargs) -> None
 
     Returns:
         ProcessResult with metadata about the written file.
@@ -69,20 +80,26 @@ def process(url: str, settings: Settings, quiet: bool = False) -> ProcessResult:
     try:
         # Step 1: Download / prepare
         is_local = not url.startswith("http://") and not url.startswith("https://")
+        label = "Preparing audio" if is_local else "Downloading audio"
         if not quiet:
-            label = "Preparing audio" if is_local else "Downloading audio"
             err_console.print(f"[bold blue]{label}...[/bold blue]")
+        if on_progress:
+            on_progress("download", "started", f"{label}...")
 
         downloader = get_downloader(url)
         download = downloader.download(url, tmp_dir)
 
+        status = "Ready" if is_local else "Downloaded"
         if not quiet:
-            status = "Ready" if is_local else "Downloaded"
             err_console.print(f"  [green]{status}:[/green] {download.title}")
+        if on_progress:
+            on_progress("download", "completed", f"{status}: {download.title}")
 
         # Step 2: Transcribe
         if not quiet:
             err_console.print(f"[bold blue]Transcribing with {settings.provider}...[/bold blue]")
+        if on_progress:
+            on_progress("transcribe", "started", f"Transcribing with {settings.provider}...")
 
         provider = get_provider(settings.provider)
         transcript = provider.transcribe(
@@ -94,18 +111,34 @@ def process(url: str, settings: Settings, quiet: bool = False) -> ProcessResult:
                 f"  [green]Done:[/green] {transcript.word_count} words, "
                 f"language={transcript.language}"
             )
+        if on_progress:
+            on_progress(
+                "transcribe",
+                "completed",
+                f"Done: {transcript.word_count} words, language={transcript.language}",
+            )
 
         # Step 3: Write transcript to vault
         if not quiet:
             err_console.print("[bold blue]Writing to vault...[/bold blue]")
+        if on_progress:
+            on_progress("write", "started", "Writing to vault...")
 
         file_path = write_transcript(download, transcript, settings)
 
+        if on_progress:
+            on_progress("write", "completed", f"Saved: {file_path}")
+
         # Step 4: Update indexes
+        if on_progress:
+            on_progress("index", "started", "Updating indexes...")
+
         update_indexes(file_path, download)
 
         if not quiet:
             err_console.print(f"  [green]Saved:[/green] {file_path}")
+        if on_progress:
+            on_progress("index", "completed", "Indexes updated")
 
         return ProcessResult(
             file_path=file_path,

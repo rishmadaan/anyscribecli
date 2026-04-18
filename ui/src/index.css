@@ -1,0 +1,126 @@
+@import "tailwindcss";
+
+/* ── Design tokens ────────────────────────────────── */
+@theme {
+  --color-bg: #0B0A0F;
+  --color-surface: #13121A;
+  --color-surface-raised: #1A1923;
+  --color-surface-hover: #21202C;
+  --color-border: #2A2937;
+  --color-border-subtle: #1F1E2B;
+
+  --color-text: #F0EEF6;
+  --color-text-secondary: #9895A7;
+  --color-text-muted: #5C5970;
+
+  --color-amber: #F0A050;
+  --color-amber-glow: #F0A050;
+  --color-amber-dim: #4A3520;
+  --color-green: #50D890;
+  --color-red: #F06060;
+  --color-blue: #60A0F0;
+  --color-purple: #A080F0;
+
+  --color-youtube: #FF0000;
+  --color-instagram: #E1306C;
+
+  --font-display: "Bricolage Grotesque", "Sora", "Outfit", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", "Fira Code", ui-monospace, monospace;
+  --font-body: "DM Sans", "Plus Jakarta Sans", system-ui, sans-serif;
+}
+
+/* ── Base ─────────────────────────────────────────── */
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-bg text-text antialiased;
+    font-family: var(--font-body);
+    margin: 0;
+  }
+
+  /* Subtle noise texture overlay */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.025;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  #root {
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+/* ── Animations ───────────────────────────────────── */
+
+@keyframes pulse-amber {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes waveform {
+  0%, 100% { transform: scaleY(0.3); }
+  50% { transform: scaleY(1); }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease both;
+}
+
+.animate-pulse-amber {
+  animation: pulse-amber 2s ease-in-out infinite;
+}
+
+/* Waveform bars for active transcription */
+.waveform-bar {
+  animation: waveform 1.2s ease-in-out infinite;
+}
+
+/* Stagger delays */
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.1s; }
+.stagger-3 { animation-delay: 0.15s; }
+.stagger-4 { animation-delay: 0.2s; }
+
+/* ── Scrollbar ────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
