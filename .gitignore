@@ -21,8 +21,8 @@ build/
 *.flac
 *.webm
 
-# Claude Code (skills are installed from the package, not the repo)
-.claude/
+# Claude Code (local-only working state; skills + settings are shared)
+.claude/settings.local.json
 
 # Node.js (frontend build tooling)
 ui/node_modules/
