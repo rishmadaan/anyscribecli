@@ -24,6 +24,8 @@ By the end of this guide you will have:
 >
 > All three write the same config and land you in the same place. Transcriptions you start from one surface show up in all of them.
 
+> **Everything runs locally.** The Web UI at `http://127.0.0.1:8457` is a server on your own machine — no cloud account, no sign-up, no telemetry. The only time scribe touches the internet is when *you* ask it to: downloading a YouTube/Instagram source you pointed it at, calling whichever transcription API provider you set up, or pulling a Whisper model for offline transcription (once, the first time). Point it at a local file with the local provider and the whole pipeline runs offline — your audio never leaves your machine.
+
 ## What you need
 
 Before starting, you need:

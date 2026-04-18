@@ -11,6 +11,16 @@ read_when:
 
 scribe supports 6 transcription providers. Here's how they compare and when to use each.
 
+## Privacy — who sees your audio?
+
+Worth knowing before you pick. scribe itself doesn't phone home — everything runs on your own machine — but your audio has to go wherever the transcription happens.
+
+- **Local provider:** audio stays on your machine. Nothing leaves. Fully offline once the Whisper model is downloaded.
+- **API providers (OpenAI / Deepgram / ElevenLabs / Sarvam / OpenRouter):** scribe sends your audio to the API you picked and nothing else. No intermediary, no third party, no scribe-operated cloud. Your trust boundary is exactly the provider you chose — same as if you called their API directly.
+- **YouTube / Instagram source URLs:** downloading the video obviously requires internet, and the source host sees the request. The transcribed audio then follows the same rule above (stays local with the local provider; goes to the API provider otherwise).
+
+If privacy is the main reason you're evaluating scribe, use the **Local** provider + local files for an end-to-end-offline pipeline.
+
 ## Quick Comparison
 
 | | OpenAI Whisper | Deepgram Nova | ElevenLabs Scribe | Sarvam AI | OpenRouter | Local |

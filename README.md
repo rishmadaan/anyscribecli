@@ -10,6 +10,16 @@ Three equivalent surfaces, pick whichever fits:
 
 None of the three is "primary"; all three cover the full product. Human users reach the full product through Web UI or terminal without ever needing the other. Agents reach it through flags alone. Shared backend, shared state — a transcription started from any surface is visible to all of them.
 
+### Private by default, local-first
+
+- **The Web UI is a local server, not a cloud service.** It runs at `127.0.0.1:8457` on your own machine. No account, no sign-up, no telemetry. There is no "anyscribe.com" backend.
+- **Internet is only involved when *you* ask for it.** Three cases, all transparent:
+  - **Downloading a YouTube or Instagram source** — obvious; you gave it the URL.
+  - **Calling an API provider** (OpenAI, Deepgram, ElevenLabs, Sarvam, OpenRouter) — your audio goes to the provider you picked, and nothing else. Your data stays between you and them.
+  - **Pulling a Whisper model** (one-time, only if you enable local transcription) — weights download from Hugging Face.
+- **Fully offline is available.** Local files + the local provider (`scribe local setup --model base`) = zero network traffic. Your audio never leaves your machine. Same pipeline, same output format as the cloud providers.
+- No analytics, no phone-home. `scribe update --check` reaches PyPI to compare versions, but only when you run it.
+
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/anyscribecli.svg)](https://pypi.org/project/anyscribecli/)
@@ -30,7 +40,8 @@ URL or local file → Download/convert audio → Transcribe → Formatted Markdo
 - **Master index + daily logs** — browse everything in Obsidian
 - **Download-only mode** — grab video or audio without transcribing
 - **Batch processing** — transcribe a list of URLs from a file
-- **Web UI** — `scribe ui` launches a local dashboard (transcribe, browse history, manage settings, first-run onboarding wizard) at `127.0.0.1:8457`
+- **Web UI** — `scribe ui` launches a local dashboard (transcribe, browse history, manage settings, first-run onboarding wizard) at `127.0.0.1:8457` — served from your own machine, no cloud backend
+- **Local-first, no account** — no sign-up, no telemetry, no SaaS layer; fully offline with the local provider + local files
 - **Agent-friendly CLI** — `--json` output, structured exit codes, `--yes` for non-interactive runs on every consequential command; no silent defaults for choices an agent might make on the user's behalf
 - **Three-surface onboarding parity** — wizard modal in the Web UI, interactive prompts in `scribe onboard`, flag-driven in `scribe onboard --yes ...`; all three write the same config
 
