@@ -1,6 +1,6 @@
 # Architecture
 
-**Last updated:** 2026-04-16 (v0.7.0)
+**Last updated:** 2026-04-18 (v0.7.2.3-ui)
 
 ## Overview
 
@@ -20,7 +20,7 @@ URL input -> Platform detection -> Download (yt-dlp / instaloader)
 ### CLI Layer (`cli/`)
 - Typer app with `rich_markup_mode="rich"`, custom `DefaultToTranscribe(TyperGroup)` class for bare-URL routing
 - Primary command: `scribe` (alias: `ascli` for backward compat)
-- Commands: `onboard`, `transcribe`, `download`, `batch`, `config`, `providers`, `update`, `doctor`, `install-skill`
+- Commands: `onboard`, `transcribe`, `download`, `batch`, `config`, `providers`, `ui`, `update`, `doctor`, `install-skill`
 - Bare URL: `scribe "url"` auto-routes to transcribe (first arg not a known subcommand → prepend `transcribe`)
 - `--json` and `--quiet` available on main commands (transcribe, download, batch, config show, providers list)
 - `--json` for AI agent and scripting integration
@@ -34,6 +34,19 @@ URL input -> Platform detection -> Download (yt-dlp / instaloader)
 - Calls core modules directly (orchestrator, settings, providers) — not CLI commands
 - All tools return JSON, consistent error format
 - Optional dependency: `pip install anyscribecli[mcp]` (adds `mcp>=1.0`)
+
+### Web UI Layer (`web/` + `ui/`)
+- FastAPI backend serving a built React SPA at `127.0.0.1:8457`
+- Launched via `scribe ui` — core dependency, not optional
+- REST API: `/api/config`, `/api/providers`, `/api/transcripts`, `/api/transcribe`, `/api/health`, `/api/shutdown`
+- WebSocket: `/api/ws/jobs/{job_id}` for real-time transcription progress
+- JobManager runs `process()` in ThreadPoolExecutor, bridges to async via `asyncio.Queue` + `call_soon_threadsafe`
+- Orchestrator's `on_progress` callback emits `ProgressEvent` at each pipeline step (download, transcribe, write, index)
+- Frontend: React 19 + TypeScript + Vite + Tailwind CSS v4, builds to `web/static/`
+- SPA routing: catch-all `/{full_path:path}` serves `index.html` for non-API paths
+- Server stashed on `app.state.server` for graceful `/shutdown` via `server.should_exit = True`
+- Port conflict detection before starting uvicorn
+- 17 smoke tests via FastAPI TestClient
 
 ### Skill Layer (`skill/`)
 - Claude Code skill files bundled in package, auto-installed to `~/.claude/skills/scribe/`
@@ -96,3 +109,6 @@ URL input -> Platform detection -> Download (yt-dlp / instaloader)
 - **PyPI automation**: GitHub Actions publishes on tag push via trusted publishing; `scripts/release.sh` for one-command releases
 - **AI-first skill management**: Claude Code skill auto-installs and auto-updates on every CLI invocation. `.version` marker pattern borrowed from gitstow — one file read + string compare, never blocks CLI
 - **MCP server**: Thin wrapper around core modules. Both CLI and MCP use same orchestrator/providers/settings — only output format differs (Rich console vs JSON)
+- **Web UI as core dependency**: FastAPI/uvicorn ship with `pip install anyscribecli` (not optional). One app, one install. Same pattern as gitstow. React SPA builds to `web/static/`, committed to repo — end users don't need Node.js
+- **Progress callback over async rewrite**: `on_progress` callback on `process()` avoids rewriting all providers/downloaders as async. ThreadPoolExecutor bridges sync→async cleanly
+- **WebSocket over polling**: Real-time transcription progress (download→transcribe→write→index) needs instant feedback, not 30s HTMX polls. Event replay on late-connecting clients prevents missed events

@@ -22,6 +22,7 @@ URL or local file → Download/convert audio → Transcribe → Formatted Markdo
 - **Master index + daily logs** — browse everything in Obsidian
 - **Download-only mode** — grab video or audio without transcribing
 - **Batch processing** — transcribe a list of URLs from a file
+- **Web UI** — `scribe ui` launches a local dashboard in your browser (transcribe, browse history, manage settings)
 - **`--json` on main commands** — for scripting and AI agent integration
 - **Arrow-key onboarding wizard** — interactive setup, installs missing dependencies
 
@@ -92,6 +93,7 @@ ascli download "https://www.youtube.com/watch?v=VIDEO_ID" --audio-only  # audio
 | `ascli batch <file>` | Batch transcribe URLs or file paths from a file |
 | `ascli config show/set/path` | View and change settings |
 | `ascli providers list/test` | Manage transcription providers |
+| `ascli ui` | Launch the web UI in your browser |
 | `ascli install-skill` | Install Claude Code skill |
 | `ascli update` | Update to the latest version |
 | `ascli doctor` | Check system health |

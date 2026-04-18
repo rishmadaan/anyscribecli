@@ -165,8 +165,21 @@ reading_time: "4 min"
 tags: [transcript, youtube]
 ```
 
+## Step 6: Try the Web UI (optional)
+
+If you prefer a visual interface over the command line:
+
+```bash
+scribe ui
+```
+
+This opens a local web dashboard in your browser where you can paste URLs, watch transcription progress in real-time, browse your transcript history, and manage settings — all without typing commands.
+
+> **Same tool, different surface.** The web UI uses the exact same transcription pipeline as the CLI. Your transcripts end up in the same Obsidian vault.
+
 ## What to do next
 
+- **Try the web UI** — `scribe ui` for a visual dashboard
 - **Transcribe more** — `scribe "url"` with any YouTube or Instagram link, or `scribe /path/to/file.mp3` for local files
 - **Speaker diarization** — `scribe "url" --diarize` identifies who said what (auto-detects number of speakers). Set up Deepgram first: `scribe config set deepgram_api_key YOUR_KEY` ($200 free credit at [console.deepgram.com](https://console.deepgram.com/))
 - **Download video** — `scribe download "url"` to save video without transcribing

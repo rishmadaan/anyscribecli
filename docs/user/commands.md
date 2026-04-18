@@ -23,6 +23,7 @@ Every scribe command. Copy-paste friendly.
 | `scribe config path` | Print config file location |
 | `scribe providers list` | Show available providers |
 | `scribe providers test [name]` | Test a provider's API key |
+| `scribe ui` | Launch the web UI in your browser |
 | `scribe install-skill` | Install/update Claude Code skill |
 | `scribe update` | Update to the latest version |
 | `scribe doctor` | Check system health |
@@ -385,6 +386,44 @@ scribe providers test openai   # test a specific provider
 | `local` | None needed | Offline, free, runs on your machine |
 
 > **Local provider** requires `pip install faster-whisper`. No API key, no internet. Runs on CPU (slower) or GPU (fast). Models download automatically on first use.
+
+---
+
+## scribe ui
+
+Launch a local web dashboard in your browser. Provides a visual interface for transcribing, browsing history, and managing settings — same functionality as the CLI, in a browser window.
+
+```bash
+scribe ui
+```
+
+Opens your browser at `http://127.0.0.1:8457` with three views:
+
+- **Transcribe** — paste a URL, choose options (provider, language, diarize), watch real-time progress, see results
+- **History** — browse past transcripts from your vault, grouped by date, with search
+- **Settings** — change config, view provider status, test API keys, check system health
+
+### Flags
+
+| Flag | Short | Description | Default |
+|------|-------|-------------|---------|
+| `--port` | `-p` | Port to listen on | `8457` |
+| `--no-open` | | Don't auto-open browser | Off (opens automatically) |
+
+### Examples
+
+```bash
+# Launch web UI (opens browser automatically)
+scribe ui
+
+# Use a different port
+scribe ui --port 9000
+
+# Start without opening browser
+scribe ui --no-open
+```
+
+> **Local only.** The web UI binds to `127.0.0.1` — it's only accessible from your machine. No auth needed. Stop it with Ctrl+C.
 
 ---
 

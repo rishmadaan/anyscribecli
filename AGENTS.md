@@ -70,6 +70,10 @@ Then prepend a row to `docs/building/_index.md`.
 - Core flow: `src/anyscribecli/core/orchestrator.py`
 - Dependency checker: `src/anyscribecli/core/deps.py`
 - Update system: `src/anyscribecli/core/updater.py`
+- Web UI backend: `src/anyscribecli/web/app.py` (FastAPI factory + static serving)
+- Web UI routes: `src/anyscribecli/web/routes/` (transcribe, history, config, health, system)
+- Web UI job manager: `src/anyscribecli/web/jobs.py` (ThreadPoolExecutor + asyncio bridge)
+- Frontend source: `ui/` (React + TypeScript + Vite, builds to `web/static/`)
 
 ## Key Dependencies
 

@@ -13,10 +13,14 @@ src/anyscribecli/
 ├── downloaders/   # Platform downloaders (base.py, youtube.py, instagram.py, registry.py)
 ├── providers/     # Transcription APIs (base.py, openai.py, openrouter.py, elevenlabs.py, sargam.py, local.py)
 ├── vault/         # Obsidian vault management (scaffold.py, writer.py, index.py)
-└── core/          # Orchestration + audio + deps + updater + migrations (orchestrator.py, audio.py, deps.py, updater.py, migrate.py)
+├── core/          # Orchestration + audio + deps + updater + migrations (orchestrator.py, audio.py, deps.py, updater.py, migrate.py)
+└── web/           # Web UI — FastAPI backend + built React SPA (app.py, jobs.py, routes/, static/)
+
+ui/                # Frontend source (React + TypeScript + Vite + Tailwind) — builds to web/static/
 ```
 
 Flow: `CLI command -> orchestrator -> downloader + provider -> vault writer -> index update`
+Web flow: `Browser (React SPA) <-> FastAPI REST + WebSocket <-> orchestrator (same core logic)`
 
 ## Claude Code Skill — Primary Usage Path
 
@@ -44,6 +48,7 @@ The Claude Code skill (`src/anyscribecli/skill/`) is the **primary way users int
 - **Downloads outside vault** — audio in `~/.anyscribecli/downloads/audio/`, video in `downloads/video/`
 - **Audio params** optimized for Whisper: 16kHz, mono, 64kbps mp3
 - **Chunking** — 18-min segments for Whisper (25MB limit), 30s segments for Sarvam (REST API limit)
+- **Web UI** — `scribe ui` launches FastAPI + built React SPA at `127.0.0.1:8457`. REST API for config/history, WebSocket for real-time transcription progress. Frontend source in `ui/`, builds to `src/anyscribecli/web/static/`. Server stashed on `app.state` for graceful `/shutdown`. Orchestrator accepts optional `on_progress` callback — web layer bridges sync→async via ThreadPoolExecutor + asyncio.Queue
 
 ## Documentation Ethic
 

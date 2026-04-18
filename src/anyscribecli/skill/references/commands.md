@@ -155,6 +155,27 @@ https://youtube.com/watch?v=def456
 
 ---
 
+## scribe ui
+
+Launch a local web dashboard in the browser. Visual interface for transcribing, browsing history, and managing settings.
+
+```bash
+scribe ui                  # opens browser at http://127.0.0.1:8457
+scribe ui --port 9000      # custom port
+scribe ui --no-open        # don't auto-open browser
+```
+
+### Flags
+
+| Flag | Short | Description | Default |
+|------|-------|-------------|---------|
+| `--port` | `-p` | Port to listen on | `8457` |
+| `--no-open` | | Don't auto-open browser | Off |
+
+Local only (127.0.0.1). Stop with Ctrl+C.
+
+---
+
 ## scribe config
 
 View and change settings.

@@ -53,6 +53,7 @@ When the USER wants to run commands themselves, show them the human-readable for
 | Test a provider | `scribe providers test <name>` |
 | List providers | `scribe providers list` |
 | Initial setup or reconfigure | `scribe onboard` (or `--force` to re-run) |
+| Use the web UI | `scribe ui` (opens browser dashboard at 127.0.0.1:8457) |
 | Diagnose problems | `scribe doctor` |
 | Update scribe | `scribe update` |
 | Check for updates | `scribe update --check` |
