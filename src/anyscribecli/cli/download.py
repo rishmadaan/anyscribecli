@@ -88,7 +88,7 @@ def download(
             }
 
         if output_json:
-            json.dump({"success": True, **result}, sys.stdout, indent=2)
+            json.dump({"success": True, "data": result, "error": None}, sys.stdout, indent=2)
             sys.stdout.write("\n")
         else:
             console.print(f"\n[green]Downloaded:[/green] {result['file']}")
@@ -97,7 +97,7 @@ def download(
 
     except Exception as e:
         if output_json:
-            json.dump({"success": False, "error": str(e)}, sys.stdout, indent=2)
+            json.dump({"success": False, "data": None, "error": str(e)}, sys.stdout, indent=2)
             sys.stdout.write("\n")
         else:
             err_console.print(f"[red]Error:[/red] {e}")

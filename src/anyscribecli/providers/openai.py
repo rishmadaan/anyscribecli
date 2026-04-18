@@ -7,12 +7,13 @@ from pathlib import Path
 
 import httpx
 
+from anyscribecli.core.errors import classify_api_error, with_retry
 from anyscribecli.providers.base import (
     TranscriptionProvider,
     TranscriptResult,
     TranscriptSegment,
 )
-from anyscribecli.core.audio import chunk_audio, needs_chunking
+from anyscribecli.core.audio import chunk_audio, deduplicate_overlap, needs_chunking
 
 
 class OpenAIProvider(TranscriptionProvider):
@@ -36,6 +37,7 @@ class OpenAIProvider(TranscriptionProvider):
             )
         return key
 
+    @with_retry()
     def _transcribe_single(self, audio_path: Path, language: str, api_key: str) -> dict:
         """Transcribe a single audio file (must be <= 25MB)."""
         with open(audio_path, "rb") as f:
@@ -57,9 +59,10 @@ class OpenAIProvider(TranscriptionProvider):
             )
 
         if response.status_code != 200:
-            raise RuntimeError(f"Whisper API error ({response.status_code}): {response.text}")
+            raise classify_api_error(response.status_code, response.text, self.name)
         return response.json()
 
+    @with_retry()
     def _transcribe_diarize(self, audio_path: Path, language: str, api_key: str) -> dict:
         """Transcribe with speaker diarization using gpt-4o-transcribe-diarize."""
         with open(audio_path, "rb") as f:
@@ -80,9 +83,7 @@ class OpenAIProvider(TranscriptionProvider):
             )
 
         if response.status_code != 200:
-            raise RuntimeError(
-                f"OpenAI diarize API error ({response.status_code}): {response.text}"
-            )
+            raise classify_api_error(response.status_code, response.text, self.name)
         return response.json()
 
     def transcribe(
@@ -110,19 +111,35 @@ class OpenAIProvider(TranscriptionProvider):
             return self._parse_response(self._transcribe_single(audio_path, language, api_key))
 
         # Chunk large files (>25MB) — pattern from AnyScribe web app
+        from anyscribecli.core.checkpoint import ChunkCheckpoint
+
         chunks = chunk_audio(audio_path)
+        ckpt = ChunkCheckpoint.load_or_create(audio_path, self.name, language, len(chunks))
         all_text_parts: list[str] = []
         all_segments: list[TranscriptSegment] = []
         detected_language = ""
         total_duration = 0.0
         segment_id = 0
 
-        for chunk_path, offset in chunks:
+        for i, (chunk_path, offset) in enumerate(chunks):
+            if ckpt.is_completed(i):
+                saved = ckpt.get(i)
+                all_text_parts.append(saved["text"])
+                if not detected_language:
+                    detected_language = saved.get("language", "")
+                for seg_data in saved.get("segments", []):
+                    all_segments.append(TranscriptSegment(**seg_data))
+                    segment_id = max(segment_id, seg_data.get("id", 0) + 1)
+                if saved.get("duration"):
+                    total_duration = max(total_duration, offset + saved["duration"])
+                chunk_path.unlink(missing_ok=True)
+                continue
             try:
                 resp = self._transcribe_single(chunk_path, language, api_key)
                 result = self._parse_response(resp)
 
-                all_text_parts.append(result.text)
+                text = deduplicate_overlap(all_text_parts[-1], result.text) if all_text_parts else result.text
+                all_text_parts.append(text)
                 if not detected_language:
                     detected_language = result.language
 
@@ -136,9 +153,18 @@ class OpenAIProvider(TranscriptionProvider):
 
                 if result.duration:
                     total_duration = max(total_duration, offset + result.duration)
+
+                ckpt.mark_completed(i, {
+                    "text": result.text,
+                    "language": result.language,
+                    "duration": result.duration,
+                    "segments": result.segments,
+                })
+                ckpt.save()
             finally:
                 chunk_path.unlink(missing_ok=True)
 
+        ckpt.cleanup()
         full_text = " ".join(all_text_parts)
         return TranscriptResult(
             text=full_text,

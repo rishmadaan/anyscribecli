@@ -72,12 +72,16 @@ class TestHistory:
         r = client.get("/api/transcripts")
         assert r.status_code == 200
         data = r.json()
-        assert isinstance(data, list)
+        assert "items" in data
+        assert "total" in data
+        assert isinstance(data["items"], list)
 
     def test_list_transcripts_with_platform_filter(self, client):
         r = client.get("/api/transcripts?platform=youtube")
         assert r.status_code == 200
-        assert isinstance(r.json(), list)
+        data = r.json()
+        assert "items" in data
+        assert isinstance(data["items"], list)
 
     def test_get_nonexistent_transcript(self, client):
         r = client.get("/api/transcripts/does-not-exist-12345")

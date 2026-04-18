@@ -27,6 +27,7 @@ def batch(
     diarize: bool = typer.Option(False, "--diarize", "-d", help="Enable speaker diarization."),
     quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress progress."),
     stop_on_error: bool = typer.Option(False, "--stop-on-error", help="Stop at first failure."),
+    resume: bool = typer.Option(False, "--resume", help="Resume from last checkpoint."),
 ) -> None:
     """[bold magenta]Batch transcribe[/bold magenta] URLs or local files from a list.
 
@@ -46,6 +47,30 @@ def batch(
 
     if not urls:
         err_console.print("[yellow]No URLs or file paths found in file.[/yellow]")
+        raise typer.Exit()
+
+    # Deduplicate while preserving order
+    original_count = len(urls)
+    urls = list(dict.fromkeys(urls))
+    if len(urls) < original_count and not quiet:
+        err_console.print(f"  [dim]Removed {original_count - len(urls)} duplicate(s)[/dim]")
+
+    # Resume from checkpoint
+    state_file = file.with_suffix(file.suffix + ".state.json")
+    if resume and state_file.exists():
+        import json as _json
+
+        state = _json.loads(state_file.read_text())
+        completed_urls = set(state.get("completed", []))
+        skipped = len([u for u in urls if u in completed_urls])
+        urls = [u for u in urls if u not in completed_urls]
+        if skipped and not quiet:
+            err_console.print(f"  [dim]Resuming — skipping {skipped} already completed[/dim]")
+    elif not resume and state_file.exists():
+        state_file.unlink()
+
+    if not urls:
+        err_console.print("[green]All URLs already processed. Nothing to do.[/green]")
         raise typer.Exit()
 
     load_env()
@@ -76,6 +101,7 @@ def batch(
         # No progress display
         for url in urls:
             succeeded, failed = _process_url(url, settings, results, succeeded, failed, quiet=True)
+            _save_batch_state(state_file, url, results[-1].get("success", False))
             if failed and stop_on_error:
                 break
     else:
@@ -94,19 +120,28 @@ def batch(
                 succeeded, failed = _process_url(
                     url, settings, results, succeeded, failed, quiet=True
                 )
+                _save_batch_state(state_file, url, results[-1].get("success", False))
                 progress.advance(task)
                 if failed and stop_on_error:
                     err_console.print("[red]Stopping on error (--stop-on-error).[/red]")
                     break
 
+    # Clean up state file on full completion (no failures or no stop-on-error)
+    if failed == 0 and state_file.exists():
+        state_file.unlink(missing_ok=True)
+
     # Summary
     if output_json:
         json.dump(
             {
-                "total": len(urls),
-                "succeeded": succeeded,
-                "failed": failed,
-                "results": results,
+                "success": failed == 0,
+                "data": {
+                    "total": len(urls),
+                    "succeeded": succeeded,
+                    "failed": failed,
+                    "results": results,
+                },
+                "error": None,
             },
             sys.stdout,
             indent=2,
@@ -133,6 +168,19 @@ def batch(
 
     if failed > 0:
         raise typer.Exit(code=1)
+
+
+def _save_batch_state(state_file: Path, url: str, success: bool) -> None:
+    """Append completed URL to state file for resume support."""
+    if not success:
+        return
+    from anyscribecli.core.fileutil import atomic_write
+
+    state: dict = {"completed": []}
+    if state_file.exists():
+        state = json.loads(state_file.read_text())
+    state.setdefault("completed", []).append(url)
+    atomic_write(state_file, json.dumps(state, indent=2))
 
 
 def _shorten_url(url: str, max_len: int = 50) -> str:
@@ -170,12 +218,15 @@ def _process_url(
             }
         )
     except Exception as e:
+        from anyscribecli.core.errors import ScribeAPIError
+
+        error_msg = e.user_message if isinstance(e, ScribeAPIError) else str(e)
         failed += 1
         results.append(
             {
                 "success": False,
                 "url": url,
-                "error": str(e),
+                "error": error_msg,
             }
         )
     return succeeded, failed

@@ -10,6 +10,10 @@ LOGS_DIR = APP_HOME / "logs"
 SESSIONS_DIR = APP_HOME / "sessions"
 TMP_DIR = APP_HOME / "tmp"
 
+# Recovery / checkpoint dirs for resilience
+RECOVERY_DIR = APP_HOME / "recovery"
+CHECKPOINT_DIR = APP_HOME / "checkpoints"
+
 # Downloads live OUTSIDE the workspace — keeps the Obsidian vault pure markdown
 DOWNLOADS_DIR = APP_HOME / "downloads"
 AUDIO_DIR = DOWNLOADS_DIR / "audio"

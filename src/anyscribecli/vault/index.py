@@ -7,6 +7,7 @@ from datetime import date
 from pathlib import Path
 
 from anyscribecli.config.paths import get_workspace_dir
+from anyscribecli.core.fileutil import atomic_write, file_lock
 from anyscribecli.downloaders.base import DownloadResult
 from anyscribecli.vault.writer import format_duration
 
@@ -28,25 +29,26 @@ def update_master_index(
 
     new_row = f"| {today} | {download.platform} | {link} | {duration_str} | {download.title} |"
 
-    if index_file.exists():
-        content = index_file.read_text()
-        lines = content.split("\n")
+    with file_lock(index_file):
+        if index_file.exists():
+            content = index_file.read_text()
+            lines = content.split("\n")
 
-        # Find the table header separator (|---|...) and insert after it
-        insert_idx = None
-        for i, line in enumerate(lines):
-            if line.strip().startswith("|---"):
-                insert_idx = i + 1
-                break
+            # Find the table header separator (|---|...) and insert after it
+            insert_idx = None
+            for i, line in enumerate(lines):
+                if line.strip().startswith("|---"):
+                    insert_idx = i + 1
+                    break
 
-        if insert_idx is not None:
-            lines.insert(insert_idx, new_row)
-            index_file.write_text("\n".join(lines))
-            return
+            if insert_idx is not None:
+                lines.insert(insert_idx, new_row)
+                atomic_write(index_file, "\n".join(lines))
+                return
 
-    # Fallback: append to file
-    with open(index_file, "a") as f:
-        f.write(new_row + "\n")
+        # Fallback: append to file
+        with open(index_file, "a") as f:
+            f.write(new_row + "\n")
 
 
 def update_daily_log(
@@ -65,35 +67,36 @@ def update_daily_log(
     rel_path = entry_path.relative_to(ws)
     link = f"[[{rel_path}|{download.title}]]"
 
-    if not daily_file.exists():
-        header = (
-            f"# Processing Log — {today}\n\n"
-            f"| Time | Platform | Entry | Duration |\n"
-            f"|------|----------|-------|----------|\n"
-        )
-        daily_file.write_text(header)
+    with file_lock(daily_file):
+        if not daily_file.exists():
+            header = (
+                f"# Processing Log — {today}\n\n"
+                f"| Time | Platform | Entry | Duration |\n"
+                f"|------|----------|-------|----------|\n"
+            )
+            atomic_write(daily_file, header)
 
-    from datetime import datetime
+        from datetime import datetime
 
-    now = datetime.now().strftime("%H:%M")
-    row = f"| {now} | {download.platform} | {link} | {duration_str} |"
+        now = datetime.now().strftime("%H:%M")
+        row = f"| {now} | {download.platform} | {link} | {duration_str} |"
 
-    content = daily_file.read_text()
-    lines = content.split("\n")
+        content = daily_file.read_text()
+        lines = content.split("\n")
 
-    # Insert after table header separator
-    insert_idx = None
-    for i, line in enumerate(lines):
-        if line.strip().startswith("|---"):
-            insert_idx = i + 1
-            break
+        # Insert after table header separator
+        insert_idx = None
+        for i, line in enumerate(lines):
+            if line.strip().startswith("|---"):
+                insert_idx = i + 1
+                break
 
-    if insert_idx is not None:
-        lines.insert(insert_idx, row)
-        daily_file.write_text("\n".join(lines))
-    else:
-        with open(daily_file, "a") as f:
-            f.write(row + "\n")
+        if insert_idx is not None:
+            lines.insert(insert_idx, row)
+            atomic_write(daily_file, "\n".join(lines))
+        else:
+            with open(daily_file, "a") as f:
+                f.write(row + "\n")
 
 
 def update_indexes(
@@ -160,4 +163,4 @@ def rebuild_master_index(workspace: Path | None = None) -> None:
         )
     lines.append("")
 
-    index_file.write_text("\n".join(lines))
+    atomic_write(index_file, "\n".join(lines))

@@ -97,24 +97,35 @@ def transcribe(
     try:
         result = process(url, settings, quiet=quiet)
     except Exception as e:
+        from anyscribecli.cli.main import _debug_mode
+        from anyscribecli.core.errors import ScribeAPIError
+
+        error_msg = e.user_message if isinstance(e, ScribeAPIError) else str(e)
         if output_json:
-            json.dump({"success": False, "error": str(e)}, sys.stdout, indent=2)
+            json.dump({"success": False, "data": None, "error": error_msg}, sys.stdout, indent=2)
             sys.stdout.write("\n")
         else:
-            err_console.print(f"[red]Error:[/red] {e}")
+            err_console.print(f"[red]Error:[/red] {error_msg}")
+        if _debug_mode:
+            import traceback
+
+            traceback.print_exc()
         raise typer.Exit(code=1)
 
     if output_json:
         json.dump(
             {
                 "success": True,
-                "file": str(result.file_path),
-                "title": result.title,
-                "platform": result.platform,
-                "duration": result.duration,
-                "language": result.language,
-                "word_count": result.word_count,
-                "provider": result.provider,
+                "data": {
+                    "file": str(result.file_path),
+                    "title": result.title,
+                    "platform": result.platform,
+                    "duration": result.duration,
+                    "language": result.language,
+                    "word_count": result.word_count,
+                    "provider": result.provider,
+                },
+                "error": None,
             },
             sys.stdout,
             indent=2,

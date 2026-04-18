@@ -67,11 +67,14 @@ export const startTranscribe = (data: {
 
 // ── History ──────────────────────────────────────────
 
-export const getTranscripts = (platform?: string, limit = 50) => {
+export const getTranscripts = (platform?: string, limit = 50, offset = 0) => {
   const params = new URLSearchParams();
   if (platform) params.set("platform", platform);
   params.set("limit", String(limit));
-  return fetchJSON<TranscriptMeta[]>(`/transcripts?${params}`);
+  params.set("offset", String(offset));
+  return fetchJSON<{ items: TranscriptMeta[]; total: number; offset: number; limit: number }>(
+    `/transcripts?${params}`
+  );
 };
 
 export const getTranscript = (id: string) =>

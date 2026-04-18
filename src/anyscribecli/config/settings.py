@@ -57,10 +57,11 @@ def load_config() -> Settings:
 
 
 def save_config(settings: Settings) -> None:
-    """Write settings to config.yaml."""
-    CONFIG_FILE.parent.mkdir(parents=True, exist_ok=True)
-    with open(CONFIG_FILE, "w") as f:
-        yaml.dump(settings.to_dict(), f, default_flow_style=False, sort_keys=False)
+    """Write settings to config.yaml (atomic write)."""
+    from anyscribecli.core.fileutil import atomic_write
+
+    content = yaml.dump(settings.to_dict(), default_flow_style=False, sort_keys=False)
+    atomic_write(CONFIG_FILE, content)
 
 
 def load_env() -> None:
@@ -70,7 +71,9 @@ def load_env() -> None:
 
 
 def save_env(keys: dict[str, str]) -> None:
-    """Write or update secrets in .env file."""
+    """Write or update secrets in .env file (atomic write)."""
+    from anyscribecli.core.fileutil import atomic_write
+
     ENV_FILE.parent.mkdir(parents=True, exist_ok=True)
 
     existing: dict[str, str] = {}
@@ -84,6 +87,5 @@ def save_env(keys: dict[str, str]) -> None:
 
     existing.update(keys)
 
-    with open(ENV_FILE, "w") as f:
-        for k, v in existing.items():
-            f.write(f"{k}={v}\n")
+    content = "".join(f"{k}={v}\n" for k, v in existing.items())
+    atomic_write(ENV_FILE, content)

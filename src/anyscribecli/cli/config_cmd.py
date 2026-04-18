@@ -133,6 +133,50 @@ def _flat_keys(d: dict, prefix: str = "") -> list[str]:
     return keys
 
 
+def _flat_items(d: dict, prefix: str = "") -> list[tuple[str, str, str]]:
+    """Flatten a dict into (key, type_name, value) tuples."""
+    items = []
+    for k, v in d.items():
+        full = f"{prefix}{k}" if not prefix else f"{prefix}.{k}"
+        if isinstance(v, dict):
+            items.extend(_flat_items(v, full))
+        else:
+            items.append((full, type(v).__name__, str(v)))
+    return items
+
+
+@config_app.command("list-keys")
+def config_list_keys(
+    output_json: bool = typer.Option(False, "--json", "-j", help="Output as JSON."),
+) -> None:
+    """[bold]List[/bold] all settable configuration keys with types and current values."""
+    load_env()
+    settings = load_config()
+    items = _flat_items(settings.to_dict())
+
+    # Add API key entries
+    api_keys = []
+    for key_name, env_var in _API_KEY_MAP.items():
+        val = os.environ.get(env_var, "")
+        masked = f"{val[:4]}...{val[-4:]}" if len(val) > 8 else ("(set)" if val else "(not set)")
+        api_keys.append((key_name, "secret", masked))
+
+    all_items = items + api_keys
+
+    if output_json:
+        result = [{"key": k, "type": t, "value": v} for k, t, v in all_items]
+        json.dump(result, sys.stdout, indent=2)
+        sys.stdout.write("\n")
+    else:
+        table = Table(title="All Settable Keys")
+        table.add_column("Key", style="bold cyan")
+        table.add_column("Type", style="dim")
+        table.add_column("Current Value")
+        for key, type_name, value in all_items:
+            table.add_row(key, type_name, value)
+        console.print(table)
+
+
 # ── Providers subcommands ─────────────────────────────────────
 
 providers_app = typer.Typer(

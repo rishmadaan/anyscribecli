@@ -15,6 +15,8 @@ from pathlib import Path
 
 import httpx
 
+from anyscribecli.core.errors import classify_api_error, with_retry
+from anyscribecli.core.audio import deduplicate_overlap
 from anyscribecli.providers.base import (
     TranscriptionProvider,
     TranscriptResult,
@@ -44,6 +46,7 @@ class SargamProvider(TranscriptionProvider):
             raise RuntimeError("SARGAM_API_KEY not set. Add it to ~/.anyscribecli/.env")
         return key
 
+    @with_retry()
     def _transcribe_single(
         self, audio_path: Path, language: str, api_key: str, diarize: bool = False
     ) -> dict:
@@ -67,7 +70,7 @@ class SargamProvider(TranscriptionProvider):
             )
 
         if response.status_code != 200:
-            raise RuntimeError(f"Sarvam API error ({response.status_code}): {response.text}")
+            raise classify_api_error(response.status_code, response.text, self.name)
         return response.json()
 
     def _chunk_for_sarvam(self, audio_path: Path) -> list[tuple[Path, float]]:
@@ -120,27 +123,51 @@ class SargamProvider(TranscriptionProvider):
     ) -> TranscriptResult:
         api_key = self._get_api_key()
 
+        from anyscribecli.core.checkpoint import ChunkCheckpoint
+
         chunks = self._chunk_for_sarvam(audio_path)
+        ckpt = ChunkCheckpoint.load_or_create(audio_path, self.name, language, len(chunks))
         all_text_parts: list[str] = []
         all_segments: list[TranscriptSegment] = []
         detected_language = ""
         segment_id = 0
 
-        for chunk_path, offset in chunks:
+        for i, (chunk_path, offset) in enumerate(chunks):
+            if ckpt.is_completed(i):
+                saved = ckpt.get(i)
+                all_text_parts.append(saved["text"])
+                if not detected_language:
+                    detected_language = saved.get("language", "")
+                for seg_data in saved.get("segments", []):
+                    all_segments.append(TranscriptSegment(**seg_data))
+                    segment_id += 1
+                if chunk_path != audio_path:
+                    chunk_path.unlink(missing_ok=True)
+                continue
             try:
                 resp = self._transcribe_single(chunk_path, language, api_key, diarize=diarize)
                 result = self._parse_response(resp, offset=offset, start_id=segment_id)
-                all_text_parts.append(result.text)
+                text = deduplicate_overlap(all_text_parts[-1], result.text) if all_text_parts else result.text
+                all_text_parts.append(text)
                 if not detected_language:
                     detected_language = result.language
                 for seg in result.segments:
                     all_segments.append(seg)
                     segment_id += 1
+
+                ckpt.mark_completed(i, {
+                    "text": result.text,
+                    "language": result.language,
+                    "duration": None,
+                    "segments": result.segments,
+                })
+                ckpt.save()
             finally:
                 # Don't delete the original file
                 if chunk_path != audio_path:
                     chunk_path.unlink(missing_ok=True)
 
+        ckpt.cleanup()
         full_text = " ".join(all_text_parts)
         return TranscriptResult(
             text=full_text,

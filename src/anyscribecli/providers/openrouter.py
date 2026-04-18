@@ -16,11 +16,12 @@ from pathlib import Path
 
 import httpx
 
+from anyscribecli.core.errors import classify_api_error, with_retry
 from anyscribecli.providers.base import (
     TranscriptionProvider,
     TranscriptResult,
 )
-from anyscribecli.core.audio import chunk_audio, needs_chunking
+from anyscribecli.core.audio import chunk_audio, deduplicate_overlap, needs_chunking
 
 
 class OpenRouterProvider(TranscriptionProvider):
@@ -43,6 +44,7 @@ class OpenRouterProvider(TranscriptionProvider):
             raise RuntimeError("OPENROUTER_API_KEY not set. Add it to ~/.anyscribecli/.env")
         return key
 
+    @with_retry()
     def _transcribe_single(self, audio_path: Path, language: str, api_key: str) -> str:
         """Transcribe a single audio file via OpenRouter chat API."""
         audio_bytes = audio_path.read_bytes()
@@ -89,7 +91,7 @@ class OpenRouterProvider(TranscriptionProvider):
         )
 
         if response.status_code != 200:
-            raise RuntimeError(f"OpenRouter API error ({response.status_code}): {response.text}")
+            raise classify_api_error(response.status_code, response.text, self.name)
 
         data = response.json()
         return data["choices"][0]["message"]["content"]
@@ -106,16 +108,27 @@ class OpenRouterProvider(TranscriptionProvider):
             )
 
         # Chunk large files
+        from anyscribecli.core.checkpoint import ChunkCheckpoint
+
         chunks = chunk_audio(audio_path)
+        ckpt = ChunkCheckpoint.load_or_create(audio_path, self.name, language, len(chunks))
         all_text_parts: list[str] = []
 
-        for chunk_path, offset in chunks:
+        for i, (chunk_path, offset) in enumerate(chunks):
+            if ckpt.is_completed(i):
+                all_text_parts.append(ckpt.get(i)["text"])
+                chunk_path.unlink(missing_ok=True)
+                continue
             try:
-                text = self._transcribe_single(chunk_path, language, api_key)
+                raw = self._transcribe_single(chunk_path, language, api_key)
+                text = deduplicate_overlap(all_text_parts[-1], raw) if all_text_parts else raw
                 all_text_parts.append(text)
+                ckpt.mark_completed(i, {"text": raw, "language": language, "duration": None, "segments": []})
+                ckpt.save()
             finally:
                 chunk_path.unlink(missing_ok=True)
 
+        ckpt.cleanup()
         full_text = " ".join(all_text_parts)
         return TranscriptResult(
             text=full_text,

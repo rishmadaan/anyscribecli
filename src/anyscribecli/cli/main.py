@@ -136,6 +136,10 @@ def _check_path_windows() -> None:
     marker.touch()
 
 
+# Module-level debug flag — checked by CLI error handlers
+_debug_mode = False
+
+
 @app.callback()
 def main(
     version: Optional[bool] = typer.Option(
@@ -146,8 +150,29 @@ def main(
         callback=version_callback,
         is_eager=True,
     ),
+    debug: bool = typer.Option(
+        False,
+        "--debug",
+        help="Enable debug output with full tracebacks and log to ~/.anyscribecli/logs/scribe.log.",
+    ),
 ) -> None:
     """[bold]scribe[/bold] — download, transcribe, and convert video/audio to structured markdown."""
+    global _debug_mode
+    _debug_mode = debug
+    if debug:
+        import logging
+
+        from anyscribecli.config.paths import LOGS_DIR
+
+        LOGS_DIR.mkdir(parents=True, exist_ok=True)
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format="%(asctime)s %(name)s %(levelname)s %(message)s",
+            handlers=[
+                logging.FileHandler(LOGS_DIR / "scribe.log"),
+                logging.StreamHandler(),
+            ],
+        )
     _auto_update_skill()
     _check_path_windows()
 

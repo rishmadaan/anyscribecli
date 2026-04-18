@@ -10,7 +10,7 @@ from typing import Callable
 
 from rich.console import Console
 
-from anyscribecli.config.paths import TMP_DIR
+from anyscribecli.config.paths import RECOVERY_DIR, TMP_DIR
 from anyscribecli.config.settings import Settings
 from anyscribecli.downloaders.registry import get_downloader
 from anyscribecli.providers import get_provider
@@ -74,8 +74,14 @@ def process(
 
         rebuild_master_index()
 
+    # Pre-flight: validate prerequisites before doing any work
+    from anyscribecli.core.preflight import preflight_check
+
+    preflight_check(settings, url)
+
     TMP_DIR.mkdir(parents=True, exist_ok=True)
     tmp_dir = Path(tempfile.mkdtemp(dir=TMP_DIR))
+    download_succeeded = False
 
     try:
         # Step 1: Download / prepare
@@ -94,6 +100,7 @@ def process(
             err_console.print(f"  [green]{status}:[/green] {download.title}")
         if on_progress:
             on_progress("download", "completed", f"{status}: {download.title}")
+        download_succeeded = True
 
         # Step 2: Transcribe
         if not quiet:
@@ -150,6 +157,22 @@ def process(
             provider=settings.provider,
         )
 
+    except Exception:
+        # Preserve downloaded audio in recovery dir so the user doesn't
+        # have to re-download on retry.
+        if download_succeeded and tmp_dir.exists():
+            try:
+                recovery = RECOVERY_DIR / tmp_dir.name
+                recovery.mkdir(parents=True, exist_ok=True)
+                for f in tmp_dir.glob("*.mp3"):
+                    shutil.copy2(f, recovery / f.name)
+                if not quiet:
+                    err_console.print(
+                        f"  [yellow]Audio saved for recovery:[/yellow] {recovery}"
+                    )
+            except Exception:
+                pass  # Don't mask the original error
+        raise
     finally:
         # Cleanup temp files (unless keep_media, audio was already copied)
         if tmp_dir.exists():

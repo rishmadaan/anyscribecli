@@ -17,20 +17,35 @@ const PLATFORM_COLOR: Record<string, string> = {
   local: "text-text-muted",
 };
 
+const PAGE_SIZE = 50;
+
 export default function HistoryPage() {
   const [transcripts, setTranscripts] = useState<TranscriptMeta[]>([]);
+  const [total, setTotal] = useState(0);
   const [workspace, setWorkspace] = useState<WorkspaceInfo | null>(null);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
-    Promise.all([getTranscripts(), getWorkspaceInfo()])
-      .then(([t, w]) => {
-        setTranscripts(t);
+    Promise.all([getTranscripts(undefined, PAGE_SIZE, 0), getWorkspaceInfo()])
+      .then(([res, w]) => {
+        setTranscripts(res.items);
+        setTotal(res.total);
         setWorkspace(w);
       })
       .finally(() => setLoading(false));
   }, []);
+
+  const loadMore = async () => {
+    setLoadingMore(true);
+    try {
+      const res = await getTranscripts(undefined, PAGE_SIZE, transcripts.length);
+      setTranscripts((prev) => [...prev, ...res.items]);
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   const filtered = transcripts.filter(
     (t) =>
@@ -45,6 +60,8 @@ export default function HistoryPage() {
     acc[date].push(t);
     return acc;
   }, {});
+
+  const hasMore = transcripts.length < total;
 
   return (
     <div className="px-8 py-10 max-w-4xl">
@@ -134,6 +151,24 @@ export default function HistoryPage() {
               </div>
             </div>
           ))}
+
+          {/* Load more */}
+          {hasMore && !search && (
+            <div className="text-center pt-4">
+              <button
+                onClick={loadMore}
+                disabled={loadingMore}
+                className="
+                  rounded-lg border border-border px-4 py-2
+                  text-xs font-mono text-text-muted hover:text-text
+                  hover:bg-surface-raised transition-colors cursor-pointer
+                  disabled:opacity-50
+                "
+              >
+                {loadingMore ? "Loading..." : `Load more (${total - transcripts.length} remaining)`}
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

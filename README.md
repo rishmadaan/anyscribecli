@@ -46,7 +46,7 @@ cd anyscribecli && pip install -e .
 
 **macOS / Linux:**
 ```bash
-ascli onboard
+scribe onboard
 ```
 
 **Windows:**
@@ -54,7 +54,7 @@ ascli onboard
 python -m anyscribecli onboard
 ```
 
-> **Windows note:** pip installs `ascli` to a Scripts directory that's often not on PATH. `python -m anyscribecli` always works — and on first run it prints the exact PowerShell command to add `ascli` to your PATH permanently.
+> **Windows note:** pip installs `scribe` to a Scripts directory that's often not on PATH. `python -m anyscribecli` always works — and on first run it prints the exact PowerShell command to add it to your PATH permanently. `ascli` is also available as a backward-compatible alias.
 
 Interactive wizard with arrow-key selectors:
 1. Checks system dependencies (yt-dlp, ffmpeg) — installs missing ones
@@ -68,40 +68,48 @@ Interactive wizard with arrow-key selectors:
 
 ```bash
 # From a URL
-ascli transcribe "https://www.youtube.com/watch?v=VIDEO_ID"
+scribe transcribe "https://www.youtube.com/watch?v=VIDEO_ID"
 
 # From a local file
-ascli transcribe /path/to/podcast.mp3
+scribe transcribe /path/to/podcast.mp3
 ```
 
-> **Always wrap URLs in quotes** — shells like zsh break URLs with `?` in them. Or just run `ascli transcribe` and paste when prompted. Local file paths don't need quotes.
+> **Always wrap URLs in quotes** — shells like zsh break URLs with `?` in them. Or just run `scribe transcribe` and paste when prompted. Local file paths don't need quotes.
 
 ### Download (no transcription)
 
 ```bash
-ascli download "https://www.youtube.com/watch?v=VIDEO_ID"            # video
-ascli download "https://www.youtube.com/watch?v=VIDEO_ID" --audio-only  # audio
+scribe download "https://www.youtube.com/watch?v=VIDEO_ID"            # video
+scribe download "https://www.youtube.com/watch?v=VIDEO_ID" --audio-only  # audio
 ```
+
+### Web UI
+
+```bash
+scribe ui    # opens dashboard at http://127.0.0.1:8457
+```
+
+Transcribe, browse history, and manage settings from your browser.
 
 ## Commands
 
 | Command | Description |
 |---------|-------------|
-| `ascli onboard` | Interactive setup wizard |
-| `ascli transcribe "<url or file>"` | Transcribe a video or local file to markdown |
-| `ascli download "<url>"` | Download video or audio only |
-| `ascli batch <file>` | Batch transcribe URLs or file paths from a file |
-| `ascli config show/set/path` | View and change settings |
-| `ascli providers list/test` | Manage transcription providers |
-| `ascli ui` | Launch the web UI in your browser |
-| `ascli install-skill` | Install Claude Code skill |
-| `ascli update` | Update to the latest version |
-| `ascli doctor` | Check system health |
+| `scribe onboard` | Interactive setup wizard |
+| `scribe transcribe "<url or file>"` | Transcribe a video or local file to markdown |
+| `scribe download "<url>"` | Download video or audio only |
+| `scribe batch <file>` | Batch transcribe URLs or file paths from a file |
+| `scribe config show/set/path` | View and change settings |
+| `scribe providers list/test` | Manage transcription providers |
+| `scribe ui` | Launch the web UI in your browser |
+| `scribe install-skill` | Install Claude Code skill |
+| `scribe update` | Update to the latest version |
+| `scribe doctor` | Check system health |
 
 ### Transcribe options
 
 ```bash
-ascli transcribe "<url>"
+scribe transcribe "<url>"
   --provider, -p <name>    # Override provider (openai, deepgram, elevenlabs, local, etc.)
   --language, -l <code>    # Language code (default: auto-detect)
   --diarize, -d            # Enable speaker diarization (multi-speaker transcripts)
@@ -113,16 +121,16 @@ ascli transcribe "<url>"
 
 Provide a URL, file path, or use interactive mode:
 ```bash
-ascli transcribe "https://..."     # quoted URL (primary)
-ascli transcribe /path/to/file.mp3 # local audio/video file
-ascli transcribe                    # interactive prompt (no quoting needed)
-ascli transcribe --clipboard        # read URL from system clipboard
+scribe transcribe "https://..."     # quoted URL (primary)
+scribe transcribe /path/to/file.mp3 # local audio/video file
+scribe transcribe                    # interactive prompt (no quoting needed)
+scribe transcribe --clipboard        # read URL from system clipboard
 ```
 
 ### Download options
 
 ```bash
-ascli download "<url>"
+scribe download "<url>"
   --video / --audio-only     # Video (default) or audio only
   --json, -j                 # JSON output
   --quiet, -q                # Suppress progress
@@ -132,7 +140,7 @@ ascli download "<url>"
 ### Batch options
 
 ```bash
-ascli batch <file>
+scribe batch <file>
   --provider, -p <name>      # Override provider
   --language, -l <code>      # Override language
   --json, -j                 # JSON output
@@ -144,7 +152,7 @@ ascli batch <file>
 ### JSON output
 
 ```bash
-ascli transcribe "https://youtube.com/watch?v=abc123" --json
+scribe transcribe "https://youtube.com/watch?v=abc123" --json
 ```
 
 ```json
@@ -192,7 +200,7 @@ The onboarding wizard checks for these and offers to install them:
 └── logs/                                 # Processing logs
 ```
 
-> **Workspace is visible and configurable** — transcripts default to `~/anyscribe/` (no hidden dot-dir). Change it with `ascli config set workspace_path /your/path`. Downloads stay separate to keep the vault lightweight.
+> **Workspace is visible and configurable** — transcripts default to `~/anyscribe/` (no hidden dot-dir). Change it with `scribe config set workspace_path /your/path`. Downloads stay separate to keep the vault lightweight.
 
 ## Providers
 
@@ -224,8 +232,8 @@ workspace_path: ""         # empty = ~/anyscribe (default), or set a custom path
 API keys and passwords live in `~/.anyscribecli/.env` (separate from config, never committed). You can set API keys directly:
 
 ```bash
-ascli config set deepgram_api_key YOUR_KEY
-ascli config set openai_api_key YOUR_KEY
+scribe config set deepgram_api_key YOUR_KEY
+scribe config set openai_api_key YOUR_KEY
 ```
 
 > **Diarization auto-routing:** When you use `--diarize` without specifying a provider, scribe automatically switches to Deepgram (if configured) for best speaker detection. Override with `-p openai` if needed.
@@ -234,13 +242,13 @@ See [Configuration Guide](docs/user/configuration.md) for all options.
 
 ## Claude Code Integration
 
-ascli ships with a [Claude Code skill](https://code.claude.com/docs/en/skills) that teaches Claude how to transcribe, configure providers, and troubleshoot on your behalf. After installing ascli:
+scribe ships with a [Claude Code skill](https://code.claude.com/docs/en/skills) that teaches Claude how to transcribe, configure providers, and troubleshoot on your behalf. After installing scribe:
 
 ```bash
-ascli install-skill
+scribe install-skill
 ```
 
-Or run `ascli onboard` — it auto-detects Claude Code and offers to install the skill. Once installed, Claude can use `/ascli` or auto-activate when you ask it to transcribe something.
+Or run `scribe onboard` — it auto-detects Claude Code and offers to install the skill. Once installed, Claude can use `/scribe` or auto-activate when you ask it to transcribe something.
 
 ## Documentation
 

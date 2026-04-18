@@ -149,10 +149,10 @@ scribe config set deepgram_api_key KEY   # Set API key (stored in .env)
 
 ## What scribe Outputs
 
-Each transcription creates a markdown file with YAML frontmatter (title, source URL, duration, language, word count, reading time, tags) followed by the transcript text. Files are organized by source platform and date:
+Each transcription creates a markdown file with YAML frontmatter (title, source URL, duration, language, word count, reading time, tags) followed by the transcript text. Files are organized by source platform:
 
 ```
-~/anyscribe/sources/<platform>/YYYY-MM-DD/<slug>.md
+~/anyscribe/sources/<platform>/<slug>.md
 ```
 
 An `_index.md` file is auto-updated with links to all transcripts. Daily logs are written to `daily/YYYY-MM-DD.md`.
