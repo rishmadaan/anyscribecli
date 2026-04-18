@@ -74,8 +74,23 @@ export default function Layout() {
           ))}
         </nav>
 
-        {/* Bottom — shutdown */}
-        <div className="mt-auto px-3 pb-4">
+        {/* Bottom — branding + shutdown */}
+        <div className="mt-auto px-3 pb-4 space-y-2">
+          {/* KraftedX branding */}
+          <a
+            href="https://kraftedx.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block px-3 py-1.5 opacity-20 hover:opacity-35 transition-opacity"
+          >
+            <img
+              src="/kx-logo-white-128.png"
+              alt="KraftedX"
+              className="h-3.5 w-auto"
+            />
+          </a>
+
+          {/* Shutdown */}
           {!confirmShutdown ? (
             <button
               onClick={() => setConfirmShutdown(true)}
@@ -86,7 +101,7 @@ export default function Layout() {
               "
             >
               <Power className="w-3.5 h-3.5" />
-              Quit
+              Shutdown
             </button>
           ) : (
             <div className="flex items-center gap-1.5">
@@ -99,7 +114,7 @@ export default function Layout() {
                 "
               >
                 <Power className="w-3.5 h-3.5" />
-                Quit?
+                Shutdown?
               </button>
               <button
                 onClick={() => setConfirmShutdown(false)}
@@ -113,9 +128,19 @@ export default function Layout() {
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 overflow-y-auto">
+      <main className="flex-1 overflow-y-auto relative">
         <SetupBanner />
         <Outlet />
+
+        {/* Decorative doodle — bottom of content area */}
+        <div
+          className="pointer-events-none fixed bottom-0 right-0 w-[calc(100%-14rem)] h-64 bg-bottom bg-no-repeat bg-contain opacity-[0.04] hidden md:block"
+          style={{ backgroundImage: "url('/doodles-desktop-2.png')" }}
+        />
+        <div
+          className="pointer-events-none fixed bottom-0 right-0 w-[calc(100%-14rem)] h-64 bg-bottom bg-no-repeat bg-contain opacity-[0.04] md:hidden"
+          style={{ backgroundImage: "url('/doodles-mobile-2.png')" }}
+        />
       </main>
     </div>
   );
