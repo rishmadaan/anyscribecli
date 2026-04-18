@@ -58,11 +58,11 @@ Which API to use for transcription. Default: `openai`.
 | `openai` | OpenAI Whisper API | `OPENAI_API_KEY` in .env |
 | `deepgram` | Deepgram Nova (diarization + hi-Latn) | `DEEPGRAM_API_KEY` |
 | `openrouter` | OpenRouter (audio-via-chat models) | `OPENROUTER_API_KEY` |
-| `elevenlabs` | ElevenLabs Scribe (99 languages) | `ELEVENLABS_API_KEY` |
-| `sargam` | Sarvam AI (Indic languages) | `SARGAM_API_KEY` |
+| `elevenlabs` | ElevenLabs Scribe (92 languages) | `ELEVENLABS_API_KEY` |
+| `sargam` | Sarvam AI (23 Indic languages + English) | `SARGAM_API_KEY` |
 | `local` | faster-whisper (offline, free) | None needed |
 
-> **Why multiple providers?** Different services handle different languages better. OpenAI Whisper is a good default, ElevenLabs has high accuracy across 99 languages, Sarvam excels at Indian languages, and the local provider is free and works offline.
+> **Why multiple providers?** Different services handle different languages better. OpenAI Whisper is a good default, ElevenLabs has high accuracy across 90+ languages, Sarvam excels at Indian languages, and the local provider is free and works offline.
 
 > **Local provider** requires `pip install faster-whisper`. Models download automatically on first use. Works on CPU (slower) or GPU (fast with CUDA).
 
@@ -71,6 +71,8 @@ Which API to use for transcription. Default: `openai`.
 What language to expect in the audio. Default: `auto` (let the API auto-detect).
 
 Use standard language codes: `en` (English), `es` (Spanish), `fr` (French), `hi` (Hindi), `ar` (Arabic), `zh` (Chinese), `ja` (Japanese), `ko` (Korean), etc.
+
+Each provider expects codes in a slightly different format — Whisper-family providers (`openai`, `local`) use ISO 639-1 like `en`, Deepgram uses BCP-47 like `en-US` or `hi-Latn`, and Sarvam uses BCP-47 with `-IN` suffixes like `hi-IN`. If you're unsure, the web UI (`scribe ui`) shows a per-provider dropdown of every supported code on the Transcribe page Options panel.
 
 > **When to set this explicitly:** Auto-detection works well for most videos, but if you're transcribing content in a specific language and getting wrong results, setting the language explicitly helps. You can also override per-video: `scribe transcribe <url> --language hi`
 

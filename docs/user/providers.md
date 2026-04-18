@@ -16,7 +16,7 @@ scribe supports 6 transcription providers. Here's how they compare and when to u
 | | OpenAI Whisper | Deepgram Nova | ElevenLabs Scribe | Sarvam AI | OpenRouter | Local |
 |---|---|---|---|---|---|---|
 | **Best for** | General purpose | Diarization (auto-selected) + Hinglish | High accuracy | Indian languages | Model flexibility | Offline / free |
-| **Languages** | 99 | 36+ | 99 | 22 Indian + English | Model-dependent | 99 |
+| **Languages** | 99 | 89 | 92 | 23 Indian + English | Model-dependent | 99 |
 | **Timestamps** | Segment-level | Word-level | Word-level | No (REST API) | No | Segment-level |
 | **Diarization** | Yes (`--diarize`) | Yes (`--diarize`) | No (via scribe) | Yes (`--diarize`) | No | No |
 | **Pricing** | ~$0.36/hr | ~$0.30/hr | ~$0.22–0.40/hr | ~$0.35/hr | Varies by model | Free |
@@ -191,6 +191,22 @@ Test that a provider works:
 ```bash
 scribe providers test elevenlabs
 ```
+
+## Picking a language (Web UI)
+
+The web UI (`scribe ui`) shows a per-provider language dropdown so you
+don't have to guess the right code. Open the **Options** accordion on the
+Transcribe page and the language input becomes a combobox listing every
+language that provider supports — `auto` at the top, then the full list.
+You can still type any code, including ones that aren't in the dropdown
+(useful if a provider added a language we haven't refreshed yet).
+
+OpenRouter is the exception: it accepts a prose instruction in the prompt
+("Spanish", "French"), not a code, so the input stays free-text for that
+provider.
+
+The same dropdown drives the **Default language** field on the Settings
+page — it follows whichever provider you pick as default.
 
 ## Diarization Auto-Routing
 
