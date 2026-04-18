@@ -381,6 +381,30 @@ See `docs/building/ops/pypi-guide.md` for PyPI setup, tokens, and troubleshootin
 
 ---
 
+## Parked
+
+### Landing page — parked 2026-04-18
+
+**Goal:** a public landing / showcase page for anyscribe so anyone can discover it, read what it does, and install it without being handed CLI instructions by a friend. Reference point: [openclaw.ai](https://openclaw.ai) and similar single-command CLI tools that ship a polished marketing site alongside the repo.
+
+**Status:** two design iterations exist on disk at `landing/index.html` (see commits `c5c8fa5` and `ff48224`) but neither landed the design. Unparking this is deferred until there's time for proper design direction.
+
+**What's on disk (current head):** v3 — dark warm charcoal (`#0E0D0B`) with a single warm amber accent (`#F5A524`), Unbounded display + Instrument Serif italic + Geist body, animated SVG waveform motif, §01–§07 sections, generous 120–220 px vertical padding. Self-contained static HTML, no build step, deployable to GitHub Pages / Netlify / Vercel as-is.
+
+**Why parked:** couldn't converge on an aesthetic that felt right in two attempts. Needs either (a) a concrete visual reference the build can follow, or (b) a collaborator with a clear design point-of-view. Continuing to iterate blind isn't a good use of time right now.
+
+**When to pick this back up:** before public launch. A landing page is not load-bearing for current users (who install via `pip install anyscribecli` or the one-line `install.sh`), but it is load-bearing for reaching new users who don't already know the tool exists.
+
+**On unpark, decide first:**
+- Who is the target reader? Semi-technical users who've never touched a CLI, or developers comfortable with `curl | bash`?
+- What's the primary call-to-action? The install one-liner, the web UI, or the GitHub repo?
+- Does the page need a screenshot of the web UI and the Obsidian vault, or is pure typography enough?
+- Hosting: GitHub Pages off this repo, or a separate `anyscribe.dev` / `anyscribe.cli` domain?
+
+The existing `landing/index.html` is a starting point, not a commitment — throw it away if a better direction presents itself.
+
+---
+
 ## Icebox (ideas for later, no timeline)
 
 - **Windows zero-config PATH**: Current v0.5.4 workaround is `python -m anyscribecli` as one-time bootstrap (prints PowerShell PATH fix on first run). Acceptable but not great — user has to know the `python -m` incantation. Explore: custom Windows installer (`.msi` or `winget` package), PowerShell install script (`install.ps1` analogous to `install.sh`), or a shim that pip can place in a well-known location. The goal: `pip install anyscribecli` → `ascli` just works, no extra steps.
