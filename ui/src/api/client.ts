@@ -65,6 +65,17 @@ export const startTranscribe = (data: {
     body: JSON.stringify(data),
   });
 
+export const uploadFile = async (file: File): Promise<{ path: string; filename: string }> => {
+  const form = new FormData();
+  form.append("file", file);
+  const res = await fetch(`${BASE}/upload`, { method: "POST", body: form });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`${res.status}: ${text}`);
+  }
+  return res.json();
+};
+
 // ── History ──────────────────────────────────────────
 
 export const getTranscripts = (platform?: string, limit = 50, offset = 0) => {

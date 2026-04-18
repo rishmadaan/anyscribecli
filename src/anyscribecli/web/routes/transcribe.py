@@ -3,14 +3,37 @@
 from __future__ import annotations
 
 import asyncio
+import shutil
+import uuid
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, UploadFile, WebSocket, WebSocketDisconnect
 
+from anyscribecli.config.paths import TMP_DIR
 from anyscribecli.config.settings import load_config, load_env
 from anyscribecli.web.jobs import job_manager
 from anyscribecli.web.models import JobStatusResponse, TranscribeRequest
 
 router = APIRouter(prefix="/api", tags=["transcribe"])
+
+
+@router.post("/upload")
+async def upload_file(file: UploadFile) -> dict:
+    """Upload a local audio/video file for transcription. Returns the server-side path."""
+    TMP_DIR.mkdir(parents=True, exist_ok=True)
+    upload_dir = TMP_DIR / "uploads"
+    upload_dir.mkdir(exist_ok=True)
+
+    # Preserve original extension, use unique name to avoid collisions
+    suffix = ""
+    if file.filename:
+        from pathlib import Path as P
+        suffix = P(file.filename).suffix
+    dest = upload_dir / f"{uuid.uuid4().hex[:8]}{suffix}"
+
+    with open(dest, "wb") as f:
+        shutil.copyfileobj(file.file, f)
+
+    return {"path": str(dest), "filename": file.filename}
 
 
 @router.post("/transcribe")
