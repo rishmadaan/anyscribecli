@@ -1,6 +1,14 @@
 # anyscribecli
 
-**Download. Transcribe. Markdown.** A CLI tool that turns YouTube videos, Instagram reels, and local audio/video files into structured, searchable markdown — browsable in Obsidian.
+**Download. Transcribe. Markdown.** Turns YouTube videos, Instagram reels, and local audio/video files into structured, searchable markdown — browsable in Obsidian.
+
+Three equivalent surfaces, pick whichever fits:
+
+- **Web UI** (`scribe ui`) — click-through, for humans who prefer browsers.
+- **Terminal wizard** (`scribe onboard`, `scribe "<url>"`) — arrow-key prompts, for humans who live in terminals.
+- **Headless flags** (`scribe onboard --provider X --yes --json`, `scribe "<url>" --json`) — flag-driven, structured output, for AI agents / CI / scripts.
+
+None of the three is "primary"; all three cover the full product. Human users reach the full product through Web UI or terminal without ever needing the other. Agents reach it through flags alone. Shared backend, shared state — a transcription started from any surface is visible to all of them.
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -22,9 +30,9 @@ URL or local file → Download/convert audio → Transcribe → Formatted Markdo
 - **Master index + daily logs** — browse everything in Obsidian
 - **Download-only mode** — grab video or audio without transcribing
 - **Batch processing** — transcribe a list of URLs from a file
-- **Web UI** — `scribe ui` launches a local dashboard in your browser (transcribe, browse history, manage settings) — provider dropdown disables unconfigured providers and offers a per-provider language picker so you don't have to look up codes
-- **`--json` on main commands** — for scripting and AI agent integration
-- **Arrow-key onboarding wizard** — interactive setup, installs missing dependencies
+- **Web UI** — `scribe ui` launches a local dashboard (transcribe, browse history, manage settings, first-run onboarding wizard) at `127.0.0.1:8457`
+- **Agent-friendly CLI** — `--json` output, structured exit codes, `--yes` for non-interactive runs on every consequential command; no silent defaults for choices an agent might make on the user's behalf
+- **Three-surface onboarding parity** — wizard modal in the Web UI, interactive prompts in `scribe onboard`, flag-driven in `scribe onboard --yes ...`; all three write the same config
 
 ## Quick Start
 

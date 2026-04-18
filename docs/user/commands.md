@@ -10,6 +10,16 @@ read_when:
 
 Every scribe command. Copy-paste friendly.
 
+> **Agentic-first CLI.** scribe's CLI is designed to be usable by AI agents, CI jobs, and scripts — not just humans. Consequential commands follow the same contract:
+>
+> - **`--json` on every command** — machine-parseable output; agents parse this, humans ignore it.
+> - **`--yes` for non-interactive runs** — commands that would normally prompt for confirmation refuse to run without `--yes` when there's no TTY (i.e., when invoked from an agent or script).
+> - **No silent defaults for choices agents might make** — e.g., `scribe local setup` requires `--model` explicitly; the CLI never picks a size on your behalf. The recommended value is documented so agents know what to pass.
+> - **Structured exit codes** — `0` success, `1` operational failure, `2` usage error. Stderr on exit 2 carries a JSON payload with the missing field(s).
+> - **Prefer env vars for secrets** — passing `--api-key` on argv leaks to shell history; set `$OPENAI_API_KEY` etc. in the environment instead.
+>
+> Humans running scribe interactively can mostly ignore these rules — the defaults are friendly without flags. They're called out here so script authors and agent skills know what to expect.
+
 ## Quick Overview
 
 | Command | What it does |

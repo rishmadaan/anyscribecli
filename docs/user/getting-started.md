@@ -1,19 +1,28 @@
 ---
-summary: Get scribe installed and transcribe your first video in about 5 minutes.
+summary: Get scribe installed and transcribe your first video in about 5 minutes, using whichever surface fits you — Web UI, terminal wizard, or headless flags.
 read_when:
   - First time setting up scribe
   - You want the fastest path to a working transcription
   - You're new to command-line tools
+  - You're an agent / script and want the headless setup form
 ---
 
 # Getting Started
 
-Install scribe, run the setup wizard, and get your first transcript — all in about 5 minutes.
+Install scribe, run setup, get your first transcript — about 5 minutes.
 
 By the end of this guide you will have:
 - scribe installed on your machine
 - An Obsidian vault ready to browse your transcripts
 - Your first video transcribed to markdown
+
+> **scribe has three equivalent surfaces.** The Web UI, the terminal wizard, and the headless flag-driven CLI all cover the full product. You never need to hop between them. Pick whichever fits:
+>
+> - **Prefer clicking?** → `scribe ui` opens a browser dashboard with a setup wizard on first launch. See Option A in Step 3.
+> - **Prefer typing?** → `scribe onboard` runs an arrow-key terminal wizard. See Option B.
+> - **Writing a script or an AI agent?** → `scribe onboard --provider X --api-key $KEY --yes --json`. See Option C.
+>
+> All three write the same config and land you in the same place. Transcriptions you start from one surface show up in all of them.
 
 ## What you need
 
