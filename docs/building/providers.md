@@ -1,6 +1,21 @@
 # Providers
 
-**Last updated:** 2026-04-16 (v0.7.2.3)
+**Last updated:** 2026-04-18
+
+## Language Lists
+
+Per-provider supported-language lists live in `src/anyscribecli/providers/languages.py`
+and are exposed via `GET /api/providers/{name}/languages`. The web UI's
+language picker (Transcribe + Settings pages) consumes that endpoint and
+renders a native HTML `<datalist>` — suggestions drop down, but free
+typing is also accepted.
+
+OpenRouter is the exception (`freeform: true`) — it accepts a prose
+language instruction in the prompt rather than a code, so the UI shows a
+plain text input for that provider.
+
+To update a list when upstream changes, see CLAUDE.md → "Updating Provider
+Language Lists".
 
 ## Available Providers
 

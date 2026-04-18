@@ -7,7 +7,7 @@ scribe supports 6 providers. Each has different strengths.
 | | OpenAI Whisper | Deepgram Nova | ElevenLabs Scribe | Sarvam AI | OpenRouter | Local |
 |---|---|---|---|---|---|---|
 | **Best for** | General purpose | Diarization + Hinglish | Highest accuracy | Indian languages | Model variety | Offline / free |
-| **Languages** | 99 | 36+ | 99 | 22 Indian + English | Varies | 99 |
+| **Languages** | 99 | 89 | 92 | 23 Indian + English | Varies | 99 |
 | **Timestamps** | Segment-level | Word-level | Word-level | No | No | Segment-level |
 | **Diarization** | Yes (`--diarize`) | Yes (`--diarize`) | No | Yes (`--diarize`) | No | No |
 | **Cost** | ~$0.36/hr | ~$0.30/hr | ~$0.22–0.40/hr | ~$0.35/hr | Varies | Free |

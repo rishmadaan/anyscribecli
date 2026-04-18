@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import {
   getConfig,
   updateConfig,
@@ -8,9 +9,11 @@ import {
   updateKey,
 } from "../api/client";
 import type { Config, Provider } from "../api/types";
+import LanguageInput from "../components/LanguageInput";
 import { Check, AlertCircle, Loader2, ChevronUp, Key } from "lucide-react";
 
 export default function SettingsPage() {
+  const location = useLocation();
   const [config, setConfig] = useState<Config | null>(null);
   const [providers, setProviders] = useState<Provider[]>([]);
   const [health, setHealth] = useState<{
@@ -36,6 +39,13 @@ export default function SettingsPage() {
       setHealth(h);
     });
   }, []);
+
+  // Deep-link from Transcribe page CTA: /settings#api-keys → scroll into view.
+  useEffect(() => {
+    if (location.hash !== "#api-keys" || !config) return;
+    const el = document.getElementById("api-keys");
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [location.hash, config]);
 
   const handleSave = async (updates: Partial<Config>) => {
     if (!config) return;
@@ -141,10 +151,13 @@ export default function SettingsPage() {
           </SettingRow>
 
           <SettingRow label="Default language">
-            <input
-              type="text"
-              defaultValue={config.language}
-              onBlur={(e) => handleSave({ language: e.target.value })}
+            <LanguageInput
+              provider={config.provider}
+              value={config.language}
+              onChange={(v) => setConfig({ ...config, language: v })}
+              onBlur={(v) => {
+                if (v !== config.language) handleSave({ language: v });
+              }}
               className="bg-surface-raised border border-border rounded-md px-2.5 py-1.5 text-sm text-text font-mono outline-none focus:border-amber/40 w-48"
             />
           </SettingRow>
@@ -185,7 +198,7 @@ export default function SettingsPage() {
       </section>
 
       {/* Providers */}
-      <section className="mb-10">
+      <section className="mb-10" id="api-keys">
         <h2 className="text-xs font-mono text-text-muted uppercase tracking-wider mb-4">
           Providers
         </h2>

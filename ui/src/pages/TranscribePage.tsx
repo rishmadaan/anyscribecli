@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { useJob } from "../hooks/useJob";
 import { getConfig, getProviders } from "../api/client";
 import type { Config, Provider } from "../api/types";
 import URLInput from "../components/URLInput";
 import ProgressTracker from "../components/ProgressTracker";
 import ResultCard from "../components/ResultCard";
+import LanguageInput from "../components/LanguageInput";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
 export default function TranscribePage() {
@@ -85,19 +87,35 @@ export default function TranscribePage() {
                       className="flex-1 bg-surface-raised border border-border rounded-md px-2.5 py-1.5 text-sm text-text font-mono outline-none focus:border-amber/40"
                     >
                       {providers.map((p) => (
-                        <option key={p.name} value={p.name}>{p.name}</option>
+                        <option key={p.name} value={p.name} disabled={!p.has_key}>
+                          {p.name}{p.has_key ? "" : " · needs key"}
+                        </option>
                       ))}
                     </select>
                   </div>
 
+                  {(() => {
+                    const missing = providers.filter((p) => !p.has_key).length;
+                    if (missing === 0) return null;
+                    return (
+                      <div className="flex items-center gap-4">
+                        <span className="w-20" />
+                        <p className="text-xs text-text-muted">
+                          {missing} {missing === 1 ? "provider needs" : "providers need"} a key —{" "}
+                          <Link to="/settings#api-keys" className="text-amber hover:underline">
+                            Settings
+                          </Link>
+                        </p>
+                      </div>
+                    );
+                  })()}
+
                   <div className="flex items-center gap-4">
                     <label className="text-xs text-text-muted w-20">Language</label>
-                    <input
-                      type="text"
+                    <LanguageInput
+                      provider={provider}
                       value={language}
-                      onChange={(e) => setLanguage(e.target.value)}
-                      placeholder="auto"
-                      className="flex-1 bg-surface-raised border border-border rounded-md px-2.5 py-1.5 text-sm text-text font-mono outline-none focus:border-amber/40"
+                      onChange={setLanguage}
                     />
                   </div>
 

@@ -35,7 +35,14 @@ The `0.x` prefix means pre-stable — breaking changes are allowed between minor
 | 0.7.2.2 | Fix Deepgram hi-Latn — fall back to Nova model for unsupported Nova 3 languages | Released 2026-04-16 |
 | 0.7.2.3 | Update skill + docs for Hindi diarization defaults, version strings | Released 2026-04-16 |
 | 0.7.4 | Web UI — `scribe ui` with FastAPI backend + React SPA, 17 smoke tests | Released 2026-04-18 |
-| 0.7.4.1 | Web UI: inline provider API key setup, settings UX polish, diarize auto-couples with output format | **Current** |
+| 0.7.4.1 | Web UI: inline provider API key setup, settings UX polish, diarize auto-couples with output format | Released 2026-04-18 |
+| 0.7.4.2 | Fix 10 UX/engineering gaps in web UI settings | Released 2026-04-18 |
+| 0.7.4.3 | 20 UX improvements: retry, checkpoints, pre-flight, atomic writes, debug mode | Released 2026-04-18 |
+| 0.7.4.4 | Rebuild frontend for pagination fix | Released 2026-04-18 |
+| 0.7.4.5 | Cross-platform install scripts, web UI setup banner, shutdown button | Released 2026-04-18 |
+| 0.7.4.6 | Sidebar quit button, close tab on shutdown | Released 2026-04-18 |
+| 0.7.4.6.1 | File browse button for local transcription, upload endpoint | Released 2026-04-18 |
+| 0.7.4.7 | Per-provider language `<datalist>` picker + provider key clarity (disabled options + Settings CTA) | **Current** |
 | 0.8.0 | Cache/dedup, test suite, error handling | Next |
 | 1.0.0 | Stable: full test coverage, CI/CD pipeline | Future |
 

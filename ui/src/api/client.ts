@@ -3,6 +3,7 @@
 import type {
   Config,
   Provider,
+  ProviderLanguagesResponse,
   TranscriptMeta,
   TranscriptDetail,
   WorkspaceInfo,
@@ -35,6 +36,9 @@ export const updateConfig = (data: Partial<Config>) =>
 // ── Providers ────────────────────────────────────────
 
 export const getProviders = () => fetchJSON<Provider[]>("/providers");
+
+export const getProviderLanguages = (name: string) =>
+  fetchJSON<ProviderLanguagesResponse>(`/providers/${name}/languages`);
 
 export const testProvider = (name: string) =>
   fetchJSON<{ success: boolean; message: string }>(`/providers/${name}/test`, {

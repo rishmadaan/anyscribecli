@@ -10,6 +10,7 @@ from fastapi import APIRouter
 from anyscribecli.config.paths import get_workspace_dir
 from anyscribecli.config.settings import load_config, load_env, save_config, save_env
 from anyscribecli.providers import PROVIDER_REGISTRY, list_providers
+from anyscribecli.providers.languages import PROVIDER_LANGUAGES
 from anyscribecli.web.models import ConfigUpdateRequest, KeyUpdateRequest
 
 router = APIRouter(prefix="/api", tags=["config"])
@@ -79,6 +80,26 @@ async def get_providers() -> list[dict]:
             }
         )
     return result
+
+
+@router.get("/providers/{name}/languages")
+async def get_provider_languages(name: str) -> dict:
+    """Return the supported-language list for a provider.
+
+    `freeform=true` means there is no canonical list and the caller should
+    render a plain text input (currently OpenRouter only).
+    """
+    if name not in PROVIDER_LANGUAGES:
+        return {"languages": [], "freeform": False}
+    langs = PROVIDER_LANGUAGES[name]
+    if langs is None:
+        return {"languages": [], "freeform": True}
+    # Strip internal-only keys (e.g. "model" for Deepgram routing) — UI only
+    # needs code + name.
+    return {
+        "languages": [{"code": e["code"], "name": e["name"]} for e in langs],
+        "freeform": False,
+    }
 
 
 @router.post("/providers/{name}/test")

@@ -116,6 +116,36 @@ For end users — assume a **semi-technical audience who may be new to CLI tools
 3. Update URL detection regex in `registry.py`
 4. Update `docs/building/downloaders.md`
 
+## Updating Provider Language Lists
+
+The static lists shown in the web UI's language picker live in
+`src/anyscribecli/providers/languages.py`. They are exposed via
+`GET /api/providers/{name}/languages` and rendered as a `<datalist>`
+on the Transcribe and Settings pages.
+
+**Source-of-truth URLs are in the module docstring at the top of `languages.py`.
+Always re-verify against those URLs before editing.** Provider language sets
+drift slowly (months, not days) — when you do touch them, do it carefully:
+
+1. Open `languages.py` and read the source URL for the provider you're editing.
+2. Fetch that page and diff against the current list.
+3. Edit the relevant constant (`WHISPER_LANGUAGES`, `DEEPGRAM_LANGUAGES`,
+   `ELEVENLABS_LANGUAGES`, `SARVAM_LANGUAGES`).
+4. Use the **EXACT code the provider's API expects** — no translation. We
+   keep different code formats per provider (ISO 639-1, BCP-47, etc.) so we
+   never need a mapping layer.
+5. For Deepgram entries that need the legacy Nova model (currently only
+   `hi-Latn`), set `"model": "nova"` on the entry. The router in
+   `deepgram.py:47` reads this. UI does not display the model.
+6. OpenRouter has no list (`PROVIDER_LANGUAGES["openrouter"] = None`). Don't
+   add one — it accepts a prose instruction in the prompt, not a code.
+7. Write a short journal entry under `docs/building/journal/` noting what
+   changed, the source URL, and the date you fetched it. This is the audit
+   trail when lists drift again.
+
+No frontend rebuild is needed for language list changes — the UI reads them
+via the API at runtime.
+
 ## Post-Commit Checklist
 
 **After every significant commit**, follow `docs/building/COMMIT_CHECKLIST.md`. It ensures README, user docs, building docs, and version references stay in sync with code. This is mandatory — stale docs are bugs.

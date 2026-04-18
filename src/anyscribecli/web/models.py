@@ -44,3 +44,13 @@ class ProviderTestRequest(BaseModel):
 class KeyUpdateRequest(BaseModel):
     provider_name: str
     api_key: str
+
+
+class LanguageOption(BaseModel):
+    code: str
+    name: str
+
+
+class ProviderLanguagesResponse(BaseModel):
+    languages: list[LanguageOption]
+    freeform: bool  # True for OpenRouter — the field accepts any text.

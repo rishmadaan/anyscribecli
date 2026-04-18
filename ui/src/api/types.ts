@@ -20,6 +20,16 @@ export interface Provider {
   key_url?: string;
 }
 
+export interface LanguageOption {
+  code: string;
+  name: string;
+}
+
+export interface ProviderLanguagesResponse {
+  languages: LanguageOption[];
+  freeform: boolean;
+}
+
 export interface TranscribeRequest {
   url: string;
   provider?: string;
