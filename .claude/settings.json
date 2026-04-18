@@ -6,7 +6,10 @@
       "Bash(python3 -m json.tool)",
       "Read(//tmp/**)",
       "Read(//private/tmp/**)",
-      "Bash(curl -s http://127.0.0.1:8457/api/config)"
+      "Bash(curl -s http://127.0.0.1:8457/api/config)",
+      "Bash(xargs ls:*)",
+      "Bash(xargs cat:*)",
+      "Read(//Users/rish/labs/projects/anyscribecli/**)"
     ]
   }
 }

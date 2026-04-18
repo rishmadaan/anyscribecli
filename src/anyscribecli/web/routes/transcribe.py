@@ -25,6 +25,8 @@ async def start_transcribe(req: TranscribeRequest) -> dict:
     if req.language:
         settings.language = req.language
     settings.diarize = req.diarize
+    if req.diarize and settings.output_format == "clean":
+        settings.output_format = "diarized"
     settings.keep_media = req.keep_media
 
     loop = asyncio.get_event_loop()

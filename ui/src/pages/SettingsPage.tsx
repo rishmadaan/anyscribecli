@@ -5,9 +5,10 @@ import {
   getProviders,
   testProvider,
   getHealth,
+  updateKey,
 } from "../api/client";
 import type { Config, Provider } from "../api/types";
-import { Check, AlertCircle, Loader2 } from "lucide-react";
+import { Check, AlertCircle, Loader2, ChevronUp, Key } from "lucide-react";
 
 export default function SettingsPage() {
   const [config, setConfig] = useState<Config | null>(null);
@@ -21,6 +22,10 @@ export default function SettingsPage() {
   const [saved, setSaved] = useState(false);
   const [testResults, setTestResults] = useState<Record<string, { success: boolean; message: string }>>({});
   const [testingProvider, setTestingProvider] = useState<string | null>(null);
+  const [expandedProvider, setExpandedProvider] = useState<string | null>(null);
+  const [keyInput, setKeyInput] = useState("");
+  const [savingKey, setSavingKey] = useState(false);
+  const [keySaved, setKeySaved] = useState<string | null>(null);
 
   useEffect(() => {
     Promise.all([getConfig(), getProviders(), getHealth()]).then(([c, p, h]) => {
@@ -87,7 +92,7 @@ export default function SettingsPage() {
       {/* General */}
       <section className="mb-10">
         <h2 className="text-xs font-mono text-text-muted uppercase tracking-wider mb-4">
-          General
+          Configure Defaults
         </h2>
         <div className="space-y-4">
           <SettingRow label="Default provider">
@@ -117,7 +122,20 @@ export default function SettingsPage() {
               {["clean", "timestamped", "diarized"].map((fmt) => (
                 <button
                   key={fmt}
-                  onClick={() => handleSave("output_format", fmt)}
+                  onClick={async () => {
+                    // Auto-couple: selecting "diarized" enables speaker detection,
+                    // selecting anything else disables it (matches CLI behavior)
+                    const diarize = fmt === "diarized";
+                    setSaving(true);
+                    try {
+                      const updated = await updateConfig({ output_format: fmt, diarize });
+                      setConfig(updated);
+                      setSaved(true);
+                      setTimeout(() => setSaved(false), 2000);
+                    } finally {
+                      setSaving(false);
+                    }
+                  }}
                   className={`px-3 py-1.5 text-xs font-mono transition-colors cursor-pointer ${
                     config.output_format === fmt
                       ? "bg-amber/15 text-amber border-r border-border"
@@ -136,13 +154,6 @@ export default function SettingsPage() {
               onChange={(v) => handleSave("keep_media", v)}
             />
           </SettingRow>
-
-          <SettingRow label="Diarization">
-            <Toggle
-              value={config.diarize}
-              onChange={(v) => handleSave("diarize", v)}
-            />
-          </SettingRow>
         </div>
       </section>
 
@@ -154,44 +165,120 @@ export default function SettingsPage() {
         <div className="space-y-2">
           {providers.map((p) => {
             const testResult = testResults[p.name];
+            const isExpanded = expandedProvider === p.name;
+            const isLocal = p.name === "local";
             return (
               <div
                 key={p.name}
-                className="flex items-center gap-3 rounded-lg border border-border-subtle bg-surface px-4 py-3"
+                className="rounded-lg border border-border-subtle bg-surface overflow-hidden"
               >
-                <div
-                  className={`w-2 h-2 rounded-full ${
-                    p.has_key ? "bg-green" : "bg-text-muted/40"
-                  }`}
-                />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-mono text-text">{p.name}</p>
-                  <p className="text-xs text-text-muted truncate">{p.description}</p>
-                </div>
-                <button
-                  onClick={() => handleTest(p.name)}
-                  disabled={testingProvider === p.name}
-                  className="
-                    rounded-md border border-border px-2.5 py-1
-                    text-xs text-text-muted hover:text-text
-                    hover:bg-surface-raised transition-colors cursor-pointer
-                    disabled:opacity-50
-                  "
-                >
-                  {testingProvider === p.name ? (
-                    <Loader2 className="w-3 h-3 animate-spin" />
-                  ) : (
-                    "Test"
-                  )}
-                </button>
-                {testResult && (
-                  <span className={`text-xs ${testResult.success ? "text-green" : "text-red"}`}>
-                    {testResult.success ? (
-                      <Check className="w-3.5 h-3.5" />
+                <div className="flex items-center gap-3 px-4 py-3">
+                  <div
+                    className={`w-2 h-2 rounded-full ${
+                      p.has_key ? "bg-green" : "bg-text-muted/40"
+                    }`}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-mono text-text">{p.name}</p>
+                    <p className="text-xs text-text-muted truncate">{p.description}</p>
+                  </div>
+                  <button
+                    onClick={() => handleTest(p.name)}
+                    disabled={testingProvider === p.name}
+                    className="
+                      rounded-md border border-border px-2.5 py-1
+                      text-xs text-text-muted hover:text-text
+                      hover:bg-surface-raised transition-colors cursor-pointer
+                      disabled:opacity-50
+                    "
+                  >
+                    {testingProvider === p.name ? (
+                      <Loader2 className="w-3 h-3 animate-spin" />
                     ) : (
-                      <AlertCircle className="w-3.5 h-3.5" />
+                      "Test"
                     )}
-                  </span>
+                  </button>
+                  {testResult && (
+                    <span className={`text-xs ${testResult.success ? "text-green" : "text-red"}`}>
+                      {testResult.success ? (
+                        <Check className="w-3.5 h-3.5" />
+                      ) : (
+                        <AlertCircle className="w-3.5 h-3.5" />
+                      )}
+                    </span>
+                  )}
+                  {!isLocal && (
+                    <button
+                      onClick={() => {
+                        if (isExpanded) {
+                          setExpandedProvider(null);
+                        } else {
+                          setExpandedProvider(p.name);
+                          setKeyInput("");
+                          setKeySaved(null);
+                        }
+                      }}
+                      className="rounded-md px-1.5 py-1 text-text-muted hover:text-text transition-colors cursor-pointer"
+                      title="Set API key"
+                    >
+                      {isExpanded ? (
+                        <ChevronUp className="w-3.5 h-3.5" />
+                      ) : (
+                        <Key className="w-3.5 h-3.5" />
+                      )}
+                    </button>
+                  )}
+                </div>
+
+                {/* Expandable API key input */}
+                {isExpanded && (
+                  <div className="px-4 pb-3 pt-0 border-t border-border-subtle">
+                    <div className="flex items-center gap-2 mt-3">
+                      <input
+                        type="password"
+                        value={keyInput}
+                        onChange={(e) => setKeyInput(e.target.value)}
+                        placeholder={p.has_key ? "••••••••  (key set — enter new to replace)" : "Paste API key"}
+                        className="flex-1 bg-surface-raised border border-border rounded-md px-2.5 py-1.5 text-sm text-text font-mono outline-none focus:border-amber/40"
+                        autoFocus
+                      />
+                      <button
+                        onClick={async () => {
+                          if (!keyInput.trim()) return;
+                          setSavingKey(true);
+                          try {
+                            await updateKey(p.name, keyInput.trim());
+                            setKeySaved(p.name);
+                            setKeyInput("");
+                            // Refresh providers to update has_key status
+                            const updated = await getProviders();
+                            setProviders(updated);
+                            setTimeout(() => {
+                              setKeySaved(null);
+                              setExpandedProvider(null);
+                            }, 1500);
+                          } finally {
+                            setSavingKey(false);
+                          }
+                        }}
+                        disabled={savingKey || !keyInput.trim()}
+                        className="
+                          rounded-md border border-border px-3 py-1.5
+                          text-xs font-mono text-text-muted hover:text-text
+                          hover:bg-surface-raised transition-colors cursor-pointer
+                          disabled:opacity-50
+                        "
+                      >
+                        {savingKey ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : keySaved === p.name ? (
+                          <Check className="w-3 h-3 text-green" />
+                        ) : (
+                          "Save"
+                        )}
+                      </button>
+                    </div>
+                  </div>
                 )}
               </div>
             );
