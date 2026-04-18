@@ -145,3 +145,95 @@ def test_local_test_returns_structured_checks(client):
     assert set(body["checks"].keys()) == {"faster_whisper", "ffmpeg", "model_cached"}
     for sub in body["checks"].values():
         assert "ok" in sub and "message" in sub
+
+
+# ── Queue, reinstall, setup log (v0.8.1) ──────────────
+
+
+def test_list_exposes_queue_state(client):
+    r = client.get("/api/models/local")
+    assert r.status_code == 200
+    body = r.json()
+    assert "queue" in body
+    for m in body["models"]:
+        assert "downloading" in m and "queued" in m and "queue_position" in m
+
+
+def test_setup_log_safe_before_any_setup(client):
+    r = client.get("/api/local/setup/log")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["lines"] == []
+    assert body["total"] == 0
+    assert body["running"] is False
+
+
+def test_setup_log_since_cursor_never_returns_negative_range(client):
+    r = client.get("/api/local/setup/log?since=9999")
+    assert r.status_code == 200
+    assert r.json()["lines"] == []
+
+
+def test_reinstall_unknown_size_returns_400(client):
+    r = client.post("/api/models/local/huge/reinstall")
+    assert r.status_code == 400
+
+
+def test_reinstall_without_faster_whisper_returns_409(client):
+    with patch(
+        "anyscribecli.web.routes.models.faster_whisper_importable",
+        return_value=False,
+    ):
+        r = client.post("/api/models/local/base/reinstall")
+    assert r.status_code == 409
+
+
+def test_reinstall_calls_delete_then_pull(client):
+    # When the model is cached, reinstall should delete then pull and report
+    # both byte counts.
+    with patch(
+        "anyscribecli.web.routes.models.faster_whisper_importable",
+        return_value=True,
+    ):
+        with patch("anyscribecli.web.routes.models.is_cached", return_value=True):
+            with patch(
+                "anyscribecli.web.routes.models.delete_model",
+                return_value={"status": "removed", "size": "base", "bytes_freed": 100},
+            ) as d:
+                with patch(
+                    "anyscribecli.web.routes.models.pull_model",
+                    return_value={
+                        "status": "downloaded",
+                        "size": "base",
+                        "repo": "r",
+                        "bytes": 200,
+                    },
+                ) as p:
+                    r = client.post("/api/models/local/base/reinstall")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["status"] == "reinstalled"
+    assert body["bytes_freed"] == 100
+    assert body["bytes_downloaded"] == 200
+    d.assert_called_once_with("base")
+    p.assert_called_once_with("base")
+
+
+def test_reinstall_not_cached_downloads_only(client):
+    with patch(
+        "anyscribecli.web.routes.models.faster_whisper_importable",
+        return_value=True,
+    ):
+        with patch("anyscribecli.web.routes.models.is_cached", return_value=False):
+            with patch(
+                "anyscribecli.web.routes.models.pull_model",
+                return_value={
+                    "status": "downloaded",
+                    "size": "base",
+                    "repo": "r",
+                    "bytes": 200,
+                },
+            ):
+                r = client.post("/api/models/local/base/reinstall")
+    assert r.status_code == 200
+    assert r.json()["status"] == "downloaded_only"

@@ -10,6 +10,7 @@ import {
   getLocalStatus,
   pullLocalModel,
   deleteLocalModel,
+  reinstallLocalModel,
   teardownLocal,
 } from "../api/client";
 import type {
@@ -30,6 +31,8 @@ import {
   Sparkles,
   Download,
   Trash2,
+  RefreshCw,
+  PlayCircle,
 } from "lucide-react";
 
 const MB = 1024 * 1024;
@@ -61,6 +64,7 @@ export default function SettingsPage() {
   const [showSetupModal, setShowSetupModal] = useState(false);
   const [pullingSize, setPullingSize] = useState<string | null>(null);
   const [deletingSize, setDeletingSize] = useState<string | null>(null);
+  const [reinstallingSize, setReinstallingSize] = useState<string | null>(null);
   const [confirmTeardown, setConfirmTeardown] = useState(false);
   const [tearingDown, setTearingDown] = useState(false);
 
@@ -88,10 +92,20 @@ export default function SettingsPage() {
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [location.hash, config]);
 
-  // Poll local status while a download or delete is in flight so the table
-  // reflects reality without needing manual refresh.
+  // Poll local status while any long-running local operation is in flight.
+  // Now includes queued downloads (not just the running one).
   useEffect(() => {
-    if (!pullingSize && !deletingSize && !localStatus?.setup_running) return;
+    const anyQueueActivity = (localStatus?.models || []).some(
+      (m) => m.downloading || m.queued
+    );
+    if (
+      !pullingSize &&
+      !deletingSize &&
+      !reinstallingSize &&
+      !localStatus?.setup_running &&
+      !anyQueueActivity
+    )
+      return;
     const id = setInterval(async () => {
       try {
         const [l, p] = await Promise.all([getLocalStatus(), getProviders()]);
@@ -106,7 +120,13 @@ export default function SettingsPage() {
       }
     }, 1500);
     return () => clearInterval(id);
-  }, [pullingSize, deletingSize, localStatus?.setup_running]);
+  }, [
+    pullingSize,
+    deletingSize,
+    reinstallingSize,
+    localStatus?.setup_running,
+    localStatus?.models,
+  ]);
 
   const handleSave = async (updates: Partial<Config>) => {
     if (!config) return;
@@ -162,6 +182,20 @@ export default function SettingsPage() {
     }
   };
 
+  const handleReinstall = async (size: string) => {
+    setReinstallingSize(size);
+    setError(null);
+    try {
+      await reinstallLocalModel(size);
+      const l = await getLocalStatus();
+      setLocalStatus(l);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : `Failed to reinstall ${size}`);
+    } finally {
+      setReinstallingSize(null);
+    }
+  };
+
   const handleTeardown = async () => {
     setTearingDown(true);
     setError(null);
@@ -203,12 +237,25 @@ export default function SettingsPage() {
         >
           Settings
         </h1>
-        {saved && (
-          <span className="flex items-center gap-1 text-xs text-green animate-fade-in">
-            <Check className="w-3 h-3" />
-            Saved
-          </span>
-        )}
+        <div className="flex items-center gap-3">
+          {saved && (
+            <span className="flex items-center gap-1 text-xs text-green animate-fade-in">
+              <Check className="w-3 h-3" />
+              Saved
+            </span>
+          )}
+          <button
+            onClick={() => {
+              const w = window as unknown as { openOnboarding?: () => void };
+              w.openOnboarding?.();
+            }}
+            className="flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1 text-xs font-mono text-text-muted hover:text-text hover:bg-surface-raised transition-colors cursor-pointer"
+            title="Re-run the onboarding wizard"
+          >
+            <PlayCircle className="w-3 h-3" />
+            Run setup wizard
+          </button>
+        </div>
       </div>
 
       {/* Error banner */}
@@ -318,6 +365,7 @@ export default function SettingsPage() {
                   testing={testingProvider === p.name}
                   pullingSize={pullingSize}
                   deletingSize={deletingSize}
+                  reinstallingSize={reinstallingSize}
                   config={config}
                   onToggleExpand={() =>
                     setExpandedProvider(isExpanded ? null : p.name)
@@ -326,6 +374,7 @@ export default function SettingsPage() {
                   onOpenSetup={() => setShowSetupModal(true)}
                   onPull={handlePull}
                   onDelete={handleDelete}
+                  onReinstall={handleReinstall}
                   onDefaultChange={(size) =>
                     handleSave({ local_model: size })
                   }
@@ -553,12 +602,14 @@ function LocalProviderCard({
   testing,
   pullingSize,
   deletingSize,
+  reinstallingSize,
   config,
   onToggleExpand,
   onTest,
   onOpenSetup,
   onPull,
   onDelete,
+  onReinstall,
   onDefaultChange,
   confirmTeardown,
   onTeardownRequest,
@@ -573,12 +624,14 @@ function LocalProviderCard({
   testing: boolean;
   pullingSize: string | null;
   deletingSize: string | null;
+  reinstallingSize: string | null;
   config: Config;
   onToggleExpand: () => void;
   onTest: () => void;
   onOpenSetup: () => void;
   onPull: (size: string) => void;
   onDelete: (size: string) => void;
+  onReinstall: (size: string) => void;
   onDefaultChange: (size: string) => void;
   confirmTeardown: boolean;
   onTeardownRequest: () => void;
@@ -602,6 +655,36 @@ function LocalProviderCard({
             {provider.description}
           </p>
         </div>
+        {/* Always show Diagnose — runs the same structured test; pre-setup
+            it surfaces which piece is missing without requiring setup. */}
+        <button
+          onClick={onTest}
+          disabled={testing}
+          className="rounded-md border border-border px-2.5 py-1 text-xs text-text-muted hover:text-text hover:bg-surface-raised transition-colors cursor-pointer disabled:opacity-50"
+          title={setUp ? "Run diagnostics" : "Diagnose missing dependencies"}
+        >
+          {testing ? (
+            <Loader2 className="w-3 h-3 animate-spin" />
+          ) : setUp ? (
+            "Test"
+          ) : (
+            "Diagnose"
+          )}
+        </button>
+        {testResult && (
+          <span
+            className={`text-xs ${
+              testResult.success ? "text-green" : "text-red"
+            }`}
+            title={testResult.message}
+          >
+            {testResult.success ? (
+              <Check className="w-3.5 h-3.5" />
+            ) : (
+              <AlertCircle className="w-3.5 h-3.5" />
+            )}
+          </span>
+        )}
         {!setUp ? (
           <button
             onClick={onOpenSetup}
@@ -610,45 +693,23 @@ function LocalProviderCard({
             Set up local transcription
           </button>
         ) : (
-          <>
-            <button
-              onClick={onTest}
-              disabled={testing}
-              className="rounded-md border border-border px-2.5 py-1 text-xs text-text-muted hover:text-text hover:bg-surface-raised transition-colors cursor-pointer disabled:opacity-50"
-            >
-              {testing ? <Loader2 className="w-3 h-3 animate-spin" /> : "Test"}
-            </button>
-            {testResult && (
-              <span
-                className={`text-xs ${
-                  testResult.success ? "text-green" : "text-red"
-                }`}
-                title={testResult.message}
-              >
-                {testResult.success ? (
-                  <Check className="w-3.5 h-3.5" />
-                ) : (
-                  <AlertCircle className="w-3.5 h-3.5" />
-                )}
-              </span>
+          <button
+            onClick={onToggleExpand}
+            className="rounded-md px-1.5 py-1 text-text-muted hover:text-text transition-colors cursor-pointer"
+            title={isExpanded ? "Hide models" : "Manage models"}
+          >
+            {isExpanded ? (
+              <ChevronUp className="w-3.5 h-3.5" />
+            ) : (
+              <ChevronDown className="w-3.5 h-3.5" />
             )}
-            <button
-              onClick={onToggleExpand}
-              className="rounded-md px-1.5 py-1 text-text-muted hover:text-text transition-colors cursor-pointer"
-              title={isExpanded ? "Hide models" : "Manage models"}
-            >
-              {isExpanded ? (
-                <ChevronUp className="w-3.5 h-3.5" />
-              ) : (
-                <ChevronDown className="w-3.5 h-3.5" />
-              )}
-            </button>
-          </>
+          </button>
         )}
       </div>
 
-      {/* Structured test-result sub-checks */}
-      {setUp && testResult?.checks && (
+      {/* Structured test-result sub-checks — rendered whether or not local is
+          set up; pre-setup it surfaces which piece is missing. */}
+      {testResult?.checks && (
         <div className="px-4 pb-3 pt-0 border-t border-border-subtle">
           <div className="mt-3 space-y-1">
             {(
@@ -708,6 +769,9 @@ function LocalProviderCard({
             {status.models.map((m, i) => {
               const isPulling = pullingSize === m.size;
               const isDeleting = deletingSize === m.size;
+              const isReinstalling = reinstallingSize === m.size;
+              const isDownloading = !!m.downloading || isPulling;
+              const isQueued = !!m.queued;
               return (
                 <div
                   key={m.size}
@@ -723,40 +787,62 @@ function LocalProviderCard({
                   </span>
                   <span className="text-[10px] text-text-muted flex-1 truncate">
                     {m.spec.quality}
+                    {isQueued && (
+                      <span className="ml-2 text-[9px] font-mono text-amber bg-amber/10 border border-amber/30 rounded px-1 py-0.5">
+                        queued #{m.queue_position ?? "?"}
+                      </span>
+                    )}
                   </span>
                   {m.cached ? (
-                    <button
-                      onClick={() => onDelete(m.size)}
-                      disabled={
-                        isDeleting ||
-                        (config.local_model === m.size &&
-                          status.models.filter((x) => x.cached).length === 1)
-                      }
-                      className="rounded-md border border-border px-2 py-1 text-[11px] font-mono text-text-muted hover:text-red hover:border-red/30 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1"
-                      title={
-                        config.local_model === m.size &&
-                        status.models.filter((x) => x.cached).length === 1
-                          ? "can't delete the only cached model while it's the default"
-                          : "Delete from cache"
-                      }
-                    >
-                      {isDeleting ? (
-                        <Loader2 className="w-3 h-3 animate-spin" />
-                      ) : (
-                        <Trash2 className="w-3 h-3" />
-                      )}
-                    </button>
+                    <>
+                      <button
+                        onClick={() => onReinstall(m.size)}
+                        disabled={isReinstalling || isDownloading}
+                        className="rounded-md border border-border px-2 py-1 text-[11px] font-mono text-text-muted hover:text-text hover:bg-surface transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1"
+                        title="Delete and re-download (for corrupted weights)"
+                      >
+                        {isReinstalling ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : (
+                          <RefreshCw className="w-3 h-3" />
+                        )}
+                      </button>
+                      <button
+                        onClick={() => onDelete(m.size)}
+                        disabled={
+                          isDeleting ||
+                          isReinstalling ||
+                          (config.local_model === m.size &&
+                            status.models.filter((x) => x.cached).length === 1)
+                        }
+                        className="rounded-md border border-border px-2 py-1 text-[11px] font-mono text-text-muted hover:text-red hover:border-red/30 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1"
+                        title={
+                          config.local_model === m.size &&
+                          status.models.filter((x) => x.cached).length === 1
+                            ? "can't delete the only cached model while it's the default"
+                            : "Delete from cache"
+                        }
+                      >
+                        {isDeleting ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : (
+                          <Trash2 className="w-3 h-3" />
+                        )}
+                      </button>
+                    </>
                   ) : (
                     <button
                       onClick={() => onPull(m.size)}
-                      disabled={isPulling || !!pullingSize}
+                      disabled={isDownloading || isQueued}
                       className="rounded-md border border-border px-2 py-1 text-[11px] font-mono text-text-muted hover:text-text hover:bg-surface transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1"
                     >
-                      {isPulling ? (
+                      {isDownloading ? (
                         <>
                           <Loader2 className="w-3 h-3 animate-spin" />
                           downloading
                         </>
+                      ) : isQueued ? (
+                        <>queued</>
                       ) : (
                         <>
                           <Download className="w-3 h-3" />

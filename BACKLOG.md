@@ -45,9 +45,9 @@ The `0.x` prefix means pre-stable — breaking changes are allowed between minor
 | 0.7.4.7 | Per-provider language `<datalist>` picker + provider key clarity (disabled options + Settings CTA) | Released 2026-04-18 |
 | 0.7.4.7.1 | Fix language datalist popup showing nothing — clear input on focus so all options are visible | Released 2026-04-18 |
 | 0.7.4.7.2 | Rename "Diarize" → "Multi-speaker" and "diarized" output → "with-speaker-labels" in the web UI (wire values unchanged) | Released 2026-04-18 |
-| 0.8.0 | Local transcription: unified opt-in setup, `scribe local` + `scribe model` CLI groups, Web UI two-state local card, green-dot honesty, structured Test checks — marker release for the agentic-CLI / Web-UI-primary split | **Current** |
+| 0.8.0 | Local transcription: unified opt-in setup + model management. Committed locally; superseded by 0.8.1 before publish. | Rolled into 0.8.1 |
+| 0.8.1 | Three-surface onboarding parity: Web UI wizard (first-run modal), TUI `scribe onboard` (unchanged), headless `scribe onboard --yes` for agents — all converging on shared `core/onboard_headless.py`. Plus `scribe model reinstall`, FIFO download queue, live install-log streaming, focus-trapped modals, always-visible Diagnose. New architecture-doc section making the shared-backend + asymmetric-surface rule explicit. All v0.8.0 scope included. | **Current** |
 | 0.9.0 | Cache/dedup, test suite, error handling | Next |
-| 0.9.x | TUI removal sweep — strip beaupy / interactive prompts from CLI commands outside `onboard`; rework `onboard.py` to a flag-driven agent path (`scribe onboard --provider X --api-key ... --yes`) | Queued |
 | 0.9.x | Byte-level download progress in Web UI — stream faster-whisper/HF progress via WebSocket to replace the spinner in `LocalSetupModal` and the Models table | Queued |
 | 0.10.0 | Menu-bar tray companion + auto-start ([plan](docs/building/journal/2026-04-18-menu-bar-tray-companion-plan.md)) | Planned |
 | 1.0.0 | Stable: full test coverage, CI/CD pipeline | Future |

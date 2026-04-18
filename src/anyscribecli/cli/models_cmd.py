@@ -204,6 +204,106 @@ def model_rm(
         console.print(f"[green]Removed {size}[/green] — freed {mb} MB.")
 
 
+@models_app.command("reinstall")
+def model_reinstall(
+    size: str = typer.Argument(..., help="Model size to reinstall."),
+    yes: bool = typer.Option(
+        False,
+        "--yes",
+        "-y",
+        help="Skip confirmation. Required — reinstall deletes the existing weights.",
+    ),
+    output_json: bool = typer.Option(False, "--json", "-j", help="Output as JSON."),
+) -> None:
+    """[bold]Reinstall[/bold] a Whisper model — delete + re-download in one step.
+
+    Useful if cached weights look corrupted. If the model wasn't cached, this
+    is equivalent to ``scribe model pull`` (no delete needed).
+    """
+    if size not in MODEL_SIZES:
+        err = {"error": f"unknown size '{size}'", "choices": list(MODEL_SIZES)}
+        if output_json:
+            _write_json_err(err)
+        else:
+            err_console.print(
+                f"[red]Unknown size '{size}'.[/red] Choices: {', '.join(MODEL_SIZES)}."
+            )
+        raise typer.Exit(code=2)
+
+    if not faster_whisper_importable():
+        err = {
+            "error": "local transcription not set up",
+            "hint": f"run `scribe local setup --model {size}`",
+        }
+        if output_json:
+            _write_json_err(err)
+        else:
+            err_console.print(
+                "[red]faster-whisper not installed.[/red] "
+                f"Run [bold]scribe local setup --model {size}[/bold] first."
+            )
+        raise typer.Exit(code=2)
+
+    is_tty = sys.stdin.isatty() and sys.stdout.isatty()
+    if not yes:
+        if not is_tty:
+            err = {"error": "refusing to reinstall without --yes"}
+            if output_json:
+                _write_json_err(err)
+            else:
+                err_console.print("[red]Non-interactive run — pass --yes to confirm.[/red]")
+            raise typer.Exit(code=2)
+        if not typer.confirm(f"Delete and re-download {size} model?", default=False):
+            if output_json:
+                _write_json({"status": "cancelled", "size": size})
+            else:
+                console.print("[yellow]Cancelled.[/yellow]")
+            raise typer.Exit(code=0)
+
+    bytes_freed = 0
+    if is_cached(size):
+        delete_result = delete_model(size)
+        bytes_freed = int(delete_result.get("bytes_freed", 0))
+
+    try:
+        pull_result = pull_model(size)
+    except Exception as e:
+        err = {"error": str(e), "bytes_freed": bytes_freed}
+        if output_json:
+            _write_json_err(err)
+        else:
+            err_console.print(f"[red]Reinstall failed:[/red] {e}")
+        raise typer.Exit(code=1)
+
+    bytes_downloaded = int(pull_result.get("bytes", 0))
+    if bytes_freed > 0:
+        status = "reinstalled"
+    else:
+        status = "downloaded_only"
+
+    payload = {
+        "status": status,
+        "size": size,
+        "bytes_freed": bytes_freed,
+        "bytes_downloaded": bytes_downloaded,
+    }
+
+    if output_json:
+        _write_json(payload)
+    else:
+        freed_mb = bytes_freed // (1024 * 1024)
+        dl_mb = bytes_downloaded // (1024 * 1024)
+        if status == "reinstalled":
+            console.print(
+                f"[green]Reinstalled {size}[/green] — freed {freed_mb} MB, downloaded {dl_mb} MB."
+            )
+        else:
+            console.print(
+                f"[green]Installed {size}[/green] — downloaded {dl_mb} MB. "
+                "(Wasn't previously cached; no delete needed.)"
+            )
+
+
 @models_app.command("info")
 def model_info(
     size: str = typer.Argument(..., help="Model size to inspect."),

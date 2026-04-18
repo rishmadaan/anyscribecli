@@ -58,13 +58,36 @@ When the USER wants to run commands themselves, show them the human-readable for
 | List downloaded Whisper models | `scribe model list --json` |
 | Delete a cached Whisper model | `scribe model rm <size> --yes --json` |
 | Remove offline transcription | `scribe local teardown --yes --json` |
-| Initial setup or reconfigure | `scribe onboard` (or `--force` to re-run) |
+| Initial setup (interactive, for a human) | `scribe onboard` (or `--force` to re-run) |
+| Initial setup (headless, agent or script) | `scribe onboard --provider X --api-key $KEY --yes --json` *(see rule below)* |
 | Use the web UI | `scribe ui` (opens browser dashboard at 127.0.0.1:8457) |
 | Diagnose problems | `scribe doctor` |
 | Update scribe | `scribe update` |
 | Check for updates | `scribe update --check` |
 
 For complete command syntax and all flags, read [references/commands.md](references/commands.md).
+
+## Onboarding (First-Run Setup) — Agent Rules
+
+scribe has three equivalent setup paths: an interactive CLI wizard (`scribe onboard`), a Web UI wizard (first-run modal on `scribe ui`), and a headless flag-driven path (`scribe onboard --yes`). **You must use the headless path.** The interactive wizards need a TTY / browser — they'll either hang or produce no output in an agent context.
+
+**Rule: do not run `scribe onboard` without `--yes` in agent contexts.** If the user asks you to "set up scribe," use:
+
+```bash
+scribe onboard --provider <name> --api-key "$KEY_ENV_VAR" --yes --json
+```
+
+For local/offline transcription as primary provider:
+
+```bash
+scribe onboard --provider local --local-model base --yes --json
+```
+
+**Prefer env vars over `--api-key` on argv** — argv leaks into shell history. Reference the env var by name (`"$OPENAI_API_KEY"`) in examples you give the user.
+
+**Don't guess missing flags.** If the user hasn't told you which provider or model to use, ask them — don't default to one silently. The recommended model for `--provider local` is `base` per [`references/providers.md`](references/providers.md); other defaults (workspace, language, output format) are sane and the user can adjust them in Settings later.
+
+**Already configured?** `scribe onboard --yes` without `--force` exits 2 when `~/.anyscribecli/config.yaml` exists. If the user wants to reconfigure, pass `--force`.
 
 ## Local (Offline) Transcription Workflow
 

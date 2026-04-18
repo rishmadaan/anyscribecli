@@ -7,6 +7,10 @@ import type {
   ProviderTestResult,
   LocalStatusResponse,
   LocalModelsResponse,
+  OnboardingStatus,
+  OnboardingPayload,
+  OnboardingResult,
+  SetupLogResponse,
   TranscriptMeta,
   TranscriptDetail,
   WorkspaceInfo,
@@ -140,3 +144,25 @@ export const deleteLocalModel = (size: string) =>
     `/models/local/${size}`,
     { method: "DELETE" }
   );
+
+export const reinstallLocalModel = (size: string) =>
+  fetchJSON<{
+    status: string;
+    size: string;
+    bytes_freed: number;
+    bytes_downloaded: number;
+  }>(`/models/local/${size}/reinstall`, { method: "POST" });
+
+export const getSetupLog = (since: number) =>
+  fetchJSON<SetupLogResponse>(`/local/setup/log?since=${since}`);
+
+// ── Onboarding ───────────────────────────────────────
+
+export const getOnboardingStatus = () =>
+  fetchJSON<OnboardingStatus>("/onboarding/status");
+
+export const saveOnboarding = (payload: OnboardingPayload) =>
+  fetchJSON<OnboardingResult>("/onboarding/save", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });

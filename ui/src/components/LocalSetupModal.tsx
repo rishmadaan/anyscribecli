@@ -1,16 +1,20 @@
 /** Local transcription setup modal.
  *
- * Shown when the user clicks "Set up local transcription" on the local
- * provider card in Settings. Lets the user pick a model size (with the
- * backend-recommended size preselected and badged), kicks off the unified
- * setup flow, and polls status until done. Errors are shown verbatim so the
- * user (or the agent reading the page) can resolve install issues manually.
+ * Lets the user pick a model size (recommended preselected + badged), kicks
+ * off the unified backend setup flow, polls status until done, and streams
+ * the install log into a collapsible panel so diagnostic output is visible
+ * when something goes wrong.
  */
 
-import { useEffect, useState } from "react";
-import { X, Loader2, AlertCircle, Check } from "lucide-react";
-import { getLocalStatus, setupLocal } from "../api/client";
+import { useEffect, useRef, useState } from "react";
+import { X, Loader2, AlertCircle, Check, ChevronDown, ChevronRight } from "lucide-react";
+import {
+  getLocalStatus,
+  setupLocal,
+  getSetupLog,
+} from "../api/client";
 import type { LocalStatusResponse } from "../api/types";
+import Modal from "./Modal";
 
 const POLL_MS = 1500;
 
@@ -24,6 +28,9 @@ export default function LocalSetupModal({ onClose, onDone }: Props) {
   const [selected, setSelected] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [logLines, setLogLines] = useState<string[]>([]);
+  const [logOpen, setLogOpen] = useState(false);
+  const logCursorRef = useRef(0);
 
   // Initial status fetch + preselect recommended size.
   useEffect(() => {
@@ -42,17 +49,25 @@ export default function LocalSetupModal({ onClose, onDone }: Props) {
     };
   }, []);
 
-  // Poll while a setup is in flight so the user sees the phase flip.
+  // Poll status + log while setup is in flight.
   useEffect(() => {
     if (!status?.setup_running) return;
     const id = setInterval(async () => {
       try {
-        const s = await getLocalStatus();
+        const [s, log] = await Promise.all([
+          getLocalStatus(),
+          getSetupLog(logCursorRef.current),
+        ]);
         setStatus(s);
+        if (log.lines.length > 0) {
+          setLogLines((prev) => [...prev, ...log.lines]);
+          logCursorRef.current = log.total;
+        }
         if (!s.setup_running) {
           clearInterval(id);
           if (s.setup_error) {
             setError(s.setup_error);
+            setLogOpen(true);
           } else if (s.set_up) {
             onDone();
           }
@@ -68,9 +83,10 @@ export default function LocalSetupModal({ onClose, onDone }: Props) {
     if (!selected) return;
     setStarting(true);
     setError(null);
+    setLogLines([]);
+    logCursorRef.current = 0;
     try {
       await setupLocal(selected);
-      // Kick status re-fetch so setup_running flips and polling starts.
       const s = await getLocalStatus();
       setStatus(s);
     } catch (e) {
@@ -82,7 +98,7 @@ export default function LocalSetupModal({ onClose, onDone }: Props) {
 
   if (!status) {
     return (
-      <Modal onClose={onClose}>
+      <Modal onClose={onClose} ariaLabel="Set up local transcription" size="lg">
         <div className="flex items-center justify-center py-10">
           <Loader2 className="w-5 h-5 animate-spin text-text-muted" />
         </div>
@@ -94,9 +110,15 @@ export default function LocalSetupModal({ onClose, onDone }: Props) {
   const phase = status.setup_phase;
 
   return (
-    <Modal onClose={onClose} disableClose={running}>
+    <Modal
+      onClose={onClose}
+      disableClose={running}
+      ariaLabelledBy="local-setup-title"
+      size="lg"
+    >
       <div className="flex items-center justify-between mb-4">
         <h2
+          id="local-setup-title"
           className="text-lg font-bold text-text"
           style={{ fontFamily: "var(--font-display)" }}
         >
@@ -106,6 +128,7 @@ export default function LocalSetupModal({ onClose, onDone }: Props) {
           <button
             onClick={onClose}
             className="text-text-muted hover:text-text transition-colors cursor-pointer p-0.5"
+            aria-label="Close"
           >
             <X className="w-4 h-4" />
           </button>
@@ -122,7 +145,19 @@ export default function LocalSetupModal({ onClose, onDone }: Props) {
           <div className="flex items-start gap-2">
             <AlertCircle className="w-4 h-4 text-red mt-0.5 shrink-0" />
             <div className="flex-1 min-w-0">
-              <p className="text-xs text-red font-mono break-words">{error}</p>
+              <p className="text-xs text-red font-mono break-words">
+                {error.length > 500 ? error.slice(0, 500) + "…" : error}
+              </p>
+              {error.length > 500 && (
+                <details className="mt-2">
+                  <summary className="text-[10px] font-mono text-red/70 cursor-pointer">
+                    show full error
+                  </summary>
+                  <pre className="mt-2 text-[10px] font-mono text-red/80 whitespace-pre-wrap break-words">
+                    {error}
+                  </pre>
+                </details>
+              )}
             </div>
           </div>
         </div>
@@ -174,10 +209,34 @@ export default function LocalSetupModal({ onClose, onDone }: Props) {
         <div className="rounded-md border border-border-subtle bg-surface-raised px-3 py-2 mb-4">
           <div className="flex items-center gap-2">
             <Loader2 className="w-4 h-4 animate-spin text-amber" />
-            <p className="text-xs text-text font-mono">
-              {describePhase(phase)}
-            </p>
+            <p className="text-xs text-text font-mono">{describePhase(phase)}</p>
           </div>
+        </div>
+      )}
+
+      {(running || logLines.length > 0) && (
+        <div className="mb-4">
+          <button
+            onClick={() => setLogOpen(!logOpen)}
+            className="flex items-center gap-1 text-xs font-mono text-text-muted hover:text-text transition-colors cursor-pointer"
+          >
+            {logOpen ? (
+              <ChevronDown className="w-3 h-3" />
+            ) : (
+              <ChevronRight className="w-3 h-3" />
+            )}
+            Show install log{" "}
+            {logLines.length > 0 && (
+              <span className="text-[10px] text-text-muted">
+                ({logLines.length} lines)
+              </span>
+            )}
+          </button>
+          {logOpen && (
+            <pre className="mt-2 max-h-56 overflow-auto rounded-md border border-border-subtle bg-black/20 p-2 text-[10px] font-mono text-text-muted whitespace-pre-wrap break-all">
+              {logLines.length > 0 ? logLines.join("\n") : "(no output yet)"}
+            </pre>
+          )}
         </div>
       )}
 
@@ -232,38 +291,4 @@ function describePhase(phase: string | null): string {
     default:
       return phase;
   }
-}
-
-function Modal({
-  children,
-  onClose,
-  disableClose = false,
-}: {
-  children: React.ReactNode;
-  onClose: () => void;
-  disableClose?: boolean;
-}) {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && !disableClose) onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose, disableClose]);
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4"
-      onClick={() => {
-        if (!disableClose) onClose();
-      }}
-    >
-      <div
-        className="relative w-full max-w-lg rounded-xl border border-border-subtle bg-surface p-5 shadow-2xl animate-fade-in"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {children}
-      </div>
-    </div>
-  );
 }

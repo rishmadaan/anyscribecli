@@ -93,8 +93,17 @@ User-facing = new command, new flag, changed output, changed config option, new 
 2. [ ] `cli/main.py` — command registered
 3. [ ] `docs/user/commands.md` — added to Quick Overview + full section with flags/examples
 4. [ ] `README.md` — added to Commands table
-5. [ ] `docs/building/architecture.md` — added to CLI Layer commands list
+5. [ ] `docs/building/architecture.md` — added to CLI Layer commands list + **feature-coverage matrix row** in the "CLI ↔ Web UI: shared backend, asymmetric surfaces" section
 6. [ ] `AGENTS.md` — added to Quick Context if it's a key entry point
+
+## After adding or changing a surface-facing feature
+
+A "surface-facing feature" is anything a user can see or trigger from either the CLI or the Web UI — a new command, a new UI action, a new provider, a new flag.
+
+1. [ ] Decide explicitly which surfaces it lives on (CLI, Web UI, both) and note that in the commit message or PR
+2. [ ] `docs/building/architecture.md` — update the **feature-coverage matrix** in the "CLI ↔ Web UI: shared backend, asymmetric surfaces" section
+3. [ ] If it's on both surfaces, confirm both call the same shared backend module (not via subprocess) — this is architecturally load-bearing
+4. [ ] If it's CLI-only or UI-only by design, state the reason in the matrix row's Notes column so future readers know it wasn't a gap
 
 ## Quick grep checks
 

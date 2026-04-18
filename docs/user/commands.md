@@ -15,7 +15,8 @@ Every scribe command. Copy-paste friendly.
 | Command | What it does |
 |---------|-------------|
 | `scribe "<url or file>"` | Transcribe a URL or local file (default action) |
-| `scribe onboard` | First-time setup wizard |
+| `scribe onboard` | First-time setup wizard (interactive TUI) |
+| `scribe onboard --yes --provider X ...` | Headless setup (for agents / scripts) |
 | `scribe download "<url>"` | Download video or audio only (no transcription) |
 | `scribe batch <file>` | Batch transcribe URLs or file paths from a file |
 | `scribe config show` | View current settings |
@@ -29,6 +30,7 @@ Every scribe command. Copy-paste friendly.
 | `scribe model list` | List Whisper models with cache status |
 | `scribe model pull <size>` | Download an additional Whisper model |
 | `scribe model rm <size> --yes` | Delete a cached Whisper model |
+| `scribe model reinstall <size> --yes` | Delete + re-download in one step (for corrupted weights) |
 | `scribe model info <size>` | Inspect a single Whisper model |
 | `scribe ui` | Launch the web UI in your browser |
 | `scribe install-skill` | Install/update Claude Code skill |
@@ -47,7 +49,9 @@ Interactive setup wizard. Run this once after installing, or again to change set
 scribe onboard
 ```
 
-**What it does** (arrow-key selectors throughout):
+> **Prefer clicking to typing?** `scribe ui` opens the Web UI with the same onboarding flow as a modal wizard. Both paths set up the same config — pick whichever feels faster. See [getting-started.md](getting-started.md) for the Web UI walk-through.
+
+**What the TUI does** (arrow-key selectors throughout):
 1. Checks system dependencies (Python, yt-dlp, ffmpeg) — offers to install missing ones
 2. Choose transcription provider (5 options, arrow keys)
 3. Enter API key for your chosen provider
@@ -58,6 +62,43 @@ scribe onboard
 8. Choose post-transcription download behavior (never/ask/always)
 9. Choose workspace location (default: `~/anyscribe/`)
 10. Creates your Obsidian workspace
+
+### Headless mode (for agents + scripts)
+
+Pass `--yes` with the settings you want and skip the interactive flow entirely. Required for automation and CI — arrow-key TUIs don't work without a tty.
+
+```bash
+scribe onboard \
+  --provider openai \
+  --api-key "$OPENAI_API_KEY" \
+  --yes --json
+```
+
+For offline/local transcription as the primary provider:
+
+```bash
+scribe onboard \
+  --provider local \
+  --local-model base \
+  --yes --json
+```
+
+| Flag | Required with `--yes` | Default | Description |
+|------|-----------------------|---------|-------------|
+| `--yes` / `-y` | yes | off | Opt into headless mode. Without this, `scribe onboard` runs the interactive TUI. |
+| `--provider` / `-p` | **yes** | none | One of `openai`, `deepgram`, `elevenlabs`, `sargam`, `openrouter`, `local`. |
+| `--api-key` | for API providers (or use env var) | none | Stored in `~/.anyscribecli/.env`. Prefer setting the env var (e.g. `OPENAI_API_KEY`) to avoid leaking keys into shell history. |
+| `--local-model` | **yes when `--provider=local`** | none | Whisper size. Recommended: `base`. |
+| `--workspace` | no | `~/anyscribe` | Absolute path to the Obsidian vault. |
+| `--language` | no | `auto` | Default language code. |
+| `--keep-media` / `--no-keep-media` | no | `--no-keep-media` | Keep downloaded audio after transcription. |
+| `--output-format` | no | `clean` | `clean`, `timestamped`, or `diarized`. |
+| `--instagram-username` | no | — | Only if you use Instagram downloads. |
+| `--instagram-password` | no | — | Stored in `.env`. |
+| `--force` / `-f` | no | off | Re-run over existing config. Required if `config.yaml` already exists. |
+| `--json` / `-j` | no | off | Emit the result as a single JSON object on stdout. |
+
+**Exit codes:** 0 success · 1 setup failure (e.g., local install failed) · 2 usage error (missing `--provider`, already configured without `--force`, etc.). On exit 2 stderr carries a structured JSON error with the missing field or the reason.
 
 ### Flags
 
@@ -461,6 +502,16 @@ scribe model rm tiny --yes
 ```
 
 Deletes a cached model from disk. `--yes` required (destructive action).
+
+### scribe model reinstall
+
+```bash
+scribe model reinstall base --yes --json
+```
+
+Delete + re-download in one call. Use when cached weights look corrupted or when you want to force a fresh copy. If the model wasn't cached to begin with, this is equivalent to `scribe model pull`. `--yes` is required (destructive).
+
+Returns `{status: "reinstalled", bytes_freed, bytes_downloaded}` when weights were replaced, or `{status: "downloaded_only"}` when the model wasn't cached.
 
 ### scribe model info
 

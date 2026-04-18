@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import json
 import os
+import sys
+from typing import Optional
 
 import typer
 from beaupy import confirm as bconfirm, select as bselect
@@ -29,6 +32,112 @@ from anyscribecli.providers.local_models import (
 from anyscribecli.vault.scaffold import create_vault
 
 console = Console()
+err_console = Console(stderr=True)
+
+
+def _run_headless(
+    *,
+    provider: Optional[str],
+    api_key: Optional[str],
+    workspace: Optional[str],
+    language: Optional[str],
+    keep_media: Optional[bool],
+    output_format: Optional[str],
+    local_model: Optional[str],
+    instagram_username: Optional[str],
+    instagram_password: Optional[str],
+    force: bool,
+    output_json: bool,
+) -> None:
+    """Headless onboarding — delegates to core.onboard_headless.
+
+    Not a Typer command itself; called from the main ``onboard`` command when
+    ``--yes`` is present. Handles flag validation, JSON vs human output, and
+    exit codes.
+    """
+    from anyscribecli.core.onboard_headless import (
+        OnboardValidationError,
+        run_headless_onboard,
+    )
+
+    if not provider:
+        err = {
+            "error": "--provider is required with --yes",
+            "choices": ["openai", "deepgram", "elevenlabs", "sargam", "openrouter", "local"],
+        }
+        if output_json:
+            json.dump(err, sys.stderr)
+            sys.stderr.write("\n")
+        else:
+            err_console.print(
+                "[red]--provider is required with --yes.[/red] "
+                f"Choices: {', '.join(err['choices'])}."
+            )
+        raise typer.Exit(code=2)
+
+    # Existing config without --force → refuse (same as interactive path).
+    if CONFIG_FILE.exists() and not force:
+        err = {
+            "error": "already configured",
+            "hint": "pass --force to re-run",
+            "config_file": str(CONFIG_FILE),
+        }
+        if output_json:
+            json.dump(err, sys.stderr)
+            sys.stderr.write("\n")
+        else:
+            err_console.print(
+                f"[yellow]Already configured at {CONFIG_FILE}. Pass --force to re-run.[/yellow]"
+            )
+        raise typer.Exit(code=2)
+
+    try:
+        result = run_headless_onboard(
+            provider=provider,
+            api_key=api_key,
+            workspace=workspace,
+            language=language,
+            keep_media=keep_media,
+            output_format=output_format,
+            local_model=local_model,
+            instagram_username=instagram_username,
+            instagram_password=instagram_password,
+        )
+    except OnboardValidationError as e:
+        if output_json:
+            json.dump(e.payload, sys.stderr)
+            sys.stderr.write("\n")
+        else:
+            err_console.print(f"[red]{e.payload.get('error', 'onboarding failed')}[/red]")
+            hint = e.payload.get("hint")
+            if hint:
+                err_console.print(f"  {hint}")
+        raise typer.Exit(code=2)
+
+    if result["status"] == "partial":
+        # Config/vault set up but local setup failed — surface clearly.
+        if output_json:
+            json.dump(result, sys.stdout, indent=2)
+            sys.stdout.write("\n")
+        else:
+            console.print(
+                "[yellow]Partial success.[/yellow] Config written, but local setup failed."
+            )
+            local = result.get("local_setup") or {}
+            if local.get("install", {}).get("stderr"):
+                console.print(f"  stderr: [dim]{local['install']['stderr'][:500]}[/dim]")
+        raise typer.Exit(code=1)
+
+    if output_json:
+        json.dump(result, sys.stdout, indent=2)
+        sys.stdout.write("\n")
+    else:
+        console.print(
+            f"[green]Onboarded.[/green] Provider: [bold]{result['provider']}[/bold], "
+            f"workspace: [cyan]{result['workspace']}[/cyan]."
+        )
+        if result["local_enabled"]:
+            console.print("  Local transcription ready.")
 
 
 def _mask_key(value: str) -> str:
@@ -86,6 +195,7 @@ PROVIDER_OPTIONS = [
 ]
 PROVIDER_NAMES = list(PROVIDER_INFO.keys())
 
+
 def _offer_local_setup(settings: Settings, make_primary: bool) -> None:
     """Interactive size picker + run_setup. Shared between 'picked local as
     primary provider' and 'opted into offline as a secondary' paths.
@@ -110,31 +220,26 @@ def _offer_local_setup(settings: Settings, make_primary: bool) -> None:
         spec = MODEL_SPECS[size]
         marker = " [dim](recommended)[/dim]" if size == RECOMMENDED_MODEL else ""
         size_options.append(
-            f"[cyan]{size}[/cyan] — ~{spec['download_mb']} MB, "
-            f"{spec['quality']}{marker}"
+            f"[cyan]{size}[/cyan] — ~{spec['download_mb']} MB, {spec['quality']}{marker}"
         )
     default_idx = MODEL_SIZES.index(RECOMMENDED_MODEL)
-    console.print(
-        "  Use [bold]↑↓ arrow keys[/bold] to navigate, [bold]Enter[/bold] to select:\n"
-    )
-    selected = bselect(
-        size_options, cursor_index=default_idx, cursor="❯ ", cursor_style="cyan"
-    )
+    console.print("  Use [bold]↑↓ arrow keys[/bold] to navigate, [bold]Enter[/bold] to select:\n")
+    selected = bselect(size_options, cursor_index=default_idx, cursor="❯ ", cursor_style="cyan")
     chosen = RECOMMENDED_MODEL if selected is None else MODEL_SIZES[size_options.index(selected)]
     console.print(f"\n  [green]Selected:[/green] {chosen}")
 
-    console.print(
-        f"  Installing faster-whisper and downloading [bold]{chosen}[/bold] model…"
-    )
+    console.print(f"  Installing faster-whisper and downloading [bold]{chosen}[/bold] model…")
 
     def _progress(event: dict) -> None:
         name = event.get("event", "")
         if name == "installing_package":
-            console.print(f"    [dim]• Installing faster-whisper via {event.get('method','?')}…[/dim]")
+            console.print(
+                f"    [dim]• Installing faster-whisper via {event.get('method', '?')}…[/dim]"
+            )
         elif name == "package_installed":
             console.print("    [green]• faster-whisper installed.[/green]")
         elif name == "downloading_model":
-            console.print(f"    [dim]• Downloading {event.get('size','?')} model…[/dim]")
+            console.print(f"    [dim]• Downloading {event.get('size', '?')} model…[/dim]")
         elif name == "model_downloaded":
             mb = int(event.get("bytes", 0)) // (1024 * 1024)
             console.print(f"    [green]• Model downloaded ({mb} MB).[/green]")
@@ -160,8 +265,7 @@ def _offer_local_setup(settings: Settings, make_primary: bool) -> None:
             )
     else:
         console.print(
-            f"\n  [green]Local transcription ready.[/green] Default model: "
-            f"[bold]{chosen}[/bold]."
+            f"\n  [green]Local transcription ready.[/green] Default model: [bold]{chosen}[/bold]."
         )
 
 
@@ -185,11 +289,105 @@ def onboard(
         False, "--force", "-f", help="Re-run setup even if already configured."
     ),
     skip_deps: bool = typer.Option(False, "--skip-deps", help="Skip dependency checking."),
+    yes: bool = typer.Option(
+        False,
+        "--yes",
+        "-y",
+        help="Non-interactive headless mode for agents / CI. Requires --provider; "
+        "other fields use defaults or flags.",
+    ),
+    provider: Optional[str] = typer.Option(
+        None,
+        "--provider",
+        "-p",
+        help="Provider to configure (required with --yes). Choices: openai, deepgram, "
+        "elevenlabs, sargam, openrouter, local.",
+    ),
+    api_key: Optional[str] = typer.Option(
+        None,
+        "--api-key",
+        help="API key for the chosen provider. Falls back to the provider's env var if unset. "
+        "[dim]Prefer setting the env var to avoid leaking keys to shell history.[/dim]",
+    ),
+    workspace: Optional[str] = typer.Option(
+        None,
+        "--workspace",
+        help="Absolute path to the Obsidian vault. Defaults to ~/anyscribe.",
+    ),
+    language: Optional[str] = typer.Option(
+        None, "--language", help="Default language code (e.g. en, hi, auto)."
+    ),
+    keep_media: Optional[bool] = typer.Option(
+        None,
+        "--keep-media/--no-keep-media",
+        help="Whether to keep downloaded audio after transcription.",
+    ),
+    output_format: Optional[str] = typer.Option(
+        None,
+        "--output-format",
+        help="Default output format: clean | timestamped | diarized.",
+    ),
+    local_model: Optional[str] = typer.Option(
+        None,
+        "--local-model",
+        help="Whisper model size (required when --provider=local). "
+        "Choices: tiny, base, small, medium, large-v3.",
+    ),
+    instagram_username: Optional[str] = typer.Option(
+        None, "--instagram-username", help="Instagram username (optional)."
+    ),
+    instagram_password: Optional[str] = typer.Option(
+        None,
+        "--instagram-password",
+        help="Instagram password — stored in ~/.anyscribecli/.env.",
+    ),
+    output_json: bool = typer.Option(
+        False, "--json", "-j", help="Emit result as a single JSON object on stdout."
+    ),
 ) -> None:
-    """[bold green]Set up scribe[/bold green] — interactive onboarding wizard.
+    """[bold green]Set up scribe[/bold green] — interactive wizard, or --yes for headless agents.
 
-    Checks system dependencies, prompts for API keys, and initializes the Obsidian vault.
+    With no flags: runs the interactive TUI wizard.
+    With ``--yes --provider X [...]``: headless mode for agents / CI / scripts.
     """
+    # ── Headless mode (agent surface) ────────────────────────────────
+    if yes:
+        _run_headless(
+            provider=provider,
+            api_key=api_key,
+            workspace=workspace,
+            language=language,
+            keep_media=keep_media,
+            output_format=output_format,
+            local_model=local_model,
+            instagram_username=instagram_username,
+            instagram_password=instagram_password,
+            force=force,
+            output_json=output_json,
+        )
+        return
+
+    # Any headless-only flag passed without --yes is a usage error — otherwise
+    # we'd silently fall back to interactive, which is confusing for agents.
+    headless_only_flags = {
+        "--provider": provider,
+        "--api-key": api_key,
+        "--workspace": workspace,
+        "--language": language,
+        "--output-format": output_format,
+        "--local-model": local_model,
+        "--instagram-username": instagram_username,
+        "--instagram-password": instagram_password,
+    }
+    set_without_yes = [f for f, v in headless_only_flags.items() if v is not None]
+    if set_without_yes or keep_media is not None:
+        err_console.print(
+            f"[red]Flag(s) {', '.join(set_without_yes) or '--keep-media/--no-keep-media'} require --yes.[/red]"
+        )
+        err_console.print("  Pass --yes for headless mode, or omit all flags for interactive.")
+        raise typer.Exit(code=2)
+
+    # ── Interactive TUI wizard (human surface) ───────────────────────
     if CONFIG_FILE.exists() and not force:
         console.print(
             Panel(

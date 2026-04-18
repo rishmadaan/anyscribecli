@@ -27,12 +27,31 @@ from anyscribecli.web.models import LocalSetupRequest
 router = APIRouter(prefix="/api/local", tags=["local"])
 
 
+# Max lines the setup log keeps per run. Enough to diagnose pip/HF issues
+# without blowing up memory if something goes pathological.
+LOG_RING_LIMIT = 500
+
+
 def _setup_state(app) -> dict[str, Any]:
     state = getattr(app.state, "local_setup", None)
     if state is None:
-        state = {"running": False, "phase": None, "error": None, "last_model": None}
+        state = {
+            "running": False,
+            "phase": None,
+            "error": None,
+            "last_model": None,
+            "log": [],
+        }
         app.state.local_setup = state
     return state
+
+
+def _append_log(state: dict, line: str) -> None:
+    """Append a single line to the ring buffer, trimming from the head."""
+    log = state["log"]
+    log.append(line)
+    if len(log) > LOG_RING_LIMIT:
+        del log[: len(log) - LOG_RING_LIMIT]
 
 
 @router.get("/status")
@@ -48,24 +67,68 @@ async def local_status(request: Request) -> dict:
     return status
 
 
+@router.get("/setup/log")
+async def local_setup_log(request: Request, since: int = 0) -> dict:
+    """Return lines appended to the setup log since index ``since``.
+
+    Used by the UI to stream pip/install output into a collapsible panel
+    inside LocalSetupModal. Lightweight polling, not WebSocket.
+    """
+    state = _setup_state(request.app)
+    log = state["log"]
+    total = len(log)
+    since = max(0, min(since, total))
+    return {
+        "lines": log[since:],
+        "total": total,
+        "running": bool(state["running"]),
+    }
+
+
 def _background_setup(app, model: str) -> None:
     """Run run_setup synchronously in a thread — faster-whisper/HF calls block."""
     state = _setup_state(app)
+    # Fresh run = fresh log.
+    state["log"].clear()
 
     def on_progress(ev: dict) -> None:
-        state["phase"] = ev.get("event")
+        name = ev.get("event")
+        state["phase"] = name
+        # Mirror phase transitions into the log so the UI panel tells a story
+        # even before the install subprocess starts emitting output.
+        if name == "installing_package":
+            method = ev.get("method", "?")
+            cmd = ev.get("command") or []
+            _append_log(state, f"[phase] installing faster-whisper via {method}")
+            if cmd:
+                _append_log(state, f"[cmd] {' '.join(cmd)}")
+        elif name == "package_installed":
+            _append_log(state, "[phase] faster-whisper installed")
+        elif name == "downloading_model":
+            _append_log(state, f"[phase] downloading model: {ev.get('size', '?')}")
+        elif name == "model_downloaded":
+            mb = int(ev.get("bytes", 0)) // (1024 * 1024)
+            _append_log(state, f"[phase] model downloaded ({mb} MB)")
+        elif name == "done":
+            _append_log(state, "[phase] done")
 
     try:
         result = run_setup(model, on_progress=on_progress)
         if result.get("status") == "failed":
             phase = result.get("phase")
-            install_stderr = (result.get("install", {}) or {}).get("stderr") or ""
+            install = result.get("install") or {}
+            install_stderr = (install.get("stderr") or "").strip()
             error_msg = result.get("error") or install_stderr or f"setup failed in {phase}"
             state["error"] = error_msg
+            if install_stderr:
+                for line in install_stderr.splitlines():
+                    _append_log(state, f"[stderr] {line}")
+            _append_log(state, f"[error] {error_msg}")
         else:
             state["error"] = None
     except Exception as e:
         state["error"] = str(e)
+        _append_log(state, f"[error] {e}")
     finally:
         state["running"] = False
         state["phase"] = "done"

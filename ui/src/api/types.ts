@@ -36,7 +36,10 @@ export interface LocalModelEntry {
   repo: string;
   spec: ModelSpec;
   downloading?: boolean;
+  queued?: boolean;
+  queue_position?: number;
   error?: string | null;
+  last_error?: string | null;
 }
 
 export interface LocalStatusResponse {
@@ -62,6 +65,47 @@ export interface LocalModelsResponse {
   faster_whisper_installed: boolean;
   total_disk_bytes: number;
   models: LocalModelEntry[];
+  queue?: string[];
+}
+
+export interface OnboardingStatus {
+  completed: boolean;
+  has_workspace: boolean;
+  has_any_api_key: boolean;
+  local_ready: boolean;
+  provider_keys: Record<string, boolean>;
+  current_provider: string;
+  recommended_next_step: string;
+}
+
+export interface OnboardingPayload {
+  provider: string;
+  api_key?: string;
+  workspace?: string;
+  language?: string;
+  keep_media?: boolean;
+  output_format?: string;
+  local_model?: string;
+  extra_api_keys?: Record<string, string>;
+  instagram_username?: string;
+  instagram_password?: string;
+}
+
+export interface OnboardingResult {
+  status: "onboarded" | "partial";
+  provider: string;
+  workspace: string;
+  local_enabled: boolean;
+  api_keys_set: string[];
+  skill_installed: boolean;
+  local_setup: unknown;
+  config_file: string;
+}
+
+export interface SetupLogResponse {
+  lines: string[];
+  total: number;
+  running: boolean;
 }
 
 export interface ProviderTestCheck {

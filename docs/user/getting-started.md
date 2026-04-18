@@ -77,6 +77,20 @@ You should see `scribe v0.7.4.1` (or a newer version).
 
 ## Step 3: Run the setup wizard
 
+You can set up scribe either way — both paths save the same config, so pick whichever feels natural.
+
+### Option A (recommended): Web UI
+
+```bash
+scribe ui
+```
+
+Opens a local dashboard at `http://127.0.0.1:8457`. A **setup wizard pops up on first launch**: pick a provider, paste your API key (with a live Test button), choose whether to also enable offline transcription, confirm your workspace, done. Click around — no commands to memorize.
+
+Close the tab when you're finished; to stop the server, hit Ctrl+C in the terminal or click "Quit" in the sidebar.
+
+### Option B: Terminal (interactive)
+
 ```bash
 scribe onboard                       # macOS / Linux
 python -m anyscribecli onboard      # Windows (first time — prints PATH fix)
@@ -96,7 +110,20 @@ The wizard uses arrow-key selectors — navigate with **↑↓** and press **Ent
 10. **Choose workspace location** — where to store transcripts (default: `~/anyscribe/`).
 11. **Create workspace** — sets up your Obsidian vault at the chosen location.
 
-> **Re-run anytime:** `scribe onboard --force` to change settings — it shows your current config and lets you choose which parts to update. `scribe onboard --skip-deps` to skip the dependency check.
+> **Re-run anytime:** `scribe onboard --force` to change settings — it shows your current config and lets you choose which parts to update. `scribe onboard --skip-deps` to skip the dependency check. Or use the Web UI: Settings → **Run setup wizard**.
+
+### Option C: Headless (for agents + scripts)
+
+If you're automating scribe (CI, a Claude Code agent, a provisioning script), bypass the wizards entirely with `scribe onboard --yes`:
+
+```bash
+scribe onboard \
+  --provider openai \
+  --api-key "$OPENAI_API_KEY" \
+  --yes --json
+```
+
+Every interactive field maps to a flag. Full reference: [commands.md → scribe onboard](commands.md#scribe-onboard).
 
 ## Step 4: Transcribe your first video
 

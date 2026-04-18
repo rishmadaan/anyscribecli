@@ -112,3 +112,51 @@ URL input -> Platform detection -> Download (yt-dlp / instaloader)
 - **Web UI as core dependency**: FastAPI/uvicorn ship with `pip install anyscribecli` (not optional). One app, one install. Same pattern as gitstow. React SPA builds to `web/static/`, committed to repo — end users don't need Node.js
 - **Progress callback over async rewrite**: `on_progress` callback on `process()` avoids rewriting all providers/downloaders as async. ThreadPoolExecutor bridges sync→async cleanly
 - **WebSocket over polling**: Real-time transcription progress (download→transcribe→write→index) needs instant feedback, not 30s HTMX polls. Event replay on late-connecting clients prevents missed events
+
+## CLI ↔ Web UI: shared backend, asymmetric surfaces
+
+### Rule: neither surface shells out to the other
+
+CLI commands (`cli/*.py`) and Web UI routes (`web/routes/*.py`) are both **thin adapters** over the same Python modules:
+
+```
+CLI (Typer) ─┐
+              ├──→ core/ · providers/ · config/ · vault/ · downloaders/
+Web UI ─────┘     (shared backend — single implementation)
+(FastAPI)
+```
+
+`scribe "url"` and `POST /api/transcribe` both call `core/orchestrator.py::process()` directly. No subprocess layer. Add a provider in `providers/` and both surfaces pick it up; fix a bug in the orchestrator and both surfaces are fixed. Same applies to the MCP server (see decision above).
+
+For flows where UX differs meaningfully across surfaces (onboarding being the main one), we extract a shared backend function into `core/` that all surfaces' flow controllers converge on — e.g. `core/onboard_headless.py::run_headless_onboard()` powers the CLI `--yes` path and the Web UI wizard save-phase.
+
+### Feature-coverage matrix
+
+Not every feature lives on every surface. The asymmetry is intentional per-feature; this matrix captures the current state.
+
+| Feature | CLI | Web UI | Notes |
+|---------|-----|--------|-------|
+| Transcribe URL/file | ✓ | ✓ | Same `orchestrator.process()` on both |
+| Onboard (first-run setup) | ✓ (TUI + `--yes` headless) | ✓ (wizard) | Both call `run_headless_onboard()` |
+| Config read/write | ✓ (`scribe config`) | ✓ (Settings page) | Same `settings.load_config` / `save_config` |
+| Provider test | ✓ (`scribe providers test`) | ✓ (Test/Diagnose buttons) | Same `/providers/{name}/test` logic |
+| Local model mgmt | ✓ (`scribe model`) | ✓ (Models table) | Same `providers/local_models.py` |
+| Local setup/teardown | ✓ (`scribe local`) | ✓ (Setup modal, Teardown button) | Same `core/local_setup.py` |
+| History browse | Obsidian vault directly | ✓ (History page with search) | Web UI has richer UX; CLI leans on Obsidian |
+| Progress | Terminal progress | ✓ (WebSocket) | Same `on_progress` callback |
+| Batch processing | ✓ (`scribe batch`) | — | CLI-only. Add to UI if users ask |
+| Download-only | ✓ (`scribe download`) | — | CLI-only |
+| System diagnostics | ✓ (`scribe doctor`) | ✓ (Settings → System section, lighter) | UI surfaces a subset |
+| Self-update | ✓ (`scribe update`) | — | CLI-only. Updating a running server is weird |
+| Claude Code skill install | ✓ (`scribe install-skill`) | — | CLI-only; runs automatically anyway |
+| Drag-and-drop upload | — | ✓ | UI-only |
+| API key management | ✓ (`scribe config set <prov>_api_key`) | ✓ (inline per-provider with Test) | UI has richer UX |
+
+### When to place a feature on which surface
+
+- **Both surfaces, default for core user-facing actions.** Transcribing, config changes, provider testing, onboarding — anything a human does often enough to want both a click and a script should live on both. The backend is shared; the cost of a second surface is just UX work.
+- **CLI-only when it's operational/agentic by nature.** Batch processing, self-update, install scripts, CI-friendly doctor checks. These are things agents run or that belong in shell pipelines.
+- **Web-UI-only when it's a visual interaction.** Drag-and-drop, rich history browsing with search/filter, inline masked-key management with visual feedback. CLI equivalents would be clunky.
+- **Deliberate gaps are fine.** Not every CLI command needs a UI button; not every UI action needs a CLI equivalent. The rule is that the **primary flow for a given user archetype** (human / agent) should be fully sufficient on its native surface — we don't force humans into the CLI or agents into a browser.
+
+When adding a new feature, decide surface coverage up front and note it in the commit message or PR description. If you're uncertain, default to building backend logic first (in `core/` or wherever fits) and adding the adapter(s) above — that way the other surface can get it later without refactoring.

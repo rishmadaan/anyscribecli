@@ -30,6 +30,7 @@ def create_app() -> FastAPI:
     from anyscribecli.web.routes.history import router as history_router
     from anyscribecli.web.routes.local import router as local_router
     from anyscribecli.web.routes.models import router as models_router
+    from anyscribecli.web.routes.onboarding import router as onboarding_router
     from anyscribecli.web.routes.system import router as system_router
     from anyscribecli.web.routes.transcribe import router as transcribe_router
 
@@ -40,6 +41,7 @@ def create_app() -> FastAPI:
     app.include_router(system_router)
     app.include_router(local_router)
     app.include_router(models_router)
+    app.include_router(onboarding_router)
 
     # Serve built React SPA from static/
     if STATIC_DIR.exists() and (STATIC_DIR / "index.html").exists():

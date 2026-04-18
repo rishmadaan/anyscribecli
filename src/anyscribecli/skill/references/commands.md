@@ -267,10 +267,11 @@ Always exits 0. Reports `set_up`, `faster_whisper_installed`, `faster_whisper_ve
 Cache management for Whisper models. All subcommands accept `--json`.
 
 ```bash
-scribe model list --json                  # Show every size + cache state
-scribe model pull <size> --yes --json     # Download (idempotent)
-scribe model rm <size> --yes --json       # Delete cached weights
-scribe model info <size> --json           # Inspect a single size
+scribe model list --json                      # Show every size + cache state
+scribe model pull <size> --yes --json         # Download (idempotent)
+scribe model rm <size> --yes --json           # Delete cached weights
+scribe model reinstall <size> --yes --json    # Delete + re-download (corrupted weights)
+scribe model info <size> --json               # Inspect a single size
 ```
 
 **Not set up?** `pull`/`rm` exit 2 with `{error: "local transcription not set up", hint: "run scribe local setup ..."}`. `list` still works (shows everything as `cached: false`).
@@ -281,16 +282,37 @@ scribe model info <size> --json           # Inspect a single size
 
 ## scribe onboard
 
-Interactive setup wizard. Configures providers, API keys, preferences.
+Configures providers, API keys, and preferences. Two modes:
 
 ```bash
-scribe onboard                          # First-time setup
-scribe onboard --force                  # Re-run everything
+# Interactive TUI — for humans typing in a terminal.
+scribe onboard
+scribe onboard --force                  # Re-run over existing config
 scribe onboard --skip-deps              # Skip dependency check
-scribe onboard --force --skip-deps      # Reconfigure, skip deps
+
+# Headless — for agents / CI / scripts.
+scribe onboard --provider openai --api-key "$OPENAI_API_KEY" --yes --json
+scribe onboard --provider local --local-model base --yes --json
 ```
 
-**Note:** This is interactive — it takes over the terminal with arrow-key selectors. Don't run it programmatically.
+**Agent rule:** always use the headless form. The interactive TUI uses arrow-key selectors and blocks on stdin — it cannot be driven programmatically.
+
+| Flag | Required with `--yes` | Default | Description |
+|------|-----------------------|---------|-------------|
+| `--yes` / `-y` | yes (to opt in) | off | Turn on headless mode. |
+| `--provider` / `-p` | yes | none | `openai`, `deepgram`, `elevenlabs`, `sargam`, `openrouter`, `local`. |
+| `--api-key` | for API providers (or env var) | none | Stored in `.env`. Prefer the env-var form. |
+| `--local-model` | yes when `--provider=local` | none | `tiny`, `base`, `small`, `medium`, `large-v3`. Recommended: `base`. |
+| `--workspace` | no | `~/anyscribe` | Obsidian vault path. |
+| `--language` | no | `auto` | Default language code. |
+| `--keep-media` / `--no-keep-media` | no | off | Keep downloaded audio after transcription. |
+| `--output-format` | no | `clean` | `clean`, `timestamped`, `diarized`. |
+| `--instagram-username` | no | — | For Instagram downloads. |
+| `--instagram-password` | no | — | Stored in `.env`. |
+| `--force` / `-f` | no | off | Re-run over existing config. |
+| `--json` / `-j` | no | off | Emit the result as a single JSON object on stdout. |
+
+**Exit codes:** 0 success · 1 setup failure (e.g., local install failed — stderr carries pip command + captured stderr) · 2 usage error (missing `--provider`, unknown provider, already configured without `--force`, etc.).
 
 ---
 
