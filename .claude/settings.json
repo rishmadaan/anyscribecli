@@ -9,7 +9,14 @@
       "Bash(curl -s http://127.0.0.1:8457/api/config)",
       "Bash(xargs ls:*)",
       "Bash(xargs cat:*)",
-      "Read(//Users/rish/labs/projects/anyscribecli/**)"
+      "Read(//Users/rish/labs/projects/anyscribecli/**)",
+      "Bash(git status:*)",
+      "Read(//Users/rish/labs/oss/KraftedX-Labs/kx-tess/**)",
+      "Bash(mv \"128x128 - White.png\" kx-logo-white-128.png)",
+      "Bash(mv \"64x64 - White.png\" kx-logo-white-64.png)",
+      "Bash(mv \"32x32 - White.png\" kx-logo-white-32.png)",
+      "Bash(mv \"Footer Horizontal.png\" doodles-desktop.png)",
+      "Bash(mv \"Footer Horizontal 2.0.png\" doodles-desktop-2.png)"
     ]
   }
 }
