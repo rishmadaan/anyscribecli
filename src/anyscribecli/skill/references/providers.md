@@ -82,26 +82,60 @@ Routes to various AI models via a unified API. Uses audio-capable chat models wi
 
 ## Local / faster-whisper (provider: `local`)
 
-Runs entirely on-device. No API key, no internet, no cost.
+Runs entirely on-device. No API key, no internet, no cost. **Opt-in** — nothing is installed or downloaded unless the user runs setup.
 
 - **Engine:** faster-whisper (CTranslate2-based, up to 4x faster than original Whisper)
-- **Models:** tiny, base (default), small, medium, large-v3
-- **Model override:** Set `ASCLI_LOCAL_MODEL` env var
-- **GPU:** Auto-detects NVIDIA CUDA. Falls back to CPU.
-- **First run:** Model downloads from Hugging Face (~150 MB for base, ~3 GB for large-v3)
-- **Install:** `pip install faster-whisper`
+- **Recommended model:** `base` (~145 MB, good quality for most use cases)
+- **All sizes:** `tiny`, `base`, `small`, `medium`, `large-v3`
+- **Also needs:** `ffmpeg` on the system PATH (local setup does not install ffmpeg)
+- **GPU:** auto-detects NVIDIA CUDA; falls back to CPU
 
-### Model sizes
+### Setup — one command, one action
 
-| Model | Size | Speed (CPU) | Accuracy | RAM |
-|-------|------|-------------|----------|-----|
-| tiny | 75 MB | Very fast | Lower | ~1 GB |
-| base | 150 MB | Fast | Good | ~1 GB |
-| small | 500 MB | Medium | Better | ~2 GB |
-| medium | 1.5 GB | Slow | High | ~5 GB |
-| large-v3 | 3 GB | Very slow | Highest | ~10 GB |
+```bash
+scribe local setup --model base --yes --json
+```
 
-**When to recommend:** Offline use, zero cost, privacy concerns, or testing without an API key. CPU is slower (2–5x real-time for base). GPU is fast.
+`--model` is **required**. The CLI never picks a model silently. In a non-TTY (agent) context, `--yes` is also required. Setup:
+
+1. Detects the install method (pipx / venv-pip / system pip).
+2. Installs `faster-whisper` into the same Python env as scribe.
+3. Downloads the chosen Whisper model from HuggingFace.
+4. Persists `local_model` in `config.yaml`.
+
+Idempotent — re-running with an already-set-up model just updates the default.
+
+### Model sizes — use this to advise the user
+
+| Size | Download | RAM (peak) | Relative speed (CPU) | Quality |
+|------|----------|------------|----------------------|---------|
+| `tiny` | ~75 MB | ~400 MB | ~10x realtime | lowest — only use for drafts |
+| `base` **(recommended)** | ~145 MB | ~600 MB | ~7x realtime | good for most podcasts/interviews |
+| `small` | ~480 MB | ~1.2 GB | ~4x realtime | noticeably better for accents / fast speech |
+| `medium` | ~1.5 GB | ~2.5 GB | ~2x realtime | near-large for many languages |
+| `large-v3` | ~3 GB | ~5 GB | ~1x realtime (CPU); fast on GPU | highest quality |
+
+**Default guidance:** `base`. Only escalate if the user specifically mentions accents, low-quality audio, critical recordings, or a non-English language the user cares about (try `small` first; `medium` or `large-v3` only if `small` is insufficient).
+
+### Cache management (after setup)
+
+| Task | Command |
+|------|---------|
+| See what's cached | `scribe model list --json` |
+| Add another size | `scribe model pull <size> --yes --json` |
+| Delete a cached size | `scribe model rm <size> --yes --json` |
+| Inspect a size | `scribe model info <size> --json` |
+| Switch default model | `scribe config set local_model <size>` (must already be cached) |
+
+### Teardown
+
+```bash
+scribe local teardown --yes --json
+```
+
+Uninstalls faster-whisper, deletes every cached model, resets `settings.provider` to `openai` if it was `local`.
+
+**When to recommend local:** offline workflows, privacy-sensitive content, bulk processing where API cost matters, or users without API keys. Don't push it for casual one-off transcriptions — the API providers are simpler and the model download is big.
 
 ## Switching Providers
 

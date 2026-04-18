@@ -52,6 +52,12 @@ When the USER wants to run commands themselves, show them the human-readable for
 | Switch provider | `scribe config set provider <name>` |
 | Test a provider | `scribe providers test <name>` |
 | List providers | `scribe providers list` |
+| Set up offline transcription | `scribe local setup --model base --yes` *(see rule below)* |
+| Check offline-transcription state | `scribe local status --json` |
+| Download another Whisper model | `scribe model pull <size> --json` |
+| List downloaded Whisper models | `scribe model list --json` |
+| Delete a cached Whisper model | `scribe model rm <size> --yes --json` |
+| Remove offline transcription | `scribe local teardown --yes --json` |
 | Initial setup or reconfigure | `scribe onboard` (or `--force` to re-run) |
 | Use the web UI | `scribe ui` (opens browser dashboard at 127.0.0.1:8457) |
 | Diagnose problems | `scribe doctor` |
@@ -59,6 +65,30 @@ When the USER wants to run commands themselves, show them the human-readable for
 | Check for updates | `scribe update --check` |
 
 For complete command syntax and all flags, read [references/commands.md](references/commands.md).
+
+## Local (Offline) Transcription Workflow
+
+The `local` provider runs Whisper on the user's own machine via `faster-whisper` — no API, no network. It's **opt-in** and requires a one-time setup that installs `faster-whisper` and downloads a Whisper model.
+
+**Critical rule — you must pass `--model` explicitly.** `scribe local setup` refuses to pick a model silently; it exits 2 with a hint if `--model` is omitted. When the user hasn't specified a size, default to the recommended model: **`base`**. It's a ~145 MB download, runs on modest CPUs, and produces good results for most content. Only escalate to `small`/`medium`/`large-v3` if the user mentions quality is insufficient, tricky accents, or critical recordings.
+
+**Setup from agent context:**
+
+```bash
+scribe local setup --model base --yes --json
+```
+
+`--yes` is required in non-TTY (agent) contexts; the command refuses to run without it. Stream the NDJSON events to show progress; watch for `{"status": "failed", ...}` — the error payload carries the exact pip/pipx command that failed and the captured stderr, which you can show to the user so they can resolve it (permission errors, PEP 668, etc.).
+
+**When to suggest local setup:**
+
+- User asks about offline transcription, privacy, or air-gapped workflows.
+- User is frustrated by API rate limits or cost.
+- User asks to run without any API key.
+
+**When NOT to set it up unprompted:** don't install faster-whisper (200+ MB of dependencies) or download a model (~145 MB minimum) unless the user asked for offline transcription. Prefer suggesting an API provider for drive-by requests.
+
+For detailed flag coverage see [references/commands.md](references/commands.md) and [references/providers.md](references/providers.md).
 
 ## URL Handling — Critical
 

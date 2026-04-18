@@ -137,6 +137,22 @@ What to do with the original file when transcribing local audio/video files. Def
 
 > **Why skip by default?** Unlike URL downloads where audio is temporary, local files already exist on your disk. Copying them wastes space unless you want everything organized in one place.
 
+#### local_model
+
+Which Whisper model the `local` provider uses when transcribing. Default: `base`.
+
+| Value | Download | RAM | Quality |
+|-------|----------|-----|---------|
+| `tiny` | ~75 MB | ~400 MB | lowest |
+| `base` (default) | ~145 MB | ~600 MB | good for most |
+| `small` | ~480 MB | ~1.2 GB | noticeably better |
+| `medium` | ~1.5 GB | ~2.5 GB | near-large for many languages |
+| `large-v3` | ~3 GB | ~5 GB | highest |
+
+Change it with `scribe config set local_model small` or from the default-model dropdown inside the Local provider panel in the Web UI. You can only select a model that's been cached — pull others with `scribe model pull <size>`. A one-off override is available via `ASCLI_LOCAL_MODEL=medium scribe "<url>"`.
+
+> **Not set until setup.** This field has no effect until you run `scribe local setup --model <size>` (or the equivalent Web UI button). The field is still present in `config.yaml` with the default value of `base`.
+
 ## .env (API Keys and Secrets)
 
 API keys and passwords are stored separately from config for security:

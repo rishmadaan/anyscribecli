@@ -35,6 +35,11 @@ class ConfigUpdateRequest(BaseModel):
     prompt_download: str | None = None
     local_file_media: str | None = None
     workspace_path: str | None = None
+    local_model: str | None = None
+
+
+class LocalSetupRequest(BaseModel):
+    model: str
 
 
 class ProviderTestRequest(BaseModel):

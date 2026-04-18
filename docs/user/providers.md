@@ -123,32 +123,63 @@ scribe config set provider openrouter
 
 Runs entirely on your machine. No API key, no internet connection, no cost. Uses faster-whisper, a CTranslate2-based reimplementation of OpenAI Whisper that's up to 4x faster.
 
+> **Also needs `ffmpeg`** on your system PATH. scribe uses ffmpeg to pre-process audio before handing it to Whisper — if ffmpeg isn't installed, local transcription will fail even after setup. Install via `brew install ffmpeg` (macOS), `winget install Gyan.FFmpeg` (Windows), or your distro's package manager (Linux).
+
+**Setup is a single action** — pick whichever path fits your workflow; all three do the same thing:
+
 ```bash
-scribe config set provider local
+scribe local setup --model base
 ```
 
-**Setup:**
+or in the Web UI: **Settings → Providers → Local → "Set up local transcription"**.
+
+or during `scribe onboard`, answer **Yes** when asked *"Also enable offline/local transcription?"*.
+
+Setup installs `faster-whisper` into the same Python environment as scribe, downloads the Whisper model you picked, and records it as your local default. After that, local transcription is fully offline.
+
+**Recommended model:** `base` — good quality for most use cases, ~145 MB download, runs on modest CPUs. If a recording is critical (interviews, accents, lots of names), step up to `small` or `medium`.
+
+**Switching the default model:**
+
 ```bash
-pip install faster-whisper
+scribe config set local_model small
 ```
 
-- **No API key needed**
-- **Models:** `tiny`, `base` (default), `small`, `medium`, `large-v3`
-- **Model override:** Set `ASCLI_LOCAL_MODEL` env var (default: `base`)
-- **GPU:** Automatically uses NVIDIA CUDA if available. Falls back to CPU.
-- **First run:** Model downloads automatically from Hugging Face (~150 MB for `base`, ~3 GB for `large-v3`)
+or pick from the dropdown in the Web UI's Local provider panel. (The model has to be cached first — see next section.)
 
-> **When to use:** When you're offline, want zero cost, or have privacy concerns about sending audio to cloud APIs. CPU transcription is slower (expect ~2–5x real-time for `base` model). GPU is fast.
+**Managing downloaded models** (after setup):
+
+| Command | What it does |
+|---------|--------------|
+| `scribe model list` | Show all 5 sizes with cache status and disk usage |
+| `scribe model pull small` | Download an additional model size |
+| `scribe model rm tiny --yes` | Delete a cached model (`--yes` required — destructive) |
+| `scribe model info large-v3` | Inspect a single size |
+
+Or use the Models table inside **Settings → Providers → Local** in the Web UI.
 
 **Model size guide:**
 
-| Model | Size | Speed (CPU) | Accuracy | RAM |
-|-------|------|-------------|----------|-----|
-| `tiny` | 75 MB | Very fast | Lower | ~1 GB |
-| `base` | 150 MB | Fast | Good | ~1 GB |
-| `small` | 500 MB | Medium | Better | ~2 GB |
-| `medium` | 1.5 GB | Slow | High | ~5 GB |
-| `large-v3` | 3 GB | Very slow | Highest | ~10 GB |
+| Model | Download | RAM (peak) | Speed (CPU) | Quality |
+|-------|----------|------------|-------------|---------|
+| `tiny` | ~75 MB | ~400 MB | ~10x realtime | Lowest |
+| `base` (recommended) | ~145 MB | ~600 MB | ~7x realtime | Good for most |
+| `small` | ~480 MB | ~1.2 GB | ~4x realtime | Noticeably better than base |
+| `medium` | ~1.5 GB | ~2.5 GB | ~2x realtime | Near-large for many languages |
+| `large-v3` | ~3 GB | ~5 GB | ~1x realtime (CPU); fast on GPU | Highest |
+
+- **GPU:** Automatically uses NVIDIA CUDA if available; falls back to CPU.
+- **Env-var override:** `ASCLI_LOCAL_MODEL=small scribe "<url>"` wins over the configured default for one invocation.
+
+**Removing local transcription** (uninstalls faster-whisper and deletes every cached model):
+
+```bash
+scribe local teardown --yes
+```
+
+or click **"Remove local transcription"** at the bottom of the Local provider panel in the Web UI.
+
+> **When to use:** When you're offline, want zero cost, or have privacy concerns about sending audio to cloud APIs. CPU transcription on `base` runs roughly 7x faster than real time on modern laptops — a 10-minute podcast takes ~90 seconds to transcribe.
 
 ## Switching Providers
 

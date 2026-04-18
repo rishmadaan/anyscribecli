@@ -27,6 +27,7 @@ class Settings:
     prompt_download: str = "never"  # never | always | ask (prompt after transcription)
     local_file_media: str = "skip"  # skip | copy | move | ask
     workspace_path: str = ""  # empty = ~/anyscribe (default)
+    local_model: str = "base"  # tiny | base | small | medium | large-v3
     instagram: InstagramSettings = field(default_factory=InstagramSettings)
 
     def to_dict(self) -> dict:

@@ -4,6 +4,9 @@ import type {
   Config,
   Provider,
   ProviderLanguagesResponse,
+  ProviderTestResult,
+  LocalStatusResponse,
+  LocalModelsResponse,
   TranscriptMeta,
   TranscriptDetail,
   WorkspaceInfo,
@@ -41,7 +44,7 @@ export const getProviderLanguages = (name: string) =>
   fetchJSON<ProviderLanguagesResponse>(`/providers/${name}/languages`);
 
 export const testProvider = (name: string) =>
-  fetchJSON<{ success: boolean; message: string }>(`/providers/${name}/test`, {
+  fetchJSON<ProviderTestResult>(`/providers/${name}/test`, {
     method: "POST",
   });
 
@@ -102,3 +105,38 @@ export const getWorkspaceInfo = () =>
 
 export const getHealth = () =>
   fetchJSON<{ ok: boolean; version: string; dependencies: Record<string, boolean> }>("/health");
+
+// ── Local transcription ──────────────────────────────
+
+export const getLocalStatus = () =>
+  fetchJSON<LocalStatusResponse>("/local/status");
+
+export const setupLocal = (model: string) =>
+  fetchJSON<{ status: string; model: string }>("/local/setup", {
+    method: "POST",
+    body: JSON.stringify({ model }),
+  });
+
+export const teardownLocal = () =>
+  fetchJSON<{
+    status: string;
+    models_deleted: string[];
+    bytes_freed: number;
+    provider_reset: boolean;
+  }>("/local/teardown", { method: "POST" });
+
+// ── Local model cache ────────────────────────────────
+
+export const listLocalModels = () =>
+  fetchJSON<LocalModelsResponse>("/models/local");
+
+export const pullLocalModel = (size: string) =>
+  fetchJSON<{ status: string; size: string }>(`/models/local/${size}/pull`, {
+    method: "POST",
+  });
+
+export const deleteLocalModel = (size: string) =>
+  fetchJSON<{ status: string; size: string; bytes_freed: number }>(
+    `/models/local/${size}`,
+    { method: "DELETE" }
+  );

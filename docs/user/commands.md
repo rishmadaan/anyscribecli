@@ -23,6 +23,13 @@ Every scribe command. Copy-paste friendly.
 | `scribe config path` | Print config file location |
 | `scribe providers list` | Show available providers |
 | `scribe providers test [name]` | Test a provider's API key |
+| `scribe local setup --model <size>` | Install faster-whisper + download a Whisper model |
+| `scribe local status` | Report local-transcription readiness |
+| `scribe local teardown --yes` | Uninstall faster-whisper + delete all cached models |
+| `scribe model list` | List Whisper models with cache status |
+| `scribe model pull <size>` | Download an additional Whisper model |
+| `scribe model rm <size> --yes` | Delete a cached Whisper model |
+| `scribe model info <size>` | Inspect a single Whisper model |
 | `scribe ui` | Launch the web UI in your browser |
 | `scribe install-skill` | Install/update Claude Code skill |
 | `scribe update` | Update to the latest version |
@@ -385,7 +392,83 @@ scribe providers test openai   # test a specific provider
 | `sargam` | `SARGAM_API_KEY` | Indic languages (Hindi, Tamil, Telugu, etc.) |
 | `local` | None needed | Offline, free, runs on your machine |
 
-> **Local provider** requires `pip install faster-whisper`. No API key, no internet. Runs on CPU (slower) or GPU (fast). Models download automatically on first use.
+> **Local provider** requires a one-time setup: `scribe local setup --model base` (or click "Set up local transcription" in the Web UI). See `scribe local` and `scribe model` below.
+
+---
+
+## scribe local
+
+Three subcommands that manage offline transcription as a single opt-in lifecycle: install faster-whisper, download a model, persist the default; or reverse the whole thing. See also [providers.md → Local](providers.md).
+
+### scribe local setup
+
+```bash
+scribe local setup --model base --yes
+```
+
+Installs faster-whisper into the same Python environment as scribe, downloads the Whisper model you picked, and saves it as your default. **Idempotent** — re-running with a model that's already cached just updates the default-model setting.
+
+| Flag | Description |
+|------|-------------|
+| `--model`, `-m` | **Required.** Whisper size: `tiny`, `base`, `small`, `medium`, `large-v3`. Recommended: `base`. No default — the CLI refuses to pick silently. |
+| `--yes`, `-y` | Skip the confirmation prompt. Required in non-TTY (agent) contexts. |
+| `--json`, `-j` | Stream NDJSON progress events to stdout (one JSON object per phase). |
+
+### scribe local status
+
+```bash
+scribe local status --json
+```
+
+Reports faster-whisper version, ffmpeg presence, cached models, disk usage, and the detected install method (pip-venv / pipx / system). Always exits 0 — safe to call before setup.
+
+### scribe local teardown
+
+```bash
+scribe local teardown --yes
+```
+
+Uninstalls faster-whisper via the same method it was installed with, deletes every cached Whisper model, and resets `settings.provider` to `openai` if it was currently `local`. `--yes` is required.
+
+---
+
+## scribe model
+
+Day-to-day management of the Whisper cache. Requires `scribe local setup` to have run first (otherwise `pull` and `rm` error out with a hint pointing you at setup).
+
+### scribe model list
+
+```bash
+scribe model list
+scribe model list --json
+```
+
+Shows every size with cache status, disk usage, and which one is your default.
+
+### scribe model pull
+
+```bash
+scribe model pull small
+scribe model pull large-v3 --json
+```
+
+Downloads an additional model into the cache. Idempotent — re-running on a cached size returns `{status: "already_present"}`.
+
+### scribe model rm
+
+```bash
+scribe model rm tiny --yes
+```
+
+Deletes a cached model from disk. `--yes` required (destructive action).
+
+### scribe model info
+
+```bash
+scribe model info base --json
+```
+
+Inspects a single size — repo id, cache status, disk bytes, spec (download size / RAM / speed / quality).
 
 ---
 

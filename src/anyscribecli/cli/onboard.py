@@ -20,6 +20,12 @@ from anyscribecli.config.paths import (
 )
 from anyscribecli.config.settings import Settings, save_config, save_env, load_config, load_env
 from anyscribecli.core.deps import check_and_install
+from anyscribecli.core.local_setup import run_setup as run_local_setup
+from anyscribecli.providers.local_models import (
+    MODEL_SIZES,
+    MODEL_SPECS,
+    RECOMMENDED_MODEL,
+)
 from anyscribecli.vault.scaffold import create_vault
 
 console = Console()
@@ -79,6 +85,85 @@ PROVIDER_OPTIONS = [
     f"[cyan]{name}[/cyan] — {info['description']}" for name, info in PROVIDER_INFO.items()
 ]
 PROVIDER_NAMES = list(PROVIDER_INFO.keys())
+
+def _offer_local_setup(settings: Settings, make_primary: bool) -> None:
+    """Interactive size picker + run_setup. Shared between 'picked local as
+    primary provider' and 'opted into offline as a secondary' paths.
+
+    make_primary=True is informational — the caller already set
+    settings.provider. Setup itself never touches provider.
+    """
+    console.print(
+        Panel(
+            "Offline transcription runs locally via faster-whisper — no API "
+            "key, no internet.\n"
+            "Pick a model size. Larger is more accurate but slower and bigger "
+            "on disk.\n\n"
+            f"[dim]Recommended: [bold]{RECOMMENDED_MODEL}[/bold] — good quality, "
+            f"small footprint (~{MODEL_SPECS[RECOMMENDED_MODEL]['download_mb']} MB).[/dim]",
+            title="Local Transcription",
+            border_style="blue",
+        )
+    )
+    size_options = []
+    for size in MODEL_SIZES:
+        spec = MODEL_SPECS[size]
+        marker = " [dim](recommended)[/dim]" if size == RECOMMENDED_MODEL else ""
+        size_options.append(
+            f"[cyan]{size}[/cyan] — ~{spec['download_mb']} MB, "
+            f"{spec['quality']}{marker}"
+        )
+    default_idx = MODEL_SIZES.index(RECOMMENDED_MODEL)
+    console.print(
+        "  Use [bold]↑↓ arrow keys[/bold] to navigate, [bold]Enter[/bold] to select:\n"
+    )
+    selected = bselect(
+        size_options, cursor_index=default_idx, cursor="❯ ", cursor_style="cyan"
+    )
+    chosen = RECOMMENDED_MODEL if selected is None else MODEL_SIZES[size_options.index(selected)]
+    console.print(f"\n  [green]Selected:[/green] {chosen}")
+
+    console.print(
+        f"  Installing faster-whisper and downloading [bold]{chosen}[/bold] model…"
+    )
+
+    def _progress(event: dict) -> None:
+        name = event.get("event", "")
+        if name == "installing_package":
+            console.print(f"    [dim]• Installing faster-whisper via {event.get('method','?')}…[/dim]")
+        elif name == "package_installed":
+            console.print("    [green]• faster-whisper installed.[/green]")
+        elif name == "downloading_model":
+            console.print(f"    [dim]• Downloading {event.get('size','?')} model…[/dim]")
+        elif name == "model_downloaded":
+            mb = int(event.get("bytes", 0)) // (1024 * 1024)
+            console.print(f"    [green]• Model downloaded ({mb} MB).[/green]")
+
+    result = run_local_setup(chosen, on_progress=_progress)
+
+    if result.get("status") == "failed":
+        phase = result.get("phase", "?")
+        console.print(f"\n  [red]Local setup failed during {phase}.[/red]")
+        if phase == "install":
+            cmd = result["install"].get("command") or []
+            console.print(f"  Command: [dim]{' '.join(cmd)}[/dim]")
+            stderr = result["install"].get("stderr") or ""
+            if stderr:
+                console.print(f"  stderr: [dim]{stderr[:400]}[/dim]")
+        else:
+            console.print(f"  Error: [dim]{result.get('error', '')}[/dim]")
+        if make_primary:
+            console.print(
+                "  [yellow]Primary provider was set to local but setup didn't "
+                "complete — run [bold]scribe local setup --model "
+                f"{chosen}[/bold] to retry.[/yellow]"
+            )
+    else:
+        console.print(
+            f"\n  [green]Local transcription ready.[/green] Default model: "
+            f"[bold]{chosen}[/bold]."
+        )
+
 
 LANGUAGE_OPTIONS = [
     "[cyan]auto[/cyan] — auto-detect language from audio",
@@ -217,15 +302,17 @@ def onboard(
             if api_key:
                 env_keys[pinfo["env_var"]] = api_key
     else:
-        console.print(
-            Panel(
-                "Local provider selected — no API key needed.\n"
-                "Models will be downloaded automatically on first use.\n\n"
-                "Requires [bold]faster-whisper[/bold]: pip install faster-whisper",
-                title="Local Provider",
-                border_style="blue",
-            )
-        )
+        # Primary provider is "local" — run the unified setup inline.
+        _offer_local_setup(settings, make_primary=True)
+
+    # Step 4b: Offer offline/local transcription as a secondary option when the
+    # primary provider is an API provider. Skip if the user already picked
+    # local (setup already ran above). Also skip if faster-whisper is already
+    # installed AND a model is cached — they're effectively already set up.
+    if provider != "local":
+        console.print()
+        if bconfirm("  Also enable offline/local transcription?"):
+            _offer_local_setup(settings, make_primary=False)
 
     # Step 5: Additional provider keys
     console.print()

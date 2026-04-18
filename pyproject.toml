@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "anyscribecli"
-version = "0.7.4.7.2"
+version = "0.8.0"
 description = "CLI tool to download, transcribe, and convert video/audio to structured markdown"
 readme = "README.md"
 license = "MIT"
@@ -76,3 +76,6 @@ line-length = 100
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = [
+    "integration: opt-in tests that hit the network / disk (set ASCLI_RUN_INTEGRATION=1)",
+]

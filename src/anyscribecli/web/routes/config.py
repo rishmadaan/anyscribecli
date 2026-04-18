@@ -9,8 +9,14 @@ from fastapi import APIRouter
 
 from anyscribecli.config.paths import get_workspace_dir
 from anyscribecli.config.settings import load_config, load_env, save_config, save_env
+from anyscribecli.core.local_setup import local_ready
 from anyscribecli.providers import PROVIDER_REGISTRY, list_providers
 from anyscribecli.providers.languages import PROVIDER_LANGUAGES
+from anyscribecli.providers.local_models import (
+    faster_whisper_importable,
+    faster_whisper_version,
+    is_cached,
+)
 from anyscribecli.web.models import ConfigUpdateRequest, KeyUpdateRequest
 
 router = APIRouter(prefix="/api", tags=["config"])
@@ -68,14 +74,24 @@ async def update_config(req: ConfigUpdateRequest) -> dict:
 async def get_providers() -> list[dict]:
     load_env()
     result = []
+    local_is_ready = local_ready()
     for name in list_providers():
         env_var = PROVIDER_KEY_MAP.get(name)
-        has_key = bool(os.environ.get(env_var)) if env_var else (name == "local")
+        if name == "local":
+            # "available" for local means faster-whisper + ffmpeg + at least
+            # one model cached. Before setup, the UI shows a CTA button instead
+            # of a Test button — driven by set_up=False.
+            has_key = local_is_ready
+            set_up = local_is_ready
+        else:
+            has_key = bool(os.environ.get(env_var)) if env_var else False
+            set_up = True  # API providers have no separate setup step
         result.append(
             {
                 "name": name,
                 "description": PROVIDER_INFO.get(name, ""),
                 "has_key": has_key,
+                "set_up": set_up,
                 "key_url": PROVIDER_SIGNUP_URLS.get(name),
             }
         )
@@ -113,12 +129,61 @@ async def test_provider(name: str) -> dict:
         return {"success": False, "message": f"API key not set ({env_var})"}
 
     if name == "local":
-        try:
-            import faster_whisper  # noqa: F401
+        # Three structured checks: faster-whisper installed, ffmpeg on PATH,
+        # and the currently-selected default model cached. UI renders each sub-
+        # check; top-level success is the AND.
+        from anyscribecli.core.deps import check_dependencies
 
-            return {"success": True, "message": "faster-whisper is installed"}
-        except ImportError:
-            return {"success": False, "message": "faster-whisper not installed"}
+        settings = load_config()
+        default_size = settings.local_model or "base"
+
+        fw_ok = faster_whisper_importable()
+        fw_version = faster_whisper_version()
+        fw_check = {
+            "ok": fw_ok,
+            "message": (
+                f"faster-whisper {fw_version}" if fw_version else "faster-whisper not installed"
+            ),
+        }
+
+        ffmpeg_ok = False
+        ffmpeg_msg = "ffmpeg not found on PATH"
+        for r in check_dependencies():
+            if r.dep.name == "ffmpeg":
+                ffmpeg_ok = bool(r.found)
+                ffmpeg_msg = r.version or ("ffmpeg found" if r.found else ffmpeg_msg)
+                break
+        ffmpeg_check = {"ok": ffmpeg_ok, "message": ffmpeg_msg}
+
+        model_ok = fw_ok and is_cached(default_size)
+        model_check = {
+            "ok": model_ok,
+            "message": (
+                f"{default_size} model cached"
+                if model_ok
+                else f"{default_size} model not cached — run `scribe local setup --model {default_size}`"
+            ),
+            "size": default_size,
+        }
+
+        checks = {
+            "faster_whisper": fw_check,
+            "ffmpeg": ffmpeg_check,
+            "model_cached": model_check,
+        }
+        all_ok = fw_check["ok"] and ffmpeg_check["ok"] and model_check["ok"]
+        return {
+            "success": all_ok,
+            "message": (
+                "all checks passed"
+                if all_ok
+                else next(
+                    (c["message"] for c in checks.values() if not c["ok"]),
+                    "check failed",
+                )
+            ),
+            "checks": checks,
+        }
 
     # Real validation: make a lightweight API call to verify the key works
     api_key = os.environ[env_var]
@@ -152,7 +217,10 @@ async def test_provider(name: str) -> dict:
             if r.status_code < 400:
                 return {"success": True, "message": f"API key is valid for {name}"}
             else:
-                return {"success": False, "message": f"API returned {r.status_code} — key may be invalid"}
+                return {
+                    "success": False,
+                    "message": f"API returned {r.status_code} — key may be invalid",
+                }
     except httpx.TimeoutException:
         return {"success": False, "message": "Validation request timed out"}
     except Exception as e:

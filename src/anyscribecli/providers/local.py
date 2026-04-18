@@ -3,7 +3,8 @@
 Uses faster-whisper (CTranslate2-based Whisper) for offline transcription.
 No API key needed, no internet required. Runs on CPU or GPU.
 
-Install: pip install faster-whisper
+Set up via ``scribe local setup --model <size>`` (CLI), the "Set up local
+transcription" button in the Web UI, or the opt-in step in ``scribe onboard``.
 """
 
 from __future__ import annotations
@@ -15,18 +16,43 @@ from anyscribecli.providers.base import (
     TranscriptResult,
     TranscriptSegment,
 )
+from anyscribecli.providers.local_models import MODEL_SIZES, RECOMMENDED_MODEL
 
 
-# Available model sizes (smallest → largest)
-LOCAL_MODELS = ["tiny", "base", "small", "medium", "large-v3"]
-DEFAULT_MODEL = "base"
+# Exported for back-compat; new code should import from local_models.
+LOCAL_MODELS = MODEL_SIZES
+DEFAULT_MODEL = RECOMMENDED_MODEL
+
+
+def _resolve_model_size() -> str:
+    """Pick the model size for this transcription.
+
+    Precedence: ASCLI_LOCAL_MODEL env var (power-user override) → settings.local_model
+    (user-chosen default) → RECOMMENDED_MODEL (safety net if config is empty).
+    """
+    import os
+
+    env_override = os.environ.get("ASCLI_LOCAL_MODEL")
+    if env_override:
+        return env_override
+
+    try:
+        from anyscribecli.config.settings import load_config
+
+        size = load_config().local_model
+        if size:
+            return size
+    except Exception:
+        pass
+
+    return RECOMMENDED_MODEL
 
 
 class LocalProvider(TranscriptionProvider):
     """Transcribe locally using faster-whisper.
 
-    No API key, no internet. Models are downloaded on first use
-    and cached at ~/.cache/huggingface/.
+    No API key, no internet. Weights live in the HuggingFace cache
+    (``~/.cache/huggingface/hub/``) after ``scribe local setup``.
     """
 
     @property
@@ -34,20 +60,16 @@ class LocalProvider(TranscriptionProvider):
         return "local"
 
     def _get_model(self):
-        """Load faster-whisper model. Downloads on first use."""
+        """Load faster-whisper model using the configured size."""
         try:
             from faster_whisper import WhisperModel
         except ImportError:
             raise RuntimeError(
-                "faster-whisper is required for local transcription.\n"
-                "Install it with: pip install faster-whisper\n\n"
-                "Note: GPU acceleration requires CUDA. CPU works but is slower.\n"
-                "For CPU-only: pip install faster-whisper"
+                "faster-whisper is not installed. Run "
+                "`scribe local setup --model base` to install it and pull a model."
             )
 
-        import os
-
-        model_size = os.environ.get("ASCLI_LOCAL_MODEL", DEFAULT_MODEL)
+        model_size = _resolve_model_size()
         if model_size not in LOCAL_MODELS:
             raise ValueError(f"Unknown model '{model_size}'. Available: {', '.join(LOCAL_MODELS)}")
 

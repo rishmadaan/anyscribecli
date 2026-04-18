@@ -227,6 +227,58 @@ scribe providers test <name>            # Test a specific provider
 
 ---
 
+## scribe local
+
+Lifecycle for offline transcription — installs / uninstalls faster-whisper and the first Whisper model. All three subcommands accept `--json`.
+
+```bash
+scribe local setup --model base --yes --json     # Install + download + persist
+scribe local status --json                       # Report readiness, cached sizes
+scribe local teardown --yes --json               # Reverse setup
+```
+
+### scribe local setup
+
+| Flag | Short | Description | Default |
+|------|-------|-------------|---------|
+| `--model` | `-m` | **Required.** `tiny`, `base`, `small`, `medium`, `large-v3`. Recommended: `base`. | *none — must specify* |
+| `--yes` | `-y` | Skip confirmation. Required in non-TTY contexts. | Off |
+| `--json` | `-j` | NDJSON progress events on stdout. | Off |
+
+**Agent rule:** always pass `--model` — the CLI refuses to pick one silently. Default to `base` unless the user asks otherwise.
+
+**Exit codes:**
+- `0` — set up (or already set up).
+- `1` — install/download failure. JSON stderr carries the exact command that failed and its stderr.
+- `2` — usage error (missing `--model`, unknown size, non-TTY without `--yes`).
+
+### scribe local status
+
+Always exits 0. Reports `set_up`, `faster_whisper_installed`, `faster_whisper_version`, `ffmpeg_ok`, `default_model`, `models` (cache state per size), `total_disk_bytes`, `install_method`.
+
+### scribe local teardown
+
+`--yes` is required. Uninstalls faster-whisper, deletes every cached model, resets `settings.provider` to `openai` if it was `local`.
+
+---
+
+## scribe model
+
+Cache management for Whisper models. All subcommands accept `--json`.
+
+```bash
+scribe model list --json                  # Show every size + cache state
+scribe model pull <size> --yes --json     # Download (idempotent)
+scribe model rm <size> --yes --json       # Delete cached weights
+scribe model info <size> --json           # Inspect a single size
+```
+
+**Not set up?** `pull`/`rm` exit 2 with `{error: "local transcription not set up", hint: "run scribe local setup ..."}`. `list` still works (shows everything as `cached: false`).
+
+**Size-already-cached semantics:** `pull` returns `{status: "already_present"}` with exit 0. `rm` on a non-cached size returns `{status: "not_present"}` with exit 0.
+
+---
+
 ## scribe onboard
 
 Interactive setup wizard. Configures providers, API keys, preferences.
