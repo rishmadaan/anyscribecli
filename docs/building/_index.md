@@ -2,6 +2,7 @@
 
 | Date | Type | Entry | TL;DR |
 |------|------|-------|-------|
+| 2026-04-18 | project-note | [[journal/2026-04-18-v0741-webui-settings-polish.md\|v0.7.4.1 Web UI Settings Polish]] | Inline provider API key setup in Settings; "General" → "Configure Defaults"; standalone Diarization toggle removed (auto-couples with output format, matches CLI). |
 | 2026-04-18 | feature | [[journal/2026-04-18-web-ui-initial.md\|Web UI Initial Implementation]] | `scribe ui` — FastAPI backend + React SPA with WebSocket progress. Three views: transcribe, history, settings. 17 smoke tests. Core dependency (not optional). |
 | 2026-04-16 | plan | [[web-ui-spec.md\|Web UI Frontend Spec]] | Architecture decision (local web UI → Tauri → Swift), full frontend spec: React+Vite SPA, 4 screens, API contract, WebSocket protocol, color system, responsive layout. |
 | 2026-04-16 | project-note | [[journal/2026-04-16-v0723-deepgram-hi-latn-nova-fallback.md\|v0.7.2.2–v0.7.2.3 Deepgram hi-Latn Nova Fallback]] | Deepgram Nova 3 doesn't support hi-Latn — falls back to Nova model. Misleading API error. Skill defaults Hindi + speakers to `--diarize --language hi-Latn`. |

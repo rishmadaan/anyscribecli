@@ -69,7 +69,7 @@ scribe --version
 python -m anyscribecli --version
 ```
 
-You should see `scribe v0.7.2.3` (or a newer version).
+You should see `scribe v0.7.4.1` (or a newer version).
 
 > **Why `python -m` on Windows?** pip installs `scribe.exe` to a Scripts directory that's usually not on PATH. `python -m anyscribecli` always works because it uses the same Python you installed with. On first run, it will print the exact PowerShell command to add `scribe` to your PATH permanently — after that, you can use `scribe` directly.
 

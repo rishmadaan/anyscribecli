@@ -34,7 +34,8 @@ The `0.x` prefix means pre-stable — breaking changes are allowed between minor
 | 0.7.2.1 | Clear error for OpenAI diarize 25MB limit, "Preparing audio" for local files | Released 2026-04-16 |
 | 0.7.2.2 | Fix Deepgram hi-Latn — fall back to Nova model for unsupported Nova 3 languages | Released 2026-04-16 |
 | 0.7.2.3 | Update skill + docs for Hindi diarization defaults, version strings | Released 2026-04-16 |
-| 0.7.4 | Web UI — `scribe ui` with FastAPI backend + React SPA, 17 smoke tests | **Current** |
+| 0.7.4 | Web UI — `scribe ui` with FastAPI backend + React SPA, 17 smoke tests | Released 2026-04-18 |
+| 0.7.4.1 | Web UI: inline provider API key setup, settings UX polish, diarize auto-couples with output format | **Current** |
 | 0.8.0 | Cache/dedup, test suite, error handling | Next |
 | 1.0.0 | Stable: full test coverage, CI/CD pipeline | Future |
 
@@ -271,6 +272,50 @@ All features originally planned for v0.2.0–v0.5.0, built in one session:
 
 - [x] **Clear error for OpenAI diarize 25MB limit** — instead of cryptic "corrupted or unsupported" passthrough, shows file size, explains the limit, and suggests Deepgram setup
 - [x] **"Preparing audio" for local files** — orchestrator now shows "Preparing audio..." / "Ready:" instead of misleading "Downloading audio..." / "Downloaded:" for local file transcription
+
+---
+
+## v0.7.2.2 — Deepgram hi-Latn Nova Fallback ✅
+
+**Released:** 2026-04-16
+
+- [x] **Fix Deepgram hi-Latn** — Nova 3 doesn't support hi-Latn (misleading API error); fall back to Nova model automatically when hi-Latn is requested
+- [x] Unblocks Hindi/Hinglish diarization on Deepgram
+
+---
+
+## v0.7.2.3 — Hindi Diarization Defaults ✅
+
+**Released:** 2026-04-16
+
+- [x] Skill + docs updated with Hindi diarization defaults (`--diarize --language hi-Latn`)
+- [x] Version string refresh across docs
+
+---
+
+## v0.7.4 — Web UI ✅
+
+**Released:** 2026-04-18
+
+- [x] **`scribe ui`** — local web dashboard at `http://127.0.0.1:8457`, FastAPI backend + React SPA
+- [x] Three views: Transcribe (real-time WebSocket progress), History (browse vault by date), Settings (config + provider status + health)
+- [x] Backend: `src/anyscribecli/web/` — REST routes (transcribe, history, config, health, system) + WebSocket
+- [x] Orchestrator extended with `on_progress` callback (sync→async bridge via ThreadPoolExecutor + asyncio.Queue); backward compatible for CLI/MCP callers
+- [x] Frontend source at `ui/` (React 19 + TypeScript + Vite + Tailwind v4), build output committed to `src/anyscribecli/web/static/` so `pip install` works without Node
+- [x] `fastapi`, `uvicorn`, `websockets` promoted to core dependencies (one install, one app)
+- [x] Port conflict detection + graceful `/shutdown` endpoint
+- [x] 17 smoke tests (`tests/test_web.py`)
+
+---
+
+## v0.7.4.1 — Web UI Settings Polish ✅
+
+**Released:** 2026-04-18
+
+- [x] **Inline provider API key setup in web UI** — expand any provider via key icon, save/replace keys directly from Settings (no CLI trip needed)
+- [x] Renamed "General" section to "Configure Defaults" for clarity
+- [x] Removed confusing standalone Diarization toggle — now auto-couples with output format (matches CLI behavior)
+- [x] Backend: transcribe route auto-promotes `output_format` to `diarized` when `diarize=true`, matching CLI semantics
 
 ---
 
