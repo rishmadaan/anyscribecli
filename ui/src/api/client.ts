@@ -58,6 +58,7 @@ export const startTranscribe = (data: {
   language?: string;
   diarize?: boolean;
   keep_media?: boolean;
+  output_format?: string;
 }) =>
   fetchJSON<{ job_id: string }>("/transcribe", {
     method: "POST",

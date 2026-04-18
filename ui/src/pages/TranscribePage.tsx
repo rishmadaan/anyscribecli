@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useJob } from "../hooks/useJob";
-import { getConfig } from "../api/client";
-import type { Config } from "../api/types";
+import { getConfig, getProviders } from "../api/client";
+import type { Config, Provider } from "../api/types";
 import URLInput from "../components/URLInput";
 import ProgressTracker from "../components/ProgressTracker";
 import ResultCard from "../components/ResultCard";
@@ -10,6 +10,7 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 export default function TranscribePage() {
   const { phase, events, result, error, submit, reset } = useJob();
   const [config, setConfig] = useState<Config | null>(null);
+  const [providers, setProviders] = useState<Provider[]>([]);
   const [showOptions, setShowOptions] = useState(false);
 
   // Override fields
@@ -17,19 +18,22 @@ export default function TranscribePage() {
   const [language, setLanguage] = useState("");
   const [diarize, setDiarize] = useState(false);
   const [keepMedia, setKeepMedia] = useState(false);
+  const [outputFormat, setOutputFormat] = useState("clean");
 
   useEffect(() => {
-    getConfig().then((c) => {
+    Promise.all([getConfig(), getProviders()]).then(([c, p]) => {
       setConfig(c);
+      setProviders(p);
       setProvider(c.provider);
       setLanguage(c.language);
       setDiarize(c.diarize);
       setKeepMedia(c.keep_media);
+      setOutputFormat(c.output_format);
     });
   }, []);
 
   const handleSubmit = (url: string) => {
-    submit({ url, provider, language, diarize, keep_media: keepMedia });
+    submit({ url, provider, language, diarize, keep_media: keepMedia, output_format: outputFormat });
   };
 
   // Extract title from download step completion event
@@ -67,7 +71,7 @@ export default function TranscribePage() {
                   <ChevronDown className="w-3.5 h-3.5" />
                 )}
                 <span className="font-mono">
-                  {provider} · {language} · {diarize ? "diarize" : "no diarization"}
+                  {provider} · {language} · {outputFormat}{diarize && outputFormat !== "diarized" ? " + diarize" : ""}
                 </span>
               </button>
 
@@ -80,11 +84,9 @@ export default function TranscribePage() {
                       onChange={(e) => setProvider(e.target.value)}
                       className="flex-1 bg-surface-raised border border-border rounded-md px-2.5 py-1.5 text-sm text-text font-mono outline-none focus:border-amber/40"
                     >
-                      {["openai", "deepgram", "elevenlabs", "sargam", "openrouter", "local"].map(
-                        (p) => (
-                          <option key={p} value={p}>{p}</option>
-                        )
-                      )}
+                      {providers.map((p) => (
+                        <option key={p.name} value={p.name}>{p.name}</option>
+                      ))}
                     </select>
                   </div>
 
@@ -97,6 +99,28 @@ export default function TranscribePage() {
                       placeholder="auto"
                       className="flex-1 bg-surface-raised border border-border rounded-md px-2.5 py-1.5 text-sm text-text font-mono outline-none focus:border-amber/40"
                     />
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    <label className="text-xs text-text-muted w-20">Format</label>
+                    <div className="flex rounded-md border border-border overflow-hidden">
+                      {["clean", "timestamped", "diarized"].map((fmt) => (
+                        <button
+                          key={fmt}
+                          onClick={() => {
+                            setOutputFormat(fmt);
+                            if (fmt === "diarized") setDiarize(true);
+                          }}
+                          className={`px-3 py-1.5 text-xs font-mono transition-colors cursor-pointer ${
+                            outputFormat === fmt
+                              ? "bg-amber/15 text-amber border-r border-border"
+                              : "bg-surface-raised text-text-muted hover:text-text border-r border-border"
+                          }`}
+                        >
+                          {fmt}
+                        </button>
+                      ))}
+                    </div>
                   </div>
 
                   <div className="flex items-center gap-4">

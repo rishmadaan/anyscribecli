@@ -20,12 +20,14 @@ export default function SettingsPage() {
   } | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [testResults, setTestResults] = useState<Record<string, { success: boolean; message: string }>>({});
   const [testingProvider, setTestingProvider] = useState<string | null>(null);
   const [expandedProvider, setExpandedProvider] = useState<string | null>(null);
   const [keyInput, setKeyInput] = useState("");
   const [savingKey, setSavingKey] = useState(false);
   const [keySaved, setKeySaved] = useState<string | null>(null);
+  const [confirmOverwrite, setConfirmOverwrite] = useState(false);
 
   useEffect(() => {
     Promise.all([getConfig(), getProviders(), getHealth()]).then(([c, p, h]) => {
@@ -35,14 +37,17 @@ export default function SettingsPage() {
     });
   }, []);
 
-  const handleSave = async (field: string, value: unknown) => {
+  const handleSave = async (updates: Partial<Config>) => {
     if (!config) return;
     setSaving(true);
+    setError(null);
     try {
-      const updated = await updateConfig({ [field]: value } as Partial<Config>);
+      const updated = await updateConfig(updates);
       setConfig(updated);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save setting");
     } finally {
       setSaving(false);
     }
@@ -50,9 +55,12 @@ export default function SettingsPage() {
 
   const handleTest = async (name: string) => {
     setTestingProvider(name);
+    setError(null);
     try {
       const result = await testProvider(name);
       setTestResults((prev) => ({ ...prev, [name]: result }));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : `Failed to test ${name}`);
     } finally {
       setTestingProvider(null);
     }
@@ -71,10 +79,13 @@ export default function SettingsPage() {
     );
   }
 
+  const selectedProvider = providers.find((p) => p.name === config.provider);
+  const providerMissingKey = selectedProvider && !selectedProvider.has_key && config.provider !== "local";
+
   return (
     <div className="px-8 py-10 max-w-3xl">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-4">
         <h1
           className="text-2xl font-bold tracking-tight text-text"
           style={{ fontFamily: "var(--font-display)" }}
@@ -89,30 +100,51 @@ export default function SettingsPage() {
         )}
       </div>
 
-      {/* General */}
+      {/* Error banner */}
+      {error && (
+        <div className="rounded-lg border border-red/30 bg-red/5 px-4 py-2 mb-6 flex items-center justify-between animate-slide-up">
+          <p className="text-xs text-red font-mono">{error}</p>
+          <button
+            onClick={() => setError(null)}
+            className="text-red/60 hover:text-red text-xs ml-4 cursor-pointer"
+          >
+            dismiss
+          </button>
+        </div>
+      )}
+
+      {/* Configure Defaults */}
       <section className="mb-10">
         <h2 className="text-xs font-mono text-text-muted uppercase tracking-wider mb-4">
           Configure Defaults
         </h2>
         <div className="space-y-4">
           <SettingRow label="Default provider">
-            <select
-              value={config.provider}
-              onChange={(e) => handleSave("provider", e.target.value)}
-              disabled={saving}
-              className="bg-surface-raised border border-border rounded-md px-2.5 py-1.5 text-sm text-text font-mono outline-none focus:border-amber/40 w-48"
-            >
-              {providers.map((p) => (
-                <option key={p.name} value={p.name}>{p.name}</option>
-              ))}
-            </select>
+            <div className="flex items-center gap-2">
+              <select
+                value={config.provider}
+                onChange={(e) => handleSave({ provider: e.target.value })}
+                disabled={saving}
+                className="bg-surface-raised border border-border rounded-md px-2.5 py-1.5 text-sm text-text font-mono outline-none focus:border-amber/40 w-48"
+              >
+                {providers.map((p) => (
+                  <option key={p.name} value={p.name}>{p.name}</option>
+                ))}
+              </select>
+              {providerMissingKey && (
+                <span className="text-xs text-red flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" />
+                  no key
+                </span>
+              )}
+            </div>
           </SettingRow>
 
           <SettingRow label="Default language">
             <input
               type="text"
               defaultValue={config.language}
-              onBlur={(e) => handleSave("language", e.target.value)}
+              onBlur={(e) => handleSave({ language: e.target.value })}
               className="bg-surface-raised border border-border rounded-md px-2.5 py-1.5 text-sm text-text font-mono outline-none focus:border-amber/40 w-48"
             />
           </SettingRow>
@@ -122,19 +154,14 @@ export default function SettingsPage() {
               {["clean", "timestamped", "diarized"].map((fmt) => (
                 <button
                   key={fmt}
-                  onClick={async () => {
-                    // Auto-couple: selecting "diarized" enables speaker detection,
-                    // selecting anything else disables it (matches CLI behavior)
-                    const diarize = fmt === "diarized";
-                    setSaving(true);
-                    try {
-                      const updated = await updateConfig({ output_format: fmt, diarize });
-                      setConfig(updated);
-                      setSaved(true);
-                      setTimeout(() => setSaved(false), 2000);
-                    } finally {
-                      setSaving(false);
+                  onClick={() => {
+                    // Match CLI: selecting "diarized" auto-enables diarize.
+                    // Selecting other formats does NOT force diarize off.
+                    const updates: Partial<Config> = { output_format: fmt };
+                    if (fmt === "diarized") {
+                      updates.diarize = true;
                     }
+                    handleSave(updates);
                   }}
                   className={`px-3 py-1.5 text-xs font-mono transition-colors cursor-pointer ${
                     config.output_format === fmt
@@ -151,7 +178,7 @@ export default function SettingsPage() {
           <SettingRow label="Keep media">
             <Toggle
               value={config.keep_media}
-              onChange={(v) => handleSave("keep_media", v)}
+              onChange={(v) => handleSave({ keep_media: v })}
             />
           </SettingRow>
         </div>
@@ -216,13 +243,23 @@ export default function SettingsPage() {
                           setExpandedProvider(p.name);
                           setKeyInput("");
                           setKeySaved(null);
+                          setConfirmOverwrite(false);
                         }
                       }}
-                      className="rounded-md px-1.5 py-1 text-text-muted hover:text-text transition-colors cursor-pointer"
-                      title="Set API key"
+                      className={`rounded-md px-1.5 py-1 transition-colors cursor-pointer ${
+                        !p.has_key && !isExpanded
+                          ? "text-amber hover:text-amber/80"
+                          : "text-text-muted hover:text-text"
+                      }`}
+                      title={p.has_key ? "Update API key" : "Add API key"}
                     >
                       {isExpanded ? (
                         <ChevronUp className="w-3.5 h-3.5" />
+                      ) : !p.has_key ? (
+                        <span className="flex items-center gap-1 text-xs font-mono">
+                          <Key className="w-3.5 h-3.5" />
+                          add key
+                        </span>
                       ) : (
                         <Key className="w-3.5 h-3.5" />
                       )}
@@ -237,26 +274,33 @@ export default function SettingsPage() {
                       <input
                         type="password"
                         value={keyInput}
-                        onChange={(e) => setKeyInput(e.target.value)}
-                        placeholder={p.has_key ? "••••••••  (key set — enter new to replace)" : "Paste API key"}
+                        onChange={(e) => {
+                          setKeyInput(e.target.value);
+                          setConfirmOverwrite(false);
+                        }}
+                        placeholder={p.has_key ? "Enter new key to replace existing" : "Paste API key"}
                         className="flex-1 bg-surface-raised border border-border rounded-md px-2.5 py-1.5 text-sm text-text font-mono outline-none focus:border-amber/40"
                         autoFocus
                       />
                       <button
                         onClick={async () => {
                           if (!keyInput.trim()) return;
+                          if (p.has_key && !confirmOverwrite) {
+                            setConfirmOverwrite(true);
+                            return;
+                          }
                           setSavingKey(true);
+                          setConfirmOverwrite(false);
+                          setError(null);
                           try {
                             await updateKey(p.name, keyInput.trim());
                             setKeySaved(p.name);
                             setKeyInput("");
-                            // Refresh providers to update has_key status
                             const updated = await getProviders();
                             setProviders(updated);
-                            setTimeout(() => {
-                              setKeySaved(null);
-                              setExpandedProvider(null);
-                            }, 1500);
+                            setTimeout(() => setKeySaved(null), 2000);
+                          } catch (err) {
+                            setError(err instanceof Error ? err.message : "Failed to save key");
                           } finally {
                             setSavingKey(false);
                           }
@@ -273,11 +317,26 @@ export default function SettingsPage() {
                           <Loader2 className="w-3 h-3 animate-spin" />
                         ) : keySaved === p.name ? (
                           <Check className="w-3 h-3 text-green" />
+                        ) : confirmOverwrite ? (
+                          "Replace?"
                         ) : (
                           "Save"
                         )}
                       </button>
                     </div>
+                    {p.key_url && (
+                      <p className="text-xs text-text-muted mt-2">
+                        Get your key at{" "}
+                        <a
+                          href={p.key_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-amber hover:underline"
+                        >
+                          {p.key_url.replace(/^https?:\/\//, "")}
+                        </a>
+                      </p>
+                    )}
                   </div>
                 )}
               </div>

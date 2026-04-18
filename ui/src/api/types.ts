@@ -17,6 +17,7 @@ export interface Provider {
   name: string;
   description: string;
   has_key: boolean;
+  key_url?: string;
 }
 
 export interface TranscribeRequest {
@@ -25,6 +26,7 @@ export interface TranscribeRequest {
   language?: string;
   diarize?: boolean;
   keep_media?: boolean;
+  output_format?: string;
 }
 
 export interface ProgressEvent {

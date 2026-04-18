@@ -29,6 +29,7 @@ export function useJob() {
       language?: string;
       diarize?: boolean;
       keep_media?: boolean;
+      output_format?: string;
     }) => {
       // Reset state
       setState({ phase: "running", events: [], result: null, error: null });

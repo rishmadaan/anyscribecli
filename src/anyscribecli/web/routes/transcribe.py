@@ -24,6 +24,8 @@ async def start_transcribe(req: TranscribeRequest) -> dict:
         settings.provider = req.provider
     if req.language:
         settings.language = req.language
+    if req.output_format:
+        settings.output_format = req.output_format
     settings.diarize = req.diarize
     if req.diarize and settings.output_format == "clean":
         settings.output_format = "diarized"

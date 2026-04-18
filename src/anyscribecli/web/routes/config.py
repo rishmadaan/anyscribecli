@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 
+import httpx
 from fastapi import APIRouter
 
 from anyscribecli.config.paths import get_workspace_dir
@@ -30,6 +31,15 @@ PROVIDER_KEY_MAP: dict[str, str] = {
     "elevenlabs": "ELEVENLABS_API_KEY",
     "sargam": "SARGAM_API_KEY",
     "openrouter": "OPENROUTER_API_KEY",
+}
+
+# URLs where users can obtain API keys
+PROVIDER_SIGNUP_URLS: dict[str, str] = {
+    "openai": "https://platform.openai.com/api-keys",
+    "deepgram": "https://console.deepgram.com/",
+    "elevenlabs": "https://elevenlabs.io/app/settings/api-keys",
+    "sargam": "https://dashboard.sarvam.ai",
+    "openrouter": "https://openrouter.ai/keys",
 }
 
 
@@ -65,6 +75,7 @@ async def get_providers() -> list[dict]:
                 "name": name,
                 "description": PROVIDER_INFO.get(name, ""),
                 "has_key": has_key,
+                "key_url": PROVIDER_SIGNUP_URLS.get(name),
             }
         )
     return result
@@ -88,7 +99,43 @@ async def test_provider(name: str) -> dict:
         except ImportError:
             return {"success": False, "message": "faster-whisper not installed"}
 
-    return {"success": True, "message": f"API key is set for {name}"}
+    # Real validation: make a lightweight API call to verify the key works
+    api_key = os.environ[env_var]
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            if name == "openai":
+                r = await client.get(
+                    "https://api.openai.com/v1/models",
+                    headers={"Authorization": f"Bearer {api_key}"},
+                )
+            elif name == "deepgram":
+                r = await client.get(
+                    "https://api.deepgram.com/v1/projects",
+                    headers={"Authorization": f"Token {api_key}"},
+                )
+            elif name == "elevenlabs":
+                r = await client.get(
+                    "https://api.elevenlabs.io/v1/user",
+                    headers={"xi-api-key": api_key},
+                )
+            elif name == "openrouter":
+                r = await client.get(
+                    "https://openrouter.ai/api/v1/models",
+                    headers={"Authorization": f"Bearer {api_key}"},
+                )
+            elif name == "sargam":
+                return {"success": True, "message": "API key is set (no validation endpoint)"}
+            else:
+                return {"success": True, "message": f"API key is set for {name}"}
+
+            if r.status_code < 400:
+                return {"success": True, "message": f"API key is valid for {name}"}
+            else:
+                return {"success": False, "message": f"API returned {r.status_code} — key may be invalid"}
+    except httpx.TimeoutException:
+        return {"success": False, "message": "Validation request timed out"}
+    except Exception as e:
+        return {"success": False, "message": f"Validation failed: {e}"}
 
 
 @router.get("/keys/status")

@@ -11,6 +11,7 @@ class TranscribeRequest(BaseModel):
     language: str | None = None
     diarize: bool = False
     keep_media: bool = False
+    output_format: str | None = None
 
 
 class JobResponse(BaseModel):
