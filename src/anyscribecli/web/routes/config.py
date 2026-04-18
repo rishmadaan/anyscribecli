@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 
 import httpx
-from fastapi import APIRouter
+from fastapi import APIRouter, Body
 
 from anyscribecli.config.paths import get_workspace_dir
 from anyscribecli.config.settings import load_config, load_env, save_config, save_env
@@ -119,13 +119,27 @@ async def get_provider_languages(name: str) -> dict:
 
 
 @router.post("/providers/{name}/test")
-async def test_provider(name: str) -> dict:
+async def test_provider(
+    name: str,
+    body: dict | None = Body(default=None),
+) -> dict:
+    """Validate a provider's API key.
+
+    If the request body carries ``{"api_key": "..."}``, that key is validated
+    directly without touching ``.env`` or ``os.environ`` — lets the Web UI
+    wizard test a key the user just typed but hasn't yet saved. Without a
+    body, falls back to the key stored in the environment (original behaviour
+    for existing UI callers and agents).
+    """
     load_env()
     if name not in PROVIDER_REGISTRY:
         return {"success": False, "message": f"Unknown provider: {name}"}
 
     env_var = PROVIDER_KEY_MAP.get(name)
-    if env_var and not os.environ.get(env_var):
+    override_key = (body or {}).get("api_key") if isinstance(body, dict) else None
+    effective_key = override_key or (os.environ.get(env_var) if env_var else None)
+
+    if env_var and not effective_key:
         return {"success": False, "message": f"API key not set ({env_var})"}
 
     if name == "local":
@@ -185,8 +199,9 @@ async def test_provider(name: str) -> dict:
             "checks": checks,
         }
 
-    # Real validation: make a lightweight API call to verify the key works
-    api_key = os.environ[env_var]
+    # Real validation: make a lightweight API call to verify the key works.
+    # Use the override key from the request body if present, else the env var.
+    api_key = effective_key  # type: ignore[assignment]
     try:
         async with httpx.AsyncClient(timeout=10) as client:
             if name == "openai":

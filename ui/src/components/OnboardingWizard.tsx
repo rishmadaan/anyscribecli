@@ -343,11 +343,10 @@ function StepApiKey({
     setTesting(true);
     setTestResult(null);
     try {
-      // Test endpoint reads from env — since we haven't saved yet, this only
-      // works if the env var was already set. We still expose the button for
-      // post-save verification; for wizard-phase the best we can do is check
-      // shape of the key.
-      const result = await testProvider(providerName);
+      // Pass the typed-but-unsaved key to the test endpoint so it actually
+      // validates what the user just entered (rather than whatever's already
+      // in .env, which may be stale or empty during wizard-phase).
+      const result = await testProvider(providerName, value);
       setTestResult(result);
     } catch (e) {
       setTestResult({

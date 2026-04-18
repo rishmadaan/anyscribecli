@@ -47,9 +47,10 @@ export const getProviders = () => fetchJSON<Provider[]>("/providers");
 export const getProviderLanguages = (name: string) =>
   fetchJSON<ProviderLanguagesResponse>(`/providers/${name}/languages`);
 
-export const testProvider = (name: string) =>
+export const testProvider = (name: string, apiKey?: string) =>
   fetchJSON<ProviderTestResult>(`/providers/${name}/test`, {
     method: "POST",
+    body: apiKey ? JSON.stringify({ api_key: apiKey }) : undefined,
   });
 
 export const getKeysStatus = () =>

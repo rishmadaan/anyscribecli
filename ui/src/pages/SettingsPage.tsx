@@ -744,25 +744,69 @@ function LocalProviderCard({
       {/* Expanded: default-model picker, models table, teardown. */}
       {isExpanded && setUp && status && (
         <div className="px-4 pb-4 pt-0 border-t border-border-subtle">
-          <div className="mt-3 mb-4 flex items-center gap-3">
-            <label className="text-xs font-mono text-text-muted">
-              Default model
-            </label>
-            <select
-              value={config.local_model}
-              onChange={(e) => onDefaultChange(e.target.value)}
-              className="bg-surface-raised border border-border rounded-md px-2 py-1 text-xs text-text font-mono outline-none focus:border-amber/40"
-            >
-              {status.models.map((m) => (
-                <option key={m.size} value={m.size} disabled={!m.cached}>
-                  {m.size}
-                  {m.cached ? "" : " (not cached)"}
-                </option>
-              ))}
-            </select>
-            <span className="ml-auto text-xs text-text-muted font-mono">
-              {Math.round(status.total_disk_bytes / MB)} MB on disk
-            </span>
+          {/* Default-model picker: pill strip with download-in-place for
+              uncached sizes. Cached pills act like radio buttons; uncached
+              ones trigger onPull and update the dropdown state automatically
+              once the queue completes. */}
+          <div className="mt-3 mb-4">
+            <div className="flex items-center gap-2 flex-wrap">
+              <label className="text-xs font-mono text-text-muted">
+                Default model
+              </label>
+              <div className="flex items-center gap-1 flex-wrap">
+                {status.models.map((m) => {
+                  const selected = config.local_model === m.size;
+                  const isPulling = pullingSize === m.size;
+                  const isDownloading = !!m.downloading || isPulling;
+                  const isQueued = !!m.queued;
+                  if (m.cached) {
+                    return (
+                      <button
+                        key={m.size}
+                        onClick={() => onDefaultChange(m.size)}
+                        aria-pressed={selected}
+                        className={`rounded-md px-2.5 py-1 text-xs font-mono border transition-colors cursor-pointer ${
+                          selected
+                            ? "border-amber bg-amber/15 text-amber"
+                            : "border-border text-text-muted hover:text-text hover:bg-surface-raised"
+                        }`}
+                        title={`Use ${m.size} as the default model`}
+                      >
+                        {m.size}
+                      </button>
+                    );
+                  }
+                  return (
+                    <button
+                      key={m.size}
+                      onClick={() => onPull(m.size)}
+                      disabled={isDownloading || isQueued}
+                      className="rounded-md px-2 py-1 text-xs font-mono border border-border-subtle border-dashed text-text-muted hover:text-text hover:bg-surface-raised transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                      title={
+                        isDownloading
+                          ? "Downloading…"
+                          : isQueued
+                          ? "Queued"
+                          : `Download ${m.size} (~${m.spec.download_mb} MB) to enable as default`
+                      }
+                    >
+                      {isDownloading ? (
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                      ) : isQueued ? null : (
+                        <Download className="w-3 h-3" />
+                      )}
+                      <span>
+                        {m.size}
+                        {isQueued && " (queued)"}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+              <span className="ml-auto text-xs text-text-muted font-mono">
+                {Math.round(status.total_disk_bytes / MB)} MB on disk
+              </span>
+            </div>
           </div>
 
           <div className="rounded-md border border-border-subtle bg-surface-raised overflow-hidden">
