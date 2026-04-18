@@ -217,3 +217,5 @@ To override and use a specific provider for diarization:
 ```bash
 scribe "url" --diarize --provider openai
 ```
+
+> **Web UI naming:** "Diarize" appears as a `Multi-speaker` toggle in `scribe ui` and the `diarized` output format is labelled `with-speaker-labels` — the underlying behavior is identical.

@@ -96,6 +96,8 @@ How to format the transcript text. Default: `clean`.
 
 > **Tip:** When you use `--diarize`, the output format is automatically set to `diarized` unless you've explicitly set it to `timestamped`.
 
+> **Web UI label:** The `diarized` value is shown as `with-speaker-labels` in `scribe ui`. The wire value (what gets stored in `config.yaml`) is unchanged — picking either spelling produces the same output.
+
 #### diarize
 
 Whether to enable speaker diarization (identifying who said what) by default. Default: `false`.

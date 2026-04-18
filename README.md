@@ -22,7 +22,7 @@ URL or local file → Download/convert audio → Transcribe → Formatted Markdo
 - **Master index + daily logs** — browse everything in Obsidian
 - **Download-only mode** — grab video or audio without transcribing
 - **Batch processing** — transcribe a list of URLs from a file
-- **Web UI** — `scribe ui` launches a local dashboard in your browser (transcribe, browse history, manage settings)
+- **Web UI** — `scribe ui` launches a local dashboard in your browser (transcribe, browse history, manage settings) — provider dropdown disables unconfigured providers and offers a per-provider language picker so you don't have to look up codes
 - **`--json` on main commands** — for scripting and AI agent integration
 - **Arrow-key onboarding wizard** — interactive setup, installs missing dependencies
 
@@ -222,6 +222,8 @@ scribe config set openai_api_key YOUR_KEY
 ```
 
 > **Diarization auto-routing:** When you use `--diarize` without specifying a provider, scribe automatically switches to Deepgram (if configured) for best speaker detection. Override with `-p openai` if needed.
+
+> **Web UI labels:** The CLI's `--diarize` flag is shown as `Multi-speaker` in the web UI, and the `diarized` output format is labelled `with-speaker-labels`. Wire values are unchanged — the rename is display-only so the UI reads in plain English.
 
 See [Configuration Guide](docs/user/configuration.md) for all options.
 
