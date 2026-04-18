@@ -2,6 +2,7 @@
 
 | Date | Type | Entry | TL;DR |
 |------|------|-------|-------|
+| 2026-04-18 | plan | [[journal/2026-04-18-menu-bar-tray-companion-plan.md\|Menu-bar tray companion — future plan (~v0.9.x)]] | Deferred. Sketch + pressure test for turning `scribe ui` into a click-to-open tray app via pystray + `[tray]` extra + launchd/systemd auto-start. Browser stays the UI surface — no Tauri/Electron. Riskiest piece (self-update across pipx/pip/venv) deferred to v2. |
 | 2026-04-18 | project-note | [[journal/2026-04-18-language-picker-polish.md\|Language picker polish — v0.7.4.7.1 + v0.7.4.7.2]] | v0.7.4.7.1: clear input on focus so the `<datalist>` popup shows all options (fixed the "auto" filter bug). v0.7.4.7.2: rename `Diarize` → `Multi-speaker`, `diarized` → `with-speaker-labels` in UI only — wire values unchanged. |
 | 2026-04-18 | feature | [[journal/2026-04-18-provider-language-lists.md\|Per-provider language picker + provider key clarity]] | Transcribe page now shows `· needs key` + Settings CTA for unconfigured providers; language is a per-provider `<datalist>` dropdown. Static lists in `providers/languages.py` exposed via `/api/providers/{name}/languages`. |
 | 2026-04-18 | project-note | [[journal/2026-04-18-v0741-webui-settings-polish.md\|v0.7.4.1 Web UI Settings Polish]] | Inline provider API key setup in Settings; "General" → "Configure Defaults"; standalone Diarization toggle removed (auto-couples with output format, matches CLI). |

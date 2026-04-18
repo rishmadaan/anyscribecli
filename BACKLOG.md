@@ -46,6 +46,7 @@ The `0.x` prefix means pre-stable — breaking changes are allowed between minor
 | 0.7.4.7.1 | Fix language datalist popup showing nothing — clear input on focus so all options are visible | Released 2026-04-18 |
 | 0.7.4.7.2 | Rename "Diarize" → "Multi-speaker" and "diarized" output → "with-speaker-labels" in the web UI (wire values unchanged) | **Current** |
 | 0.8.0 | Cache/dedup, test suite, error handling | Next |
+| 0.9.0 | Menu-bar tray companion + auto-start ([plan](docs/building/journal/2026-04-18-menu-bar-tray-companion-plan.md)) | Planned |
 | 1.0.0 | Stable: full test coverage, CI/CD pipeline | Future |
 
 ### How to bump versions
@@ -340,6 +341,28 @@ All features originally planned for v0.2.0–v0.5.0, built in one session:
 - [ ] Comprehensive error handling and retry logic (network failures, API rate limits)
 - [ ] Suppress instaloader's noisy retry output (redirect to log file)
 - [ ] `ascli logs` command to view recent log files
+
+---
+
+## v0.9.0 — Menu-bar tray companion (planned)
+
+Turn `scribe ui` into a click-to-open, always-there experience without adopting a native-app build chain. Browser stays the UI surface — no Tauri/Electron.
+
+**Full plan + pressure test:** [docs/building/journal/2026-04-18-menu-bar-tray-companion-plan.md](docs/building/journal/2026-04-18-menu-bar-tray-companion-plan.md)
+
+Scope (minimal-first, stop whenever "enough"):
+
+- [ ] `scribe tray` — cross-platform tray icon (pystray) that supervises the FastAPI server as a subprocess. Menu: Open UI, Status, Restart, Check for updates, Quit.
+- [ ] `anyscribecli[tray]` extra — keeps base install CLI-only; tray deps (pystray, Pillow, pyobjc on macOS) only pulled when requested.
+- [ ] `scribe install-service` / `scribe uninstall-service` — writes launchd plist on macOS first; Linux systemd user unit and Windows startup shortcut added only if demand appears.
+- [ ] Port probe + pidfile at `~/.anyscribecli/tray.pid` — detect an already-running instance instead of failing with a port collision.
+- [ ] Update-from-tray deferred — "Check for updates" opens the GitHub releases page in the browser. Revisit once install-mode detection (pipx vs pip vs venv) is bulletproof.
+- [ ] Graceful shutdown via existing `/shutdown` endpoint → SIGTERM fallback after 5s.
+
+Accepted tradeoffs:
+
+- Linux Wayland without AppIndicator → degraded experience, documented not fixed
+- Auto-start at login means a background process users didn't explicitly start — tray icon + obvious Quit keeps it honest
 
 ---
 
