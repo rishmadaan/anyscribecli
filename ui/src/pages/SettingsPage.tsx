@@ -182,7 +182,7 @@ export default function SettingsPage() {
                       : "bg-surface-raised text-text-muted hover:text-text border-r border-border"
                   }`}
                 >
-                  {fmt}
+                  {fmt === "diarized" ? "with-speaker-labels" : fmt}
                 </button>
               ))}
             </div>

@@ -9,6 +9,10 @@ import ResultCard from "../components/ResultCard";
 import LanguageInput from "../components/LanguageInput";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
+// User-facing label for the diarize/diarized output format. The wire value
+// stays "diarized" so the API contract doesn't change.
+const formatLabel = (fmt: string) => (fmt === "diarized" ? "with-speaker-labels" : fmt);
+
 export default function TranscribePage() {
   const { phase, events, result, error, submit, reset } = useJob();
   const [config, setConfig] = useState<Config | null>(null);
@@ -73,14 +77,14 @@ export default function TranscribePage() {
                   <ChevronDown className="w-3.5 h-3.5" />
                 )}
                 <span className="font-mono">
-                  {provider} · {language} · {outputFormat}{diarize && outputFormat !== "diarized" ? " + diarize" : ""}
+                  {provider} · {language} · {formatLabel(outputFormat)}{diarize && outputFormat !== "diarized" ? " + speakers" : ""}
                 </span>
               </button>
 
               {showOptions && (
                 <div className="mt-3 rounded-lg border border-border-subtle bg-surface p-4 space-y-3 animate-slide-up">
                   <div className="flex items-center gap-4">
-                    <label className="text-xs text-text-muted w-20">Provider</label>
+                    <label className="text-xs text-text-muted w-32 shrink-0">Provider</label>
                     <select
                       value={provider}
                       onChange={(e) => setProvider(e.target.value)}
@@ -99,7 +103,7 @@ export default function TranscribePage() {
                     if (missing === 0) return null;
                     return (
                       <div className="flex items-center gap-4">
-                        <span className="w-20" />
+                        <span className="w-32 shrink-0" />
                         <p className="text-xs text-text-muted">
                           {missing} {missing === 1 ? "provider needs" : "providers need"} a key —{" "}
                           <Link to="/settings#api-keys" className="text-amber hover:underline">
@@ -111,7 +115,7 @@ export default function TranscribePage() {
                   })()}
 
                   <div className="flex items-center gap-4">
-                    <label className="text-xs text-text-muted w-20">Language</label>
+                    <label className="text-xs text-text-muted w-32 shrink-0">Language</label>
                     <LanguageInput
                       provider={provider}
                       value={language}
@@ -120,7 +124,7 @@ export default function TranscribePage() {
                   </div>
 
                   <div className="flex items-center gap-4">
-                    <label className="text-xs text-text-muted w-20">Format</label>
+                    <label className="text-xs text-text-muted w-32 shrink-0">Format</label>
                     <div className="flex rounded-md border border-border overflow-hidden">
                       {["clean", "timestamped", "diarized"].map((fmt) => (
                         <button
@@ -135,14 +139,14 @@ export default function TranscribePage() {
                               : "bg-surface-raised text-text-muted hover:text-text border-r border-border"
                           }`}
                         >
-                          {fmt}
+                          {formatLabel(fmt)}
                         </button>
                       ))}
                     </div>
                   </div>
 
                   <div className="flex items-center gap-4">
-                    <label className="text-xs text-text-muted w-20">Diarize</label>
+                    <label className="text-xs text-text-muted w-32 shrink-0">Multi-speaker</label>
                     <button
                       onClick={() => setDiarize(!diarize)}
                       className={`w-9 h-5 rounded-full transition-colors cursor-pointer ${
@@ -158,7 +162,7 @@ export default function TranscribePage() {
                   </div>
 
                   <div className="flex items-center gap-4">
-                    <label className="text-xs text-text-muted w-20">Keep media</label>
+                    <label className="text-xs text-text-muted w-32 shrink-0">Keep media</label>
                     <button
                       onClick={() => setKeepMedia(!keepMedia)}
                       className={`w-9 h-5 rounded-full transition-colors cursor-pointer ${
