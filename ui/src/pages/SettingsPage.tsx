@@ -8,7 +8,7 @@ import {
   updateKey,
 } from "../api/client";
 import type { Config, Provider } from "../api/types";
-import { Check, AlertCircle, Loader2, ChevronUp, Key, Power } from "lucide-react";
+import { Check, AlertCircle, Loader2, ChevronUp, Key } from "lucide-react";
 
 export default function SettingsPage() {
   const [config, setConfig] = useState<Config | null>(null);
@@ -28,8 +28,6 @@ export default function SettingsPage() {
   const [savingKey, setSavingKey] = useState(false);
   const [keySaved, setKeySaved] = useState<string | null>(null);
   const [confirmOverwrite, setConfirmOverwrite] = useState(false);
-  const [confirmShutdown, setConfirmShutdown] = useState(false);
-  const [shuttingDown, setShuttingDown] = useState(false);
 
   useEffect(() => {
     Promise.all([getConfig(), getProviders(), getHealth()]).then(([c, p, h]) => {
@@ -379,57 +377,6 @@ export default function SettingsPage() {
                 </span>
               </div>
             ))}
-          </div>
-
-          {/* Shutdown */}
-          <div className="mt-4">
-            {!confirmShutdown ? (
-              <button
-                onClick={() => setConfirmShutdown(true)}
-                className="
-                  flex items-center gap-2 rounded-lg border border-border
-                  px-3 py-2 text-xs font-mono text-text-muted
-                  hover:text-red hover:border-red/30 transition-colors cursor-pointer
-                "
-              >
-                <Power className="w-3.5 h-3.5" />
-                Shut down server
-              </button>
-            ) : (
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={async () => {
-                    setShuttingDown(true);
-                    try {
-                      await fetch("/api/shutdown", { method: "POST" });
-                    } catch {
-                      // Expected — server is shutting down
-                    }
-                    setTimeout(() => {
-                      document.title = "scribe — stopped";
-                    }, 500);
-                  }}
-                  disabled={shuttingDown}
-                  className="
-                    flex items-center gap-2 rounded-lg border border-red/30
-                    bg-red/5 px-3 py-2 text-xs font-mono text-red
-                    hover:bg-red/10 transition-colors cursor-pointer
-                    disabled:opacity-50
-                  "
-                >
-                  <Power className="w-3.5 h-3.5" />
-                  {shuttingDown ? "Shutting down..." : "Confirm shutdown"}
-                </button>
-                {!shuttingDown && (
-                  <button
-                    onClick={() => setConfirmShutdown(false)}
-                    className="text-xs text-text-muted hover:text-text cursor-pointer"
-                  >
-                    cancel
-                  </button>
-                )}
-              </div>
-            )}
           </div>
         </section>
       )}

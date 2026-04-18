@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
-import { Mic, Clock, Settings, Waves } from "lucide-react";
+import { Mic, Clock, Settings, Waves, Power } from "lucide-react";
 import SetupBanner from "./SetupBanner";
 
 const NAV = [
@@ -9,6 +10,34 @@ const NAV = [
 ] as const;
 
 export default function Layout() {
+  const [confirmShutdown, setConfirmShutdown] = useState(false);
+  const [stopped, setStopped] = useState(false);
+
+  const handleShutdown = async () => {
+    try {
+      await fetch("/api/shutdown", { method: "POST" });
+    } catch {
+      // Expected — server is shutting down
+    }
+    setStopped(true);
+    // Try to close the tab (works if opened by JS, e.g. window.open)
+    setTimeout(() => {
+      window.close();
+    }, 300);
+  };
+
+  if (stopped) {
+    return (
+      <div className="flex items-center justify-center min-h-dvh bg-bg">
+        <div className="text-center">
+          <Power className="w-8 h-8 text-text-muted mx-auto mb-3" />
+          <p className="text-lg font-medium text-text mb-1">Server stopped</p>
+          <p className="text-sm text-text-muted">You can close this tab.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-dvh">
       {/* Sidebar */}
@@ -45,11 +74,41 @@ export default function Layout() {
           ))}
         </nav>
 
-        {/* Bottom */}
-        <div className="mt-auto px-5 pb-5">
-          <div className="text-[11px] font-mono text-text-muted">
-            scribe ui
-          </div>
+        {/* Bottom — shutdown */}
+        <div className="mt-auto px-3 pb-4">
+          {!confirmShutdown ? (
+            <button
+              onClick={() => setConfirmShutdown(true)}
+              className="
+                flex items-center gap-2 w-full px-3 py-2 rounded-lg
+                text-xs text-text-muted hover:text-red hover:bg-surface-hover
+                transition-colors cursor-pointer
+              "
+            >
+              <Power className="w-3.5 h-3.5" />
+              Quit
+            </button>
+          ) : (
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={handleShutdown}
+                className="
+                  flex items-center gap-1.5 px-3 py-2 rounded-lg
+                  text-xs text-red bg-red/5 border border-red/20
+                  hover:bg-red/10 transition-colors cursor-pointer
+                "
+              >
+                <Power className="w-3.5 h-3.5" />
+                Quit?
+              </button>
+              <button
+                onClick={() => setConfirmShutdown(false)}
+                className="text-xs text-text-muted hover:text-text cursor-pointer px-2 py-2"
+              >
+                no
+              </button>
+            </div>
+          )}
         </div>
       </aside>
 
