@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { Mic, Clock, Settings, Waves } from "lucide-react";
+import SetupBanner from "./SetupBanner";
 
 const NAV = [
   { to: "/", icon: Mic, label: "Transcribe" },
@@ -54,6 +55,7 @@ export default function Layout() {
 
       {/* Main content */}
       <main className="flex-1 overflow-y-auto">
+        <SetupBanner />
         <Outlet />
       </main>
     </div>

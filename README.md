@@ -30,51 +30,44 @@ URL or local file → Download/convert audio → Transcribe → Formatted Markdo
 
 ### Install
 
+**macOS / Linux** (one command — installs Python, ffmpeg, and scribe):
 ```bash
-# From PyPI (recommended)
-pip install anyscribecli
-
-# Or use the install script (macOS/Linux — checks and installs dependencies too)
 curl -fsSL https://raw.githubusercontent.com/rishmadaan/anyscribecli/main/install.sh | bash
-
-# Or clone for development
-git clone https://github.com/rishmadaan/anyscribecli.git
-cd anyscribecli && pip install -e .
 ```
 
-### Set up
+**Windows** (PowerShell — installs Python, ffmpeg, and scribe):
+```powershell
+irm https://raw.githubusercontent.com/rishmadaan/anyscribecli/main/install.ps1 | iex
+```
 
-**macOS / Linux:**
+**Or install manually:**
 ```bash
-scribe onboard
+pip install anyscribecli
 ```
 
-**Windows:**
+### Get started
+
 ```bash
-python -m anyscribecli onboard
+scribe ui    # opens web dashboard — guides you through setup
 ```
 
-> **Windows note:** pip installs `scribe` to a Scripts directory that's often not on PATH. `python -m anyscribecli` always works — and on first run it prints the exact PowerShell command to add it to your PATH permanently. `ascli` is also available as a backward-compatible alias.
+The web UI detects missing dependencies and walks you through setting up a transcription provider API key.
 
-Interactive wizard with arrow-key selectors:
-1. Checks system dependencies (yt-dlp, ffmpeg) — installs missing ones
-2. Choose provider from 5 options (arrow keys)
-3. Enter API key
-4. Configure Instagram credentials (optional)
-5. Choose language, media storage, post-transcription download behavior
-6. Creates your Obsidian workspace
+> **Windows:** If `scribe` isn't recognized, use `python -m anyscribecli ui`
+>
+> **Alternative:** `scribe onboard` runs a CLI setup wizard for terminal-based configuration.
 
 ### Transcribe
 
 ```bash
 # From a URL
-scribe transcribe "https://www.youtube.com/watch?v=VIDEO_ID"
+scribe "https://www.youtube.com/watch?v=VIDEO_ID"
 
 # From a local file
-scribe transcribe /path/to/podcast.mp3
+scribe /path/to/podcast.mp3
 ```
 
-> **Always wrap URLs in quotes** — shells like zsh break URLs with `?` in them. Or just run `scribe transcribe` and paste when prompted. Local file paths don't need quotes.
+> **Always wrap URLs in quotes** — shells like zsh break URLs with `?` and `&`.
 
 ### Download (no transcription)
 
@@ -82,14 +75,6 @@ scribe transcribe /path/to/podcast.mp3
 scribe download "https://www.youtube.com/watch?v=VIDEO_ID"            # video
 scribe download "https://www.youtube.com/watch?v=VIDEO_ID" --audio-only  # audio
 ```
-
-### Web UI
-
-```bash
-scribe ui    # opens dashboard at http://127.0.0.1:8457
-```
-
-Transcribe, browse history, and manage settings from your browser.
 
 ## Commands
 

@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
 # ──────────────────────────────────────────────────────────────
-# ascli installer
+# scribe installer
 #
 # Usage:
 #   curl -fsSL https://raw.githubusercontent.com/rishmadaan/anyscribecli/main/install.sh | bash
 #
 # Or with options:
-#   curl -fsSL ... | bash -s -- --method git --onboard
+#   curl -fsSL ... | bash -s -- --method git --ui
 #
 # What it does:
 #   1. Checks your OS (macOS or Linux)
 #   2. Checks for Python 3.10+, installs if missing
 #   3. Checks for yt-dlp and ffmpeg, installs if missing
-#   4. Installs anyscribecli via pip (from PyPI or GitHub)
-#   5. Tells you to run `ascli onboard`
+#   4. Installs anyscribecli via pip (with pipx fallback)
+#   5. Tells you to run `scribe ui`
 # ──────────────────────────────────────────────────────────────
 
 set -euo pipefail
@@ -22,8 +22,10 @@ set -euo pipefail
 INSTALL_METHOD="pip"       # pip (from PyPI) or git (from GitHub)
 REPO_URL="https://github.com/rishmadaan/anyscribecli.git"
 RUN_ONBOARD=false
+RUN_UI=false
 VERBOSE=false
 DRY_RUN=false
+USED_PIPX=false
 
 # ── Colors ────────────────────────────────────────────────────
 RED='\033[0;31m'
@@ -48,10 +50,11 @@ while [[ $# -gt 0 ]]; do
         --method)       INSTALL_METHOD="$2"; shift 2 ;;
         --repo)         REPO_URL="$2"; shift 2 ;;
         --onboard)      RUN_ONBOARD=true; shift ;;
+        --ui)           RUN_UI=true; shift ;;
         --verbose)      VERBOSE=true; shift ;;
         --dry-run)      DRY_RUN=true; shift ;;
         --help|-h)
-            echo "ascli installer"
+            echo "scribe installer"
             echo ""
             echo "Usage: curl -fsSL <url>/install.sh | bash -s -- [OPTIONS]"
             echo ""
@@ -60,7 +63,8 @@ while [[ $# -gt 0 ]]; do
             echo "                       pip: install from PyPI (default)"
             echo "                       git: install from GitHub repository"
             echo "  --repo <url>         GitHub repo URL (for git method)"
-            echo "  --onboard            Run the onboarding wizard after install"
+            echo "  --onboard            Run the CLI onboarding wizard after install"
+            echo "  --ui                 Launch the web UI after install"
             echo "  --verbose            Show detailed output"
             echo "  --dry-run            Show what would be done without doing it"
             echo "  --help               Show this help"
@@ -77,19 +81,30 @@ detect_os() {
     case "$os" in
         Darwin) echo "macos" ;;
         Linux)  echo "linux" ;;
-        *)      die "Unsupported operating system: $os. ascli supports macOS and Linux." ;;
+        *)      die "Unsupported operating system: $os. scribe supports macOS and Linux." ;;
     esac
 }
 
+detect_linux_pkg_manager() {
+    if command_exists apt; then echo "apt"
+    elif command_exists dnf; then echo "dnf"
+    elif command_exists pacman; then echo "pacman"
+    else echo "unknown"; fi
+}
+
 OS="$(detect_os)"
+LINUX_PKG=""
+if [[ "$OS" == "linux" ]]; then
+    LINUX_PKG="$(detect_linux_pkg_manager)"
+fi
 
 echo ""
 echo -e "${BOLD}  ┌─────────────────────────────────────┐${NC}"
-echo -e "${BOLD}  │       ascli installer                │${NC}"
+echo -e "${BOLD}  │       scribe installer               │${NC}"
 echo -e "${BOLD}  │  Video → Transcript → Markdown       │${NC}"
 echo -e "${BOLD}  └─────────────────────────────────────┘${NC}"
 echo ""
-info "Detected OS: $OS"
+info "Detected OS: $OS${LINUX_PKG:+ ($LINUX_PKG)}"
 
 # ── Check / install Homebrew (macOS) ──────────────────────────
 install_brew_if_needed() {
@@ -129,15 +144,35 @@ install_package() {
             return
         fi
     elif [[ "$OS" == "linux" ]]; then
-        if command_exists apt; then
-            info "Installing $name via apt..."
-            if [[ "$DRY_RUN" == true ]]; then
-                echo "    [dry-run] sudo apt install -y $apt_pkg"
-            else
-                sudo apt update -qq && sudo apt install -y "$apt_pkg"
-            fi
-            return
-        fi
+        case "$LINUX_PKG" in
+            apt)
+                info "Installing $name via apt..."
+                if [[ "$DRY_RUN" == true ]]; then
+                    echo "    [dry-run] sudo apt install -y $apt_pkg"
+                else
+                    sudo apt update -qq && sudo apt install -y "$apt_pkg"
+                fi
+                return
+                ;;
+            dnf)
+                info "Installing $name via dnf..."
+                if [[ "$DRY_RUN" == true ]]; then
+                    echo "    [dry-run] sudo dnf install -y $apt_pkg"
+                else
+                    sudo dnf install -y "$apt_pkg"
+                fi
+                return
+                ;;
+            pacman)
+                info "Installing $name via pacman..."
+                if [[ "$DRY_RUN" == true ]]; then
+                    echo "    [dry-run] sudo pacman -S --noconfirm $apt_pkg"
+                else
+                    sudo pacman -S --noconfirm "$apt_pkg"
+                fi
+                return
+                ;;
+        esac
     fi
 
     # Fallback to pip if available
@@ -223,33 +258,52 @@ check_ffmpeg() {
     fi
 }
 
-# ── Install ascli ─────────────────────────────────────────────
-install_ascli() {
-    info "Installing ascli..."
+# ── Install scribe ───────────────────────────────────────────
+install_scribe() {
+    info "Installing scribe..."
 
-    if [[ "$INSTALL_METHOD" == "pip" ]]; then
-        # PyPI install
-        if [[ "$DRY_RUN" == true ]]; then
-            echo "    [dry-run] pip3 install anyscribecli"
-        else
-            pip3 install anyscribecli
-        fi
-    elif [[ "$INSTALL_METHOD" == "git" ]]; then
-        if [[ "$DRY_RUN" == true ]]; then
-            echo "    [dry-run] pip3 install git+${REPO_URL}"
-        else
-            pip3 install "git+${REPO_URL}"
-        fi
-    else
+    local pip_cmd="anyscribecli"
+    if [[ "$INSTALL_METHOD" == "git" ]]; then
+        pip_cmd="git+${REPO_URL}"
+    elif [[ "$INSTALL_METHOD" != "pip" ]]; then
         die "Unknown install method: $INSTALL_METHOD (use 'pip' or 'git')"
     fi
 
-    # Verify
-    if command_exists ascli; then
-        ok "ascli $(ascli --version 2>/dev/null | awk '{print $2}' || echo 'installed')"
+    if [[ "$DRY_RUN" == true ]]; then
+        echo "    [dry-run] pip3 install $pip_cmd"
     else
-        # pip may install to a path not in PATH
-        warn "ascli installed but not found in PATH."
+        # Try pip first; fall back to pipx if externally-managed-environment
+        local pip_output
+        if pip_output=$(pip3 install "$pip_cmd" 2>&1); then
+            : # Success
+        elif echo "$pip_output" | grep -qi "externally-managed"; then
+            warn "System Python is externally managed. Using pipx instead..."
+            if ! command_exists pipx; then
+                info "Installing pipx..."
+                case "$LINUX_PKG" in
+                    apt)    sudo apt install -y pipx ;;
+                    dnf)    sudo dnf install -y pipx ;;
+                    pacman) sudo pacman -S --noconfirm python-pipx ;;
+                    *)      pip3 install --user pipx ;;
+                esac
+            fi
+            pipx install "$pip_cmd"
+            pipx ensurepath 2>/dev/null || true
+            USED_PIPX=true
+        else
+            # Some other pip error
+            echo "$pip_output" >&2
+            die "pip install failed. See error above."
+        fi
+    fi
+
+    # Verify
+    if command_exists scribe; then
+        ok "scribe $(scribe --version 2>/dev/null | awk '{print $2}' || echo 'installed')"
+    elif [[ "$USED_PIPX" == true ]]; then
+        warn "scribe installed via pipx. Restart your terminal or run: pipx ensurepath"
+    else
+        warn "scribe installed but not found in PATH."
         echo "    Try adding this to your shell profile:"
         echo ""
         if [[ "$OS" == "macos" ]]; then
@@ -258,24 +312,36 @@ install_ascli() {
             echo "      export PATH=\"\$HOME/.local/bin:\$PATH\""
         fi
         echo ""
-        echo "    Then restart your terminal and run: ascli --version"
+        echo "    Then restart your terminal and run: scribe --version"
     fi
 }
 
-# ── Run onboarding (opt-in) ───────────────────────────────────
-run_onboard() {
-    if [[ "$RUN_ONBOARD" == true ]]; then
+# ── Run post-install action (opt-in) ─────────────────────────
+run_post_install() {
+    local cmd=""
+    if command_exists scribe; then
+        cmd="scribe"
+    else
+        cmd="python3 -m anyscribecli"
+    fi
+
+    if [[ "$RUN_UI" == true ]]; then
+        echo ""
+        info "Launching web UI..."
+        echo ""
+        if [[ "$DRY_RUN" == true ]]; then
+            echo "    [dry-run] $cmd ui"
+        else
+            $cmd ui
+        fi
+    elif [[ "$RUN_ONBOARD" == true ]]; then
         echo ""
         info "Starting onboarding wizard..."
         echo ""
         if [[ "$DRY_RUN" == true ]]; then
-            echo "    [dry-run] ascli onboard --skip-deps"
+            echo "    [dry-run] $cmd onboard --skip-deps"
         else
-            if command_exists ascli; then
-                ascli onboard --skip-deps
-            else
-                python3 -m anyscribecli.cli.main onboard --skip-deps
-            fi
+            $cmd onboard --skip-deps
         fi
     fi
 }
@@ -292,28 +358,33 @@ main() {
     check_ffmpeg
 
     echo ""
-    install_ascli
+    install_scribe
 
-    run_onboard
+    run_post_install
 
     echo ""
-    if [[ "$RUN_ONBOARD" == true ]]; then
+    if [[ "$RUN_ONBOARD" == true ]] || [[ "$RUN_UI" == true ]]; then
         echo -e "${GREEN}${BOLD}  ┌─────────────────────────────────────┐${NC}"
-        echo -e "${GREEN}${BOLD}  │  ascli is ready!                    │${NC}"
+        echo -e "${GREEN}${BOLD}  │  scribe is ready!                   │${NC}"
         echo -e "${GREEN}${BOLD}  │                                     │${NC}"
-        echo -e "${GREEN}${BOLD}  │  ascli transcribe <url>             │${NC}"
-        echo -e "${GREEN}${BOLD}  │  ascli doctor                       │${NC}"
+        echo -e "${GREEN}${BOLD}  │  scribe ui          web dashboard   │${NC}"
+        echo -e "${GREEN}${BOLD}  │  scribe \"<url>\"     transcribe now  │${NC}"
         echo -e "${GREEN}${BOLD}  └─────────────────────────────────────┘${NC}"
     else
         echo -e "${GREEN}${BOLD}  ┌─────────────────────────────────────┐${NC}"
-        echo -e "${GREEN}${BOLD}  │  ascli is installed!                │${NC}"
+        echo -e "${GREEN}${BOLD}  │  scribe is installed!               │${NC}"
         echo -e "${GREEN}${BOLD}  │                                     │${NC}"
         echo -e "${GREEN}${BOLD}  │  Next step:                         │${NC}"
-        echo -e "${GREEN}${BOLD}  │    ascli onboard                    │${NC}"
+        echo -e "${GREEN}${BOLD}  │    scribe ui                        │${NC}"
         echo -e "${GREEN}${BOLD}  │                                     │${NC}"
-        echo -e "${GREEN}${BOLD}  │  Then:                              │${NC}"
-        echo -e "${GREEN}${BOLD}  │    ascli transcribe <url>           │${NC}"
+        echo -e "${GREEN}${BOLD}  │  Opens a dashboard in your browser  │${NC}"
+        echo -e "${GREEN}${BOLD}  │  to set up and start transcribing.  │${NC}"
         echo -e "${GREEN}${BOLD}  └─────────────────────────────────────┘${NC}"
+        if [[ "$USED_PIPX" == true ]]; then
+            echo ""
+            warn "Installed via pipx — if 'scribe' is not found, restart your terminal"
+            echo "    or run: pipx ensurepath"
+        fi
     fi
     echo ""
 }
