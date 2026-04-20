@@ -55,8 +55,10 @@ export default function URLInput({ onSubmit, disabled }: URLInputProps) {
     setUploading(true);
     try {
       const { path } = await uploadFile(file);
-      // Submit directly with the server-side path
-      onSubmit(path);
+      // Populate the input with the server-side path. The user drives
+      // submission — they may want to tweak options before transcribing.
+      setUrl(path);
+      inputRef.current?.focus();
     } catch (err) {
       setUrl(`Error: ${err instanceof Error ? err.message : "Upload failed"}`);
     } finally {
