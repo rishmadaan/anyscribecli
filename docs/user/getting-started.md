@@ -80,7 +80,7 @@ scribe --version
 python -m anyscribecli --version
 ```
 
-You should see `scribe v0.7.4.1` (or a newer version).
+You should see `scribe v0.8.3` (or a newer version).
 
 > **Why `python -m` on Windows?** pip installs `scribe.exe` to a Scripts directory that's usually not on PATH. `python -m anyscribecli` always works because it uses the same Python you installed with. On first run, it will print the exact PowerShell command to add `scribe` to your PATH permanently — after that, you can use `scribe` directly.
 
@@ -113,7 +113,7 @@ The wizard uses arrow-key selectors — navigate with **↑↓** and press **Ent
 2. **Choose your provider** — 5 options: OpenAI (default), OpenRouter, ElevenLabs, Sarvam AI, Local.
 3. **Enter your API key** — stored locally at `~/.anyscribecli/.env`. Never sent anywhere except your provider.
 4. **Add more provider keys** (optional) — configure multiple providers now or later.
-5. **Configure Instagram** (optional) — username and password for downloading Instagram reels. A secondary account is recommended.
+5. **Configure Instagram** (optional) — choose which browser to read Instagram cookies from. Needed only for rate-limited or private reels.
 6. **Choose language** — auto-detect (default) or pick a specific language.
 7. **Keep audio files** — whether to save the transcription audio to `~/.anyscribecli/downloads/audio/`.
 8. **Local file handling** — what to do with original files when transcribing local audio/video (skip/copy/move/ask).
@@ -231,6 +231,26 @@ This opens a local web dashboard in your browser where you can paste URLs, watch
 - **MCP server** — `pip install anyscribecli[mcp]` for Claude Desktop, Cursor, and other AI harnesses
 - **View all commands** — `scribe --help`
 
+## Instagram (optional)
+
+Public reels usually work out of the box. If you hit rate-limiting, or want
+to transcribe reels from accounts you follow, scribe can read your existing
+browser session — no password needed:
+
+```bash
+scribe config set instagram.browser firefox
+```
+
+Supported browsers: `firefox`, `chrome`, `safari`, `brave`, `edge`, `chromium`,
+`vivaldi`, `opera`.
+
+> **Tip:** Firefox tends to work most reliably on macOS. Chrome's cookie
+> encryption can make extraction flakier.
+
+> **Note for upgraders:** If you onboarded with scribe < 0.8.3, you may have
+> an `INSTAGRAM_PASSWORD` in your `~/.anyscribecli/.env`. It's no longer used
+> and can be removed.
+
 ## Troubleshooting
 
 **"command not found: scribe"** or **"scribe is not recognized"**
@@ -266,7 +286,11 @@ Or run `scribe transcribe` without a URL and paste it at the prompt.
 scribe automatically updates yt-dlp if it's more than 60 days old (YouTube frequently changes formats, breaking older versions). If you still see this error, the video may be age-restricted, private, or geo-blocked. Try a different video, or manually update: `pip install --upgrade yt-dlp`.
 
 **Instagram "login_required" errors**
-Instagram rate-limits third-party access. Try again in a few minutes. Use a secondary account. Check credentials: `scribe config show`.
+Instagram rate-limits anonymous access. Tell scribe which browser to borrow cookies from:
+```bash
+scribe config set instagram.browser firefox
+```
+Supported browsers: `firefox`, `chrome`, `safari`, `brave`, `edge`, `chromium`, `vivaldi`, `opera`. Make sure you're already logged in to Instagram in that browser. Firefox tends to work most reliably on macOS.
 
 **Transcription in wrong language**
 Force a specific language: `scribe transcribe "url" --language en` (or `es`, `fr`, `hi`, etc.)
