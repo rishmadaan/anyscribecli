@@ -44,8 +44,7 @@ def _run_headless(
     keep_media: Optional[bool],
     output_format: Optional[str],
     local_model: Optional[str],
-    instagram_username: Optional[str],
-    instagram_password: Optional[str],
+    instagram_browser: Optional[str],
     force: bool,
     output_json: bool,
 ) -> None:
@@ -100,8 +99,7 @@ def _run_headless(
             keep_media=keep_media,
             output_format=output_format,
             local_model=local_model,
-            instagram_username=instagram_username,
-            instagram_password=instagram_password,
+            instagram_browser=instagram_browser,
         )
     except OnboardValidationError as e:
         if output_json:
@@ -333,13 +331,15 @@ def onboard(
         help="Whisper model size (required when --provider=local). "
         "Choices: tiny, base, small, medium, large-v3.",
     ),
-    instagram_username: Optional[str] = typer.Option(
-        None, "--instagram-username", help="Instagram username (optional)."
-    ),
-    instagram_password: Optional[str] = typer.Option(
+    instagram_browser: Optional[str] = typer.Option(
         None,
-        "--instagram-password",
-        help="Instagram password — stored in ~/.anyscribecli/.env.",
+        "--instagram-browser",
+        help=(
+            "Browser to read Instagram cookies from "
+            "(firefox/chrome/safari/brave/edge/chromium/vivaldi/opera). "
+            "Optional — only needed for private reels or when anonymous "
+            "fetches are throttled."
+        ),
     ),
     output_json: bool = typer.Option(
         False, "--json", "-j", help="Emit result as a single JSON object on stdout."
@@ -360,8 +360,7 @@ def onboard(
             keep_media=keep_media,
             output_format=output_format,
             local_model=local_model,
-            instagram_username=instagram_username,
-            instagram_password=instagram_password,
+            instagram_browser=instagram_browser,
             force=force,
             output_json=output_json,
         )
@@ -376,8 +375,7 @@ def onboard(
         "--language": language,
         "--output-format": output_format,
         "--local-model": local_model,
-        "--instagram-username": instagram_username,
-        "--instagram-password": instagram_password,
+        "--instagram-browser": instagram_browser,
     }
     set_without_yes = [f for f, v in headless_only_flags.items() if v is not None]
     if set_without_yes or keep_media is not None:
@@ -530,35 +528,56 @@ def onboard(
             if key:
                 env_keys[info["env_var"]] = key
 
-    # Step 6: Instagram credentials
-    existing_ig_user = settings.instagram.username
-    existing_ig_pass = os.environ.get("INSTAGRAM_PASSWORD", "")
-    change_ig = True
+    # Step 6: Instagram cookies (browser selection)
+    BROWSER_CHOICES = [
+        "none (anonymous — works for many public reels)",
+        "firefox",
+        "chrome",
+        "safari",
+        "brave",
+        "edge",
+        "chromium",
+        "vivaldi",
+        "opera",
+    ]
+    BROWSER_VALUES = ["", "firefox", "chrome", "safari", "brave", "edge", "chromium", "vivaldi", "opera"]
 
-    if reconfiguring and (existing_ig_user or existing_ig_pass):
-        ig_display = existing_ig_user or "[dim]no username[/dim]"
-        pw_display = _mask_key(existing_ig_pass)
-        console.print(f"\n  [bold]Instagram:[/bold] {ig_display} / password: {pw_display}")
-        change_ig = bconfirm("  Change Instagram credentials?")
+    existing_browser = settings.instagram.browser
+    change_ig = True
+    if reconfiguring and existing_browser:
+        console.print(f"\n  [bold]Instagram cookies:[/bold] {existing_browser}")
+        change_ig = bconfirm("  Change Instagram cookie source?")
     else:
         console.print(
             Panel(
-                "Instagram downloads require a username and password.\n"
-                "A dummy/secondary account is recommended — Instagram may\n"
-                "temporarily restrict third-party access.\n\n"
-                "[dim]Skip this if you only plan to use YouTube.[/dim]",
+                "Instagram downloads use yt-dlp.\n"
+                "Public reels often work without auth. For private reels or when\n"
+                "anonymous fetches are throttled, scribe can read cookies from\n"
+                "your browser — no password is ever stored.\n\n"
+                "[dim]Pick 'none' to skip; you can always set this later with\n"
+                "[/dim][cyan]scribe config set instagram.browser firefox[/cyan]",
                 title="Instagram (Optional)",
                 border_style="blue",
             )
         )
-        change_ig = bconfirm("  Set up Instagram?")
+        change_ig = bconfirm("  Configure Instagram cookies now?")
 
     if change_ig:
-        console.print("  Enter your Instagram credentials:")
-        settings.instagram.username = typer.prompt("  Username", default=existing_ig_user or "")
-        ig_password = typer.prompt("  Password", hide_input=True)
-        if ig_password:
-            env_keys["INSTAGRAM_PASSWORD"] = ig_password
+        default_idx = BROWSER_VALUES.index(existing_browser) if existing_browser in BROWSER_VALUES else 0
+        choice = bselect(
+            BROWSER_CHOICES,
+            cursor_index=default_idx,
+            cursor="❯ ",
+            cursor_style="cyan",
+        )
+        if choice is None:
+            settings.instagram.browser = ""
+        else:
+            settings.instagram.browser = BROWSER_VALUES[BROWSER_CHOICES.index(choice)]
+        if settings.instagram.browser:
+            console.print(f"\n  [green]Selected:[/green] cookies from {settings.instagram.browser}\n")
+        else:
+            console.print("\n  [green]Selected:[/green] no cookies (anonymous)\n")
 
     # Step 7: Language (arrow-key selector)
     change_lang = True
@@ -755,11 +774,19 @@ def onboard(
             "\n  [green]✓[/green] Claude Code skill installed to ~/.claude/skills/scribe/"
         )
 
+    if os.environ.get("INSTAGRAM_PASSWORD"):
+        console.print(
+            "\n  [yellow]Note:[/yellow] An [bold]INSTAGRAM_PASSWORD[/bold] entry was found in your .env file.\n"
+            "  scribe 0.8.3+ no longer uses it — Instagram downloads now go through yt-dlp\n"
+            "  with browser cookies. You can safely remove that line from\n"
+            f"  [dim]{ENV_FILE}[/dim] when convenient."
+        )
+
     # Summary
     configured_keys = ", ".join(env_keys.keys()) if env_keys else "none"
     ig_status = (
-        f"configured ({settings.instagram.username})"
-        if settings.instagram.username
+        f"cookies from {settings.instagram.browser}"
+        if settings.instagram.browser
         else "not configured"
     )
 
