@@ -130,8 +130,21 @@ scribe https://www.youtube.com/watch?v=abc123
 | Source | URL patterns | Notes |
 |---|---|---|
 | YouTube | `youtube.com/watch?v=`, `youtu.be/`, `youtube.com/shorts/`, `youtube.com/live/` | No auth needed |
-| Instagram | `instagram.com/reel/`, `instagram.com/p/` | Requires Instagram credentials in config |
+| Instagram | `instagram.com/reel/`, `instagram.com/p/` | Public reels usually work with no setup. For private/rate-limited reels, configure browser cookies (see below) |
 | Local files | `.mp3`, `.mp4`, `.m4a`, `.wav`, `.opus`, `.ogg`, `.flac`, `.webm`, `.aac`, `.wma` | No download step |
+
+## Instagram Setup
+
+For Instagram reels — public reels usually work with no setup.
+For private reels or rate-limited cases, configure cookies from a browser:
+
+```bash
+scribe config set instagram.browser firefox
+```
+
+Supported values: `firefox`, `chrome`, `safari`, `brave`, `edge`, `chromium`, `vivaldi`, `opera`.
+
+If the user asks which browser to specify, ask which browser they use when logged into Instagram.
 
 ## Provider Selection Guidance
 
