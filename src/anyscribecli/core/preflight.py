@@ -22,8 +22,16 @@ _PROVIDER_ENV_VARS: dict[str, str] = {
 }
 
 SUPPORTED_AUDIO_EXTS = {
-    ".mp3", ".mp4", ".m4a", ".wav", ".opus",
-    ".ogg", ".flac", ".webm", ".aac", ".wma",
+    ".mp3",
+    ".mp4",
+    ".m4a",
+    ".wav",
+    ".opus",
+    ".ogg",
+    ".flac",
+    ".webm",
+    ".aac",
+    ".wma",
 }
 
 

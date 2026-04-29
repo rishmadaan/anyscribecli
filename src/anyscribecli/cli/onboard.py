@@ -554,7 +554,9 @@ def onboard(
         change_ig = bconfirm("  Configure Instagram cookies now?")
 
     if change_ig:
-        default_idx = BROWSER_VALUES.index(existing_browser) if existing_browser in BROWSER_VALUES else 0
+        default_idx = (
+            BROWSER_VALUES.index(existing_browser) if existing_browser in BROWSER_VALUES else 0
+        )
         choice = bselect(
             BROWSER_CHOICES,
             cursor_index=default_idx,
@@ -566,7 +568,9 @@ def onboard(
         else:
             settings.instagram.browser = BROWSER_VALUES[BROWSER_CHOICES.index(choice)]
         if settings.instagram.browser:
-            console.print(f"\n  [green]Selected:[/green] cookies from {settings.instagram.browser}\n")
+            console.print(
+                f"\n  [green]Selected:[/green] cookies from {settings.instagram.browser}\n"
+            )
         else:
             console.print("\n  [green]Selected:[/green] no cookies (anonymous)\n")
 

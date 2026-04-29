@@ -27,6 +27,7 @@ async def upload_file(file: UploadFile) -> dict:
     suffix = ""
     if file.filename:
         from pathlib import Path as P
+
         suffix = P(file.filename).suffix
     dest = upload_dir / f"{uuid.uuid4().hex[:8]}{suffix}"
 

@@ -80,7 +80,9 @@ class ChunkCheckpoint:
         # Strip non-serializable segment objects — store as dicts
         segments = data.get("segments", [])
         if segments and hasattr(segments[0], "__dict__"):
-            data["segments"] = [asdict(s) if hasattr(s, "__dataclass_fields__") else s for s in segments]
+            data["segments"] = [
+                asdict(s) if hasattr(s, "__dataclass_fields__") else s for s in segments
+            ]
         self.completed[str(chunk_index)] = data
 
     def save(self) -> None:

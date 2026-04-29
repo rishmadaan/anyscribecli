@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "anyscribecli"
-version = "0.8.2"
+version = "0.8.3"
 description = "CLI tool to download, transcribe, and convert video/audio to structured markdown"
 readme = "README.md"
 license = "MIT"
@@ -38,7 +38,6 @@ dependencies = [
     "yt-dlp>=2024.0",
     "rich>=13.0",
     "beaupy>=3.0",
-    "instaloader>=4.10",
     "fastapi>=0.110",
     "uvicorn[standard]>=0.27",
     "websockets>=12.0",

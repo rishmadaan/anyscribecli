@@ -93,7 +93,11 @@ class ElevenLabsProvider(TranscriptionProvider):
             try:
                 resp = self._transcribe_single(chunk_path, language, api_key)
                 result = self._parse_response(resp)
-                text = deduplicate_overlap(all_text_parts[-1], result.text) if all_text_parts else result.text
+                text = (
+                    deduplicate_overlap(all_text_parts[-1], result.text)
+                    if all_text_parts
+                    else result.text
+                )
                 all_text_parts.append(text)
                 if not detected_language:
                     detected_language = result.language
@@ -106,12 +110,15 @@ class ElevenLabsProvider(TranscriptionProvider):
                 if result.duration:
                     total_duration = max(total_duration, offset + result.duration)
 
-                ckpt.mark_completed(i, {
-                    "text": result.text,
-                    "language": result.language,
-                    "duration": result.duration,
-                    "segments": result.segments,
-                })
+                ckpt.mark_completed(
+                    i,
+                    {
+                        "text": result.text,
+                        "language": result.language,
+                        "duration": result.duration,
+                        "segments": result.segments,
+                    },
+                )
                 ckpt.save()
             finally:
                 chunk_path.unlink(missing_ok=True)

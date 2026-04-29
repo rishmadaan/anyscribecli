@@ -77,9 +77,7 @@ _KEY_URLS: dict[str, str] = {
 }
 
 
-def classify_api_error(
-    status_code: int, body: str, provider: str
-) -> ScribeAPIError:
+def classify_api_error(status_code: int, body: str, provider: str) -> ScribeAPIError:
     """Map an HTTP status + response body to the correct ScribeAPIError subclass."""
     kwargs = {"status_code": status_code, "provider": provider}
     short_body = body[:200] if body else ""

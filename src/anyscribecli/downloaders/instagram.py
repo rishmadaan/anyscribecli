@@ -117,7 +117,9 @@ class InstagramDownloader(AbstractDownloader):
         audio_path = output_dir / f"{shortcode}.mp3"
         if not audio_path.exists():
             # Fall back to glob in case yt-dlp picked a different shortcode form.
-            mp3_files = sorted(output_dir.glob("*.mp3"), key=lambda p: p.stat().st_mtime, reverse=True)
+            mp3_files = sorted(
+                output_dir.glob("*.mp3"), key=lambda p: p.stat().st_mtime, reverse=True
+            )
             if not mp3_files:
                 raise RuntimeError("yt-dlp completed but no mp3 file was produced.")
             audio_path = mp3_files[0]
