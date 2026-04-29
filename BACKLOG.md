@@ -47,7 +47,8 @@ The `0.x` prefix means pre-stable — breaking changes are allowed between minor
 | 0.7.4.7.2 | Rename "Diarize" → "Multi-speaker" and "diarized" output → "with-speaker-labels" in the web UI (wire values unchanged) | Released 2026-04-18 |
 | 0.8.0 | Local transcription: unified opt-in setup + model management. Committed locally; superseded by 0.8.1 before publish. | Rolled into 0.8.1 |
 | 0.8.1 | Three-surface onboarding parity: Web UI wizard (first-run modal), TUI `scribe onboard` (unchanged), headless `scribe onboard --yes` for agents — all converging on shared `core/onboard_headless.py`. Plus `scribe model reinstall`, FIFO download queue, live install-log streaming, focus-trapped modals, always-visible Diagnose. New architecture-doc section making the shared-backend + asymmetric-surface rule explicit. All v0.8.0 scope included. | Released 2026-04-18 |
-| 0.8.2 | Fix Web UI "Browse local file" auto-submitting on upload. Post-upload now populates the URL input so the user can adjust options before pressing Transcribe. | **Current** |
+| 0.8.2 | Fix Web UI "Browse local file" auto-submitting on upload. Post-upload now populates the URL input so the user can adjust options before pressing Transcribe. | Released 2026-04-29 |
+| 0.8.3 | Instagram migrates to yt-dlp; instaloader removed | **Current** |
 | 0.9.0 | Cache/dedup, test suite, error handling | Next |
 | 0.9.x | Byte-level download progress in Web UI — stream faster-whisper/HF progress via WebSocket to replace the spinner in `LocalSetupModal` and the Models table | Queued |
 | 0.10.0 | Menu-bar tray companion + auto-start ([plan](docs/building/journal/2026-04-18-menu-bar-tray-companion-plan.md)) | Planned |
@@ -330,6 +331,19 @@ All features originally planned for v0.2.0–v0.5.0, built in one session:
 - [x] Renamed "General" section to "Configure Defaults" for clarity
 - [x] Removed confusing standalone Diarization toggle — now auto-couples with output format (matches CLI behavior)
 - [x] Backend: transcribe route auto-promotes `output_format` to `diarized` when `diarize=true`, matching CLI semantics
+
+---
+
+## v0.8.3 — Instagram migrates to yt-dlp; instaloader removed ✅
+
+**Released:** 2026-04-29
+
+- [x] **Replace instaloader with yt-dlp** — Instagram downloads now use `yt-dlp` subprocess (same approach as YouTube); no separate library needed
+- [x] **Drop `INSTAGRAM_PASSWORD` requirement** — auth now via `--cookies-from-browser` instead of username/password credentials
+- [x] **Config schema migration** — `instagram.username` + `INSTAGRAM_PASSWORD` env var replaced by `instagram.browser` (legacy keys silently discarded on first run)
+- [x] **`SUPPORTED_BROWSERS` constant** — validated at backend; both CLI and Web UI inherit the same list
+- [x] **Deprecation notice** — legacy `INSTAGRAM_PASSWORD` env var triggers a warning during `scribe onboard`
+- [x] **Remove `instaloader>=4.10`** from `pyproject.toml` dependencies
 
 ---
 

@@ -66,7 +66,7 @@ scribe onboard
 2. Choose transcription provider (5 options, arrow keys)
 3. Enter API key for your chosen provider
 4. Optionally add API keys for other providers
-5. Optionally configure Instagram credentials
+5. Optionally configure Instagram browser (for cookie-based downloads)
 6. Choose default language (arrow-key selector with common options)
 7. Choose whether to keep audio files after transcription
 8. Choose post-transcription download behavior (never/ask/always)
@@ -103,8 +103,7 @@ scribe onboard \
 | `--language` | no | `auto` | Default language code. |
 | `--keep-media` / `--no-keep-media` | no | `--no-keep-media` | Keep downloaded audio after transcription. |
 | `--output-format` | no | `clean` | `clean`, `timestamped`, or `diarized`. |
-| `--instagram-username` | no | — | Only if you use Instagram downloads. |
-| `--instagram-password` | no | — | Stored in `.env`. |
+| `--instagram-browser` | no | — | Browser to read Instagram cookies from (`firefox`, `chrome`, `safari`, etc.). Only needed for rate-limited or private reels. |
 | `--force` / `-f` | no | off | Re-run over existing config. Required if `config.yaml` already exists. |
 | `--json` / `-j` | no | off | Emit the result as a single JSON object on stdout. |
 
@@ -281,7 +280,7 @@ scribe "url" --diarize --language hi-Latn     # Hindi / Hinglish
 | Source | Patterns | Status |
 |--------|----------|--------|
 | YouTube | `youtube.com/watch?v=`, `youtu.be/`, `youtube.com/shorts/`, `youtube.com/live/` | Working |
-| Instagram | `instagram.com/reel/`, `instagram.com/p/` | Working (requires Instagram credentials in config) |
+| Instagram | `instagram.com/reel/`, `instagram.com/p/` | Working (public reels out of the box; set `instagram.browser` for rate-limited or private reels) |
 | Local files | `.mp3`, `.mp4`, `.m4a`, `.wav`, `.opus`, `.ogg`, `.flac`, `.webm`, `.aac`, `.wma` | Working |
 
 ---
@@ -402,15 +401,14 @@ scribe config set language hi
 scribe config set deepgram_api_key YOUR_KEY
 scribe config set openai_api_key YOUR_KEY
 
-# Set Instagram credentials
-scribe config set instagram.username myuser
-scribe config set instagram.password mypass
+# Set Instagram browser (for cookie-based downloads)
+scribe config set instagram.browser firefox
 
 # Get JSON output
 scribe config show --json
 ```
 
-> **Dot-notation:** Use dots for nested keys like `instagram.username`.
+> **Dot-notation:** Use dots for nested keys like `instagram.browser`.
 >
 > **API keys:** `scribe config set` also accepts API key names (e.g., `deepgram_api_key`, `openai_api_key`, `elevenlabs_api_key`, `sargam_api_key`, `openrouter_api_key`). These are stored in `~/.anyscribecli/.env`, not in config.yaml.
 
@@ -648,7 +646,7 @@ Print the installed version.
 
 ```bash
 scribe --version
-# Output: scribe v0.7.4.1
+# Output: scribe v0.8.3
 ```
 
 ---

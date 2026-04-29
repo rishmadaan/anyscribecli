@@ -123,7 +123,9 @@ class OpenRouterProvider(TranscriptionProvider):
                 raw = self._transcribe_single(chunk_path, language, api_key)
                 text = deduplicate_overlap(all_text_parts[-1], raw) if all_text_parts else raw
                 all_text_parts.append(text)
-                ckpt.mark_completed(i, {"text": raw, "language": language, "duration": None, "segments": []})
+                ckpt.mark_completed(
+                    i, {"text": raw, "language": language, "duration": None, "segments": []}
+                )
                 ckpt.save()
             finally:
                 chunk_path.unlink(missing_ok=True)

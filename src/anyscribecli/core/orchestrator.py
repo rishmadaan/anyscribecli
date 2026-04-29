@@ -167,9 +167,7 @@ def process(
                 for f in tmp_dir.glob("*.mp3"):
                     shutil.copy2(f, recovery / f.name)
                 if not quiet:
-                    err_console.print(
-                        f"  [yellow]Audio saved for recovery:[/yellow] {recovery}"
-                    )
+                    err_console.print(f"  [yellow]Audio saved for recovery:[/yellow] {recovery}")
             except Exception:
                 pass  # Don't mask the original error
         raise

@@ -9,7 +9,6 @@
 | Secrets | `~/.anyscribecli/.env` | API keys, passwords — **never display** |
 | Downloads | `~/.anyscribecli/downloads/` | Downloaded audio/video files |
 | Logs | `~/.anyscribecli/logs/` | Processing logs |
-| Sessions | `~/.anyscribecli/sessions/` | Instagram login sessions |
 | Temp | `~/.anyscribecli/tmp/` | Temporary downloads (auto-cleaned) |
 
 ## config.yaml Settings
@@ -24,7 +23,7 @@ prompt_download: never    # never | ask | always
 local_file_media: skip    # skip | copy | move | ask
 workspace_path: ""        # empty = ~/anyscribe (default), or custom path
 instagram:
-  username: ""
+  browser: ""
 ```
 
 ### Setting details
@@ -45,7 +44,24 @@ instagram:
 
 **local_file_media** — When transcribing local files: `skip` (leave original), `copy` (duplicate to downloads dir), `move` (relocate to downloads dir), `ask` (prompt each time).
 
-**instagram.username** — Instagram account for reel downloads. Password stored in `.env`.
+### `instagram.browser`
+
+Browser to read Instagram cookies from. yt-dlp uses this when downloading reels.
+Empty string means anonymous (no cookies). Many public reels work without
+cookies; private reels and rate-limited fetches need this set.
+
+Supported values: `firefox`, `chrome`, `safari`, `brave`, `edge`, `chromium`,
+`vivaldi`, `opera`, or empty.
+
+Example:
+
+```bash
+scribe config set instagram.browser firefox
+```
+
+> **Pre-0.8.3 users:** the older `instagram.username` field and the
+> `INSTAGRAM_PASSWORD` entry in `.env` are no longer used. They're silently
+> ignored on load and can be removed when convenient.
 
 ## .env Variables
 
@@ -55,7 +71,6 @@ DEEPGRAM_API_KEY=...
 ELEVENLABS_API_KEY=xi-...
 OPENROUTER_API_KEY=sk-or-...
 SARGAM_API_KEY=...
-INSTAGRAM_PASSWORD=...
 OPENROUTER_MODEL=openai/gpt-4o-audio-preview   # Optional override
 ASCLI_LOCAL_MODEL=base                           # Optional: tiny|base|small|medium|large-v3
 ```

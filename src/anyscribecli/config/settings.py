@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 from dataclasses import dataclass, field, asdict
 
 import yaml
@@ -13,8 +12,18 @@ from anyscribecli.config.paths import CONFIG_FILE, ENV_FILE
 
 @dataclass
 class InstagramSettings:
-    username: str = ""
-    # password is NOT stored here — it lives in .env as INSTAGRAM_PASSWORD
+    """Instagram downloader configuration.
+
+    ``browser`` is the name of a yt-dlp-supported browser (firefox, chrome,
+    safari, brave, edge, chromium, vivaldi, opera) whose cookies will be
+    used when downloading. Empty string = no cookies (anonymous fetch only,
+    works for many public reels).
+
+    Legacy fields ``username`` and ``password`` from pre-0.8.3 versions are
+    silently discarded by ``Settings.from_dict``.
+    """
+
+    browser: str = ""
 
 
 @dataclass
@@ -37,15 +46,13 @@ class Settings:
     @classmethod
     def from_dict(cls, data: dict) -> Settings:
         """Deserialize from a dict (loaded from YAML)."""
-        ig_data = data.pop("instagram", {})
-        # Drop password from config if it was there from old versions
+        ig_data = data.pop("instagram", {}) or {}
+        # Discard pre-0.8.3 fields. The yt-dlp migration removed username/password
+        # — we read cookies from the user's browser instead.
+        ig_data.pop("username", None)
         ig_data.pop("password", None)
         ig = InstagramSettings(**ig_data) if ig_data else InstagramSettings()
         return cls(instagram=ig, **data)
-
-    def get_instagram_password(self) -> str:
-        """Get Instagram password from environment (stored in .env)."""
-        return os.environ.get("INSTAGRAM_PASSWORD", "")
 
 
 def load_config() -> Settings:

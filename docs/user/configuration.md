@@ -19,7 +19,7 @@ scribe uses two locations: a visible workspace for your transcripts and a hidden
 | API Keys | `~/.anyscribecli/.env` | Secret API keys (never committed to git) |
 | Downloads | `~/.anyscribecli/downloads/` | Downloaded audio/video files |
 | Logs | `~/.anyscribecli/logs/` | Processing logs |
-| Sessions | `~/.anyscribecli/sessions/` | Instagram login sessions (when enabled) |
+| Sessions | `~/.anyscribecli/sessions/` | Cached sessions (legacy; no longer used for Instagram) |
 | Temp | `~/.anyscribecli/tmp/` | Temporary downloads (auto-cleaned) |
 
 > **Upgrading from an older version?** If you have transcripts at `~/.anyscribecli/workspace/`, scribe will automatically move them to `~/anyscribe/` on your next transcription.
@@ -41,11 +41,11 @@ diarize: false             # Enable speaker diarization by default
 prompt_download: never     # Ask to download video after transcription
 local_file_media: skip     # What to do with local files after transcription
 workspace_path: ""         # Empty = ~/anyscribe (default), or set a custom path
-instagram:                 # Instagram credentials
-  username: ""
+instagram:                 # Instagram settings
+  browser: ""             # Browser to read cookies from (e.g. firefox, chrome)
 ```
 
-> **Note:** Instagram password and API keys are stored in `~/.anyscribecli/.env`, not in config.yaml. Secrets never go in config.
+> **Note:** API keys are stored in `~/.anyscribecli/.env`, not in config.yaml. Secrets never go in config.
 
 ### Settings Explained
 
@@ -153,6 +153,30 @@ Change it with `scribe config set local_model small` or from the default-model d
 
 > **Not set until setup.** This field has no effect until you run `scribe local setup --model <size>` (or the equivalent Web UI button). The field is still present in `config.yaml` with the default value of `base`.
 
+### Instagram cookies (`instagram.browser`)
+
+Tells scribe which browser to read Instagram cookies from. Cookies let scribe
+download reels that need a logged-in session — including private reels and
+reels that are getting rate-limited for anonymous users.
+
+**Most common values:** `firefox`, `chrome`, `safari`. Also supported: `brave`,
+`edge`, `chromium`, `vivaldi`, `opera`. Leave empty (the default) to skip
+cookies — many public reels work fine without them.
+
+```bash
+scribe config set instagram.browser firefox
+```
+
+> **What scribe actually does:** When you set this, scribe tells yt-dlp to read
+> cookies from the browser's profile directory. yt-dlp handles the extraction
+> using the browser's built-in decryption — your password is never asked for or
+> stored.
+
+> **Pre-0.8.3 upgrade note:** Older versions of scribe asked for an Instagram
+> username and password and stored the password in `~/.anyscribecli/.env`.
+> Those are no longer used — you can safely remove the `INSTAGRAM_PASSWORD`
+> line from your `.env` file when convenient.
+
 ## .env (API Keys and Secrets)
 
 API keys and passwords are stored separately from config for security:
@@ -161,13 +185,14 @@ API keys and passwords are stored separately from config for security:
 # ~/.anyscribecli/.env
 OPENAI_API_KEY=sk-proj-...
 DEEPGRAM_API_KEY=...
-INSTAGRAM_PASSWORD=your-password
 # ELEVENLABS_API_KEY=xi-...
 # OPENROUTER_API_KEY=sk-or-...
 # SARGAM_API_KEY=...
 ```
 
 > **Important:** This file contains secrets. It's excluded from git by default. Never share it or commit it to a repository.
+
+> **Pre-0.8.3 upgrade note:** Older versions of scribe stored `INSTAGRAM_PASSWORD` in this file. It's no longer used — you can safely remove the `INSTAGRAM_PASSWORD` line when convenient. Instagram downloads now use browser cookies instead (see `instagram.browser` below).
 
 ### Changing your API key
 
@@ -215,7 +240,7 @@ Your transcripts live in the workspace (pure markdown, no binaries). Downloaded 
 ├── downloads/                             # Downloads (separate from vault)
 │   ├── audio/<platform>/                  # Audio files (if keep_media=true)
 │   └── video/<platform>/                  # Video files (scribe download)
-├── sessions/                              # Login sessions
+├── sessions/                              # Cached sessions (legacy; no longer used for Instagram)
 └── logs/                                  # Processing logs
 ```
 

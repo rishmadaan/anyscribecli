@@ -75,6 +75,7 @@ def _validate(
     provider: str,
     api_key: str | None,
     local_model: str | None,
+    instagram_browser: str | None,
 ) -> None:
     """Raise OnboardValidationError if required fields for the chosen provider
     aren't present in either argv or the environment.
@@ -86,6 +87,22 @@ def _validate(
                 "choices": sorted(ALL_PROVIDERS),
             }
         )
+
+    # Validate Instagram browser before any provider-specific branching so
+    # this check runs regardless of provider (including "local").
+    # Empty string is treated as "no cookies (anonymous)" and is always valid.
+    if instagram_browser:
+        from anyscribecli.downloaders.instagram import SUPPORTED_BROWSERS
+
+        normalized = instagram_browser.strip().lower()
+        if normalized and normalized != "none" and normalized not in SUPPORTED_BROWSERS:
+            raise OnboardValidationError(
+                {
+                    "error": f"unsupported instagram browser '{instagram_browser}'",
+                    "choices": list(SUPPORTED_BROWSERS),
+                    "hint": "Pass an empty string or 'none' to skip cookie configuration.",
+                }
+            )
 
     if provider == "local":
         # Local needs a model size. We don't validate the size string itself
@@ -128,8 +145,7 @@ def run_headless_onboard(
     output_format: str | None = None,
     local_model: str | None = None,
     extra_api_keys: dict[str, str] | None = None,
-    instagram_username: str | None = None,
-    instagram_password: str | None = None,
+    instagram_browser: str | None = None,
     install_skill: bool = True,
     on_progress: ProgressFn | None = None,
 ) -> dict[str, Any]:
@@ -146,7 +162,7 @@ def run_headless_onboard(
     local setup was requested and failed, status is ``"partial"`` and the
     ``local_setup`` payload carries the failure detail.
     """
-    _validate(provider, api_key, local_model)
+    _validate(provider, api_key, local_model, instagram_browser)
     _emit(on_progress, {"event": "validated", "provider": provider})
 
     # Load existing env so save_env merges rather than replaces. ensure_app_dirs
@@ -169,8 +185,13 @@ def run_headless_onboard(
         settings.workspace_path = "" if resolved == DEFAULT_WORKSPACE else str(resolved)
     if local_model is not None:
         settings.local_model = local_model
-    if instagram_username is not None:
-        settings.instagram.username = instagram_username
+    if instagram_browser is not None:
+        normalized_browser = instagram_browser.strip().lower()
+        # "none" is the explicit user choice for "no cookies" — store as empty
+        # string so the config has a single canonical representation.
+        if normalized_browser == "none":
+            normalized_browser = ""
+        settings.instagram.browser = normalized_browser
 
     save_config(settings)
     _emit(on_progress, {"event": "config_saved"})
@@ -185,9 +206,6 @@ def run_headless_onboard(
             env_var = PROVIDER_KEY_ENV.get(name)
             if env_var and key:
                 env_keys[env_var] = key
-    if instagram_password:
-        env_keys["INSTAGRAM_PASSWORD"] = instagram_password
-
     if env_keys:
         save_env(env_keys)
         # Also update the current process env so downstream calls (e.g., local
