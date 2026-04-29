@@ -240,7 +240,7 @@ Your transcripts live in the workspace (pure markdown, no binaries). Downloaded 
 ├── downloads/                             # Downloads (separate from vault)
 │   ├── audio/<platform>/                  # Audio files (if keep_media=true)
 │   └── video/<platform>/                  # Video files (scribe download)
-├── sessions/                              # Login sessions
+├── sessions/                              # Cached sessions (legacy; no longer used for Instagram)
 └── logs/                                  # Processing logs
 ```
 
