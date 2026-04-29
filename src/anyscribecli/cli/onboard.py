@@ -24,6 +24,7 @@ from anyscribecli.config.paths import (
 from anyscribecli.config.settings import Settings, save_config, save_env, load_config, load_env
 from anyscribecli.core.deps import check_and_install
 from anyscribecli.core.local_setup import run_setup as run_local_setup
+from anyscribecli.downloaders.instagram import SUPPORTED_BROWSERS
 from anyscribecli.providers.local_models import (
     MODEL_SIZES,
     MODEL_SPECS,
@@ -529,18 +530,8 @@ def onboard(
                 env_keys[info["env_var"]] = key
 
     # Step 6: Instagram cookies (browser selection)
-    BROWSER_CHOICES = [
-        "none (anonymous — works for many public reels)",
-        "firefox",
-        "chrome",
-        "safari",
-        "brave",
-        "edge",
-        "chromium",
-        "vivaldi",
-        "opera",
-    ]
-    BROWSER_VALUES = ["", "firefox", "chrome", "safari", "brave", "edge", "chromium", "vivaldi", "opera"]
+    BROWSER_VALUES = ("",) + SUPPORTED_BROWSERS
+    BROWSER_CHOICES = ["none (anonymous — works for many public reels)"] + list(SUPPORTED_BROWSERS)
 
     existing_browser = settings.instagram.browser
     change_ig = True

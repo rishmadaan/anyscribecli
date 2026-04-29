@@ -89,6 +89,52 @@ def test_local_provider_runs_local_setup_and_returns_partial_on_failure(tmp_path
     assert result["local_setup"] == failure
 
 
+def test_instagram_browser_validation_rejects_unsupported(tmp_path, monkeypatch):
+    """An unsupported browser name raises OnboardValidationError, not silently saved."""
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
+
+    with pytest.raises(onboard_headless.OnboardValidationError) as exc_info:
+        onboard_headless.run_headless_onboard(
+            provider="openai",
+            api_key="sk-test",
+            instagram_browser="firefoxx",  # typo — should be rejected
+        )
+    payload = exc_info.value.payload
+    assert "firefoxx" in payload["error"]
+    assert "firefox" in payload["choices"]
+
+
+def test_instagram_browser_validation_accepts_empty_and_none(tmp_path, monkeypatch):
+    """Empty string and 'none' are valid (mean: no cookies)."""
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
+
+    with patch("anyscribecli.vault.scaffold.create_vault", return_value=tmp_path):
+        with patch("anyscribecli.core.migrate.maybe_migrate_workspace", return_value=None):
+            with patch("anyscribecli.core.onboard_headless.ensure_app_dirs"):
+                # Empty — accepted.
+                result1 = onboard_headless.run_headless_onboard(
+                    provider="openai",
+                    api_key="sk-test",
+                    instagram_browser="",
+                    install_skill=False,
+                )
+    assert result1["status"] in ("onboarded", "partial")
+
+    with patch("anyscribecli.vault.scaffold.create_vault", return_value=tmp_path):
+        with patch("anyscribecli.core.migrate.maybe_migrate_workspace", return_value=None):
+            with patch("anyscribecli.core.onboard_headless.ensure_app_dirs"):
+                # 'none' — accepted.
+                result2 = onboard_headless.run_headless_onboard(
+                    provider="openai",
+                    api_key="sk-test",
+                    instagram_browser="none",
+                    install_skill=False,
+                )
+    assert result2["status"] in ("onboarded", "partial")
+
+
 def test_instagram_browser_routes_to_config_not_env(tmp_path, monkeypatch):
     monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.setenv("OPENAI_API_KEY", "sk-test")

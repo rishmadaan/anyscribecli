@@ -23,6 +23,21 @@ from anyscribecli.downloaders.base import AbstractDownloader, DownloadResult
 from anyscribecli.config.settings import load_config
 from anyscribecli.core.deps import ensure_ytdlp_current, get_command
 
+# Browsers yt-dlp can extract cookies from via --cookies-from-browser.
+# Keep in sync with yt-dlp's BROWSERS list:
+# https://github.com/yt-dlp/yt-dlp/blob/master/yt_dlp/cookies.py
+# Empty string means no cookies (anonymous fetch).
+SUPPORTED_BROWSERS: tuple[str, ...] = (
+    "firefox",
+    "chrome",
+    "safari",
+    "brave",
+    "edge",
+    "chromium",
+    "vivaldi",
+    "opera",
+)
+
 
 class InstagramDownloader(AbstractDownloader):
     """Download audio from Instagram reels/posts using yt-dlp."""

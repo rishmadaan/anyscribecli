@@ -75,6 +75,7 @@ def _validate(
     provider: str,
     api_key: str | None,
     local_model: str | None,
+    instagram_browser: str | None,
 ) -> None:
     """Raise OnboardValidationError if required fields for the chosen provider
     aren't present in either argv or the environment.
@@ -117,6 +118,21 @@ def _validate(
             }
         )
 
+    # Validate Instagram browser if provided. Empty string is treated as
+    # "no cookies (anonymous)" and is always valid.
+    if instagram_browser:
+        from anyscribecli.downloaders.instagram import SUPPORTED_BROWSERS
+
+        normalized = instagram_browser.strip().lower()
+        if normalized and normalized != "none" and normalized not in SUPPORTED_BROWSERS:
+            raise OnboardValidationError(
+                {
+                    "error": f"unsupported instagram browser '{instagram_browser}'",
+                    "choices": list(SUPPORTED_BROWSERS),
+                    "hint": "Pass an empty string or 'none' to skip cookie configuration.",
+                }
+            )
+
 
 def run_headless_onboard(
     provider: str,
@@ -145,7 +161,7 @@ def run_headless_onboard(
     local setup was requested and failed, status is ``"partial"`` and the
     ``local_setup`` payload carries the failure detail.
     """
-    _validate(provider, api_key, local_model)
+    _validate(provider, api_key, local_model, instagram_browser)
     _emit(on_progress, {"event": "validated", "provider": provider})
 
     # Load existing env so save_env merges rather than replaces. ensure_app_dirs

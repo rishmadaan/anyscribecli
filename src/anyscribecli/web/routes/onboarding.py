@@ -39,8 +39,7 @@ class OnboardingSaveRequest(BaseModel):
     output_format: Optional[str] = None
     local_model: Optional[str] = None
     extra_api_keys: Optional[dict[str, str]] = None
-    instagram_username: Optional[str] = None
-    instagram_password: Optional[str] = None
+    instagram_browser: Optional[str] = None
 
 
 def _recommended_next_step(
@@ -104,8 +103,7 @@ async def save_onboarding(req: OnboardingSaveRequest) -> dict[str, Any]:
             output_format=req.output_format,
             local_model=req.local_model,
             extra_api_keys=req.extra_api_keys,
-            instagram_username=req.instagram_username,
-            instagram_password=req.instagram_password,
+            instagram_browser=req.instagram_browser,
         )
     except OnboardValidationError as e:
         raise HTTPException(status_code=400, detail=e.payload)
