@@ -157,3 +157,57 @@ def test_instagram_browser_routes_to_config_not_env(tmp_path, monkeypatch):
     # Browser name goes to config, NOT to .env — INSTAGRAM_PASSWORD is never written.
     assert "INSTAGRAM_PASSWORD" not in saved
     assert "INSTAGRAM_PASSWORD" not in result["api_keys_set"]
+
+
+def test_instagram_browser_validation_runs_even_when_provider_is_local(tmp_path, monkeypatch):
+    """Regression: previously _validate returned early on provider='local',
+    skipping the IG browser check. The validator must reject typos
+    regardless of provider."""
+    from anyscribecli.core.onboard_headless import (
+        OnboardValidationError,
+        run_headless_onboard,
+    )
+
+    monkeypatch.setenv("HOME", str(tmp_path))
+
+    with pytest.raises(OnboardValidationError) as exc_info:
+        run_headless_onboard(
+            provider="local",
+            local_model="tiny",
+            instagram_browser="firefoxx",  # typo
+        )
+    assert "firefoxx" in exc_info.value.payload["error"]
+
+
+def test_instagram_browser_is_normalized_on_save(tmp_path, monkeypatch):
+    """Browser is stored in canonical form: lowercase, stripped, with 'none' -> ''."""
+    from anyscribecli.config.settings import load_config
+    from anyscribecli.core.onboard_headless import run_headless_onboard
+
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("ANYSCRIBE_HOME", str(tmp_path))
+    monkeypatch.setattr("anyscribecli.config.paths.APP_HOME", tmp_path)
+
+    # Uppercase + whitespace -> canonical lowercase
+    with patch("anyscribecli.vault.scaffold.create_vault", return_value=tmp_path):
+        with patch("anyscribecli.core.migrate.maybe_migrate_workspace", return_value=None):
+            with patch("anyscribecli.core.onboard_headless.ensure_app_dirs"):
+                run_headless_onboard(
+                    provider="openai",
+                    api_key="sk-test",
+                    instagram_browser="  FIREFOX  ",
+                    install_skill=False,
+                )
+    assert load_config().instagram.browser == "firefox"
+
+    # 'none' -> empty string (canonical "no cookies")
+    with patch("anyscribecli.vault.scaffold.create_vault", return_value=tmp_path):
+        with patch("anyscribecli.core.migrate.maybe_migrate_workspace", return_value=None):
+            with patch("anyscribecli.core.onboard_headless.ensure_app_dirs"):
+                run_headless_onboard(
+                    provider="openai",
+                    api_key="sk-test",
+                    instagram_browser="none",
+                    install_skill=False,
+                )
+    assert load_config().instagram.browser == ""

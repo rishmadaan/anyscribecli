@@ -88,6 +88,22 @@ def _validate(
             }
         )
 
+    # Validate Instagram browser before any provider-specific branching so
+    # this check runs regardless of provider (including "local").
+    # Empty string is treated as "no cookies (anonymous)" and is always valid.
+    if instagram_browser:
+        from anyscribecli.downloaders.instagram import SUPPORTED_BROWSERS
+
+        normalized = instagram_browser.strip().lower()
+        if normalized and normalized != "none" and normalized not in SUPPORTED_BROWSERS:
+            raise OnboardValidationError(
+                {
+                    "error": f"unsupported instagram browser '{instagram_browser}'",
+                    "choices": list(SUPPORTED_BROWSERS),
+                    "hint": "Pass an empty string or 'none' to skip cookie configuration.",
+                }
+            )
+
     if provider == "local":
         # Local needs a model size. We don't validate the size string itself
         # here — local_setup.run_setup does that.
@@ -117,21 +133,6 @@ def _validate(
                 "hint": f"pass --api-key or set {env_var}=... in the environment",
             }
         )
-
-    # Validate Instagram browser if provided. Empty string is treated as
-    # "no cookies (anonymous)" and is always valid.
-    if instagram_browser:
-        from anyscribecli.downloaders.instagram import SUPPORTED_BROWSERS
-
-        normalized = instagram_browser.strip().lower()
-        if normalized and normalized != "none" and normalized not in SUPPORTED_BROWSERS:
-            raise OnboardValidationError(
-                {
-                    "error": f"unsupported instagram browser '{instagram_browser}'",
-                    "choices": list(SUPPORTED_BROWSERS),
-                    "hint": "Pass an empty string or 'none' to skip cookie configuration.",
-                }
-            )
 
 
 def run_headless_onboard(
@@ -185,7 +186,12 @@ def run_headless_onboard(
     if local_model is not None:
         settings.local_model = local_model
     if instagram_browser is not None:
-        settings.instagram.browser = instagram_browser
+        normalized_browser = instagram_browser.strip().lower()
+        # "none" is the explicit user choice for "no cookies" — store as empty
+        # string so the config has a single canonical representation.
+        if normalized_browser == "none":
+            normalized_browser = ""
+        settings.instagram.browser = normalized_browser
 
     save_config(settings)
     _emit(on_progress, {"event": "config_saved"})
