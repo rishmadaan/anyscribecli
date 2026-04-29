@@ -89,7 +89,7 @@ def test_local_provider_runs_local_setup_and_returns_partial_on_failure(tmp_path
     assert result["local_setup"] == failure
 
 
-def test_instagram_password_routes_to_env_not_config(tmp_path, monkeypatch):
+def test_instagram_browser_routes_to_config_not_env(tmp_path, monkeypatch):
     monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
     saved = {}
@@ -103,10 +103,11 @@ def test_instagram_password_routes_to_env_not_config(tmp_path, monkeypatch):
                 with patch(
                     "anyscribecli.core.onboard_headless.save_env", side_effect=fake_save_env
                 ):
-                    onboard_headless.run_headless_onboard(
+                    result = onboard_headless.run_headless_onboard(
                         provider="openai",
-                        instagram_username="fooer",
-                        instagram_password="hunter2",
+                        instagram_browser="firefox",
                         install_skill=False,
                     )
-    assert saved.get("INSTAGRAM_PASSWORD") == "hunter2"
+    # Browser name goes to config, NOT to .env — INSTAGRAM_PASSWORD is never written.
+    assert "INSTAGRAM_PASSWORD" not in saved
+    assert "INSTAGRAM_PASSWORD" not in result["api_keys_set"]

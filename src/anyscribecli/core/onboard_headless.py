@@ -128,8 +128,7 @@ def run_headless_onboard(
     output_format: str | None = None,
     local_model: str | None = None,
     extra_api_keys: dict[str, str] | None = None,
-    instagram_username: str | None = None,
-    instagram_password: str | None = None,
+    instagram_browser: str | None = None,
     install_skill: bool = True,
     on_progress: ProgressFn | None = None,
 ) -> dict[str, Any]:
@@ -169,8 +168,8 @@ def run_headless_onboard(
         settings.workspace_path = "" if resolved == DEFAULT_WORKSPACE else str(resolved)
     if local_model is not None:
         settings.local_model = local_model
-    if instagram_username is not None:
-        settings.instagram.username = instagram_username
+    if instagram_browser is not None:
+        settings.instagram.browser = instagram_browser
 
     save_config(settings)
     _emit(on_progress, {"event": "config_saved"})
@@ -185,9 +184,6 @@ def run_headless_onboard(
             env_var = PROVIDER_KEY_ENV.get(name)
             if env_var and key:
                 env_keys[env_var] = key
-    if instagram_password:
-        env_keys["INSTAGRAM_PASSWORD"] = instagram_password
-
     if env_keys:
         save_env(env_keys)
         # Also update the current process env so downstream calls (e.g., local
