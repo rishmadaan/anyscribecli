@@ -2,6 +2,7 @@
 
 | Date | Type | Entry | TL;DR |
 |------|------|-------|-------|
+| 2026-05-28 | troubleshooting | [[journal/2026-05-28-ci-frontend-bundle-line-endings.md\|CI frontend bundle line endings]] | CI failed because the committed Vite JS hash came from a Windows line-ending build; the Linux runner produced a different hashed bundle, so static assets now use LF-normalized attributes. |
 | 2026-05-28 | troubleshooting | [[journal/2026-05-28-publish-readiness-follow-up.md\|Publish-readiness follow-up audit]] | Follow-up audit aligned package metadata to the documented 0.8.4 release, fixed a dev-only npm advisory, added the missing publish-time frontend gate, and re-ran the publish checks. |
 | 2026-05-28 | troubleshooting | [[journal/2026-05-28-release-workflow-sanity-audit.md\|Release workflow sanity audit]] | Release audit found stale release docs, a macOS-only version bump in release.sh, no pre-publish CI, and a stray v0.8.3 tag on an unmerged branch. |
 | 2026-04-20 | bugfix | [[journal/2026-04-20-v082-upload-autosubmit-fix.md\|v0.8.2 Fix local-file browse auto-submitting]] | Web UI "Browse local file" button was firing the transcription job the moment the upload finished, giving the user no chance to adjust options first. Post-upload now populates the URL field and focuses it, matching the URL-text path. Two-line change in `URLInput.tsx` plus a rebuilt static bundle. |

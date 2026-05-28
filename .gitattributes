@@ -1,0 +1,6 @@
+* text=auto
+
+ui/**/* text eol=lf
+src/anyscribecli/web/static/**/*.html text eol=lf
+src/anyscribecli/web/static/**/*.css text eol=lf
+src/anyscribecli/web/static/**/*.js text eol=lf
