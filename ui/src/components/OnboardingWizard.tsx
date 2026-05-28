@@ -476,7 +476,7 @@ function StepOfflineOptIn({
       setStatus(s);
       if (!selected) onSelectSize(s.recommended_model);
     });
-  }, []);
+  }, [onSelectSize, selected]);
 
   // Poll during setup.
   useEffect(() => {

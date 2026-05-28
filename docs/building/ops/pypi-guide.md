@@ -31,7 +31,7 @@ PyPI pulls your project page from `pyproject.toml`:
 - `name`, `version`, `description` → shown on the project page
 - `readme = "README.md"` → rendered as the long description
 - `project.urls` → links sidebar on the project page
-- `project.scripts` → the `ascli` CLI entry point
+- `project.scripts` → the `scribe` CLI entry point, plus `ascli` as a backward-compatible alias
 
 All of this is already configured in your `pyproject.toml`.
 
@@ -103,7 +103,7 @@ twine upload --repository testpypi dist/*
 pip install --index-url https://test.pypi.org/simple/ anyscribecli
 
 # 4. Test it works
-ascli --version
+scribe --version
 ```
 
 If something is wrong (bad description, missing metadata), fix it and bump the version — you cannot re-upload the same version number, even on TestPyPI.
@@ -175,6 +175,6 @@ The GitHub fallback can stay as a backup.
 |---------|-------|-----|
 | `twine upload` fails with 403 | Token expired or wrong scope | Regenerate token, update ~/.pypirc |
 | `twine upload` fails with 400 | Version already exists on PyPI | Bump version, rebuild, re-upload |
-| Package installs but `ascli` not found | Entry point misconfigured | Check `[project.scripts]` in pyproject.toml |
+| Package installs but `scribe` not found | Entry point misconfigured or Python Scripts directory is not on PATH | Check `[project.scripts]` in pyproject.toml; on Windows verify `python -m anyscribecli --version` |
 | README looks broken on PyPI | Unsupported markdown or relative links | Run `twine check dist/*`, fix markdown |
 | `pip install` gets old version | pip cache | `pip install --no-cache-dir anyscribecli` |

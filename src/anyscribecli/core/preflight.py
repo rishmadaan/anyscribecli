@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import shutil
+import tempfile
 from pathlib import Path
 
 from anyscribecli.config.paths import TMP_DIR
@@ -56,16 +57,7 @@ def preflight_check(settings: Settings, url: str) -> None:
             f"  Or:  scribe onboard --force"
         )
 
-    # 3. Check disk space
-    check_dir = TMP_DIR.parent if TMP_DIR.parent.exists() else Path.home()
-    free = shutil.disk_usage(check_dir).free
-    if free < MIN_FREE_BYTES:
-        raise RuntimeError(
-            f"Low disk space: {free // (1024 * 1024)}MB free. "
-            f"Need at least {MIN_FREE_BYTES // (1024 * 1024)}MB for audio processing."
-        )
-
-    # 4. Validate local file format
+    # 3. Validate local file format before environment-dependent disk checks.
     is_local = not url.startswith("http://") and not url.startswith("https://")
     if is_local:
         p = Path(url)
@@ -76,3 +68,18 @@ def preflight_check(settings: Settings, url: str) -> None:
                 f"Unsupported format: {p.suffix}\n"
                 f"Supported: {', '.join(sorted(SUPPORTED_AUDIO_EXTS))}"
             )
+
+    # 4. Check disk space
+    if TMP_DIR.parent.exists():
+        check_dir = TMP_DIR.parent
+    else:
+        try:
+            check_dir = Path.home()
+        except RuntimeError:
+            check_dir = Path(tempfile.gettempdir())
+    free = shutil.disk_usage(check_dir).free
+    if free < MIN_FREE_BYTES:
+        raise RuntimeError(
+            f"Low disk space: {free // (1024 * 1024)}MB free. "
+            f"Need at least {MIN_FREE_BYTES // (1024 * 1024)}MB for audio processing."
+        )

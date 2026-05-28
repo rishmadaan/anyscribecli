@@ -14,7 +14,7 @@ This doc explains what anyscribecli already does automatically behind the scenes
 
 **File:** `src/anyscribecli/core/updater.py`
 
-The app has a built-in self-update system that users interact with via `ascli update`.
+The app has a built-in self-update system that users interact with via `scribe update`.
 
 ### Install Type Detection
 
@@ -25,7 +25,7 @@ The updater auto-detects how the user installed the app:
 
 Detection is fully automatic. No config needed.
 
-### What `ascli update` Does
+### What `scribe update` Does
 
 **For git installs:**
 1. Checks for uncommitted changes (aborts if found, unless `--force`)
@@ -41,7 +41,7 @@ Detection is fully automatic. No config needed.
 3. Spawns a subprocess to read the new version (avoids module cache)
 4. Reports old → new version
 
-### What `ascli update --check` Does
+### What `scribe update --check` Does
 
 Checks for available updates **without installing**:
 
@@ -66,20 +66,20 @@ All operations have timeouts to prevent hanging:
 
 **File:** `src/anyscribecli/cli/main.py`
 
-`ascli doctor` runs a health check that includes:
+`scribe doctor` runs a health check that includes:
 
 - Dependency checks (yt-dlp, ffmpeg, etc.)
 - Config validation
 - Workspace integrity
 - **Silent update check** — calls `check_for_updates(quiet=True)`, only prints if an update is available
 
-This is the only place the app checks for updates without the user explicitly running `ascli update`.
+This is the only place the app checks for updates without the user explicitly running `scribe update`.
 
 ---
 
 ## Automated: Version Display
 
-`ascli --version` (or `ascli -v`) reads from `src/anyscribecli/__init__.py:__version__` and prints it.
+`scribe --version` (or `scribe -v`) reads from `src/anyscribecli/__init__.py:__version__` and prints it.
 
 ---
 
@@ -104,6 +104,12 @@ One command to bump + commit + tag + push:
 ```
 
 Includes safety checks: clean working tree, semver format, no duplicate tags, branch warning.
+
+---
+
+## Automated: CI Checks
+
+GitHub Actions runs lint, tests, and package build on pushes to `main` and pull requests. It also rebuilds the frontend and verifies the committed `src/anyscribecli/web/static/` bundle is current.
 
 ---
 
@@ -133,10 +139,10 @@ The `COMMIT_CHECKLIST.md` exists as a reminder, but it's your discipline that en
 From a user's perspective, the update flow is:
 
 ```
-ascli doctor          # Tells them if an update is available (passively)
-ascli update --check  # Explicitly check
-ascli update          # Install the update
-ascli --version       # Verify
+scribe doctor          # Tells them if an update is available (passively)
+scribe update --check  # Explicitly check
+scribe update          # Install the update
+scribe --version       # Verify
 ```
 
 There are **no automatic updates**, **no background checks**, **no telemetry**, and **no phone-home behavior**. The user is always in control.
@@ -149,7 +155,6 @@ Things that could be automated but aren't yet:
 
 | What | How | Priority |
 |------|-----|----------|
-| CI/CD (lint + test on push) | GitHub Actions workflow | High for v1.0 |
 | Version sync check | Pre-commit hook comparing both files | Medium |
 | Changelog generation | From git tags/commits | Low |
-| Startup update notification | Opt-in check on `ascli` launch with TTL | Low |
+| Startup update notification | Opt-in check on `scribe` launch with TTL | Low |

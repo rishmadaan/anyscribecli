@@ -1,6 +1,6 @@
 /** Hook for tracking a transcription job via WebSocket with reconnection. */
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { JobResult, ProgressEvent } from "../api/types";
 import { startTranscribe } from "../api/client";
 
@@ -27,6 +27,7 @@ export function useJob() {
   const jobIdRef = useRef<string | null>(null);
   const reconnectAttemptRef = useRef(0);
   const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const connectWsRef = useRef<(jobId: string) => void>(() => {});
 
   const stopPolling = useCallback(() => {
     if (pollTimerRef.current) {
@@ -122,7 +123,7 @@ export function useJob() {
             );
             reconnectAttemptRef.current++;
             setTimeout(() => {
-              if (jobIdRef.current) connectWs(jobIdRef.current);
+              if (jobIdRef.current) connectWsRef.current(jobIdRef.current);
             }, delay);
           } else {
             // Fall back to polling
@@ -134,6 +135,9 @@ export function useJob() {
     },
     [pollForStatus, stopPolling]
   );
+  useEffect(() => {
+    connectWsRef.current = connectWs;
+  }, [connectWs]);
 
   const submit = useCallback(
     async (data: {

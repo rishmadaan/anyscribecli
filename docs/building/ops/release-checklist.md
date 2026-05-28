@@ -19,14 +19,14 @@ Follow this every time you release a new version of anyscribecli. Do not skip st
 pytest
 
 # Lint
-ruff check src/
+ruff check src tests
 
 # Format
-ruff format src/
+ruff format src tests
 
 # Run the app — smoke test key commands
-ascli --version
-ascli doctor
+scribe --version
+scribe doctor
 ```
 
 Everything must pass. Do not release with failing tests or lint errors.
@@ -103,13 +103,13 @@ twine upload dist/*
 
 ```bash
 # Install in a clean environment to verify
-python -m venv /tmp/ascli-test
-source /tmp/ascli-test/bin/activate
+python -m venv /tmp/scribe-test
+source /tmp/scribe-test/bin/activate
 pip install anyscribecli
-ascli --version    # Should show new version
-ascli doctor       # Should pass
+scribe --version    # Should show new version
+scribe doctor       # Should pass
 deactivate
-rm -rf /tmp/ascli-test
+rm -rf /tmp/scribe-test
 ```
 
 ### 10. Create a GitHub Release (Optional but Recommended)
@@ -136,9 +136,9 @@ This gives users a changelog on GitHub and shows download counts per release.
 
 ```bash
 # From an existing install, test that update works
-ascli update --check    # Should detect new version
-ascli update            # Should install it
-ascli --version         # Should show new version
+scribe update --check    # Should detect new version
+scribe update            # Should install it
+scribe --version         # Should show new version
 ```
 
 ### 12. Write a Building Doc Journal Entry
@@ -153,14 +153,14 @@ For when you just need the commands:
 
 ```bash
 # Pre-flight
-pytest && ruff check src/
+pytest && ruff check src tests
 
 # Release (one command does everything)
 ./scripts/release.sh X.Y.Z "description"
 
 # Verify (after GitHub Actions finishes ~1-2 min)
 pip install --upgrade anyscribecli
-ascli --version
+scribe --version
 ```
 
 ---
@@ -173,5 +173,5 @@ ascli --version
 | Wrong version number | Can't undo — release the correct version as the next bump |
 | Upload fails with 403 | API token expired — regenerate at pypi.org, update ~/.pypirc |
 | Upload fails with 400 | Version already exists — you need a new version number |
-| `ascli` command not found after install | Check `[project.scripts]` in pyproject.toml, rebuild |
+| `scribe` command not found after install | Check `[project.scripts]` in pyproject.toml, rebuild; on Windows try `python -m anyscribecli --version` |
 | Tests pass locally but package broken | Test in a clean venv (step 9) before publishing |

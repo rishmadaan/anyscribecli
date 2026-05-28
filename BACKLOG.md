@@ -51,7 +51,7 @@ The `0.x` prefix means pre-stable — breaking changes are allowed between minor
 | 0.9.0 | Cache/dedup, test suite, error handling | Next |
 | 0.9.x | Byte-level download progress in Web UI — stream faster-whisper/HF progress via WebSocket to replace the spinner in `LocalSetupModal` and the Models table | Queued |
 | 0.10.0 | Menu-bar tray companion + auto-start ([plan](docs/building/journal/2026-04-18-menu-bar-tray-companion-plan.md)) | Planned |
-| 1.0.0 | Stable: full test coverage, CI/CD pipeline | Future |
+| 1.0.0 | Stable: broader test coverage and release hardening | Future |
 
 ### How to bump versions
 
@@ -376,7 +376,7 @@ Accepted tradeoffs:
 - [ ] GitHub Releases with release notes for each tag
 - [ ] Full test coverage
 - [ ] Stable config format (breaking changes require v2.0.0)
-- [ ] CI/CD pipeline (GitHub Actions: lint, test, build, publish)
+- [x] CI/CD pipeline (GitHub Actions: lint, test, build, publish)
 
 ### Release process
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import {
   getConfig,
@@ -68,7 +68,7 @@ export default function SettingsPage() {
   const [confirmTeardown, setConfirmTeardown] = useState(false);
   const [tearingDown, setTearingDown] = useState(false);
 
-  const refreshAll = async () => {
+  const refreshAll = useCallback(async () => {
     const [c, p, h, l] = await Promise.all([
       getConfig(),
       getProviders(),
@@ -79,11 +79,14 @@ export default function SettingsPage() {
     setProviders(p);
     setHealth(h);
     setLocalStatus(l);
-  };
+  }, []);
 
   useEffect(() => {
-    refreshAll();
-  }, []);
+    const id = window.setTimeout(() => {
+      void refreshAll();
+    }, 0);
+    return () => window.clearTimeout(id);
+  }, [refreshAll]);
 
   // Deep-link from Transcribe page CTA.
   useEffect(() => {

@@ -40,7 +40,10 @@ export default function SetupBanner() {
   }, []);
 
   useEffect(() => {
-    checkSetup();
+    const id = window.setTimeout(() => {
+      void checkSetup();
+    }, 0);
+    return () => window.clearTimeout(id);
   }, [checkSetup]);
 
   // Poll while banner is visible

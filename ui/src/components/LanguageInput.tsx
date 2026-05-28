@@ -22,11 +22,8 @@ export default function LanguageInput({ provider, value, onChange, onBlur, class
   // Local display value: temporarily blanked on focus so the <datalist>
   // popup shows ALL options instead of filtering by the current value
   // (native datalists filter the popup by whatever's already in the input).
-  const [displayValue, setDisplayValue] = useState(value);
-
-  useEffect(() => {
-    setDisplayValue(value);
-  }, [value]);
+  const [focused, setFocused] = useState(false);
+  const [draftValue, setDraftValue] = useState("");
 
   useEffect(() => {
     if (!provider) return;
@@ -50,10 +47,11 @@ export default function LanguageInput({ provider, value, onChange, onBlur, class
   const placeholder = freeform ? "e.g. Spanish (free text)" : value || "auto";
 
   const handleFocus = () => {
+    setFocused(true);
     // Datalists filter their popup by the input's current value. With "auto"
     // pre-filled, the popup would show only the "auto" entry. Clearing the
     // visible value on focus lets the popup show every supported language.
-    if (!freeform) setDisplayValue("");
+    setDraftValue(freeform ? value : "");
   };
 
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
@@ -62,12 +60,13 @@ export default function LanguageInput({ provider, value, onChange, onBlur, class
     // the previous value rather than committing an empty string.
     const finalValue = typed.trim() === "" ? value : typed;
     if (finalValue !== value) onChange(finalValue);
-    setDisplayValue(finalValue);
+    setFocused(false);
+    setDraftValue("");
     if (onBlur) onBlur(finalValue);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setDisplayValue(e.target.value);
+    setDraftValue(e.target.value);
     onChange(e.target.value);
   };
 
@@ -75,7 +74,7 @@ export default function LanguageInput({ provider, value, onChange, onBlur, class
     <>
       <input
         type="text"
-        value={displayValue}
+        value={focused ? draftValue : value}
         onChange={handleChange}
         onFocus={handleFocus}
         onBlur={handleBlur}

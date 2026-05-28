@@ -28,14 +28,9 @@ interface URLInputProps {
 
 export default function URLInput({ onSubmit, disabled }: URLInputProps) {
   const [url, setUrl] = useState("");
-  const [platform, setPlatform] = useState<Platform>(null);
   const [uploading, setUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    setPlatform(detectPlatform(url));
-  }, [url]);
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -68,6 +63,7 @@ export default function URLInput({ onSubmit, disabled }: URLInputProps) {
     }
   };
 
+  const platform = detectPlatform(url);
   const badge = platform ? PLATFORM_BADGE[platform] : null;
   const isDisabled = disabled || uploading;
 
