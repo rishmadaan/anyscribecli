@@ -17,6 +17,12 @@ jobs:
         with:
           python-version: "3.12"
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+
       - name: Install build tools
         run: |
           python -m pip install --upgrade pip
@@ -28,6 +34,21 @@ jobs:
 
       - name: Test
         run: pytest
+
+      - name: Install frontend dependencies
+        working-directory: ui
+        run: npm ci
+
+      - name: Lint frontend
+        working-directory: ui
+        run: npm run lint
+
+      - name: Build frontend
+        working-directory: ui
+        run: npm run build
+
+      - name: Verify committed static bundle is current
+        run: git diff --exit-code -- src/anyscribecli/web/static
 
       - name: Build package
         run: python -m build
