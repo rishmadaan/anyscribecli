@@ -2,6 +2,7 @@
 
 | Date | Type | Entry | TL;DR |
 |------|------|-------|-------|
+| 2026-05-29 | troubleshooting | [[journal/2026-05-29-web-upload-filename-preservation.md\|Web upload filename preservation]] | Web UI uploads now keep the original filename in an isolated temp subdirectory so transcript slugs come from the user's file name instead of a UUID. |
 | 2026-05-28 | troubleshooting | [[journal/2026-05-28-ci-frontend-bundle-line-endings.md\|CI frontend bundle line endings]] | CI failed because the committed Vite JS hash came from a Windows line-ending build; the Linux runner produced a different hashed bundle, so static assets now use LF-normalized attributes. |
 | 2026-05-28 | troubleshooting | [[journal/2026-05-28-publish-readiness-follow-up.md\|Publish-readiness follow-up audit]] | Follow-up audit aligned package metadata to the documented 0.8.4 release, fixed a dev-only npm advisory, added the missing publish-time frontend gate, and re-ran the publish checks. |
 | 2026-05-28 | troubleshooting | [[journal/2026-05-28-release-workflow-sanity-audit.md\|Release workflow sanity audit]] | Release audit found stale release docs, a macOS-only version bump in release.sh, no pre-publish CI, and a stray v0.8.3 tag on an unmerged branch. |

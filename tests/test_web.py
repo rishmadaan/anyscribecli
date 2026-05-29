@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -105,6 +107,36 @@ class TestTranscribe:
         assert r.status_code == 200
         data = r.json()
         assert "job_id" in data
+
+    def test_upload_preserves_safe_original_filename(self, client, tmp_path, monkeypatch):
+        from anyscribecli.web.routes import transcribe
+
+        monkeypatch.setattr(transcribe, "TMP_DIR", tmp_path)
+        r = client.post(
+            "/api/upload",
+            files={"file": ("My Recording.mp3", b"fake audio", "audio/mpeg")},
+        )
+
+        assert r.status_code == 200
+        path = Path(r.json()["path"])
+        assert path.name == "My Recording.mp3"
+        assert path.parent.parent == tmp_path / "uploads"
+        assert path.read_bytes() == b"fake audio"
+
+    def test_upload_sanitizes_path_like_filename(self, client, tmp_path, monkeypatch):
+        from anyscribecli.web.routes import transcribe
+
+        monkeypatch.setattr(transcribe, "TMP_DIR", tmp_path)
+        r = client.post(
+            "/api/upload",
+            files={"file": ("../.secret.mp3", b"fake audio", "audio/mpeg")},
+        )
+
+        assert r.status_code == 200
+        path = Path(r.json()["path"])
+        assert path.name == "secret.mp3"
+        assert path.parent.parent == tmp_path / "uploads"
+        assert path.read_bytes() == b"fake audio"
 
     def test_get_unknown_job(self, client):
         r = client.get("/api/jobs/nonexistent")

@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import shutil
 import uuid
+from pathlib import Path
 
 from fastapi import APIRouter, UploadFile, WebSocket, WebSocketDisconnect
 
@@ -18,17 +19,34 @@ router = APIRouter(prefix="/api", tags=["transcribe"])
 
 @router.post("/upload")
 async def upload_file(file: UploadFile) -> dict:
-    """Upload a local audio/video file for transcription. Returns the server-side path."""
+    """Upload a local audio/video file for transcription. Returns the server-side path.
+
+    The file is saved inside a per-upload UUID subdir under its **original
+    filename** (lightly sanitized for filesystem safety). Downstream the
+    LocalFileDownloader reads ``Path.stem`` as the transcript title, and the
+    vault writer slugifies it into kebab-case for the markdown filename. So
+    an upload of ``My Recording.mp3`` becomes ``my-recording.md`` in the
+    vault, not a UUID hex like ``3f2a8b9c.md``.
+    """
     TMP_DIR.mkdir(parents=True, exist_ok=True)
     upload_dir = TMP_DIR / "uploads"
     upload_dir.mkdir(exist_ok=True)
 
-    # Preserve original extension, use unique name to avoid collisions
-    suffix = ""
+    # Per-upload subdir avoids collisions without polluting the filename.
+    upload_subdir = upload_dir / uuid.uuid4().hex[:8]
+    upload_subdir.mkdir()
+
+    # Preserve the original filename, but sanitize it for FS safety:
+    # strip path separators, null bytes, and any leading dots that would
+    # turn the file into a hidden dotfile.
+    safe_name = "upload"
     if file.filename:
-        from pathlib import Path as P
-        suffix = P(file.filename).suffix
-    dest = upload_dir / f"{uuid.uuid4().hex[:8]}{suffix}"
+        raw = Path(file.filename).name  # drops any directory parts
+        cleaned = raw.replace("\x00", "").lstrip(".").strip()
+        if cleaned:
+            safe_name = cleaned
+
+    dest = upload_subdir / safe_name
 
     with open(dest, "wb") as f:
         shutil.copyfileobj(file.file, f)
