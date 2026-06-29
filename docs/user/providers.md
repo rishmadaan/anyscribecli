@@ -123,7 +123,7 @@ scribe config set provider elevenlabs
 
 ### Sarvam AI
 
-Specialized for Indian languages. Supports 22 Indian languages plus English with Indian accent optimization. Good for code-mixed audio (e.g., Hindi-English).
+Specialized for Indian languages. Supports 22 Indian languages plus English with Indian accent optimization.
 
 ```bash
 scribe config set provider sargam
@@ -132,11 +132,15 @@ scribe config set provider sargam
 - **API key env var:** `SARGAM_API_KEY`
 - **Get a key:** [dashboard.sarvam.ai](https://dashboard.sarvam.ai)
 - **Cost:** ~$0.35/hour; free tier: ~$12 in credits
-- **File limit:** REST API limited to 30 seconds — scribe automatically chunks audio into 30-second segments
-- **Model:** `saaras:v2`
+- **File limit:** REST API limited to 30 seconds (exclusive) — scribe automatically chunks audio into 28-second segments
+- **Model:** `saaras:v2.5`
 - **Supported languages:** Hindi, Tamil, Telugu, Kannada, Malayalam, Bengali, Gujarati, Marathi, Punjabi, Odia, Assamese, Urdu, Sanskrit, and more
 
-> **When to use:** Transcribing content in Indian languages. Significantly better than Whisper for Hindi, Tamil, Telugu, etc. Not suited for non-Indian languages.
+> **Important — Sarvam *translates to English*.** scribe uses Sarvam's speech-to-text-*translate* endpoint, so the output is an **English translation**, not a verbatim Hindi/Hinglish transcript. Use it when you want Indic audio rendered as English; use Deepgram `--language hi-Latn` (see below) when you want to keep the spoken Hinglish.
+
+> **When to use:** Getting an English version of Indian-language audio. Not the right choice if you want to preserve the original words.
+
+> **Hinglish — what to keep?** For Hindi-English audio, **store the verbatim transcript, not a translation** — translation is one-way (you can't recover the original) and LLMs read Hinglish fine. **Deepgram `--language hi-Latn`** (the default `balanced` tier) gives clean romanized Hinglish; **ElevenLabs** (`accuracy` tier) gives native Devanagari. Either is a lossless source of truth an LLM can summarize or translate on demand. See the [building doc](../building/journal/2026-06-29-hinglish-transcript-format-and-llm-consumption.md) for the research behind this.
 
 ### Groq
 

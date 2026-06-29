@@ -68,10 +68,11 @@ machinery: it reuses the existing `--diarize → deepgram` auto-routing pattern.
   segment timestamps).
 - No Groq diarization, no fallback "engine" (one key-presence check).
 
-## Open follow-up — Hinglish bake-off
+## Follow-up — Hinglish bake-off (RESOLVED 2026-06-29)
 
-The accuracy tier is set to ElevenLabs `scribe_v2` on the basis that the audio is
-primarily English. For genuine Hinglish, the specialist may be Deepgram
-(`hi-Latn`, the balanced tier) or Sarvam. The right call is empirical: run a real
-sample through the tiers and, if a specialist wins, remap the one-line
-`QUALITY_TIERS["accuracy"]` entry. The dict makes that a one-line change.
+Ran a real Hinglish clip through every tier. **No remap needed.** Deepgram
+`hi-Latn` (the `balanced` default) produces the best *romanized* Hinglish;
+ElevenLabs `scribe_v2` (`accuracy`) gives native-script Devanagari at equal
+fidelity; Sarvam translates to English (not verbatim). The format question
+(verbatim vs translation for LLM consumption) was also researched and resolved.
+Full write-up: [Hinglish transcript format & LLM consumption](2026-06-29-hinglish-transcript-format-and-llm-consumption.md).
