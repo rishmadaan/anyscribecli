@@ -1,13 +1,13 @@
 # Downloaders
 
-**Last updated:** 2026-03-29 (v0.3.1)
+**Last updated:** 2026-04-29 (v0.8.3 — Instagram migrates to yt-dlp)
 
 ## Available Downloaders
 
 | Name | Tool | Auth Required | Status |
 |------|------|---------------|--------|
 | youtube | yt-dlp (subprocess) | No | Active |
-| instagram | instaloader (Python API) | Yes (username/password) | Active |
+| instagram | yt-dlp (subprocess) | Optional (browser cookies) | Active |
 
 ## Downloader-Specific Notes
 
@@ -18,15 +18,26 @@
 - Handles: `youtube.com/watch`, `youtu.be/`, `youtube.com/shorts/`, `youtube.com/live/`
 
 ### Instagram (`downloaders/instagram.py`)
-- Uses instaloader Python API (not subprocess) for session management
-- Session caching pattern from Dropzone bundle: load session → test_login → fresh login if invalid → save
-- Sessions stored at `~/.anyscribecli/sessions/instagram_session`
-- Downloads video via instaloader, then extracts audio via ffmpeg
+- Uses yt-dlp via subprocess (same pattern as YouTube)
+- Two-step: metadata via `--dump-json --no-download`, then download with `--extract-audio`
+- Audio optimized for Whisper: 16kHz, mono, 64kbps mp3
+- Cookies are optional — many public reels work anonymously. For private reels or
+  rate-limited cases, set `instagram.browser` (config) to one of `firefox`, `chrome`,
+  `safari`, `brave`, `edge`, `chromium`, `vivaldi`, `opera`. yt-dlp pulls cookies from
+  that browser's profile via `--cookies-from-browser`. No password is ever stored.
+- The browser allowlist lives at `downloaders.instagram.SUPPORTED_BROWSERS`; the
+  headless onboarding validator imports it for cross-surface consistency.
 - Handles: `instagram.com/reel/`, `instagram.com/p/`, `instagram.com/<username>/reel/`, `instagram.com/<username>/p/`
-- Only video posts — image posts are rejected with a helpful error
-- Included as a main dependency (installed automatically with ascli)
-- Downloads video directly via `post.video_url` then extracts audio with ffmpeg
-- Better error handling: specific messages for bad credentials, 2FA, rate limiting
+- `_friendly_error()` translates yt-dlp stderr into actionable messages for the three
+  most common failure modes: rate-limit/login required, private account, video unavailable.
+
+> **Pre-0.8.3 history:** Instagram used the `instaloader` Python library with
+> session caching that probed `test_login()` on every download. Instagram's
+> anti-automation flagged the GraphQL pattern, producing
+> `401 — "Please wait a few minutes"` errors even with valid sessions. The
+> migration to yt-dlp eliminates the probe entirely. See
+> `docs/building/journal/2026-04-29-instagram-yt-dlp-migration.md` for the
+> decision record.
 
 ## Registry Pattern
 

@@ -11,7 +11,7 @@ export interface Config {
   local_file_media: string;
   workspace_path: string;
   local_model: string;
-  instagram: { username: string };
+  instagram: { browser: string };
   _resolved_workspace?: string;
 }
 
@@ -88,8 +88,7 @@ export interface OnboardingPayload {
   output_format?: string;
   local_model?: string;
   extra_api_keys?: Record<string, string>;
-  instagram_username?: string;
-  instagram_password?: string;
+  instagram_browser?: string;
 }
 
 export interface OnboardingResult {

@@ -54,7 +54,7 @@ class SargamProvider(TranscriptionProvider):
         with open(audio_path, "rb") as f:
             files = {"file": (audio_path.name, f, "audio/mpeg")}
             data: dict[str, str] = {
-                "model": "saaras:v2",
+                "model": "saaras:v2.5",
             }
             if language != "auto":
                 data["language_code"] = language
@@ -147,7 +147,11 @@ class SargamProvider(TranscriptionProvider):
             try:
                 resp = self._transcribe_single(chunk_path, language, api_key, diarize=diarize)
                 result = self._parse_response(resp, offset=offset, start_id=segment_id)
-                text = deduplicate_overlap(all_text_parts[-1], result.text) if all_text_parts else result.text
+                text = (
+                    deduplicate_overlap(all_text_parts[-1], result.text)
+                    if all_text_parts
+                    else result.text
+                )
                 all_text_parts.append(text)
                 if not detected_language:
                     detected_language = result.language
@@ -155,12 +159,15 @@ class SargamProvider(TranscriptionProvider):
                     all_segments.append(seg)
                     segment_id += 1
 
-                ckpt.mark_completed(i, {
-                    "text": result.text,
-                    "language": result.language,
-                    "duration": None,
-                    "segments": result.segments,
-                })
+                ckpt.mark_completed(
+                    i,
+                    {
+                        "text": result.text,
+                        "language": result.language,
+                        "duration": None,
+                        "segments": result.segments,
+                    },
+                )
                 ckpt.save()
             finally:
                 # Don't delete the original file

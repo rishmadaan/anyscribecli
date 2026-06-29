@@ -66,9 +66,7 @@ def _scan_transcripts(
 
 
 @router.get("/transcripts")
-async def list_transcripts(
-    platform: str | None = None, limit: int = 50, offset: int = 0
-) -> dict:
+async def list_transcripts(platform: str | None = None, limit: int = 50, offset: int = 0) -> dict:
     all_entries = _scan_transcripts(platform=platform, limit=0)
     total = len(all_entries)
     items = all_entries[offset : offset + limit]
