@@ -143,6 +143,7 @@ export function useJob() {
     async (data: {
       url: string;
       provider?: string;
+      quality?: string;
       language?: string;
       diarize?: boolean;
       keep_media?: boolean;

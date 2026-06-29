@@ -37,7 +37,7 @@ The Claude Code skill (`src/anyscribecli/skill/`) is the **primary way users int
 
 ## Key Patterns
 
-- **Providers** implement `TranscriptionProvider` ABC from `providers/base.py` (6 active: openai, deepgram, elevenlabs, openrouter, sargam, local)
+- **Providers** implement `TranscriptionProvider` ABC from `providers/base.py` (7 active: openai, deepgram, elevenlabs, openrouter, sargam, groq, local). The `quality` preset (accuracy/balanced/cost/free) resolves to a provider via `core/quality.py`.
 - **Downloaders** implement `AbstractDownloader` ABC from `downloaders/base.py` (youtube, instagram)
 - **Config** at `~/.anyscribecli/config.yaml` — secrets in `.env` (API keys, Instagram password)
 - **All paths** use `pathlib.Path` via `config/paths.py` — no hardcoded separators

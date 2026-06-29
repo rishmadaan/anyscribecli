@@ -36,6 +36,7 @@ def test_status_returns_expected_shape(client):
         "elevenlabs",
         "sargam",
         "openrouter",
+        "groq",
     }
 
 

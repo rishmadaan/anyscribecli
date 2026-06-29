@@ -16,7 +16,8 @@ scribe transcribe "<url>"             # Explicit subcommand (also works)
 
 | Flag | Short | Description | Default |
 |------|-------|-------------|---------|
-| `--provider` | `-p` | Override provider: openai, deepgram, elevenlabs, sargam, openrouter, local | From config |
+| `--quality` | | Quality preset: accuracy \| balanced \| cost \| free (picks a provider) | From config (accuracy) |
+| `--provider` | `-p` | Override provider: openai, deepgram, elevenlabs, sargam, groq, openrouter, local (wins over `--quality`) | From config |
 | `--language` | `-l` | Language code (en, es, fr, hi, hi-Latn, etc.) or "auto" | From config (auto) |
 | `--json` | `-j` | Output result as JSON | Off |
 | `--keep-media` | | Keep downloaded audio in `~/.anyscribecli/downloads/audio/` | From config |

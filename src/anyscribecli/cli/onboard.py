@@ -63,7 +63,15 @@ def _run_headless(
     if not provider:
         err = {
             "error": "--provider is required with --yes",
-            "choices": ["openai", "deepgram", "elevenlabs", "sargam", "openrouter", "local"],
+            "choices": [
+                "openai",
+                "deepgram",
+                "elevenlabs",
+                "sargam",
+                "openrouter",
+                "groq",
+                "local",
+            ],
         }
         if output_json:
             json.dump(err, sys.stderr)
@@ -180,6 +188,12 @@ PROVIDER_INFO = {
         "description": "Fast, accurate, native diarization + Hindi Latin support",
         "env_var": "DEEPGRAM_API_KEY",
         "key_url": "https://console.deepgram.com/",
+    },
+    "groq": {
+        "label": "Groq",
+        "description": "Cheapest + fastest cloud Whisper (large-v3-turbo)",
+        "env_var": "GROQ_API_KEY",
+        "key_url": "https://console.groq.com/keys",
     },
     "local": {
         "label": "Local (faster-whisper)",
@@ -301,7 +315,7 @@ def onboard(
         "--provider",
         "-p",
         help="Provider to configure (required with --yes). Choices: openai, deepgram, "
-        "elevenlabs, sargam, openrouter, local.",
+        "elevenlabs, sargam, openrouter, groq, local.",
     ),
     api_key: Optional[str] = typer.Option(
         None,

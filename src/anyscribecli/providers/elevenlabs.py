@@ -41,7 +41,7 @@ class ElevenLabsProvider(TranscriptionProvider):
         with open(audio_path, "rb") as f:
             files = {"file": (audio_path.name, f, "audio/mpeg")}
             data: dict[str, str] = {
-                "model_id": "scribe_v1",
+                "model_id": "scribe_v2",
             }
             if language != "auto":
                 data["language_code"] = language

@@ -33,7 +33,8 @@ This is your main settings file. The onboarding wizard creates it, but you can a
 ```yaml
 # ~/.anyscribecli/config.yaml
 
-provider: openai          # Which transcription service to use
+provider: openai          # Explicit provider (or let `quality` pick one)
+quality: balanced          # accuracy | balanced | cost | free — picks a provider
 language: auto             # Language for transcription
 keep_media: false          # Whether to save audio files
 output_format: clean       # How to format transcripts
@@ -58,13 +59,41 @@ Which API to use for transcription. Default: `openai`.
 | `openai` | OpenAI Whisper API | `OPENAI_API_KEY` in .env |
 | `deepgram` | Deepgram Nova (diarization + hi-Latn) | `DEEPGRAM_API_KEY` |
 | `openrouter` | OpenRouter (audio-via-chat models) | `OPENROUTER_API_KEY` |
-| `elevenlabs` | ElevenLabs Scribe (92 languages) | `ELEVENLABS_API_KEY` |
+| `elevenlabs` | ElevenLabs Scribe v2 (highest accuracy, 90+ languages) | `ELEVENLABS_API_KEY` |
 | `sargam` | Sarvam AI (23 Indic languages + English) | `SARGAM_API_KEY` |
+| `groq` | Groq (fast, cheap Whisper large-v3-turbo) | `GROQ_API_KEY` |
 | `local` | faster-whisper (offline, free) | None needed |
+
+> **Tip:** Most people should use the `quality` setting (below) instead of
+> picking a provider directly — it chooses the right provider for you.
 
 > **Why multiple providers?** Different services handle different languages better. OpenAI Whisper is a good default, ElevenLabs has high accuracy across 90+ languages, Sarvam excels at Indian languages, and the local provider is free and works offline.
 
 > **Local provider** requires `pip install faster-whisper`. Models download automatically on first use. Works on CPU (slower) or GPU (fast with CUDA).
+
+#### quality
+
+Pick **what you want** — higher accuracy or lower cost — and scribe chooses the
+provider for you. Default: `balanced` (Deepgram). This is the easiest way to use
+scribe; you rarely need to touch `provider` directly.
+
+| Value | Picks | Best for |
+|-------|-------|----------|
+| `balanced` (default) | Deepgram `nova-3` | Strong accuracy + native speaker labels |
+| `accuracy` | ElevenLabs `scribe_v2` | Highest accuracy, primarily-English |
+| `cost` | Groq `whisper-large-v3-turbo` | Cheapest + fastest cloud (~$0.04/hr) |
+| `free` | Local faster-whisper | Offline, $0 (needs `scribe local setup`) |
+
+Change it with `scribe config set quality cost`, per-run with
+`scribe transcribe <url> --quality cost`, or from the picker in the Web UI.
+
+> **How it works:** the tier picks a provider. If you pass `--provider` (or pick
+> one in the Web UI), that wins. If the tier's provider has no API key set,
+> scribe falls back to your configured `provider` so it still runs.
+
+> **Need a key:** each tier needs that provider's key in `.env` —
+> `accuracy` needs `ELEVENLABS_API_KEY`, `cost` needs `GROQ_API_KEY`, etc.
+> `free` needs no key.
 
 #### language
 
@@ -165,6 +194,7 @@ INSTAGRAM_PASSWORD=your-password
 # ELEVENLABS_API_KEY=xi-...
 # OPENROUTER_API_KEY=sk-or-...
 # SARGAM_API_KEY=...
+# GROQ_API_KEY=gsk-...
 ```
 
 > **Important:** This file contains secrets. It's excluded from git by default. Never share it or commit it to a repository.
@@ -179,6 +209,7 @@ scribe config set deepgram_api_key YOUR_KEY
 scribe config set elevenlabs_api_key xi-...
 scribe config set sargam_api_key YOUR_KEY
 scribe config set openrouter_api_key sk-or-...
+scribe config set groq_api_key gsk-...
 ```
 
 These are stored in `~/.anyscribecli/.env` automatically.
@@ -258,6 +289,44 @@ tags:                                       # For Obsidian tag filtering
 tldr: "Video Title"                         # Quick summary
 ---
 ```
+
+## What you can change vs what's fixed
+
+Most things you'd want to adjust are settings you can change anytime. A few
+things are **fixed in the code** — they're tuned defaults that keep transcription
+reliable, and changing them means editing scribe's source and reinstalling.
+
+```
+   things you set (knobs)                things baked in (constants)
+   ┌──────────────────────────┐         ┌──────────────────────────────┐
+   │ config.yaml settings     │         │ audio quality (16kHz/mono)   │
+   │ .env API keys + secrets  │         │ how big files get split up   │
+   │ --flags on commands      │         │ which model each provider uses│
+   │ the Web UI settings page │         │ where app files live         │
+   └──────────────────────────┘         │ Web UI is localhost-only     │
+   change anytime, no restart           └──────────────────────────────┘
+                                         changing these needs a code edit
+```
+
+**You can change anytime** (this whole page): your provider, language, output
+format, diarization, whether media is kept, your workspace location, the local
+model, and all your API keys.
+
+**Fixed in the code** (and why):
+
+| What's fixed | Current value | Why it's not a setting |
+|--------------|---------------|------------------------|
+| Audio quality | 16 kHz, mono, 64 kbps mp3 | Tuned for the best transcription accuracy per megabyte. Higher quality wouldn't improve the text. |
+| File-splitting limits | Split if over 25 MB or 30 min, into 18-min pieces | Driven by the transcription APIs' own upload and timeout limits, not your preference. |
+| The model each provider uses | e.g. OpenAI uses `whisper-1`, ElevenLabs uses `scribe_v2` | Pinned per provider so results stay consistent. Picking a *provider* (or `quality` tier) is your choice; picking the exact model within a provider isn't. |
+| App folder location | `~/.anyscribecli` | The fixed home for config, logs, and downloads. Your transcripts' location (`workspace_path`) *is* configurable. |
+| Web UI address | `127.0.0.1` (your machine only) | The Web UI has no password, so it only listens to your own computer. The port is changeable with `scribe ui --port 9000`. |
+
+> **Want one of these to be a real setting?** These are deliberate defaults, not
+> oversights — see the developer note in
+> [docs/building/architecture.md](../building/architecture.md) for which ones are
+> candidates to become configurable. If you have a concrete need (say, a custom
+> audio bitrate), that's a reasonable feature request.
 
 ## Resetting Everything
 

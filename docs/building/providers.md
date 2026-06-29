@@ -23,10 +23,20 @@ Language Lists".
 |------|-----|--------|----------|---------|-------------|
 | openai | Whisper / gpt-4o-transcribe-diarize | Active (default) | General purpose, multilingual | `OPENAI_API_KEY` | Yes |
 | deepgram | Deepgram Nova-3 | Active | Diarization, Hinglish, hi-Latn | `DEEPGRAM_API_KEY` | Yes |
-| elevenlabs | ElevenLabs Scribe v1 | Active | High accuracy, word timestamps, 99 langs | `ELEVENLABS_API_KEY` | No |
+| elevenlabs | ElevenLabs Scribe v2 | Active | Highest accuracy, word timestamps, 90+ langs | `ELEVENLABS_API_KEY` | No |
 | openrouter | OpenRouter chat API | Active | Model flexibility (audio-via-chat) | `OPENROUTER_API_KEY` | No |
 | sargam | Sarvam AI REST API | Active | Indic languages (Hindi, Tamil, etc.) | `SARGAM_API_KEY` | Yes |
+| groq | Groq whisper-large-v3-turbo | Active | Cheapest + fastest cloud | `GROQ_API_KEY` | No |
 | local | faster-whisper | Active | Offline, free, CPU/GPU | None | No |
+
+## Quality Routing
+
+`quality` (accuracy/balanced/cost/free) is a friendly alias that resolves to a
+provider in `core/quality.py::apply_quality`, mirroring the `--diarize → deepgram`
+auto-routing. `QUALITY_TIERS` maps: accuracy→elevenlabs, balanced→deepgram,
+cost→groq, free→local. Precedence: explicit `--provider` → `--diarize` →
+`quality` → configured provider. If the tier's provider has no key, it falls back
+to the configured provider (graceful, keyless users still work).
 
 ## Provider-Specific Notes
 
@@ -48,9 +58,10 @@ Language Lists".
 - Without diarize: words grouped into ~30-word segments for timestamps
 
 ### ElevenLabs (`providers/elevenlabs.py`)
-- Uses `scribe_v1` model, `xi-api-key` auth header
+- Uses `scribe_v2` model, `xi-api-key` auth header (migrated from `scribe_v1`, which ElevenLabs removed 2026-07-09; v2 is the current top-accuracy model)
 - Returns word-level timestamps (grouped into ~30-word segments for readability)
 - ElevenLabs API accepts up to 3GB, but ascli chunks at 25MB (same `WHISPER_MAX_BYTES` threshold) for consistency
+- This is the provider the `accuracy` quality tier (default) selects
 
 ### OpenRouter (`providers/openrouter.py`)
 - No dedicated STT endpoint — sends base64 audio to chat models
@@ -67,6 +78,13 @@ Language Lists".
 - Best for Indian languages; not suited for non-Indian languages
 - Diarize support: `with_diarization=true` param, parses speaker turns from response
 - Note: 30s chunks mean speaker IDs may restart per chunk — known limitation
+
+### Groq (`providers/groq.py`)
+- Subclass of `OpenAIProvider` — Groq's STT API is OpenAI-compatible (same multipart request, `verbose_json` + segment timestamps, same response shape)
+- Only overrides `name`, `API_URL` (`https://api.groq.com/openai/v1/audio/transcriptions`), `_get_api_key` (`GROQ_API_KEY`), and `MODEL` (`whisper-large-v3-turbo`)
+- Chunking and `_parse_response` inherited unchanged
+- Diarize path overridden to raise — Groq has no diarization model
+- This is the provider the `cost` quality tier selects
 
 ### Local (`providers/local.py`)
 - Uses `faster-whisper` (CTranslate2-based, up to 4x faster than original Whisper)

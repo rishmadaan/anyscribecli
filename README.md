@@ -120,7 +120,8 @@ scribe download "https://www.youtube.com/watch?v=VIDEO_ID" --audio-only  # audio
 
 ```bash
 scribe transcribe "<url>"
-  --provider, -p <name>    # Override provider (openai, deepgram, elevenlabs, local, etc.)
+  --quality <tier>         # accuracy | balanced | cost | free — picks a provider (default: balanced)
+  --provider, -p <name>    # Explicit provider (openai, deepgram, elevenlabs, sargam, groq, local, ...) — overrides --quality
   --language, -l <code>    # Language code (default: auto-detect)
   --diarize, -d            # Enable speaker diarization (multi-speaker transcripts)
   --json, -j               # JSON output for scripting/AI agents

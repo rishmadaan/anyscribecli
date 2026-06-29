@@ -14,6 +14,7 @@ PROVIDER_REGISTRY: dict[str, tuple[str, str]] = {
     "elevenlabs": ("anyscribecli.providers.elevenlabs", "ElevenLabsProvider"),
     "sargam": ("anyscribecli.providers.sargam", "SargamProvider"),
     "deepgram": ("anyscribecli.providers.deepgram", "DeepgramProvider"),
+    "groq": ("anyscribecli.providers.groq", "GroqProvider"),
     "local": ("anyscribecli.providers.local", "LocalProvider"),
 }
 

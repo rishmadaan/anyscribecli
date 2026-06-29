@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, field, asdict, fields
 
 import yaml
 from dotenv import load_dotenv
@@ -20,6 +20,7 @@ class InstagramSettings:
 @dataclass
 class Settings:
     provider: str = "openai"
+    quality: str = "balanced"  # accuracy | balanced | cost | free (resolves to a provider)
     language: str = "auto"
     keep_media: bool = False
     output_format: str = "clean"  # clean | timestamped | diarized
@@ -36,12 +37,18 @@ class Settings:
 
     @classmethod
     def from_dict(cls, data: dict) -> Settings:
-        """Deserialize from a dict (loaded from YAML)."""
-        ig_data = data.pop("instagram", {})
-        # Drop password from config if it was there from old versions
-        ig_data.pop("password", None)
-        ig = InstagramSettings(**ig_data) if ig_data else InstagramSettings()
-        return cls(instagram=ig, **data)
+        """Deserialize from a dict (loaded from YAML).
+
+        Tolerant of unknown keys so a config written by a different version
+        (e.g. one with an extra instagram field) loads instead of crashing.
+        """
+        data = dict(data)  # don't mutate the caller's dict
+        ig_data = data.pop("instagram", {}) or {}
+        ig_data.pop("password", None)  # password lives in .env, never config
+        known_ig = {f.name for f in fields(InstagramSettings)}
+        ig = InstagramSettings(**{k: v for k, v in ig_data.items() if k in known_ig})
+        known = {f.name for f in fields(cls)} - {"instagram"}
+        return cls(instagram=ig, **{k: v for k, v in data.items() if k in known})
 
     def get_instagram_password(self) -> str:
         """Get Instagram password from environment (stored in .env)."""

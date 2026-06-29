@@ -1,19 +1,34 @@
 # Transcription Providers
 
-scribe supports 6 providers. Each has different strengths.
+scribe supports 7 providers. Each has different strengths.
+
+## Quality presets (prefer this over picking a provider)
+
+Most users should set `quality` instead of a provider — it picks the provider.
+Recommend `--quality` first; only name a provider when the user wants a specific one.
+
+| `--quality` | Picks | Best for |
+|-------------|-------|----------|
+| `balanced` (default) | Deepgram `nova-3` | Strong accuracy + speaker labels |
+| `accuracy` | ElevenLabs `scribe_v2` | Highest accuracy, primarily-English |
+| `cost` | Groq `whisper-large-v3-turbo` | Cheapest + fastest (~$0.04/hr) |
+| `free` | Local faster-whisper | Offline, $0 |
+
+`--provider` overrides the tier. If the tier's provider has no key, scribe falls back to the configured provider.
 
 ## Quick Comparison
 
-| | OpenAI Whisper | Deepgram Nova | ElevenLabs Scribe | Sarvam AI | OpenRouter | Local |
-|---|---|---|---|---|---|---|
-| **Best for** | General purpose | Diarization + Hinglish | Highest accuracy | Indian languages | Model variety | Offline / free |
-| **Languages** | 99 | 89 | 92 | 23 Indian + English | Varies | 99 |
-| **Timestamps** | Segment-level | Word-level | Word-level | No | No | Segment-level |
-| **Diarization** | Yes (`--diarize`) | Yes (`--diarize`) | No | Yes (`--diarize`) | No | No |
-| **Cost** | ~$0.36/hr | ~$0.30/hr | ~$0.22–0.40/hr | ~$0.35/hr | Varies | Free |
-| **File limit** | 25 MB | No hard limit | 25 MB | 30 sec | 25 MB | RAM only |
-| **Offline** | No | No | No | No | No | Yes |
-| **API key env** | `OPENAI_API_KEY` | `DEEPGRAM_API_KEY` | `ELEVENLABS_API_KEY` | `SARGAM_API_KEY` | `OPENROUTER_API_KEY` | None |
+| | OpenAI Whisper | Deepgram Nova | ElevenLabs Scribe | Sarvam AI | Groq | OpenRouter | Local |
+|---|---|---|---|---|---|---|---|
+| **Best for** | General purpose | Diarization + Hinglish | Highest accuracy | Indian languages | Cheapest + fastest | Model variety | Offline / free |
+| **Languages** | 99 | 89 | 90+ | 23 Indian + English | 99 | Varies | 99 |
+| **Timestamps** | Segment-level | Word-level | Word-level | No | Segment-level | No | Segment-level |
+| **Diarization** | Yes (`--diarize`) | Yes (`--diarize`) | No | Yes (`--diarize`) | No | No | No |
+| **Cost** | ~$0.36/hr | ~$0.30/hr | ~$0.22–0.40/hr | ~$0.35/hr | ~$0.04/hr | Varies | Free |
+| **File limit** | 25 MB | No hard limit | 25 MB | 30 sec | 25 MB | 25 MB | RAM only |
+| **Offline** | No | No | No | No | No | No | Yes |
+| **API key env** | `OPENAI_API_KEY` | `DEEPGRAM_API_KEY` | `ELEVENLABS_API_KEY` | `SARGAM_API_KEY` | `GROQ_API_KEY` | `OPENROUTER_API_KEY` | None |
+| **Quality tier** | — | `balanced` | `accuracy` | — | `cost` | — | `free` |
 
 ## OpenAI Whisper (provider: `openai`)
 
@@ -50,12 +65,12 @@ Fast, accurate transcription with native speaker diarization and Hindi Latin scr
 
 Premium accuracy with word-level timestamps and speaker diarization.
 
-- **Model:** scribe_v1
+- **Model:** scribe_v2 (top-accuracy model; replaced scribe_v1 which ElevenLabs removed 2026-07-09)
 - **Cost:** ~$0.22–0.40/hr depending on plan
 - **Features:** Word-level timestamps, up to 32 speaker identification
 - **Get key:** https://elevenlabs.io/app/settings/api-keys
 
-**When to recommend:** User needs highest accuracy, wants to know who said what (speaker ID), or needs precise word-level timestamps.
+**When to recommend:** User needs highest accuracy or precise word-level timestamps. This is what the `accuracy` quality tier selects (the default is `balanced` → Deepgram).
 
 ## Sarvam AI (provider: `sargam`)
 
@@ -68,6 +83,19 @@ Specialized for Indian languages. Dramatically better than Whisper for Hindi, Ta
 - **Get key:** https://dashboard.sarvam.ai
 
 **When to recommend:** Any content in Indian languages. Handles code-mixed audio (e.g., Hindi-English) well. Not suited for non-Indian languages.
+
+## Groq (provider: `groq`)
+
+Cheapest and fastest cloud option. Runs Whisper `large-v3-turbo` on Groq accelerators; OpenAI-compatible output (segment timestamps included).
+
+- **Model:** whisper-large-v3-turbo
+- **Cost:** ~$0.04/hr — the cheapest cloud provider
+- **Chunking:** 25 MB auto-chunked (same as OpenAI)
+- **Diarization:** No — use the `accuracy`/`balanced` tier or `--provider deepgram`
+- **Get key:** https://console.groq.com/keys
+- **Quick setup:** `scribe config set groq_api_key gsk-...`
+
+**When to recommend:** The `cost` quality tier maps here. Bulk/low-cost transcription where speaker labels aren't needed.
 
 ## OpenRouter (provider: `openrouter`)
 

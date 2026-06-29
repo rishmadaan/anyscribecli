@@ -21,6 +21,9 @@ err_console = Console(stderr=True)
 def batch(
     file: Path = typer.Argument(..., help="File containing URLs or file paths (one per line)."),
     provider: str | None = typer.Option(None, "--provider", "-p", help="Override provider."),
+    quality: str | None = typer.Option(
+        None, "--quality", help="Quality preset: accuracy | balanced | cost | free."
+    ),
     language: str | None = typer.Option(None, "--language", "-l", help="Override language."),
     output_json: bool = typer.Option(False, "--json", "-j", help="Output results as JSON."),
     keep_media: bool = typer.Option(False, "--keep-media", help="Keep audio files."),
@@ -77,6 +80,8 @@ def batch(
     settings = load_config()
     if provider:
         settings.provider = provider
+    if quality:
+        settings.quality = quality
     if language:
         settings.language = language
     if keep_media:
@@ -92,6 +97,11 @@ def batch(
                         f"  [dim]Switching from {settings.provider} → deepgram for diarization[/dim]"
                     )
                 settings.provider = "deepgram"
+
+    # Resolve the quality tier to a provider (skipped if provider pinned or diarizing).
+    from anyscribecli.core.quality import apply_quality
+
+    apply_quality(settings, explicit_provider=bool(provider) or diarize)
 
     results: list[dict] = []
     succeeded = 0

@@ -43,6 +43,7 @@ PROVIDER_KEY_ENV = {
     "elevenlabs": "ELEVENLABS_API_KEY",
     "sargam": "SARGAM_API_KEY",
     "openrouter": "OPENROUTER_API_KEY",
+    "groq": "GROQ_API_KEY",
 }
 
 API_PROVIDERS = set(PROVIDER_KEY_ENV.keys())

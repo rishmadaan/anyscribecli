@@ -24,6 +24,7 @@ class OpenAIProvider(TranscriptionProvider):
     """
 
     API_URL = "https://api.openai.com/v1/audio/transcriptions"
+    MODEL = "whisper-1"  # subclasses (e.g. Groq) override this
 
     @property
     def name(self) -> str:
@@ -43,7 +44,7 @@ class OpenAIProvider(TranscriptionProvider):
         with open(audio_path, "rb") as f:
             files = {"file": (audio_path.name, f, "audio/mpeg")}
             data: dict[str, str] = {
-                "model": "whisper-1",
+                "model": self.MODEL,
                 "response_format": "verbose_json",
                 "timestamp_granularities[]": "segment",
             }

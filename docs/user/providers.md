@@ -9,30 +9,56 @@ read_when:
 
 # Providers
 
-scribe supports 6 transcription providers. Here's how they compare and when to use each.
+scribe supports 7 transcription providers. Here's how they compare and when to use each.
+
+> **Don't want to choose?** Use the **`quality`** setting — pick `accuracy`,
+> `balanced`, `cost`, or `free` and scribe selects the provider for you. See
+> [Quality presets](#quality-presets) below.
 
 ## Privacy — who sees your audio?
 
 Worth knowing before you pick. scribe itself doesn't phone home — everything runs on your own machine — but your audio has to go wherever the transcription happens.
 
 - **Local provider:** audio stays on your machine. Nothing leaves. Fully offline once the Whisper model is downloaded.
-- **API providers (OpenAI / Deepgram / ElevenLabs / Sarvam / OpenRouter):** scribe sends your audio to the API you picked and nothing else. No intermediary, no third party, no scribe-operated cloud. Your trust boundary is exactly the provider you chose — same as if you called their API directly.
+- **API providers (OpenAI / Deepgram / ElevenLabs / Sarvam / Groq / OpenRouter):** scribe sends your audio to the API you picked and nothing else. No intermediary, no third party, no scribe-operated cloud. Your trust boundary is exactly the provider you chose — same as if you called their API directly.
 - **YouTube / Instagram source URLs:** downloading the video obviously requires internet, and the source host sees the request. The transcribed audio then follows the same rule above (stays local with the local provider; goes to the API provider otherwise).
 
 If privacy is the main reason you're evaluating scribe, use the **Local** provider + local files for an end-to-end-offline pipeline.
 
+## Quality presets
+
+The easiest way to use scribe: pick **what you want** and it chooses the provider.
+
+| `--quality` | Picks | Best for |
+|-------------|-------|----------|
+| `balanced` (default) | Deepgram `nova-3` | Strong accuracy + speaker labels |
+| `accuracy` | ElevenLabs `scribe_v2` | Highest accuracy, primarily-English |
+| `cost` | Groq `whisper-large-v3-turbo` | Cheapest + fastest cloud (~$0.04/hr) |
+| `free` | Local faster-whisper | Offline, $0 |
+
+```bash
+scribe "<url>" --quality accuracy     # per run
+scribe config set quality cost         # change the default
+```
+
+If you pass `--provider`, it overrides the tier. If the tier's provider has no
+key set, scribe falls back to your configured provider. Each tier needs that
+provider's key (accuracy → `ELEVENLABS_API_KEY`, cost → `GROQ_API_KEY`, …);
+`free` needs none.
+
 ## Quick Comparison
 
-| | OpenAI Whisper | Deepgram Nova | ElevenLabs Scribe | Sarvam AI | OpenRouter | Local |
-|---|---|---|---|---|---|---|
-| **Best for** | General purpose | Diarization (auto-selected) + Hinglish | High accuracy | Indian languages | Model flexibility | Offline / free |
-| **Languages** | 99 | 89 | 92 | 23 Indian + English | Model-dependent | 99 |
-| **Timestamps** | Segment-level | Word-level | Word-level | No (REST API) | No | Segment-level |
-| **Diarization** | Yes (`--diarize`) | Yes (`--diarize`) | No (via scribe) | Yes (`--diarize`) | No | No |
-| **Pricing** | ~$0.36/hr | ~$0.30/hr | ~$0.22–0.40/hr | ~$0.35/hr | Varies by model | Free |
-| **File limit** | 25 MB (auto-chunked) | No hard limit | 25 MB (auto-chunked) | 30s (auto-chunked) | 25 MB (auto-chunked) | RAM only |
-| **Offline** | No | No | No | No | No | Yes |
-| **API key** | Required | Required | Required | Required | Required | Not needed |
+| | OpenAI Whisper | Deepgram Nova | ElevenLabs Scribe | Sarvam AI | Groq | OpenRouter | Local |
+|---|---|---|---|---|---|---|---|
+| **Best for** | General purpose | Diarization (auto-selected) + Hinglish | Highest accuracy | Indian languages | Cheapest + fastest | Model flexibility | Offline / free |
+| **Languages** | 99 | 89 | 90+ | 23 Indian + English | 99 | Model-dependent | 99 |
+| **Timestamps** | Segment-level | Word-level | Word-level | No (REST API) | Segment-level | No | Segment-level |
+| **Diarization** | Yes (`--diarize`) | Yes (`--diarize`) | No (via scribe) | Yes (`--diarize`) | No | No | No |
+| **Pricing** | ~$0.36/hr | ~$0.30/hr | ~$0.22–0.40/hr | ~$0.35/hr | ~$0.04/hr | Varies by model | Free |
+| **File limit** | 25 MB (auto-chunked) | No hard limit | 25 MB (auto-chunked) | 30s (auto-chunked) | 25 MB (auto-chunked) | 25 MB (auto-chunked) | RAM only |
+| **Offline** | No | No | No | No | No | No | Yes |
+| **API key** | Required | Required | Required | Required | Required | Required | Not needed |
+| **Quality tier** | — | `balanced` | `accuracy` | — | `cost` | — | `free` |
 
 ## Provider Details
 
@@ -77,7 +103,7 @@ scribe config set deepgram_api_key YOUR_KEY    # $200 free credit on signup
 | Mostly Hindi / Hinglish (Hindi-English mix) | `--language hi-Latn` | Outputs romanized Hindi in Latin script, better code-switching |
 | Pure Hindi (want Devanagari) | `--language hi` | Outputs in Devanagari script |
 
-> **When to use:** Best choice for multi-speaker transcripts (meetings, interviews, podcasts). Handles long recordings (3+ hours) without chunking. Excellent for Hinglish content with `--language hi-Latn`. This is the provider scribe auto-selects when you use `--diarize`.
+> **When to use:** Best choice for multi-speaker transcripts (meetings, interviews, podcasts). Handles long recordings (3+ hours) without chunking. Excellent for Hinglish content with `--language hi-Latn`. This is the provider scribe auto-selects when you use `--diarize`, and what the **`balanced`** quality tier (the default) selects.
 
 ### ElevenLabs Scribe
 
@@ -91,9 +117,9 @@ scribe config set provider elevenlabs
 - **Get a key:** [elevenlabs.io/app/settings/api-keys](https://elevenlabs.io/app/settings/api-keys)
 - **Cost:** ~$0.22–0.40/hour depending on plan
 - **File limit:** The ElevenLabs API accepts up to 3 GB, but scribe chunks at 25 MB (same as OpenAI) for consistency
-- **Model:** `scribe_v1`
+- **Model:** `scribe_v2` (the most accurate model currently measured)
 
-> **When to use:** When you need the highest accuracy, word-level timestamps, or speaker identification. Slightly cheaper than OpenAI for high volumes.
+> **When to use:** When you need the highest accuracy, word-level timestamps, or speaker identification. This is what the **`accuracy`** quality tier selects.
 
 ### Sarvam AI
 
@@ -111,6 +137,23 @@ scribe config set provider sargam
 - **Supported languages:** Hindi, Tamil, Telugu, Kannada, Malayalam, Bengali, Gujarati, Marathi, Punjabi, Odia, Assamese, Urdu, Sanskrit, and more
 
 > **When to use:** Transcribing content in Indian languages. Significantly better than Whisper for Hindi, Tamil, Telugu, etc. Not suited for non-Indian languages.
+
+### Groq
+
+The cheapest and fastest cloud option. Runs OpenAI's Whisper `large-v3-turbo` on Groq's accelerators and returns the same Whisper output scribe already parses (segment timestamps included).
+
+```bash
+scribe config set groq_api_key gsk-...
+```
+
+- **API key env var:** `GROQ_API_KEY`
+- **Get a key:** [console.groq.com/keys](https://console.groq.com/keys)
+- **Cost:** ~$0.04/hour — the cheapest cloud provider
+- **File limit:** 25 MB (auto-chunked, same as OpenAI)
+- **Model:** `whisper-large-v3-turbo`
+- **Diarization:** No — use the `accuracy` or `balanced` tier (or `--provider deepgram`) for speaker labels
+
+> **When to use:** the **`cost`** quality tier maps here. Great for bulk, low-cost transcription where you don't need speaker labels. Fast enough that long files fly through.
 
 ### OpenRouter
 
@@ -217,6 +260,7 @@ scribe config set openai_api_key sk-proj-...
 scribe config set elevenlabs_api_key xi-...
 scribe config set openrouter_api_key sk-or-...
 scribe config set sargam_api_key YOUR_KEY
+scribe config set groq_api_key gsk-...
 ```
 
 These are stored in `~/.anyscribecli/.env` automatically.
