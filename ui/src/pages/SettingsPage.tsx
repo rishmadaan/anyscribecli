@@ -280,7 +280,25 @@ export default function SettingsPage() {
           Configure Defaults
         </h2>
         <div className="space-y-4">
-          <SettingRow label="Default provider">
+          <SettingRow label="Default quality">
+            <div className="flex rounded-md border border-border overflow-hidden">
+              {["accuracy", "balanced", "cost", "free"].map((q) => (
+                <button
+                  key={q}
+                  onClick={() => handleSave({ quality: q })}
+                  className={`px-3 py-1.5 text-xs font-mono transition-colors cursor-pointer ${
+                    config.quality === q
+                      ? "bg-amber/15 text-amber border-r border-border"
+                      : "bg-surface-raised text-text-muted hover:text-text border-r border-border"
+                  }`}
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
+          </SettingRow>
+
+          <SettingRow label="Provider (fallback)">
             <div className="flex items-center gap-2">
               <select
                 value={config.provider}

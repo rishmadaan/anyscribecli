@@ -63,6 +63,8 @@ async def start_transcribe(req: TranscribeRequest) -> dict:
     # Apply overrides from request
     if req.provider:
         settings.provider = req.provider
+    if req.quality:
+        settings.quality = req.quality
     if req.language:
         settings.language = req.language
     if req.output_format:
@@ -71,6 +73,11 @@ async def start_transcribe(req: TranscribeRequest) -> dict:
     if req.diarize and settings.output_format == "clean":
         settings.output_format = "diarized"
     settings.keep_media = req.keep_media
+
+    # Resolve the quality tier to a provider (skipped if provider pinned or diarizing).
+    from anyscribecli.core.quality import apply_quality
+
+    apply_quality(settings, explicit_provider=bool(req.provider) or req.diarize)
 
     loop = asyncio.get_event_loop()
     job_id = await job_manager.submit(req.url, settings, loop)

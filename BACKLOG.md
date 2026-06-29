@@ -49,8 +49,8 @@ The `0.x` prefix means pre-stable — breaking changes are allowed between minor
 | 0.8.1 | Three-surface onboarding parity: Web UI wizard (first-run modal), TUI `scribe onboard` (unchanged), headless `scribe onboard --yes` for agents — all converging on shared `core/onboard_headless.py`. Plus `scribe model reinstall`, FIFO download queue, live install-log streaming, focus-trapped modals, always-visible Diagnose. New architecture-doc section making the shared-backend + asymmetric-surface rule explicit. All v0.8.0 scope included. | Released 2026-04-18 |
 | 0.8.2 | Fix Web UI "Browse local file" auto-submitting on upload. Post-upload now populates the URL input so the user can adjust options before pressing Transcribe. | Released 2026-04-20 |
 | 0.8.3 | Instagram yt-dlp migration branch tag. Not a mainline stable release from `main`; keep mainline release numbering at 0.8.4+. | Branch tag |
-| 0.8.4 | Release hardening: CI, publish gates, portable release script, Windows file locking, preflight fixes, frontend lint cleanup, rebuilt web bundle. | **Current** |
-| 0.9.0 | Cache/dedup, test suite, error handling | Next |
+| 0.8.4 | Release hardening: CI, publish gates, portable release script, Windows file locking, preflight fixes, frontend lint cleanup, rebuilt web bundle. | Released 2026-05-28 |
+| 0.9.0 | Accuracy↔cost quality picker (accuracy/balanced/cost/free) + Groq provider; ElevenLabs scribe_v2; config-load resilience | **Current** |
 | 0.9.x | Byte-level download progress in Web UI — stream faster-whisper/HF progress via WebSocket to replace the spinner in `LocalSetupModal` and the Models table | Queued |
 | 0.10.0 | Menu-bar tray companion + auto-start ([plan](docs/building/journal/2026-04-18-menu-bar-tray-companion-plan.md)) | Planned |
 | 1.0.0 | Stable: broader test coverage and release hardening | Future |
@@ -350,7 +350,23 @@ All features originally planned for v0.2.0–v0.5.0, built in one session:
 
 ---
 
-## v0.9.0 — Menu-bar tray companion (planned)
+## v0.9.0 — Quality picker + Groq ✅
+
+Accuracy↔cost picker so users pick intent, not provider plumbing. Resolves to a
+provider via the same auto-routing pattern as `--diarize`.
+
+- [x] `quality` setting + `--quality` flag (CLI transcribe + batch) + Web UI picker (Transcribe + Settings), default `balanced` (Deepgram)
+- [x] Tiers: accuracy→ElevenLabs `scribe_v2`, balanced→Deepgram `nova-3`, cost→Groq `whisper-large-v3-turbo`, free→local
+- [x] New **Groq** provider (OpenAI-compatible subclass) — cheapest + fastest cloud
+- [x] ElevenLabs `scribe_v1`→`scribe_v2` (v1 removed 2026-07-09; v2 is top-WER)
+- [x] Graceful fallback to the configured provider when a tier's key is absent
+- [x] Config-load resilience: `Settings.from_dict` tolerates unknown keys (version drift)
+
+See [journal/2026-06-29-quality-picker.md](docs/building/journal/2026-06-29-quality-picker.md).
+
+---
+
+## Menu-bar tray companion (planned — v0.10.0)
 
 Turn `scribe ui` into a click-to-open, always-there experience without adopting a native-app build chain. Browser stays the UI surface — no Tauri/Electron.
 

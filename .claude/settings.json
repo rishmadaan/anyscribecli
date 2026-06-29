@@ -18,5 +18,8 @@
       "Bash(mv \"Footer Horizontal.png\" doodles-desktop.png)",
       "Bash(mv \"Footer Horizontal 2.0.png\" doodles-desktop-2.png)"
     ]
+  },
+  "enabledPlugins": {
+    "ponytail@ponytail": true
   }
 }

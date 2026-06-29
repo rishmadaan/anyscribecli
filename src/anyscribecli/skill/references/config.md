@@ -15,7 +15,8 @@
 ## config.yaml Settings
 
 ```yaml
-provider: openai          # openai | deepgram | elevenlabs | sargam | openrouter | local
+provider: openai          # explicit provider (or let `quality` pick): openai | deepgram | elevenlabs | sargam | groq | openrouter | local
+quality: balanced         # accuracy | balanced | cost | free — picks a provider
 language: auto            # auto | ISO code (en, es, fr, hi, hi-Latn, ar, zh, ja, ko...)
 keep_media: false         # Keep audio files after transcription
 output_format: clean      # clean | timestamped | diarized
@@ -29,7 +30,9 @@ instagram:
 
 ### Setting details
 
-**provider** — Default transcription service. Override per-command with `--provider`.
+**provider** — Explicit transcription service. Usually you set `quality` instead and leave this; it's the fallback when a `quality` tier's key is missing. Override per-command with `--provider`.
+
+**quality** — Accuracy↔cost preset that picks a provider: `accuracy`→ElevenLabs scribe_v2, `balanced`→Deepgram nova-3, `cost`→Groq, `free`→local. Default `balanced` (Deepgram). Override per-command with `--quality`. `--provider` wins over it.
 
 **language** — Default audio language. `auto` lets the provider detect it. Set explicitly if detection is wrong. Override per-command with `--language`.
 
@@ -55,6 +58,7 @@ DEEPGRAM_API_KEY=...
 ELEVENLABS_API_KEY=xi-...
 OPENROUTER_API_KEY=sk-or-...
 SARGAM_API_KEY=...
+GROQ_API_KEY=gsk-...
 INSTAGRAM_PASSWORD=...
 OPENROUTER_MODEL=openai/gpt-4o-audio-preview   # Optional override
 ASCLI_LOCAL_MODEL=base                           # Optional: tiny|base|small|medium|large-v3

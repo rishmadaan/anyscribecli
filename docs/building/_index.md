@@ -2,6 +2,8 @@
 
 | Date | Type | Entry | TL;DR |
 |------|------|-------|-------|
+| 2026-06-29 | feature | [[journal/2026-06-29-quality-picker.md\|Quality picker (accuracy ↔ cost) + Groq]] | Accuracy↔cost picker (accuracy/balanced/cost/free) that resolves to a provider like `--diarize` does. Adds a Groq provider, migrates ElevenLabs to `scribe_v2` (v1 removed 2026-07-09), and makes config loading tolerate version drift. v0.9.0. |
+| 2026-06-27 | reference | [[journal/2026-06-27-transcription-landscape-and-config-audit.md\|Transcription landscape & configurability audit]] | Audit of what's configurable vs hard-coded, a mid-2026 survey of the transcription-provider market, and a prioritized gap analysis. Urgent: ElevenLabs `scribe_v1` is removed 2026-07-09 and scribe targets it. |
 | 2026-05-29 | troubleshooting | [[journal/2026-05-29-web-upload-filename-preservation.md\|Web upload filename preservation]] | Web UI uploads now keep the original filename in an isolated temp subdirectory so transcript slugs come from the user's file name instead of a UUID. |
 | 2026-05-28 | troubleshooting | [[journal/2026-05-28-ci-frontend-bundle-line-endings.md\|CI frontend bundle line endings]] | CI failed because the committed Vite JS hash came from a Windows line-ending build; the Linux runner produced a different hashed bundle, so static assets now use LF-normalized attributes. |
 | 2026-05-28 | troubleshooting | [[journal/2026-05-28-publish-readiness-follow-up.md\|Publish-readiness follow-up audit]] | Follow-up audit aligned package metadata to the documented 0.8.4 release, fixed a dev-only npm advisory, added the missing publish-time frontend gate, and re-ran the publish checks. |

@@ -2,6 +2,7 @@
 
 export interface Config {
   provider: string;
+  quality: string;
   language: string;
   keep_media: boolean;
   output_format: string;
@@ -137,6 +138,7 @@ export interface ProviderLanguagesResponse {
 export interface TranscribeRequest {
   url: string;
   provider?: string;
+  quality?: string;
   language?: string;
   diarize?: boolean;
   keep_media?: boolean;

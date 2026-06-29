@@ -1,19 +1,52 @@
 # Architecture
 
-**Last updated:** 2026-04-18 (v0.7.2.3-ui)
+**Last updated:** 2026-06-27
 
 ## Overview
 
-anyscribecli is a Python CLI tool with a layered pipeline architecture:
+anyscribecli has three entry surfaces but one shared core. The CLI, the Web UI,
+and the Claude Code skill (via MCP) all funnel into the same orchestrator, which
+runs a fixed five-step pipeline:
 
 ```
-URL input -> Platform detection -> Download (yt-dlp / instaloader)
-          -> Audio optimization (16kHz, mono, 64kbps mp3)
-          -> Chunking if needed (18-min for Whisper, 30s for Sarvam)
-          -> Transcription (pluggable provider)
-          -> Markdown generation (frontmatter + body, clean/timestamped/diarized)
-          -> Vault indexing (_index.md + daily log)
+   three ways in            ┌────────┐  ┌────────┐  ┌──────────────┐
+                            │  CLI   │  │ Web UI │  │  Claude Code │
+                            │ scribe │  │ React+ │  │   skill/MCP  │
+                            │        │  │FastAPI │  │              │
+                            └───┬────┘  └───┬────┘  └──────┬───────┘
+                                └───────────┼──────────────┘
+                                            ▼
+                              ┌───────────────────────────┐
+   one shared core            │  core/orchestrator.process │
+                              └─────────────┬─────────────┘
+                                            ▼
+   1. download    ┌────────────────────────────────────────────────┐
+                  │ registry picks downloader (first match wins):   │
+                  │   local file → YouTube (yt-dlp) → Instagram      │
+                  └───────────────────────┬────────────────────────┘
+                                          ▼
+   2. prepare     ┌────────────────────────────────────────────────┐
+      audio       │ 16 kHz · mono · 64 kbps mp3                     │
+                  │ chunk if >25 MB or >30 min (18-min parts, 5s ov)│
+                  └───────────────────────┬────────────────────────┘
+                                          ▼
+   3. transcribe  ┌────────────────────────────────────────────────┐
+                  │ one of 7 providers (cloud API or local Whisper) │
+                  │ openai · deepgram · elevenlabs · sargam · ...    │
+                  └───────────────────────┬────────────────────────┘
+                                          ▼
+   4. write       ┌────────────────────────────────────────────────┐
+                  │ markdown → ~/anyscribe vault                    │
+                  │ frontmatter + body (clean/timestamped/diarized) │
+                  └───────────────────────┬────────────────────────┘
+                                          ▼
+   5. index       ┌────────────────────────────────────────────────┐
+                  │ update _index.md MOC + daily log                │
+                  └────────────────────────────────────────────────┘
 ```
+
+Downloaded media lands *outside* the vault (in `~/.anyscribecli/downloads/`) so
+the Obsidian vault at `~/anyscribe/` stays pure markdown.
 
 ## Layers
 
@@ -68,15 +101,17 @@ URL input -> Platform detection -> Download (yt-dlp / instaloader)
 ### Provider Layer (`providers/`)
 - Abstract base with `transcribe(audio_path, language, diarize) -> TranscriptResult`
 - `TranscriptSegment` includes optional `speaker` field for diarization
-- 6 providers implemented:
-  - **OpenAI** (default): Whisper API or `gpt-4o-transcribe-diarize` with `--diarize`
+- 7 providers implemented:
+  - **OpenAI** (default): Whisper API or `gpt-4o-transcribe-diarize` with `--diarize`. `MODEL` class attr so Groq can subclass it.
   - **Deepgram**: Nova-3, native diarization, `hi-Latn` support
-  - **ElevenLabs**: Scribe v1, word-level timestamps, 99 languages
+  - **ElevenLabs**: Scribe v2, word-level timestamps, 90+ languages
   - **OpenRouter**: Audio-via-chat (GPT-4o-audio-preview), no timestamps
   - **Sargam/Sarvam**: Indic languages, auto-chunks to 30s REST API limit, diarization support
+  - **Groq**: `whisper-large-v3-turbo`, OpenAI-compatible — thin subclass of `OpenAIProvider`. Cheapest + fastest.
   - **Local**: faster-whisper, offline, CPU/GPU, no API key
 - Lazy-import registry — each provider only loaded when requested
 - Provider selected via config, overridable per-run with `--provider`
+- **Quality routing**: `quality` (accuracy/balanced/cost/free) resolves to a provider via `core/quality.py::apply_quality`, mirroring the `--diarize → deepgram` auto-routing. Precedence: explicit `--provider` → `--diarize` → `quality` → configured provider.
 - Diarization enabled per-run with `--diarize` flag or `diarize: true` in config
 
 ### Vault Layer (`vault/`)
@@ -112,6 +147,46 @@ URL input -> Platform detection -> Download (yt-dlp / instaloader)
 - **Web UI as core dependency**: FastAPI/uvicorn ship with `pip install anyscribecli` (not optional). One app, one install. Same pattern as gitstow. React SPA builds to `web/static/`, committed to repo — end users don't need Node.js
 - **Progress callback over async rewrite**: `on_progress` callback on `process()` avoids rewriting all providers/downloaders as async. ThreadPoolExecutor bridges sync→async cleanly
 - **WebSocket over polling**: Real-time transcription progress (download→transcribe→write→index) needs instant feedback, not 30s HTMX polls. Event replay on late-connecting clients prevents missed events
+
+## Configurability surface: tunable vs hard-coded
+
+scribe draws a deliberate line: **user-facing behaviour is configurable; the
+audio and transcription mechanics are constants in source.** This keeps
+`config.yaml` short for a semi-technical audience, at the cost of power-user
+tunability. The user-facing version of this boundary is in
+`docs/user/configuration.md`; this section is the developer map.
+
+```
+   set at runtime (knobs)                fixed in source (constants)
+   ┌───────────────────────────┐        ┌────────────────────────────────┐
+   │ config/settings.py         │        │ core/audio.py   — chunk sizes  │
+   │   → config.yaml            │        │ providers/*.py  — model IDs    │
+   │ .env             (secrets) │        │ downloaders/*   — 16k/mono/64k │
+   │ CLI flags · Web UI · MCP   │        │ config/paths.py — ~/.anyscribe │
+   └───────────────────────────┘        │ web/app.py      — host 127.0.. │
+   change anytime, no code              └────────────────────────────────┘
+                                        change = edit source + reinstall
+```
+
+Hard-coded constants and where they live:
+
+| Constant | Value | Source | Why fixed |
+|----------|-------|--------|-----------|
+| Audio profile | 16 kHz · mono · 64 kbps mp3 | `downloaders/youtube.py:58`, `instagram.py:149`, `local_file.py:52`, `core/audio.py:97` | Proven optimal for Whisper accuracy-per-byte. Duplicated across 4 files — no shared constant yet. |
+| Whisper size trigger | 25 MB (`WHISPER_MAX_BYTES`) | `core/audio.py:9` | OpenAI upload cap |
+| Whisper duration trigger | 30 min (`WHISPER_MAX_DURATION_SECONDS`) | `core/audio.py:16` | HTTP timeout ceiling |
+| Chunk length / overlap | 18 min / 5 s | `core/audio.py:20,23` | Stays under 25 MB at 64 kbps |
+| Sarvam chunk | 30 s (`SARVAM_MAX_DURATION`) | `providers/sargam.py:27` | Sarvam sync REST cap |
+| Provider model IDs | `whisper-1`, `gpt-4o-transcribe-diarize`, `nova-3`/`nova`, `scribe_v2`, `saaras:v2`, `whisper-large-v3-turbo` (groq) | each `providers/*.py` | Pinned per provider (the `quality` tier picks the provider, not the model) |
+| App home | `~/.anyscribecli` | `config/paths.py:6` | Fixed root for config + state |
+| Web bind host | `127.0.0.1` (port is configurable via `--port`) | `web/app.py:63` | Localhost-only by design; server has no auth |
+| Registries | provider & downloader plugin tables | `providers/__init__.py`, `downloaders/registry.py` | Code-level extension points |
+
+> **Why this split?** Config covers "what do I want out"; the hard-coded layer
+> covers "how the transcription sausage gets made." See the
+> [2026-06-27 audit](journal/2026-06-27-transcription-landscape-and-config-audit.md)
+> for which of these constants are worth promoting to config and which should
+> stay fixed.
 
 ## CLI ↔ Web UI: shared backend, asymmetric surfaces
 

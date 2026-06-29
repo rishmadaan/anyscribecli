@@ -96,7 +96,7 @@ scribe onboard \
 | Flag | Required with `--yes` | Default | Description |
 |------|-----------------------|---------|-------------|
 | `--yes` / `-y` | yes | off | Opt into headless mode. Without this, `scribe onboard` runs the interactive TUI. |
-| `--provider` / `-p` | **yes** | none | One of `openai`, `deepgram`, `elevenlabs`, `sargam`, `openrouter`, `local`. |
+| `--provider` / `-p` | **yes** | none | One of `openai`, `deepgram`, `elevenlabs`, `sargam`, `groq`, `openrouter`, `local`. |
 | `--api-key` | for API providers (or use env var) | none | Stored in `~/.anyscribecli/.env`. Prefer setting the env var (e.g. `OPENAI_API_KEY`) to avoid leaking keys into shell history. |
 | `--local-model` | **yes when `--provider=local`** | none | Whisper size. Recommended: `base`. |
 | `--workspace` | no | `~/anyscribe` | Absolute path to the Obsidian vault. |
@@ -165,7 +165,8 @@ scribe --clipboard
 
 | Flag | Short | Description | Default |
 |------|-------|-------------|---------|
-| `--provider` | `-p` | Transcription provider to use | From config (openai) |
+| `--quality` | | Quality preset: `accuracy` \| `balanced` \| `cost` \| `free` (picks a provider) | From config (balanced) |
+| `--provider` | `-p` | Explicit provider — overrides `--quality` | From config |
 | `--language` | `-l` | Language code for transcription | `auto` (auto-detect) |
 | `--json` | `-j` | Output result as JSON | Off |
 | `--keep-media` | | Keep the downloaded audio file | From config (false) |
@@ -189,6 +190,10 @@ scribe ./interview.opus
 
 # Interactive — paste URL or file path when prompted
 scribe transcribe
+
+# Pick a quality tier — balanced (default), accuracy, cost, or free
+scribe "https://youtube.com/watch?v=abc123" --quality accuracy  # highest accuracy
+scribe "https://youtube.com/watch?v=abc123" --quality cost      # cheapest (Groq)
 
 # From clipboard
 scribe --clipboard
@@ -298,7 +303,8 @@ scribe batch urls.txt
 
 | Flag | Short | Description | Default |
 |------|-------|-------------|---------|
-| `--provider` | `-p` | Override provider | From config |
+| `--quality` | | Quality preset: `accuracy` \| `balanced` \| `cost` \| `free` | From config |
+| `--provider` | `-p` | Override provider (wins over `--quality`) | From config |
 | `--language` | `-l` | Override language | `auto` |
 | `--json` | `-j` | Output results as JSON | Off |
 | `--keep-media` | | Keep audio files | From config |

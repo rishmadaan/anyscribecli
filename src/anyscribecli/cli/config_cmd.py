@@ -23,6 +23,7 @@ _API_KEY_MAP = {
     "elevenlabs_api_key": "ELEVENLABS_API_KEY",
     "sargam_api_key": "SARGAM_API_KEY",
     "deepgram_api_key": "DEEPGRAM_API_KEY",
+    "groq_api_key": "GROQ_API_KEY",
 }
 
 console = Console()

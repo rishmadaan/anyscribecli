@@ -67,6 +67,7 @@ export const updateKey = (provider_name: string, api_key: string) =>
 export const startTranscribe = (data: {
   url: string;
   provider?: string;
+  quality?: string;
   language?: string;
   diarize?: boolean;
   keep_media?: boolean;

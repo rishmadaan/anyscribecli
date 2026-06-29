@@ -8,6 +8,7 @@ from pydantic import BaseModel
 class TranscribeRequest(BaseModel):
     url: str
     provider: str | None = None
+    quality: str | None = None
     language: str | None = None
     diarize: bool = False
     keep_media: bool = False
@@ -28,6 +29,7 @@ class JobStatusResponse(BaseModel):
 
 class ConfigUpdateRequest(BaseModel):
     provider: str | None = None
+    quality: str | None = None
     language: str | None = None
     keep_media: bool | None = None
     output_format: str | None = None

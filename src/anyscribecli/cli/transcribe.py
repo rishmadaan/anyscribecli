@@ -21,6 +21,9 @@ def transcribe(
     provider: Optional[str] = typer.Option(
         None, "--provider", "-p", help="Override transcription provider."
     ),
+    quality: Optional[str] = typer.Option(
+        None, "--quality", help="Quality preset: accuracy | balanced | cost | free."
+    ),
     language: Optional[str] = typer.Option(
         None, "--language", "-l", help="Language code (default: auto-detect)."
     ),
@@ -75,6 +78,8 @@ def transcribe(
     # Apply per-run overrides
     if provider:
         settings.provider = provider
+    if quality:
+        settings.quality = quality
     if language:
         settings.language = language
     if keep_media:
@@ -93,6 +98,12 @@ def transcribe(
                         f"  [dim]Switching from {settings.provider} → deepgram for diarization[/dim]"
                     )
                 settings.provider = "deepgram"
+
+    # Resolve the quality tier to a provider — skipped if the user pinned a
+    # provider or enabled diarization (both already chose the provider above).
+    from anyscribecli.core.quality import apply_quality
+
+    apply_quality(settings, explicit_provider=bool(provider) or diarize)
 
     try:
         result = process(url, settings, quiet=quiet)

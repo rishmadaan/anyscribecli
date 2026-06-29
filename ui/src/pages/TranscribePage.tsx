@@ -20,7 +20,8 @@ export default function TranscribePage() {
   const [showOptions, setShowOptions] = useState(false);
 
   // Override fields
-  const [provider, setProvider] = useState("");
+  const [quality, setQuality] = useState("balanced");
+  const [provider, setProvider] = useState(""); // "" = auto (resolved from quality)
   const [language, setLanguage] = useState("");
   const [diarize, setDiarize] = useState(false);
   const [keepMedia, setKeepMedia] = useState(false);
@@ -30,7 +31,8 @@ export default function TranscribePage() {
     Promise.all([getConfig(), getProviders()]).then(([c, p]) => {
       setConfig(c);
       setProviders(p);
-      setProvider(c.provider);
+      setQuality(c.quality || "balanced");
+      setProvider(""); // default to auto — quality drives the provider
       setLanguage(c.language);
       setDiarize(c.diarize);
       setKeepMedia(c.keep_media);
@@ -39,7 +41,16 @@ export default function TranscribePage() {
   }, []);
 
   const handleSubmit = (url: string) => {
-    submit({ url, provider, language, diarize, keep_media: keepMedia, output_format: outputFormat });
+    // Send quality; only send provider when the user explicitly overrode "auto".
+    submit({
+      url,
+      quality,
+      provider: provider || undefined,
+      language,
+      diarize,
+      keep_media: keepMedia,
+      output_format: outputFormat,
+    });
   };
 
   // Extract title from download step completion event
@@ -77,12 +88,31 @@ export default function TranscribePage() {
                   <ChevronDown className="w-3.5 h-3.5" />
                 )}
                 <span className="font-mono">
-                  {provider} · {language} · {formatLabel(outputFormat)}{diarize && outputFormat !== "diarized" ? " + speakers" : ""}
+                  {quality}{provider ? ` · ${provider}` : ""} · {language} · {formatLabel(outputFormat)}{diarize && outputFormat !== "diarized" ? " + speakers" : ""}
                 </span>
               </button>
 
               {showOptions && (
                 <div className="mt-3 rounded-lg border border-border-subtle bg-surface p-4 space-y-3 animate-slide-up">
+                  <div className="flex items-center gap-4">
+                    <label className="text-xs text-text-muted w-32 shrink-0">Quality</label>
+                    <div className="flex rounded-md border border-border overflow-hidden">
+                      {["accuracy", "balanced", "cost", "free"].map((q) => (
+                        <button
+                          key={q}
+                          onClick={() => setQuality(q)}
+                          className={`px-3 py-1.5 text-xs font-mono transition-colors cursor-pointer ${
+                            quality === q
+                              ? "bg-amber/15 text-amber border-r border-border"
+                              : "bg-surface-raised text-text-muted hover:text-text border-r border-border"
+                          }`}
+                        >
+                          {q}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
                   <div className="flex items-center gap-4">
                     <label className="text-xs text-text-muted w-32 shrink-0">Provider</label>
                     <select
@@ -90,6 +120,7 @@ export default function TranscribePage() {
                       onChange={(e) => setProvider(e.target.value)}
                       className="flex-1 bg-surface-raised border border-border rounded-md px-2.5 py-1.5 text-sm text-text font-mono outline-none focus:border-amber/40"
                     >
+                      <option value="">auto · from quality</option>
                       {providers.map((p) => (
                         <option key={p.name} value={p.name} disabled={!p.has_key}>
                           {p.name}{p.has_key ? "" : " · needs key"}

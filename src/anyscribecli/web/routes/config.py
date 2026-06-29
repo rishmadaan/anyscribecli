@@ -28,6 +28,7 @@ PROVIDER_INFO: dict[str, str] = {
     "elevenlabs": "High accuracy, 99 languages, word-level timestamps",
     "sargam": "Optimized for Indic languages (Hindi, Tamil, Telugu, etc.)",
     "openrouter": "Access various models via unified API",
+    "groq": "Cheapest + fastest cloud Whisper (large-v3-turbo)",
     "local": "Offline, free, runs on your machine (requires faster-whisper)",
 }
 
@@ -38,6 +39,7 @@ PROVIDER_KEY_MAP: dict[str, str] = {
     "elevenlabs": "ELEVENLABS_API_KEY",
     "sargam": "SARGAM_API_KEY",
     "openrouter": "OPENROUTER_API_KEY",
+    "groq": "GROQ_API_KEY",
 }
 
 # URLs where users can obtain API keys
@@ -47,6 +49,7 @@ PROVIDER_SIGNUP_URLS: dict[str, str] = {
     "elevenlabs": "https://elevenlabs.io/app/settings/api-keys",
     "sargam": "https://dashboard.sarvam.ai",
     "openrouter": "https://openrouter.ai/keys",
+    "groq": "https://console.groq.com/keys",
 }
 
 

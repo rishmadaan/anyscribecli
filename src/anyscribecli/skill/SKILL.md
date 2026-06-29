@@ -43,6 +43,7 @@ When the USER wants to run commands themselves, show them the human-readable for
 | User wants to... | Command |
 |---|---|
 | Transcribe a URL or local file | `scribe "url"` or `scribe /path/to/file` |
+| Pick accuracy vs cost | `scribe "url" --quality accuracy\|balanced\|cost\|free` (default `balanced` → Deepgram; picks the provider) |
 | Transcribe with speaker diarization | `scribe "url" --diarize` (auto-routes to Deepgram if configured) |
 | Hindi / Hinglish with speakers | `scribe "url" --diarize --language hi-Latn` — **always use this combo for Hindi content with multiple speakers** |
 | Transcribe multiple URLs | `scribe batch urls.txt` |
