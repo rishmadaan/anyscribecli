@@ -71,13 +71,14 @@ to the configured provider (graceful, keyless users still work).
 - More expensive than dedicated STT APIs
 
 ### Sargam/Sarvam (`providers/sargam.py`)
-- Uses `saaras:v2` model
-- REST API limited to 30-second clips
-- Auto-chunks audio into 30s segments (different from the standard 18-min Whisper chunks)
+- Uses `saaras:v2.5` model (`v2` was deprecated — returns 400). `speech-to-text-translate` endpoint, so output is an **English translation**, not verbatim Hindi/Hinglish.
+- REST sync API limited to 30 seconds **exclusive** — a clip of exactly 30.0s is rejected. `SARVAM_MAX_DURATION = 28` chunks just under the boundary (raised from 30 in 0.10.1 after `v2.5` enforced the limit strictly).
+- Auto-chunks audio into 28s segments (different from the standard 18-min Whisper chunks)
 - `api-subscription-key` auth header
 - Best for Indian languages; not suited for non-Indian languages
 - Diarize support: `with_diarization=true` param, parses speaker turns from response
-- Note: 30s chunks mean speaker IDs may restart per chunk — known limitation
+- Note: 28s chunks mean speaker IDs may restart per chunk — known limitation
+- **Future:** adopt Sarvam's batch API (no 30s cap, native diarization, 2hr/file) to escape sync chunking — see the [landscape audit](journal/2026-06-27-transcription-landscape-and-config-audit.md).
 
 ### Groq (`providers/groq.py`)
 - Subclass of `OpenAIProvider` — Groq's STT API is OpenAI-compatible (same multipart request, `verbose_json` + segment timestamps, same response shape)
