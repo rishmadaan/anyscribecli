@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 from dataclasses import dataclass, field, asdict, fields
 
 import yaml
@@ -13,8 +12,18 @@ from anyscribecli.config.paths import CONFIG_FILE, ENV_FILE
 
 @dataclass
 class InstagramSettings:
-    username: str = ""
-    # password is NOT stored here — it lives in .env as INSTAGRAM_PASSWORD
+    """Instagram downloader configuration.
+
+    ``browser`` is the name of a yt-dlp-supported browser (firefox, chrome,
+    safari, brave, edge, chromium, vivaldi, opera) whose cookies will be
+    used when downloading. Empty string = no cookies (anonymous fetch only,
+    works for many public reels).
+
+    Legacy fields ``username`` and ``password`` from pre-0.8.3 versions are
+    silently discarded by ``Settings.from_dict``.
+    """
+
+    browser: str = ""
 
 
 @dataclass
@@ -40,19 +49,15 @@ class Settings:
         """Deserialize from a dict (loaded from YAML).
 
         Tolerant of unknown keys so a config written by a different version
-        (e.g. one with an extra instagram field) loads instead of crashing.
+        loads instead of crashing. This also drops pre-0.8.3 Instagram fields
+        (username/password) — the yt-dlp migration reads browser cookies instead.
         """
         data = dict(data)  # don't mutate the caller's dict
         ig_data = data.pop("instagram", {}) or {}
-        ig_data.pop("password", None)  # password lives in .env, never config
         known_ig = {f.name for f in fields(InstagramSettings)}
         ig = InstagramSettings(**{k: v for k, v in ig_data.items() if k in known_ig})
         known = {f.name for f in fields(cls)} - {"instagram"}
         return cls(instagram=ig, **{k: v for k, v in data.items() if k in known})
-
-    def get_instagram_password(self) -> str:
-        """Get Instagram password from environment (stored in .env)."""
-        return os.environ.get("INSTAGRAM_PASSWORD", "")
 
 
 def load_config() -> Settings:

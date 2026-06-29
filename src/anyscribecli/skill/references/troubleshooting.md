@@ -53,15 +53,31 @@ The video is private, age-restricted, geo-blocked, or deleted.
 2. Update yt-dlp: `pip install --upgrade yt-dlp`
 3. If age-restricted: yt-dlp may need browser cookies (advanced)
 
-### Instagram "login_required" errors
+### Instagram: "rate-limit reached" or "login required"
 
-Instagram rate-limits third-party access.
+The reel is gated behind login. Configure cookies from a browser logged into
+Instagram:
 
-**Fix:**
-1. Wait a few minutes and retry
-2. Verify credentials: `scribe config show`
-3. Consider using a secondary Instagram account
-4. Re-enter credentials: `scribe onboard --force`
+```bash
+scribe config set instagram.browser firefox
+```
+
+Then retry. If you've already configured a browser and still see this:
+1. Open Instagram in that browser and confirm you're logged in.
+2. Visit the reel URL in that same browser to confirm you can view it.
+3. If it loads in the browser but not via scribe, your cookie store may be
+   locked by the running browser — quit the browser and retry.
+
+### Instagram: "private account"
+
+The reel is from a private account. Cookies from a browser logged into an
+account that follows the poster will work; cookies from a different account
+won't.
+
+### Instagram: "video unavailable" / "post not found"
+
+The reel was deleted, made private, or is region-locked. There's no
+client-side fix.
 
 ### Transcription in wrong language
 

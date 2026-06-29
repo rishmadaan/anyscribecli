@@ -48,11 +48,12 @@ The `0.x` prefix means pre-stable — breaking changes are allowed between minor
 | 0.8.0 | Local transcription: unified opt-in setup + model management. Committed locally; superseded by 0.8.1 before publish. | Rolled into 0.8.1 |
 | 0.8.1 | Three-surface onboarding parity: Web UI wizard (first-run modal), TUI `scribe onboard` (unchanged), headless `scribe onboard --yes` for agents — all converging on shared `core/onboard_headless.py`. Plus `scribe model reinstall`, FIFO download queue, live install-log streaming, focus-trapped modals, always-visible Diagnose. New architecture-doc section making the shared-backend + asymmetric-surface rule explicit. All v0.8.0 scope included. | Released 2026-04-18 |
 | 0.8.2 | Fix Web UI "Browse local file" auto-submitting on upload. Post-upload now populates the URL input so the user can adjust options before pressing Transcribe. | Released 2026-04-20 |
-| 0.8.3 | Instagram yt-dlp migration branch tag. Not a mainline stable release from `main`; keep mainline release numbering at 0.8.4+. | Branch tag |
+| 0.8.3 | Instagram → yt-dlp migration (instaloader removed, browser-cookie auth). Branch tag; folded into mainline at 0.10.0. | Branch tag |
 | 0.8.4 | Release hardening: CI, publish gates, portable release script, Windows file locking, preflight fixes, frontend lint cleanup, rebuilt web bundle. | Released 2026-05-28 |
-| 0.9.0 | Accuracy↔cost quality picker (accuracy/balanced/cost/free) + Groq provider; ElevenLabs scribe_v2; config-load resilience | **Current** |
+| 0.9.0 | Accuracy↔cost quality picker (accuracy/balanced/cost/free) + Groq provider; ElevenLabs scribe_v2; config-load resilience | Released 2026-06-29 |
+| 0.10.0 | Merge Instagram yt-dlp migration onto mainline (now with quality picker); Sarvam `saaras:v2.5` fix | **Current** |
 | 0.9.x | Byte-level download progress in Web UI — stream faster-whisper/HF progress via WebSocket to replace the spinner in `LocalSetupModal` and the Models table | Queued |
-| 0.10.0 | Menu-bar tray companion + auto-start ([plan](docs/building/journal/2026-04-18-menu-bar-tray-companion-plan.md)) | Planned |
+| 0.11.0 | Menu-bar tray companion + auto-start ([plan](docs/building/journal/2026-04-18-menu-bar-tray-companion-plan.md)) | Planned |
 | 1.0.0 | Stable: broader test coverage and release hardening | Future |
 
 ### How to bump versions
@@ -335,6 +336,19 @@ All features originally planned for v0.2.0–v0.5.0, built in one session:
 
 ---
 
+## v0.8.3 — Instagram migrates to yt-dlp; instaloader removed ✅
+
+**Released:** 2026-04-29
+
+- [x] **Replace instaloader with yt-dlp** — Instagram downloads now use `yt-dlp` subprocess (same approach as YouTube); no separate library needed
+- [x] **Drop `INSTAGRAM_PASSWORD` requirement** — auth now via `--cookies-from-browser` instead of username/password credentials
+- [x] **Config schema migration** — `instagram.username` + `INSTAGRAM_PASSWORD` env var replaced by `instagram.browser` (legacy keys silently discarded on first run)
+- [x] **`SUPPORTED_BROWSERS` constant** — validated at backend; both CLI and Web UI inherit the same list
+- [x] **Deprecation notice** — legacy `INSTAGRAM_PASSWORD` env var triggers a warning during `scribe onboard`
+- [x] **Remove `instaloader>=4.10`** from `pyproject.toml` dependencies
+
+---
+
 ## v0.8.0 — Cache, Dedup, Quality
 
 - [ ] **Duplicate/cache checking** (inspired by AnyScribe web app's FindStamp pattern):
@@ -366,7 +380,7 @@ See [journal/2026-06-29-quality-picker.md](docs/building/journal/2026-06-29-qual
 
 ---
 
-## Menu-bar tray companion (planned — v0.10.0)
+## Menu-bar tray companion (planned — v0.11.0)
 
 Turn `scribe ui` into a click-to-open, always-there experience without adopting a native-app build chain. Browser stays the UI surface — no Tauri/Electron.
 

@@ -12,12 +12,12 @@ def test_from_dict_tolerates_unknown_keys():
         "provider": "deepgram",
         "quality": "cost",
         "future_top_level_key": "ignored",
-        "instagram": {"username": "me", "browser": "chrome"},
+        "instagram": {"browser": "chrome", "username": "legacy-pre-0.8.3"},
     }
     s = Settings.from_dict(data)
     assert s.provider == "deepgram"
     assert s.quality == "cost"
-    assert s.instagram.username == "me"
+    assert s.instagram.browser == "chrome"  # known key kept; unknown 'username' dropped
 
 
 def test_quality_defaults_to_balanced():

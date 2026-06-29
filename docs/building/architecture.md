@@ -1,6 +1,6 @@
 # Architecture
 
-**Last updated:** 2026-06-27
+**Last updated:** 2026-06-29 (v0.10.0 — quality picker + Instagram yt-dlp)
 
 ## Overview
 
@@ -22,7 +22,7 @@ runs a fixed five-step pipeline:
                                             ▼
    1. download    ┌────────────────────────────────────────────────┐
                   │ registry picks downloader (first match wins):   │
-                  │   local file → YouTube (yt-dlp) → Instagram      │
+                  │   local file → YouTube + Instagram (both yt-dlp) │
                   └───────────────────────┬────────────────────────┘
                                           ▼
    2. prepare     ┌────────────────────────────────────────────────┐
@@ -95,7 +95,7 @@ the Obsidian vault at `~/anyscribe/` stays pure markdown.
 ### Download Layer (`downloaders/`)
 - Abstract base with `download()` and `can_handle()` methods
 - YouTube: yt-dlp subprocess with `--extract-audio --audio-format mp3`
-- Instagram: instaloader Python API with session caching, direct video download
+- Instagram: yt-dlp subprocess with `--extract-audio`; cookies optional via `--cookies-from-browser` (config field `instagram.browser`). Same pattern as YouTube.
 - Registry dispatches URL to correct downloader
 
 ### Provider Layer (`providers/`)
@@ -130,9 +130,9 @@ the Obsidian vault at `~/anyscribe/` stays pure markdown.
 
 ## Key Technical Decisions
 
-- **Python** over JS/TS: pipeline tools (yt-dlp, instaloader, whisper) are Python-native
+- **Python** over JS/TS: pipeline tools (yt-dlp, whisper) are Python-native
 - **yt-dlp via `python -m yt_dlp`** (not bare `yt-dlp` binary): invoked as a Python module via `sys.executable` to avoid PATH issues on Windows. Auto-updated when stale — YouTube changes streaming formats frequently, causing 403s with old extractors. `get_command("yt-dlp")` in `core/deps.py` centralizes invocation for all call sites
-- **instaloader via Python API**: need session management for auth
+- **yt-dlp for Instagram (0.8.3+)**: replaced instaloader to eliminate the rate-limit-prone `test_login()` GraphQL probe and the password-on-disk requirement. Cookies come from the user's existing browser via `--cookies-from-browser`. See `docs/building/journal/2026-04-29-instagram-yt-dlp-migration.md` for the decision record.
 - **httpx** over requests: async-capable for batch processing
 - **Dataclasses** over pydantic: fewer deps, sufficient for config/results
 - **src/ layout**: prevents accidental imports from project root
