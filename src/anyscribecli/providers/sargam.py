@@ -1,8 +1,8 @@
 """Sargam (Sarvam) AI transcription provider.
 
 Sarvam provides speech-to-text with strength in Indic languages.
-REST API is limited to 30-second clips, so audio is chunked into
-30-second segments before transcription.
+REST API is limited to 30-second clips (exclusive), so audio is chunked into
+sub-30-second (28s) segments before transcription.
 
 Docs: https://docs.sarvam.ai/api-reference-docs/speech-to-text/transcribe
 """
@@ -23,8 +23,11 @@ from anyscribecli.providers.base import (
     TranscriptSegment,
 )
 
-# Sarvam REST API limit: 30 seconds per request
-SARVAM_MAX_DURATION = 30
+# Sarvam REST sync API limit is 30s and EXCLUSIVE — a clip of exactly 30.0s is
+# rejected ("exceeds the maximum limit of 30 seconds"). Chunk a couple seconds
+# under to stay clear of the boundary (mp3 frame rounding can also nudge it up).
+# ponytail: longer audio should really use Sarvam's batch API — future work.
+SARVAM_MAX_DURATION = 28
 
 
 class SargamProvider(TranscriptionProvider):
