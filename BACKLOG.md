@@ -51,7 +51,8 @@ The `0.x` prefix means pre-stable — breaking changes are allowed between minor
 | 0.8.3 | Instagram → yt-dlp migration (instaloader removed, browser-cookie auth). Branch tag; folded into mainline at 0.10.0. | Branch tag |
 | 0.8.4 | Release hardening: CI, publish gates, portable release script, Windows file locking, preflight fixes, frontend lint cleanup, rebuilt web bundle. | Released 2026-05-28 |
 | 0.9.0 | Accuracy↔cost quality picker (accuracy/balanced/cost/free) + Groq provider; ElevenLabs scribe_v2; config-load resilience | Released 2026-06-29 |
-| 0.10.0 | Merge Instagram yt-dlp migration onto mainline (now with quality picker); Sarvam `saaras:v2.5` fix | **Current** |
+| 0.10.0 | Merge Instagram yt-dlp migration onto mainline (now with quality picker); Sarvam `saaras:v2.5` fix | Released 2026-06-29 |
+| 0.10.1 | Fix Sarvam: chunk at 28s (the 30s REST limit is exclusive — `v2.5` rejects exactly-30s clips) | **Current** |
 | 0.9.x | Byte-level download progress in Web UI — stream faster-whisper/HF progress via WebSocket to replace the spinner in `LocalSetupModal` and the Models table | Queued |
 | 0.11.0 | Menu-bar tray companion + auto-start ([plan](docs/building/journal/2026-04-18-menu-bar-tray-companion-plan.md)) | Planned |
 | 1.0.0 | Stable: broader test coverage and release hardening | Future |
