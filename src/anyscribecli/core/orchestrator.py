@@ -34,6 +34,7 @@ class ProcessResult:
     language: str
     word_count: int
     provider: str
+    cached: bool = False
 
 
 def process(
@@ -41,6 +42,7 @@ def process(
     settings: Settings,
     quiet: bool = False,
     on_progress: OnProgress = None,
+    force: bool = False,
 ) -> ProcessResult:
     """Full pipeline: download -> transcribe -> write -> index.
 
@@ -50,6 +52,7 @@ def process(
         quiet: Suppress progress output.
         on_progress: Optional callback for progress events (used by web UI).
             Signature: (step, status, message, **kwargs) -> None
+        force: Re-transcribe even if the source already exists in the workspace.
 
     Returns:
         ProcessResult with metadata about the written file.
@@ -73,6 +76,28 @@ def process(
         from anyscribecli.vault.index import rebuild_master_index
 
         rebuild_master_index()
+
+    # Duplicate detection: skip the whole pipeline if this source is already
+    # in the vault (checked after migrations so we scan the current workspace).
+    if not force:
+        from anyscribecli.core.dedup import find_existing_transcript, read_frontmatter
+
+        existing = find_existing_transcript(url)
+        if existing:
+            fm = read_frontmatter(existing)
+            if on_progress:
+                # Not "done"/"error" — the web layer emits its own terminal event.
+                on_progress("cached", "completed", f"Already transcribed: {existing}")
+            return ProcessResult(
+                file_path=existing,
+                title=str(fm.get("title", existing.stem)),
+                platform=str(fm.get("platform", "")),
+                duration=str(fm.get("duration", "")),
+                language=str(fm.get("language", "")),
+                word_count=int(fm.get("word_count") or 0),
+                provider=str(fm.get("provider", "")),
+                cached=True,
+            )
 
     # Pre-flight: validate prerequisites before doing any work
     from anyscribecli.core.preflight import preflight_check

@@ -29,6 +29,7 @@ Every scribe command. Copy-paste friendly.
 | `scribe onboard --yes --provider X ...` | Headless setup (for agents / scripts) |
 | `scribe download "<url>"` | Download video or audio only (no transcription) |
 | `scribe batch <file>` | Batch transcribe URLs or file paths from a file |
+| `scribe rm <path-or-slug>` | Delete a transcript and update the index |
 | `scribe config show` | View current settings |
 | `scribe config set <key> <value>` | Change a setting |
 | `scribe config path` | Print config file location |
@@ -63,7 +64,7 @@ scribe onboard
 
 **What the TUI does** (arrow-key selectors throughout):
 1. Checks system dependencies (Python, yt-dlp, ffmpeg) — offers to install missing ones
-2. Choose transcription provider (5 options, arrow keys)
+2. Choose transcription provider (7 options, arrow keys)
 3. Enter API key for your chosen provider
 4. Optionally add API keys for other providers
 5. Optionally configure Instagram browser (for cookie-based downloads)
@@ -170,8 +171,11 @@ scribe --clipboard
 | `--json` | `-j` | Output result as JSON | Off |
 | `--keep-media` | | Keep the downloaded audio file | From config (false) |
 | `--diarize` | `-d` | Enable speaker diarization (auto-routes to Deepgram if configured) | Off |
+| `--force` | `-f` | Re-transcribe even if this source was already transcribed | Off |
 | `--quiet` | `-q` | No progress output (just the result) | Off |
 | `--clipboard` | `-c` | Read URL from system clipboard | Off |
+
+> **Already transcribed something? scribe won't do it twice.** Before transcribing, scribe checks your vault for a transcript of the same URL or file (it matches the `source:` line in each note's frontmatter — the metadata block at the top). If it finds one, it hands you back that existing file instead of spending time and API credits re-transcribing. You'll see `Already transcribed: <path> — use --force to re-transcribe.` To force a fresh transcription anyway (say you switched providers, or the video was re-uploaded), add `--force`.
 
 ### Examples
 
@@ -196,6 +200,9 @@ scribe "https://youtube.com/watch?v=abc123" --quality cost      # cheapest (Groq
 
 # From clipboard
 scribe --clipboard
+
+# Re-transcribe a source that's already in your vault (skip the "already transcribed" shortcut)
+scribe "https://youtube.com/watch?v=abc123" --force
 
 # Specify language (skip auto-detection)
 scribe "https://youtube.com/watch?v=abc123" --language es
@@ -230,9 +237,12 @@ When you use `--json`, scribe prints structured JSON to stdout (progress goes to
   "duration": "12:34",
   "language": "en",
   "word_count": 1500,
-  "provider": "openai"
+  "provider": "openai",
+  "cached": false
 }
 ```
+
+> **The `cached` field:** `false` means scribe transcribed the source just now. `true` means the source was already in your vault and scribe returned the existing file (`file` points at it) instead of re-transcribing. Add `--force` to make it transcribe fresh.
 
 On error:
 
@@ -308,8 +318,11 @@ scribe batch urls.txt
 | `--json` | `-j` | Output results as JSON | Off |
 | `--keep-media` | | Keep audio files | From config |
 | `--diarize` | `-d` | Enable speaker diarization | Off |
+| `--force` | `-f` | Re-transcribe sources already in your vault | Off |
 | `--quiet` | `-q` | Suppress progress | Off |
 | `--stop-on-error` | | Stop at first failure | Off (continues) |
+
+> **Duplicate detection applies here too.** Any source already in your vault is skipped and returned from the existing file — the summary table marks those rows `CACHED` and each such result carries `"cached": true`. This makes it safe to re-run a batch file: only the new entries are actually transcribed. Pass `--force` to re-transcribe everything.
 
 ### Examples
 
@@ -332,6 +345,51 @@ scribe batch urls.txt --stop-on-error
 # JSON output for scripting
 scribe batch urls.txt --json
 ```
+
+---
+
+## scribe rm
+
+Delete a transcript from your vault and remove its row from the master index (`_index.md`). Use this to clean up a transcript you no longer want — or to clear the way before re-transcribing a source from scratch.
+
+```bash
+scribe rm "sources/youtube/my-video.md"    # by file path
+scribe rm my-video                          # by slug
+```
+
+> **What's a "slug"?** The slug is a transcript's filename without the `.md` extension — the short, dash-separated name scribe generates from the title. For a file at `sources/youtube/my-video.md`, the slug is `my-video`. You can pass either the full path or just the slug.
+
+If a slug matches more than one transcript (same title from different platforms, say), scribe lists the matches and stops without deleting anything — re-run with the full path to pick one.
+
+> **What gets deleted:** only the transcript file itself and its entry in `_index.md`. Your **daily logs** (`daily/YYYY-MM-DD.md`) are left alone — they're a historical record of what you transcribed each day, so scribe keeps them intact.
+
+### Flags
+
+| Flag | Short | Description | Default |
+|------|-------|-------------|---------|
+| `--yes` | `-y` | Skip the "Delete …?" confirmation prompt | Off (prompts) |
+| `--json` | `-j` | Output the result as JSON | Off |
+
+### Examples
+
+```bash
+# Delete by path (you'll be asked to confirm)
+scribe rm "sources/youtube/my-video.md"
+
+# Delete by slug, no confirmation prompt
+scribe rm my-video --yes
+
+# JSON output (for scripts)
+scribe rm my-video --yes --json
+```
+
+### JSON Output
+
+```json
+{ "success": true, "data": { "deleted": "sources/youtube/my-video.md" }, "error": null }
+```
+
+If nothing matches, the slug is ambiguous, or the file can't be deleted, `success` is `false`, `error` explains why, and the command exits with code 1.
 
 ---
 
@@ -416,7 +474,7 @@ scribe config show --json
 
 > **Dot-notation:** Use dots for nested keys like `instagram.browser`.
 >
-> **API keys:** `scribe config set` also accepts API key names (e.g., `deepgram_api_key`, `openai_api_key`, `elevenlabs_api_key`, `sargam_api_key`, `openrouter_api_key`). These are stored in `~/.anyscribecli/.env`, not in config.yaml.
+> **API keys:** `scribe config set` also accepts API key names (e.g., `deepgram_api_key`, `openai_api_key`, `elevenlabs_api_key`, `sargam_api_key`, `groq_api_key`, `openrouter_api_key`). These are stored in `~/.anyscribecli/.env`, not in config.yaml.
 
 ---
 
@@ -445,6 +503,7 @@ scribe providers test openai   # test a specific provider
 | `openrouter` | `OPENROUTER_API_KEY` | Access to various models |
 | `elevenlabs` | `ELEVENLABS_API_KEY` | High accuracy, 99 languages |
 | `sargam` | `SARGAM_API_KEY` | Indic languages (Hindi, Tamil, Telugu, etc.) |
+| `groq` | `GROQ_API_KEY` | Cheapest cloud option (the `cost` quality tier) |
 | `local` | None needed | Offline, free, runs on your machine |
 
 > **Local provider** requires a one-time setup: `scribe local setup --model base` (or click "Set up local transcription" in the Web UI). See `scribe local` and `scribe model` below.
@@ -652,7 +711,7 @@ Print the installed version.
 
 ```bash
 scribe --version
-# Output: scribe v0.8.3
+# Output: scribe v0.11.0
 ```
 
 ---

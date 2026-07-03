@@ -47,22 +47,30 @@ def transcribe(
     provider: Optional[str] = None,
     language: Optional[str] = None,
     diarize: bool = False,
+    quality: Optional[str] = None,
+    force: bool = False,
 ) -> str:
     """Transcribe a video/audio URL or local file to markdown.
 
     Downloads audio, transcribes via API, and saves a formatted markdown
     file to the Obsidian workspace. Returns metadata about the result.
+    If the source was already transcribed, returns the existing file with
+    "cached": true instead of re-transcribing (unless force is set).
 
     Args:
         url: YouTube/Instagram URL or local file path. Always quote URLs.
-        provider: Override provider (openai, elevenlabs, sargam, deepgram, openrouter, local).
+        provider: Override provider (openai, elevenlabs, sargam, deepgram, groq, openrouter, local).
         language: Language code (en, es, fr, hi, hi-Latn, etc.) or "auto" for detection.
         diarize: Enable speaker diarization for multi-speaker transcripts.
+        quality: Quality preset (accuracy | balanced | cost | free) — auto-routes
+            to a provider; ignored when an explicit provider is given.
+        force: Re-transcribe even if this source already exists in the workspace.
 
     Returns:
-        JSON with success status, file path, title, duration, word count, provider.
+        JSON with success status, file path, title, duration, word count, provider, cached.
     """
     from anyscribecli.core.orchestrator import process
+    from anyscribecli.core.quality import apply_quality
 
     settings = _load_settings()
     if provider:
@@ -73,9 +81,12 @@ def transcribe(
         settings.diarize = True
         if settings.output_format == "clean":
             settings.output_format = "diarized"
+    if quality:
+        settings.quality = quality
+    apply_quality(settings, explicit_provider=bool(provider) or diarize)
 
     try:
-        result = process(url, settings, quiet=True)
+        result = process(url, settings, quiet=True, force=force)
         return json.dumps(
             {
                 "success": True,
@@ -86,6 +97,7 @@ def transcribe(
                 "language": result.language,
                 "word_count": result.word_count,
                 "provider": result.provider,
+                "cached": result.cached,
             }
         )
     except Exception as e:
@@ -99,10 +111,14 @@ def batch_transcribe(
     language: Optional[str] = None,
     diarize: bool = False,
     stop_on_error: bool = False,
+    quality: Optional[str] = None,
+    force: bool = False,
 ) -> str:
     """Transcribe multiple URLs or file paths.
 
     Processes each URL sequentially. Returns a summary with per-URL results.
+    Already-transcribed sources are skipped and returned with "cached": true
+    (unless force is set).
 
     Args:
         urls: List of YouTube/Instagram URLs or local file paths.
@@ -110,11 +126,15 @@ def batch_transcribe(
         language: Override language for all transcriptions.
         diarize: Enable speaker diarization for multi-speaker transcripts.
         stop_on_error: Stop processing at first failure.
+        quality: Quality preset (accuracy | balanced | cost | free) — auto-routes
+            to a provider; ignored when an explicit provider is given.
+        force: Re-transcribe even if a source already exists in the workspace.
 
     Returns:
         JSON with total, succeeded, failed counts, and per-URL results.
     """
     from anyscribecli.core.orchestrator import process
+    from anyscribecli.core.quality import apply_quality
 
     settings = _load_settings()
     if provider:
@@ -125,6 +145,9 @@ def batch_transcribe(
         settings.diarize = True
         if settings.output_format == "clean":
             settings.output_format = "diarized"
+    if quality:
+        settings.quality = quality
+    apply_quality(settings, explicit_provider=bool(provider) or diarize)
 
     results = []
     succeeded = 0
@@ -132,7 +155,7 @@ def batch_transcribe(
 
     for url in urls:
         try:
-            result = process(url, settings, quiet=True)
+            result = process(url, settings, quiet=True, force=force)
             succeeded += 1
             results.append(
                 {
@@ -144,6 +167,7 @@ def batch_transcribe(
                     "duration": result.duration,
                     "language": result.language,
                     "word_count": result.word_count,
+                    "cached": result.cached,
                 }
             )
         except Exception as e:
@@ -296,6 +320,40 @@ def list_transcripts(
     # Sort newest first
     entries.sort(key=lambda e: e["date"], reverse=True)
     return json.dumps(entries[:limit])
+
+
+@mcp.tool()
+def delete_transcript(target: str) -> str:
+    """Delete a transcript from the workspace and resync the master index.
+
+    Removes the markdown file and its row in _index.md. Daily logs are
+    kept as append-only history. Only files inside the workspace
+    sources/ tree can be deleted.
+
+    Args:
+        target: Full file path or slug (filename without .md).
+
+    Returns:
+        JSON {success, deleted: path} or {success: false, error}.
+    """
+    from anyscribecli.vault.index import delete_transcript as _delete
+    from anyscribecli.vault.index import find_transcript
+
+    matches = find_transcript(target)
+    if not matches:
+        return json.dumps({"success": False, "error": f"Transcript not found: {target}"})
+    if len(matches) > 1:
+        return json.dumps(
+            {
+                "success": False,
+                "error": "Ambiguous slug — matches: " + ", ".join(str(m) for m in matches),
+            }
+        )
+    try:
+        _delete(matches[0])
+        return json.dumps({"success": True, "deleted": str(matches[0])})
+    except Exception as e:
+        return json.dumps({"success": False, "error": str(e)})
 
 
 # ── Configuration ────────────────────────────────────────────

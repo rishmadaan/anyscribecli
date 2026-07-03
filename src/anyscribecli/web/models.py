@@ -13,6 +13,7 @@ class TranscribeRequest(BaseModel):
     diarize: bool = False
     keep_media: bool = False
     output_format: str | None = None
+    force: bool = False
 
 
 class JobResponse(BaseModel):

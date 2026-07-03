@@ -1,12 +1,12 @@
 # Architecture
 
-**Last updated:** 2026-06-29 (v0.10.0 — quality picker + Instagram yt-dlp)
+**Last updated:** 2026-07-03 (v0.11.0 — duplicate detection + `--force`, `scribe rm`)
 
 ## Overview
 
 anyscribecli has three entry surfaces but one shared core. The CLI, the Web UI,
 and the Claude Code skill (via MCP) all funnel into the same orchestrator, which
-runs a fixed five-step pipeline:
+runs a fixed pipeline:
 
 ```
    three ways in            ┌────────┐  ┌────────┐  ┌──────────────┐
@@ -20,6 +20,11 @@ runs a fixed five-step pipeline:
    one shared core            │  core/orchestrator.process │
                               └─────────────┬─────────────┘
                                             ▼
+   0. dedup       ┌────────────────────────────────────────────────┐
+    (unless       │ scan vault frontmatter for a matching `source:` │
+     --force)     │ hit → return existing file, cached=True, stop   │
+                  └───────────────────────┬────────────────────────┘
+                                          ▼
    1. download    ┌────────────────────────────────────────────────┐
                   │ registry picks downloader (first match wins):   │
                   │   local file → YouTube + Instagram (both yt-dlp) │
@@ -53,7 +58,7 @@ the Obsidian vault at `~/anyscribe/` stays pure markdown.
 ### CLI Layer (`cli/`)
 - Typer app with `rich_markup_mode="rich"`, custom `DefaultToTranscribe(TyperGroup)` class for bare-URL routing
 - Primary command: `scribe` (alias: `ascli` for backward compat)
-- Commands: `onboard`, `transcribe`, `download`, `batch`, `config`, `providers`, `local`, `model`, `ui`, `update`, `doctor`, `install-skill`
+- Commands: `onboard`, `transcribe`, `download`, `batch`, `rm`, `config`, `providers`, `local`, `model`, `ui`, `update`, `doctor`, `install-skill`
 - Bare URL: `scribe "url"` auto-routes to transcribe (first arg not a known subcommand → prepend `transcribe`)
 - `--json` and `--quiet` available on main commands (transcribe, download, batch, config show, providers list)
 - `--json` for AI agent and scripting integration
@@ -62,7 +67,8 @@ the Obsidian vault at `~/anyscribe/` stays pure markdown.
 
 ### MCP Layer (`mcp/`)
 - FastMCP server with `scribe-mcp` entry point (stdio transport)
-- 9 tools: transcribe, batch_transcribe, download, list_transcripts, get_config, set_config, list_providers, test_provider, doctor
+- 10 tools: transcribe, batch_transcribe, download, list_transcripts, delete_transcript, get_config, set_config, list_providers, test_provider, doctor
+  - `transcribe` / `batch_transcribe` accept `quality` (accuracy|balanced|cost|free) and `force`; `force` bypasses the dedup check
 - 3 resources: scribe://config, scribe://providers, scribe://workspace
 - Calls core modules directly (orchestrator, settings, providers) — not CLI commands
 - All tools return JSON, consistent error format
@@ -122,7 +128,8 @@ the Obsidian vault at `~/anyscribe/` stays pure markdown.
 - Index maintains _index.md MOC and daily processing logs
 
 ### Core Layer (`core/`)
-- Orchestrator ties the pipeline together
+- Orchestrator ties the pipeline together; runs the dedup check (step 0) before any download, skippable with `force=True`
+- Dedup (`core/dedup.py`) — `find_existing_transcript(source)` scans `sources/*/*.md` frontmatter for a matching `source:` line; no cache file, the vault is the source of truth
 - Audio module handles chunking (18-min for Whisper 25MB limit, 30s for Sarvam)
 - Dependency checker detects OS (macOS, Linux, Windows), checks/installs yt-dlp, ffmpeg, Python; auto-updates stale yt-dlp (>60 days) before download. Uses module-based detection for pip-installed tools (`python -m module --version`) and `shutil.which` for system binaries
 - Updater supports both git-based (dev) and pip-based (user) installs
@@ -212,6 +219,9 @@ Not every feature lives on every surface. The asymmetry is intentional per-featu
 | Feature | CLI | Web UI | Notes |
 |---------|-----|--------|-------|
 | Transcribe URL/file | ✓ | ✓ | Same `orchestrator.process()` on both |
+| Duplicate detection (`cached`) + `--force` | ✓ (`--force`/`-f`) | ✓ ("Re-transcribe" on cached state) | Enforced in `orchestrator.process()` (dedup step 0), so all surfaces + MCP inherit it |
+| Delete transcript | ✓ (`scribe rm`) | ✓ (delete in History) | Same `vault/index.py::delete_transcript`; also MCP `delete_transcript` tool |
+| Cancel a running job | — | ✓ (`POST /api/jobs/{id}/cancel`, cooperative) | UI-only — a CLI run is cancelled with Ctrl+C |
 | Onboard (first-run setup) | ✓ (TUI + `--yes` headless) | ✓ (wizard) | Both call `run_headless_onboard()` |
 | Config read/write | ✓ (`scribe config`) | ✓ (Settings page) | Same `settings.load_config` / `save_config` |
 | Provider test | ✓ (`scribe providers test`) | ✓ (Test/Diagnose buttons) | Same `/providers/{name}/test` logic |

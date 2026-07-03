@@ -22,8 +22,13 @@ scribe transcribe "<url>"             # Explicit subcommand (also works)
 | `--json` | `-j` | Output result as JSON | Off |
 | `--keep-media` | | Keep downloaded audio in `~/.anyscribecli/downloads/audio/` | From config |
 | `--diarize` | `-d` | Enable speaker diarization (auto-routes to Deepgram if configured) | Off |
+| `--force` | `-f` | Re-transcribe even if this source was already transcribed | Off |
 | `--quiet` | `-q` | Suppress progress output | Off |
 | `--clipboard` | `-c` | Read URL from system clipboard | Off |
+
+### Duplicate detection
+
+Before transcribing, scribe scans the vault for a transcript whose frontmatter `source:` matches the URL/path. If found, it returns that existing file instead of re-transcribing — no download, no API cost. JSON output carries `"cached": true`; human output prints `Already transcribed: <path> — use --force to re-transcribe.` Pass `--force` / `-f` to override and transcribe fresh.
 
 ### Supported local file types
 
@@ -40,9 +45,12 @@ scribe transcribe "<url>"             # Explicit subcommand (also works)
   "duration": "12:34",
   "language": "en",
   "word_count": 1500,
-  "provider": "openai"
+  "provider": "openai",
+  "cached": false
 }
 ```
+
+When the source was already in the vault, the same shape comes back with `"cached": true` and the existing file's path.
 
 On error:
 ```json
@@ -76,6 +84,9 @@ scribe "https://youtube.com/watch?v=abc123" --language hi
 
 # Machine-readable output for scripting
 scribe "https://youtube.com/watch?v=abc123" --json --quiet
+
+# Re-transcribe a source already in the vault (skip the cache shortcut)
+scribe "https://youtube.com/watch?v=abc123" --force
 
 # From clipboard
 scribe --clipboard
@@ -137,8 +148,11 @@ https://youtube.com/watch?v=def456
 | `--language` | `-l` | Override language | auto |
 | `--json` | `-j` | Output as JSON | Off |
 | `--keep-media` | | Keep audio files | From config |
+| `--force` | `-f` | Re-transcribe sources already in the vault | Off |
 | `--quiet` | `-q` | Suppress progress | Off |
 | `--stop-on-error` | | Stop at first failure | Off (continues) |
+
+Sources already in the vault are skipped (returned from cache) unless `--force` is passed. The summary table marks those rows `CACHED`, and each such result carries `"cached": true`.
 
 ### JSON output
 
@@ -148,11 +162,40 @@ https://youtube.com/watch?v=def456
   "succeeded": 2,
   "failed": 1,
   "results": [
-    {"success": true, "url": "...", "file": "...", "title": "...", ...},
+    {"success": true, "url": "...", "file": "...", "title": "...", "cached": false, ...},
     {"success": false, "url": "...", "error": "..."}
   ]
 }
 ```
+
+---
+
+## scribe rm
+
+Delete a transcript from the workspace and resync the master `_index.md`.
+
+```bash
+scribe rm "sources/youtube/my-video.md"    # by path
+scribe rm my-video                          # by slug (filename without .md)
+scribe rm my-video --yes --json             # skip prompt, machine output
+```
+
+Accepts a full file path or a bare slug. If a slug matches more than one transcript, `rm` prints the matches and exits — pass a full path to disambiguate. Daily logs under `daily/` are left untouched as history; only the transcript file and its master-index row are removed.
+
+### Flags
+
+| Flag | Short | Description | Default |
+|------|-------|-------------|---------|
+| `--yes` | `-y` | Skip the confirmation prompt (required in non-TTY / agent contexts) | Off |
+| `--json` | `-j` | Output result as JSON | Off |
+
+### JSON output
+
+```json
+{ "success": true, "data": { "deleted": "sources/youtube/my-video.md" }, "error": null }
+```
+
+Exits 1 (with `error` set) when no transcript matches, the slug is ambiguous, or the file cannot be deleted.
 
 ---
 
@@ -192,7 +235,7 @@ scribe config path                      # Print config file location
 
 | Key | Values | Description |
 |-----|--------|-------------|
-| `provider` | openai, deepgram, elevenlabs, sargam, openrouter, local | Default transcription provider |
+| `provider` | openai, deepgram, elevenlabs, sargam, groq, openrouter, local | Default transcription provider |
 | `language` | auto, en, es, fr, hi, ar, zh, ja, ko, ... | Default language |
 | `keep_media` | true, false | Keep audio after transcription |
 | `output_format` | clean, timestamped, diarized | Transcript format |
@@ -203,6 +246,7 @@ scribe config path                      # Print config file location
 | `deepgram_api_key` | string | Deepgram API key (stored in .env) |
 | `elevenlabs_api_key` | string | ElevenLabs API key (stored in .env) |
 | `sargam_api_key` | string | Sarvam AI API key (stored in .env) |
+| `groq_api_key` | string | Groq API key (stored in .env) |
 | `openrouter_api_key` | string | OpenRouter API key (stored in .env) |
 
 Use dot-notation for nested keys: `scribe config set instagram.browser firefox`
@@ -348,7 +392,7 @@ scribe update --force                   # Force update (stashes local changes)
 
 ```bash
 scribe --version
-# Output: scribe v0.7.2.3
+# Output: scribe v0.11.0
 ```
 
 ---

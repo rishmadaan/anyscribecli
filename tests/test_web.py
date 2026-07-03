@@ -144,6 +144,21 @@ class TestTranscribe:
         data = r.json()
         assert data["status"] == "not_found"
 
+    def test_cancel_unknown_job(self, client):
+        r = client.post("/api/jobs/nonexistent/cancel")
+        assert r.status_code == 404
+
+    def test_cancel_finished_job_is_noop(self, client):
+        from anyscribecli.web.jobs import Job, JobStatus, job_manager
+
+        job = Job(id="finished1", url="https://example.com/x", status=JobStatus.COMPLETED)
+        job_manager._jobs[job.id] = job
+        r = client.post(f"/api/jobs/{job.id}/cancel")
+        assert r.status_code == 200
+        # Status unchanged and no cancellation requested on an already-finished job.
+        assert r.json()["status"] == "completed"
+        assert job.cancel_requested is False
+
 
 # ── System ────────────────────────────────────────────
 

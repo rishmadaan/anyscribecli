@@ -90,6 +90,17 @@ scribe transcribe "url" --language en    # or es, fr, hi, etc.
 
 Or set a default: `scribe config set language hi`
 
+### "Already transcribed" — nothing got re-transcribed
+
+Not an error. scribe found an existing transcript whose frontmatter `source:` matches this URL/path, so it returned that file instead of re-transcribing (no download, no API cost). Human output prints `Already transcribed: <path> — use --force to re-transcribe.`; JSON output has `"cached": true`; batch marks the row `CACHED`.
+
+**If you actually want a fresh transcription** (changed provider, source was updated):
+```bash
+scribe "url" --force
+```
+
+**If you want the old one gone entirely:** delete it first with `scribe rm <path-or-slug>`, then transcribe again.
+
 ### "Provider error" or API failures
 
 **Fix:**

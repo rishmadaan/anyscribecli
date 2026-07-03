@@ -31,6 +31,9 @@ def batch(
     quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress progress."),
     stop_on_error: bool = typer.Option(False, "--stop-on-error", help="Stop at first failure."),
     resume: bool = typer.Option(False, "--resume", help="Resume from last checkpoint."),
+    force: bool = typer.Option(
+        False, "--force", "-f", help="Re-transcribe even if a source was already transcribed."
+    ),
 ) -> None:
     """[bold magenta]Batch transcribe[/bold magenta] URLs or local files from a list.
 
@@ -110,7 +113,9 @@ def batch(
     if quiet or output_json:
         # No progress display
         for url in urls:
-            succeeded, failed = _process_url(url, settings, results, succeeded, failed, quiet=True)
+            succeeded, failed = _process_url(
+                url, settings, results, succeeded, failed, quiet=True, force=force
+            )
             _save_batch_state(state_file, url, results[-1].get("success", False))
             if failed and stop_on_error:
                 break
@@ -128,7 +133,7 @@ def batch(
             for url in urls:
                 progress.update(task, description=f"[bold]{_shorten_url(url)}")
                 succeeded, failed = _process_url(
-                    url, settings, results, succeeded, failed, quiet=True
+                    url, settings, results, succeeded, failed, quiet=True, force=force
                 )
                 _save_batch_state(state_file, url, results[-1].get("success", False))
                 progress.advance(task)
@@ -170,7 +175,8 @@ def batch(
 
             for i, r in enumerate(results, 1):
                 if r["success"]:
-                    table.add_row(str(i), "[green]OK[/green]", r["title"])
+                    status = "[yellow]CACHED[/yellow]" if r.get("cached") else "[green]OK[/green]"
+                    table.add_row(str(i), status, r["title"])
                 else:
                     table.add_row(str(i), "[red]FAIL[/red]", r["error"][:80])
 
@@ -208,17 +214,19 @@ def _process_url(
     succeeded: int,
     failed: int,
     quiet: bool,
+    force: bool = False,
 ) -> tuple[int, int]:
     """Process a single URL, append to results. Returns (succeeded, failed)."""
     from anyscribecli.core.orchestrator import process
 
     try:
-        result = process(url, settings, quiet=quiet)
+        result = process(url, settings, quiet=quiet, force=force)
         succeeded += 1
         results.append(
             {
                 "success": True,
                 "url": url,
+                "cached": result.cached,
                 "file": str(result.file_path),
                 "title": result.title,
                 "platform": result.platform,

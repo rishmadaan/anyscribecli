@@ -142,6 +142,7 @@ export interface TranscribeRequest {
   diarize?: boolean;
   keep_media?: boolean;
   output_format?: string;
+  force?: boolean;
 }
 
 export interface ProgressEvent {
@@ -181,6 +182,7 @@ export interface JobResult {
   language: string;
   word_count: number;
   provider: string;
+  cached?: boolean;
 }
 
 export interface WorkspaceInfo {

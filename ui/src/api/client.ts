@@ -72,10 +72,16 @@ export const startTranscribe = (data: {
   diarize?: boolean;
   keep_media?: boolean;
   output_format?: string;
+  force?: boolean;
 }) =>
   fetchJSON<{ job_id: string }>("/transcribe", {
     method: "POST",
     body: JSON.stringify(data),
+  });
+
+export const cancelJob = (jobId: string) =>
+  fetchJSON<{ job_id: string; status: string }>(`/jobs/${jobId}/cancel`, {
+    method: "POST",
   });
 
 export const uploadFile = async (file: File): Promise<{ path: string; filename: string }> => {
@@ -103,6 +109,11 @@ export const getTranscripts = (platform?: string, limit = 50, offset = 0) => {
 
 export const getTranscript = (id: string) =>
   fetchJSON<TranscriptDetail>(`/transcripts/${id}`);
+
+export const deleteTranscript = (id: string) =>
+  fetchJSON<{ success: boolean; deleted: string }>(`/transcripts/${id}`, {
+    method: "DELETE",
+  });
 
 export const getWorkspaceInfo = () =>
   fetchJSON<WorkspaceInfo>("/workspace/info");

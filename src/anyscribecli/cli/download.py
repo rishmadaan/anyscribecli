@@ -35,7 +35,7 @@ def download(
 
     [dim]Tip: Wrap URLs in quotes to avoid shell issues.[/dim]
     """
-    from anyscribecli.cli.transcribe import _read_clipboard, _validate_url
+    from anyscribecli.cli.transcribe import _read_clipboard, _validate_input
     from anyscribecli.downloaders.registry import get_downloader, detect_platform
 
     # Resolve URL
@@ -53,7 +53,7 @@ def download(
         err_console.print("[red]Error:[/red] No URL provided.")
         raise typer.Exit(code=1)
 
-    url = _validate_url(url)
+    url = _validate_input(url)
     load_env()
 
     from anyscribecli.vault.writer import slugify

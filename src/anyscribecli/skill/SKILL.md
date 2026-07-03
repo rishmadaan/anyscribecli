@@ -46,7 +46,9 @@ When the USER wants to run commands themselves, show them the human-readable for
 | Pick accuracy vs cost | `scribe "url" --quality accuracy\|balanced\|cost\|free` (default `balanced` → Deepgram; picks the provider) |
 | Transcribe with speaker diarization | `scribe "url" --diarize` (auto-routes to Deepgram if configured) |
 | Hindi / Hinglish with speakers | `scribe "url" --diarize --language hi-Latn` — **always use this combo for Hindi content with multiple speakers** |
+| Re-transcribe a source already in the vault | `scribe "url" --force` (skips the "already transcribed" shortcut) |
 | Transcribe multiple URLs | `scribe batch urls.txt` |
+| Delete / remove a transcript | `scribe rm <path-or-slug>` |
 | Download video/audio only | `scribe download "url"` or `scribe download "url" --audio-only` |
 | Change settings | `scribe config set <key> <value>` |
 | See current config | `scribe config show` |
@@ -171,6 +173,41 @@ After a successful transcription:
 2. Offer to read the transcript: `Read the file at the output path`
 3. Mention the word count and duration
 4. If they use Obsidian, remind them to check their workspace location with `scribe config show`
+
+## Duplicate Detection ("Already transcribed")
+
+scribe scans the vault before transcribing. If a source URL or file path was already
+transcribed (matched against each transcript's frontmatter `source:`), it returns the
+**existing** file instead of re-transcribing — no download, no API cost.
+
+In `--json` output this shows up as `"cached": true`; in human output as
+`Already transcribed: <path> — use --force to re-transcribe.` In `scribe batch`
+the row is marked `CACHED`.
+
+**When the user hits this:** tell them it's already transcribed and where the file is.
+Only pass `--force` / `-f` if they explicitly want a fresh re-transcription (e.g. they
+changed provider or the source was updated):
+
+```bash
+scribe "url" --force --json --quiet
+```
+
+`--force` works on both `scribe` (transcribe) and `scribe batch`.
+
+## Deleting a Transcript
+
+When the user wants to remove or delete a transcript, use `scribe rm`:
+
+```bash
+scribe rm "sources/youtube/my-video.md" --yes --json   # by path
+scribe rm my-video --yes --json                          # by slug (filename, no .md)
+```
+
+- Accepts a full path or a bare slug. If a slug matches more than one file, `rm` lists the
+  matches and exits — pass a full path to disambiguate.
+- `--yes` / `-y` skips the confirmation prompt (required in agent contexts — the prompt
+  needs a TTY).
+- The master `_index.md` row is removed automatically. Daily logs are left intact as history.
 
 ## Batch Transcription
 

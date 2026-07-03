@@ -15,7 +15,7 @@ None of the three is "primary"; all three cover the full product. Human users re
 - **The Web UI is a local server, not a cloud service.** It runs at `127.0.0.1:8457` on your own machine. No account, no sign-up, no telemetry. There is no "anyscribe.com" backend.
 - **Internet is only involved when *you* ask for it.** Three cases, all transparent:
   - **Downloading a YouTube or Instagram source** — obvious; you gave it the URL.
-  - **Calling an API provider** (OpenAI, Deepgram, ElevenLabs, Sarvam, OpenRouter) — your audio goes to the provider you picked, and nothing else. Your data stays between you and them.
+  - **Calling an API provider** (OpenAI, Deepgram, ElevenLabs, Sarvam, Groq, OpenRouter) — your audio goes to the provider you picked, and nothing else. Your data stays between you and them.
   - **Pulling a Whisper model** (one-time, only if you enable local transcription) — weights download from Hugging Face.
 - **Fully offline is available.** Local files + the local provider (`scribe local setup --model base`) = zero network traffic. Your audio never leaves your machine. Same pipeline, same output format as the cloud providers.
 - No analytics, no phone-home. `scribe update --check` reaches PyPI to compare versions, but only when you run it.
@@ -33,13 +33,14 @@ None of the three is "primary"; all three cover the full product. Human users re
 URL or local file → Download/convert audio → Transcribe → Formatted Markdown → Obsidian Vault
 ```
 
-- **6 transcription providers** — OpenAI Whisper, Deepgram Nova, ElevenLabs, OpenRouter, Sarvam AI, Local (offline)
+- **7 transcription providers** — OpenAI Whisper, Deepgram Nova, ElevenLabs, Groq, OpenRouter, Sarvam AI, Local (offline)
 - **Speaker diarization** — `--diarize` flag for multi-speaker transcripts (meetings, interviews, podcasts)
 - **3 input sources** — YouTube, Instagram (reels + posts), local files (mp3, mp4, m4a, wav, opus, ogg, flac, webm)
 - **Obsidian-native output** — YAML frontmatter, word count, reading time, tags
 - **Master index + daily logs** — browse everything in Obsidian
 - **Download-only mode** — grab video or audio without transcribing
 - **Batch processing** — transcribe a list of URLs from a file
+- **No duplicate work** — a source already in your vault is returned from the existing file, not re-transcribed; `--force` overrides
 - **Web UI** — `scribe ui` launches a local dashboard (transcribe, browse history, manage settings, first-run onboarding wizard) at `127.0.0.1:8457` — served from your own machine, no cloud backend
 - **Local-first, no account** — no sign-up, no telemetry, no SaaS layer; fully offline with the local provider + local files
 - **Agent-friendly CLI** — `--json` output, structured exit codes, `--yes` for non-interactive runs on every consequential command; no silent defaults for choices an agent might make on the user's behalf
@@ -106,6 +107,7 @@ scribe download "https://www.youtube.com/watch?v=VIDEO_ID" --audio-only  # audio
 | `scribe transcribe "<url or file>"` | Transcribe a video or local file to markdown |
 | `scribe download "<url>"` | Download video or audio only |
 | `scribe batch <file>` | Batch transcribe URLs or file paths from a file |
+| `scribe rm <path-or-slug>` | Delete a transcript and update the index |
 | `scribe config show/set/path` | View and change settings |
 | `scribe providers list/test` | Manage transcription providers |
 | `scribe local setup --model <size>` | Install faster-whisper + download a Whisper model |
@@ -124,6 +126,7 @@ scribe transcribe "<url>"
   --provider, -p <name>    # Explicit provider (openai, deepgram, elevenlabs, sargam, groq, local, ...) — overrides --quality
   --language, -l <code>    # Language code (default: auto-detect)
   --diarize, -d            # Enable speaker diarization (multi-speaker transcripts)
+  --force, -f              # Re-transcribe even if this source is already in the vault
   --json, -j               # JSON output for scripting/AI agents
   --keep-media             # Keep the downloaded audio file
   --clipboard, -c          # Read URL from clipboard
@@ -156,6 +159,7 @@ scribe batch <file>
   --language, -l <code>      # Override language
   --json, -j                 # JSON output
   --keep-media               # Keep audio files
+  --force, -f                # Re-transcribe sources already in the vault
   --quiet, -q                # Suppress progress
   --stop-on-error            # Stop at first failure
 ```

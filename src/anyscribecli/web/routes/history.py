@@ -107,6 +107,28 @@ async def get_transcript(transcript_id: str) -> dict:
     raise HTTPException(status_code=404, detail=f"Transcript not found: {transcript_id}")
 
 
+@router.delete("/transcripts/{transcript_id}")
+async def delete_transcript(transcript_id: str) -> dict:
+    """Delete a transcript by its slug (file stem) and resync the master index."""
+    from anyscribecli.vault.index import delete_transcript as vault_delete
+
+    ws = get_workspace_dir()
+    sources = ws / "sources"
+
+    if not sources.is_dir():
+        raise HTTPException(status_code=404, detail="No sources directory")
+
+    for md_file in sources.rglob("*.md"):
+        if md_file.stem == transcript_id:
+            try:
+                vault_delete(md_file)
+            except ValueError as e:
+                raise HTTPException(status_code=400, detail=str(e)) from None
+            return {"success": True, "deleted": str(md_file)}
+
+    raise HTTPException(status_code=404, detail=f"Transcript not found: {transcript_id}")
+
+
 @router.get("/workspace/info")
 async def workspace_info() -> dict:
     ws = get_workspace_dir()

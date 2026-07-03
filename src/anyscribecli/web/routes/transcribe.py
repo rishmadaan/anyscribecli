@@ -7,7 +7,7 @@ import shutil
 import uuid
 from pathlib import Path
 
-from fastapi import APIRouter, UploadFile, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, HTTPException, UploadFile, WebSocket, WebSocketDisconnect
 
 from anyscribecli.config.paths import TMP_DIR
 from anyscribecli.config.settings import load_config, load_env
@@ -48,8 +48,18 @@ async def upload_file(file: UploadFile) -> dict:
 
     dest = upload_subdir / safe_name
 
+    # Cap upload size so a runaway/malicious upload can't fill the disk.
+    # 4 GiB comfortably fits multi-hour video; audio is far smaller.
+    max_bytes = 4 * 1024**3
+    written = 0
     with open(dest, "wb") as f:
-        shutil.copyfileobj(file.file, f)
+        while chunk := file.file.read(1024 * 1024):
+            written += len(chunk)
+            if written > max_bytes:
+                f.close()
+                shutil.rmtree(upload_subdir, ignore_errors=True)
+                raise HTTPException(status_code=413, detail="File exceeds the 4 GB upload limit.")
+            f.write(chunk)
 
     return {"path": str(dest), "filename": file.filename}
 
@@ -80,7 +90,7 @@ async def start_transcribe(req: TranscribeRequest) -> dict:
     apply_quality(settings, explicit_provider=bool(req.provider) or req.diarize)
 
     loop = asyncio.get_event_loop()
-    job_id = await job_manager.submit(req.url, settings, loop)
+    job_id = await job_manager.submit(req.url, settings, loop, force=req.force)
     return {"job_id": job_id}
 
 
@@ -99,6 +109,15 @@ async def get_job_status(job_id: str) -> JobStatusResponse:
         result=job.result,
         error=job.error,
     )
+
+
+@router.post("/jobs/{job_id}/cancel")
+async def cancel_job(job_id: str) -> dict:
+    """Request cancellation of a running job. No-op if already finished."""
+    job = job_manager.cancel(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    return {"job_id": job.id, "status": job.status.value}
 
 
 @router.websocket("/ws/jobs/{job_id}")
@@ -122,7 +141,7 @@ async def job_websocket(websocket: WebSocket, job_id: str) -> None:
         while True:
             event = await queue.get()
             await websocket.send_json(event.to_dict())
-            if event.step in ("done", "error"):
+            if event.step in ("done", "error", "cancelled"):
                 break
 
     except WebSocketDisconnect:

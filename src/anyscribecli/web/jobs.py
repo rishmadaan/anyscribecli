@@ -27,6 +27,10 @@ class JobStatus(str, Enum):
     CANCELLED = "cancelled"
 
 
+class JobCancelled(Exception):
+    """Raised inside the pipeline thread to abort a cancelled job."""
+
+
 @dataclass
 class Job:
     id: str
@@ -36,6 +40,7 @@ class Job:
     result: dict[str, Any] | None = None
     error: str | None = None
     completed_at: float | None = None
+    cancel_requested: bool = False
     _subscribers: list[asyncio.Queue] = field(default_factory=list)
 
 
@@ -66,6 +71,15 @@ class JobManager:
         self._cleanup_stale()
         return self._jobs.get(job_id)
 
+    def cancel(self, job_id: str) -> Job | None:
+        """Request cooperative cancellation. No-op if the job already finished."""
+        job = self._jobs.get(job_id)
+        if not job:
+            return None
+        if job.status in (JobStatus.PENDING, JobStatus.RUNNING):
+            job.cancel_requested = True
+        return job
+
     def subscribe(self, job: Job) -> asyncio.Queue:
         q: asyncio.Queue = asyncio.Queue()
         job._subscribers.append(q)
@@ -77,16 +91,20 @@ class JobManager:
         except ValueError:
             pass
 
-    async def submit(self, url: str, settings: Any, loop: asyncio.AbstractEventLoop) -> str:
+    async def submit(
+        self, url: str, settings: Any, loop: asyncio.AbstractEventLoop, force: bool = False
+    ) -> str:
         """Submit a new transcription job. Returns job_id immediately."""
         self._cleanup_stale()
         job_id = uuid.uuid4().hex[:8]
         job = Job(id=job_id, url=url)
         self._jobs[job_id] = job
-        loop.run_in_executor(self._executor, self._run_job, job, settings, loop)
+        loop.run_in_executor(self._executor, self._run_job, job, settings, loop, force)
         return job_id
 
-    def _run_job(self, job: Job, settings: Any, loop: asyncio.AbstractEventLoop) -> None:
+    def _run_job(
+        self, job: Job, settings: Any, loop: asyncio.AbstractEventLoop, force: bool = False
+    ) -> None:
         """Run process() synchronously in a thread, pushing events to subscribers."""
         from anyscribecli.config.settings import load_env
         from anyscribecli.core.orchestrator import process
@@ -95,6 +113,10 @@ class JobManager:
         job.status = JobStatus.RUNNING
 
         def on_progress(step: str, status: str, message: str, **kwargs: Any) -> None:
+            # ponytail: cancellation is cooperative — a sync pipeline can't be
+            # interrupted mid-step, so we abort at the next progress event.
+            if job.cancel_requested:
+                raise JobCancelled()
             event = ProgressEvent(
                 step=step,
                 status=status,
@@ -124,6 +146,7 @@ class JobManager:
                 settings=settings,
                 quiet=True,
                 on_progress=on_progress,
+                force=force,
             )
             job.status = JobStatus.COMPLETED
             job.completed_at = time.time()
@@ -135,6 +158,7 @@ class JobManager:
                 "language": result.language,
                 "word_count": result.word_count,
                 "provider": result.provider,
+                "cached": result.cached,
             }
             # Send completion event
             done_event = ProgressEvent(
@@ -147,6 +171,21 @@ class JobManager:
             for q in list(job._subscribers):
                 try:
                     loop.call_soon_threadsafe(q.put_nowait, done_event)
+                except Exception:
+                    pass
+
+        except JobCancelled:
+            job.status = JobStatus.CANCELLED
+            job.completed_at = time.time()
+            cancel_event = ProgressEvent(
+                step="cancelled",
+                status="cancelled",
+                message="Transcription cancelled",
+            )
+            job.events.append(cancel_event)
+            for q in list(job._subscribers):
+                try:
+                    loop.call_soon_threadsafe(q.put_nowait, cancel_event)
                 except Exception:
                     pass
 

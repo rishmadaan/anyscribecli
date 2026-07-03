@@ -110,6 +110,63 @@ def update_indexes(
     update_daily_log(entry_path, download, duration_str, workspace)
 
 
+def remove_from_index(file_path: Path, workspace: Path | None = None) -> None:
+    """Remove a transcript's row from _index.md.
+
+    Daily logs are left untouched — they are append-only history.
+    """
+    ws = workspace or get_workspace_dir()
+    index_file = ws / "_index.md"
+    if not index_file.exists():
+        return
+
+    try:
+        rel_path = file_path.resolve().relative_to(ws.resolve())
+    except ValueError:
+        return
+
+    marker = f"[[{rel_path}|"
+    with file_lock(index_file):
+        lines = index_file.read_text().split("\n")
+        kept = [line for line in lines if marker not in line]
+        if len(kept) != len(lines):
+            atomic_write(index_file, "\n".join(kept))
+
+
+def find_transcript(target: str, workspace: Path | None = None) -> list[Path]:
+    """Resolve a path or slug to matching transcript files.
+
+    A path that exists is returned as-is; otherwise the slug is searched
+    across sources/*/<slug>.md. Returns all matches (may be ambiguous).
+    """
+    ws = workspace or get_workspace_dir()
+    p = Path(target).expanduser()
+    if p.is_file():
+        return [p]
+    sources = ws / "sources"
+    if not sources.is_dir():
+        return []
+    return sorted(sources.rglob(f"{target}.md"))
+
+
+def delete_transcript(file_path: Path, workspace: Path | None = None) -> None:
+    """Delete a transcript file and remove its row from the master index.
+
+    Raises ValueError if the path is outside the workspace sources/ tree,
+    FileNotFoundError if the file doesn't exist.
+    """
+    ws = (workspace or get_workspace_dir()).resolve()
+    resolved = file_path.expanduser().resolve()
+    try:
+        resolved.relative_to(ws / "sources")
+    except ValueError:
+        raise ValueError(f"Refusing to delete outside workspace sources/: {file_path}") from None
+    if not resolved.is_file():
+        raise FileNotFoundError(f"Transcript not found: {file_path}")
+    resolved.unlink()
+    remove_from_index(resolved, ws)
+
+
 def rebuild_master_index(workspace: Path | None = None) -> None:
     """Rebuild _index.md from scratch by scanning all transcript files.
 

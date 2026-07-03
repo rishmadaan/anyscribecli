@@ -239,6 +239,7 @@ def providers_test(
         "elevenlabs": "ELEVENLABS_API_KEY",
         "sargam": "SARGAM_API_KEY",
         "deepgram": "DEEPGRAM_API_KEY",
+        "groq": "GROQ_API_KEY",
     }
     env_var = key_map.get(provider_name)
     if env_var:

@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { getTranscripts, getWorkspaceInfo } from "../api/client";
+import { getTranscripts, getWorkspaceInfo, deleteTranscript } from "../api/client";
 import type { TranscriptMeta, WorkspaceInfo } from "../api/types";
-import { FileText, Play, Camera, FileAudio, Search } from "lucide-react";
+import { FileText, Play, Camera, FileAudio, Search, Trash2 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 const PLATFORM_ICON: Record<string, LucideIcon> = {
@@ -26,6 +26,18 @@ export default function HistoryPage() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleDelete = async (id: string, title: string) => {
+    if (!confirm(`Delete "${title}"? This removes the transcript file.`)) return;
+    try {
+      await deleteTranscript(id);
+      setTranscripts((prev) => prev.filter((t) => t.id !== id));
+      setTotal((prev) => Math.max(0, prev - 1));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Delete failed");
+    }
+  };
 
   useEffect(() => {
     Promise.all([getTranscripts(undefined, PAGE_SIZE, 0), getWorkspaceInfo()])
@@ -94,6 +106,12 @@ export default function HistoryPage() {
         />
       </div>
 
+      {error && (
+        <div className="rounded-lg border border-red/30 bg-red/5 px-4 py-2.5 mb-4">
+          <p className="text-xs text-red font-mono">{error}</p>
+        </div>
+      )}
+
       {/* Content */}
       {loading ? (
         <div className="space-y-3">
@@ -122,20 +140,19 @@ export default function HistoryPage() {
                   const Icon = PLATFORM_ICON[t.platform] || FileText;
                   const color = PLATFORM_COLOR[t.platform] || "text-text-muted";
                   return (
-                    <Link
+                    <div
                       key={t.id}
-                      to={`/history/${t.id}`}
                       className="
                         flex items-center gap-3 rounded-lg px-3 py-2.5
                         hover:bg-surface-raised transition-colors group
                       "
                     >
                       <Icon className={`w-4 h-4 ${color} shrink-0`} />
-                      <div className="flex-1 min-w-0">
+                      <Link to={`/history/${t.id}`} className="flex-1 min-w-0">
                         <p className="text-sm text-text truncate group-hover:text-text">
                           {t.title}
                         </p>
-                      </div>
+                      </Link>
                       <span className="text-xs text-text-muted font-mono shrink-0">
                         {t.duration}
                       </span>
@@ -145,7 +162,17 @@ export default function HistoryPage() {
                       <span className="text-xs text-text-muted font-mono shrink-0 w-16 text-right">
                         {t.provider}
                       </span>
-                    </Link>
+                      <button
+                        onClick={() => handleDelete(t.id, t.title)}
+                        title="Delete transcript"
+                        className="
+                          text-text-muted hover:text-red transition-colors shrink-0
+                          opacity-0 group-hover:opacity-100 cursor-pointer p-1
+                        "
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   );
                 })}
               </div>

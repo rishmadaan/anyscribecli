@@ -14,10 +14,11 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 const formatLabel = (fmt: string) => (fmt === "diarized" ? "with-speaker-labels" : fmt);
 
 export default function TranscribePage() {
-  const { phase, events, result, error, submit, reset } = useJob();
+  const { phase, events, result, error, submit, cancel, reset } = useJob();
   const [config, setConfig] = useState<Config | null>(null);
   const [providers, setProviders] = useState<Provider[]>([]);
   const [showOptions, setShowOptions] = useState(false);
+  const [lastUrl, setLastUrl] = useState(""); // retained for retry / re-transcribe
 
   // Override fields
   const [quality, setQuality] = useState("balanced");
@@ -40,7 +41,8 @@ export default function TranscribePage() {
     });
   }, []);
 
-  const handleSubmit = (url: string) => {
+  const handleSubmit = (url: string, force = false) => {
+    setLastUrl(url);
     // Send quality; only send provider when the user explicitly overrode "auto".
     submit({
       url,
@@ -50,6 +52,7 @@ export default function TranscribePage() {
       diarize,
       keep_media: keepMedia,
       output_format: outputFormat,
+      force,
     });
   };
 
@@ -215,11 +218,100 @@ export default function TranscribePage() {
       )}
 
       {phase === "running" && (
-        <ProgressTracker events={events} title={downloadedTitle} />
+        <div className="w-full max-w-2xl flex flex-col items-center">
+          <ProgressTracker events={events} title={downloadedTitle} />
+          <button
+            onClick={cancel}
+            className="
+              mt-6 self-start
+              flex items-center justify-center gap-2
+              rounded-lg border border-border hover:border-red/40
+              bg-surface-raised hover:bg-red/5
+              px-4 py-2 text-sm text-text-secondary hover:text-red
+              transition-colors cursor-pointer
+            "
+          >
+            Stop
+          </button>
+        </div>
       )}
 
-      {phase === "completed" && result && (
+      {phase === "completed" && result && result.cached && (
+        <div className="w-full max-w-2xl animate-slide-up">
+          <div className="rounded-lg border border-amber/30 bg-amber/5 px-4 py-3 mb-4">
+            <p className="text-sm text-amber font-medium mb-1">Already transcribed</p>
+            <p className="text-xs text-text-secondary mb-2">
+              This source is already in your vault.
+            </p>
+            <Link
+              to={`/history/${result.file_path.split("/").pop()?.replace(/\.md$/, "")}`}
+              className="text-xs text-amber hover:underline font-mono break-all"
+            >
+              {result.file_path}
+            </Link>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => handleSubmit(lastUrl, true)}
+              className="
+                flex-1 flex items-center justify-center gap-2
+                rounded-lg bg-amber/90 hover:bg-amber px-5 py-2.5
+                text-sm font-semibold text-bg transition-colors cursor-pointer
+              "
+            >
+              Re-transcribe
+            </button>
+            <button
+              onClick={reset}
+              className="
+                flex items-center justify-center gap-2
+                rounded-lg border border-border hover:border-border/80
+                bg-surface-raised hover:bg-surface-hover
+                px-5 py-2.5 text-sm text-text-secondary hover:text-text
+                transition-colors cursor-pointer
+              "
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      )}
+
+      {phase === "completed" && result && !result.cached && (
         <ResultCard result={result} onReset={reset} />
+      )}
+
+      {phase === "cancelled" && (
+        <div className="w-full max-w-2xl animate-slide-up">
+          <div className="rounded-lg border border-border bg-surface px-4 py-3 mb-4">
+            <p className="text-sm text-text font-medium mb-1">Transcription cancelled</p>
+            <p className="text-xs text-text-secondary">You stopped this job.</p>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => handleSubmit(lastUrl)}
+              className="
+                flex-1 flex items-center justify-center gap-2
+                rounded-lg bg-amber/90 hover:bg-amber px-5 py-2.5
+                text-sm font-semibold text-bg transition-colors cursor-pointer
+              "
+            >
+              Try again
+            </button>
+            <button
+              onClick={reset}
+              className="
+                flex items-center justify-center gap-2
+                rounded-lg border border-border hover:border-border/80
+                bg-surface-raised hover:bg-surface-hover
+                px-5 py-2.5 text-sm text-text-secondary hover:text-text
+                transition-colors cursor-pointer
+              "
+            >
+              New
+            </button>
+          </div>
+        </div>
       )}
 
       {phase === "error" && (
@@ -228,18 +320,30 @@ export default function TranscribePage() {
             <p className="text-sm text-red font-medium mb-1">Transcription failed</p>
             <p className="text-xs text-text-secondary font-mono">{error}</p>
           </div>
-          <button
-            onClick={reset}
-            className="
-              flex items-center justify-center gap-2
-              rounded-lg border border-border hover:border-border/80
-              bg-surface-raised hover:bg-surface-hover
-              px-5 py-2.5 w-full text-sm text-text-secondary hover:text-text
-              transition-colors cursor-pointer
-            "
-          >
-            Try again
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => lastUrl && handleSubmit(lastUrl)}
+              className="
+                flex-1 flex items-center justify-center gap-2
+                rounded-lg bg-amber/90 hover:bg-amber px-5 py-2.5
+                text-sm font-semibold text-bg transition-colors cursor-pointer
+              "
+            >
+              Try again
+            </button>
+            <button
+              onClick={reset}
+              className="
+                flex items-center justify-center gap-2
+                rounded-lg border border-border hover:border-border/80
+                bg-surface-raised hover:bg-surface-hover
+                px-5 py-2.5 text-sm text-text-secondary hover:text-text
+                transition-colors cursor-pointer
+              "
+            >
+              New
+            </button>
+          </div>
         </div>
       )}
     </div>

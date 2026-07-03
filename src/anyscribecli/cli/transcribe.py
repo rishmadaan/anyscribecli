@@ -36,6 +36,9 @@ def transcribe(
     ),
     quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress progress output."),
     clipboard: bool = typer.Option(False, "--clipboard", "-c", help="Read URL from clipboard."),
+    force: bool = typer.Option(
+        False, "--force", "-f", help="Re-transcribe even if this source was already transcribed."
+    ),
 ) -> None:
     """[bold blue]Transcribe[/bold blue] a video/audio URL or local file to markdown.
 
@@ -106,7 +109,7 @@ def transcribe(
     apply_quality(settings, explicit_provider=bool(provider) or diarize)
 
     try:
-        result = process(url, settings, quiet=quiet)
+        result = process(url, settings, quiet=quiet, force=force)
     except Exception as e:
         from anyscribecli.cli.main import _debug_mode
         from anyscribecli.core.errors import ScribeAPIError
@@ -135,6 +138,7 @@ def transcribe(
                     "language": result.language,
                     "word_count": result.word_count,
                     "provider": result.provider,
+                    "cached": result.cached,
                 },
                 "error": None,
             },
@@ -142,6 +146,11 @@ def transcribe(
             indent=2,
         )
         sys.stdout.write("\n")
+    elif result.cached:
+        console.print(
+            f"\n[yellow]Already transcribed:[/yellow] {result.file_path}"
+            " — use --force to re-transcribe."
+        )
     else:
         console.print(f"\n[green]Transcription saved:[/green] {result.file_path}")
         console.print(f"  Title:    {result.title}")

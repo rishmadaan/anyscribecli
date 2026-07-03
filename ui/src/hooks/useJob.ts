@@ -2,9 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { JobResult, ProgressEvent } from "../api/types";
-import { startTranscribe } from "../api/client";
+import { startTranscribe, cancelJob } from "../api/client";
 
-export type JobPhase = "idle" | "running" | "completed" | "error";
+export type JobPhase = "idle" | "running" | "completed" | "error" | "cancelled";
 
 const MAX_RECONNECT = 5;
 const POLL_INTERVAL_MS = 3000;
@@ -57,6 +57,9 @@ export function useJob() {
               phase: "error",
               error: data.error ?? "Transcription failed",
             }));
+          } else if (data.status === "cancelled") {
+            stopPolling();
+            setState((prev) => ({ ...prev, phase: "cancelled" }));
           }
         } catch {
           // Ignore poll errors — will retry on next interval
@@ -96,6 +99,13 @@ export function useJob() {
               phase: "error",
               events: [...prev.events, event],
               error: event.message,
+            };
+          }
+          if (event.step === "cancelled") {
+            return {
+              ...prev,
+              phase: "cancelled",
+              events: [...prev.events, event],
             };
           }
           return { ...prev, events: [...prev.events, event] };
@@ -148,6 +158,7 @@ export function useJob() {
       diarize?: boolean;
       keep_media?: boolean;
       output_format?: string;
+      force?: boolean;
     }) => {
       // Reset state
       setState({ phase: "running", events: [], result: null, error: null });
@@ -170,6 +181,11 @@ export function useJob() {
     [connectWs, stopPolling]
   );
 
+  const cancel = useCallback(() => {
+    const jobId = jobIdRef.current;
+    if (jobId) cancelJob(jobId).catch(() => {});
+  }, []);
+
   const reset = useCallback(() => {
     wsRef.current?.close();
     wsRef.current = null;
@@ -179,5 +195,5 @@ export function useJob() {
     setState({ phase: "idle", events: [], result: null, error: null });
   }, [stopPolling]);
 
-  return { ...state, submit, reset };
+  return { ...state, submit, cancel, reset };
 }
