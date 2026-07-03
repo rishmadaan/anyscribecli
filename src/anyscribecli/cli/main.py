@@ -184,6 +184,7 @@ from anyscribecli.cli.config_cmd import config_app, providers_app  # noqa: E402
 from anyscribecli.cli.batch import batch  # noqa: E402
 from anyscribecli.cli.download import download  # noqa: E402
 from anyscribecli.cli.rm import rm  # noqa: E402
+from anyscribecli.cli.logs_cmd import logs  # noqa: E402
 from anyscribecli.cli.skill_cmd import install_skill  # noqa: E402
 from anyscribecli.cli.local_cmd import local_app  # noqa: E402
 from anyscribecli.cli.models_cmd import models_app  # noqa: E402
@@ -193,6 +194,7 @@ app.command()(transcribe)
 app.command()(batch)
 app.command()(download)
 app.command()(rm)
+app.command()(logs)
 app.command("install-skill")(install_skill)
 app.add_typer(config_app, name="config")
 app.add_typer(providers_app, name="providers")

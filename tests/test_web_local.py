@@ -159,6 +159,43 @@ def test_list_exposes_queue_state(client):
         assert "downloading" in m and "queued" in m and "queue_position" in m
 
 
+def test_status_carries_setup_progress_when_reported(client):
+    # Prime the setup state with a byte-progress dict as the download hook would.
+    app = client.app
+    app.state.local_setup = {
+        "running": True,
+        "phase": "downloading_model",
+        "error": None,
+        "last_model": "base",
+        "log": [],
+        "progress": {"downloaded": 50, "total": 100, "percent": 50.0},
+    }
+    r = client.get("/api/local/status")
+    assert r.status_code == 200
+    prog = r.json()["setup_progress"]
+    assert prog == {"downloaded": 50, "total": 100, "percent": 50.0}
+
+
+def test_status_merges_queue_download_progress(client):
+    # A model actively downloading in the models queue surfaces its byte
+    # progress on the /api/local/status models rows too.
+    import threading
+
+    app = client.app
+    app.state.download_queue = {
+        "queue": ["small"],
+        "lock": threading.Lock(),
+        "worker_running": True,
+        "results": {},
+        "progress": {"small": {"downloaded": 10, "total": 40, "percent": 25.0}},
+    }
+    r = client.get("/api/local/status")
+    assert r.status_code == 200
+    row = next(m for m in r.json()["models"] if m["size"] == "small")
+    assert row["downloading"] is True
+    assert row["progress"] == {"downloaded": 10, "total": 40, "percent": 25.0}
+
+
 def test_setup_log_safe_before_any_setup(client):
     r = client.get("/api/local/setup/log")
     assert r.status_code == 200

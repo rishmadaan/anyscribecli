@@ -41,7 +41,7 @@ URL or local file → Download/convert audio → Transcribe → Formatted Markdo
 - **Download-only mode** — grab video or audio without transcribing
 - **Batch processing** — transcribe a list of URLs from a file
 - **No duplicate work** — a source already in your vault is returned from the existing file, not re-transcribed; `--force` overrides
-- **Web UI** — `scribe ui` launches a local dashboard (transcribe, browse history, manage settings, first-run onboarding wizard) at `127.0.0.1:8457` — served from your own machine, no cloud backend
+- **Web UI** — `scribe ui` launches a local dashboard (transcribe, browse history, manage settings, first-run onboarding wizard) at `127.0.0.1:8457` — served from your own machine, no cloud backend; local Whisper model downloads show byte-level progress (percent + MB)
 - **Local-first, no account** — no sign-up, no telemetry, no SaaS layer; fully offline with the local provider + local files
 - **Agent-friendly CLI** — `--json` output, structured exit codes, `--yes` for non-interactive runs on every consequential command; no silent defaults for choices an agent might make on the user's behalf
 - **Three-surface onboarding parity** — wizard modal in the Web UI, interactive prompts in `scribe onboard`, flag-driven in `scribe onboard --yes ...`; all three write the same config
@@ -108,6 +108,7 @@ scribe download "https://www.youtube.com/watch?v=VIDEO_ID" --audio-only  # audio
 | `scribe download "<url>"` | Download video or audio only |
 | `scribe batch <file>` | Batch transcribe URLs or file paths from a file |
 | `scribe rm <path-or-slug>` | Delete a transcript and update the index |
+| `scribe logs` | View recent transcription activity + recovery artifacts |
 | `scribe config show/set/path` | View and change settings |
 | `scribe providers list/test` | Manage transcription providers |
 | `scribe local setup --model <size>` | Install faster-whisper + download a Whisper model |

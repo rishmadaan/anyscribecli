@@ -41,6 +41,7 @@ def _setup_state(app) -> dict[str, Any]:
             "error": None,
             "last_model": None,
             "log": [],
+            "progress": None,
         }
         app.state.local_setup = state
     return state
@@ -62,8 +63,25 @@ async def local_status(request: Request) -> dict:
     status["setup_phase"] = state["phase"]
     status["setup_error"] = state["error"]
     status["setup_last_model"] = state["last_model"]
+    status["setup_progress"] = state["progress"]
     status["recommended_model"] = RECOMMENDED_MODEL
     status["choices"] = list(MODEL_SIZES)
+
+    # Merge the Models-panel download queue state so the Settings table (which
+    # polls only this endpoint) can render downloading/queued/percent per row.
+    dq = getattr(request.app.state, "download_queue", None)
+    if dq is not None:
+        with dq["lock"]:
+            queue = list(dq["queue"])
+            progress = dict(dq["progress"])
+        for m in status["models"]:
+            size = m["size"]
+            pos = queue.index(size) if size in queue else -1
+            m["downloading"] = pos == 0
+            m["queued"] = pos > 0
+            m["queue_position"] = pos
+            m["progress"] = progress.get(size)
+
     return status
 
 
@@ -90,9 +108,21 @@ def _background_setup(app, model: str) -> None:
     state = _setup_state(app)
     # Fresh run = fresh log.
     state["log"].clear()
+    state["progress"] = None
 
     def on_progress(ev: dict) -> None:
         name = ev.get("event")
+        # Byte-level download progress is high-frequency; update the progress
+        # field but don't spam the log or churn the phase name.
+        if name == "download_progress":
+            total = int(ev.get("total") or 0)
+            downloaded = int(ev.get("downloaded") or 0)
+            state["progress"] = {
+                "downloaded": downloaded,
+                "total": total,
+                "percent": round(downloaded / total * 100, 1) if total > 0 else None,
+            }
+            return
         state["phase"] = name
         # Mirror phase transitions into the log so the UI panel tells a story
         # even before the install subprocess starts emitting output.
@@ -109,6 +139,7 @@ def _background_setup(app, model: str) -> None:
         elif name == "model_downloaded":
             mb = int(ev.get("bytes", 0)) // (1024 * 1024)
             _append_log(state, f"[phase] model downloaded ({mb} MB)")
+            state["progress"] = None
         elif name == "done":
             _append_log(state, "[phase] done")
 

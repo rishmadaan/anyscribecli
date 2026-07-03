@@ -904,7 +904,9 @@ function LocalProviderCard({
                       {isDownloading ? (
                         <>
                           <Loader2 className="w-3 h-3 animate-spin" />
-                          downloading
+                          {m.progress && m.progress.total > 0
+                            ? `${m.progress.percent ?? 0}%`
+                            : "downloading"}
                         </>
                       ) : isQueued ? (
                         <>queued</>

@@ -34,6 +34,9 @@ def batch(
     force: bool = typer.Option(
         False, "--force", "-f", help="Re-transcribe even if a source was already transcribed."
     ),
+    timeout: float | None = typer.Option(
+        None, "--timeout", help="Per-URL timeout in seconds (default: no timeout)."
+    ),
 ) -> None:
     """[bold magenta]Batch transcribe[/bold magenta] URLs or local files from a list.
 
@@ -114,7 +117,7 @@ def batch(
         # No progress display
         for url in urls:
             succeeded, failed = _process_url(
-                url, settings, results, succeeded, failed, quiet=True, force=force
+                url, settings, results, succeeded, failed, quiet=True, force=force, timeout=timeout
             )
             _save_batch_state(state_file, url, results[-1].get("success", False))
             if failed and stop_on_error:
@@ -133,7 +136,7 @@ def batch(
             for url in urls:
                 progress.update(task, description=f"[bold]{_shorten_url(url)}")
                 succeeded, failed = _process_url(
-                    url, settings, results, succeeded, failed, quiet=True, force=force
+                    url, settings, results, succeeded, failed, quiet=True, force=force, timeout=timeout
                 )
                 _save_batch_state(state_file, url, results[-1].get("success", False))
                 progress.advance(task)
@@ -215,12 +218,30 @@ def _process_url(
     failed: int,
     quiet: bool,
     force: bool = False,
+    timeout: float | None = None,
 ) -> tuple[int, int]:
     """Process a single URL, append to results. Returns (succeeded, failed)."""
     from anyscribecli.core.orchestrator import process
 
     try:
-        result = process(url, settings, quiet=quiet, force=force)
+        if timeout is None:
+            result = process(url, settings, quiet=quiet, force=force)
+        else:
+            # ponytail: Python can't kill a running thread, so a timed-out worker
+            # keeps transcribing in the background even though we've moved on and
+            # reported it failed. Fine for a CLI batch run; if this ever needs to
+            # actually cancel work (e.g. to free API concurrency), switch to
+            # subprocess isolation (multiprocessing/concurrent.futures.ProcessPoolExecutor)
+            # so the timeout can terminate the process, not just abandon the thread.
+            from concurrent.futures import ThreadPoolExecutor
+            from concurrent.futures import TimeoutError as FutureTimeoutError
+
+            with ThreadPoolExecutor(max_workers=1) as executor:
+                future = executor.submit(process, url, settings, quiet=quiet, force=force)
+                try:
+                    result = future.result(timeout=timeout)
+                except FutureTimeoutError:
+                    raise TimeoutError(f"timed out after {timeout:g}s") from None
         succeeded += 1
         results.append(
             {
@@ -238,7 +259,12 @@ def _process_url(
     except Exception as e:
         from anyscribecli.core.errors import ScribeAPIError
 
-        error_msg = e.user_message if isinstance(e, ScribeAPIError) else str(e)
+        if isinstance(e, TimeoutError):
+            error_msg = str(e)
+        elif isinstance(e, ScribeAPIError):
+            error_msg = e.user_message
+        else:
+            error_msg = str(e)
         failed += 1
         results.append(
             {

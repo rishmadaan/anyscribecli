@@ -100,6 +100,85 @@ def test_local_ready_false_when_no_models_cached():
                 assert local_setup.local_ready() is False
 
 
+def test_progress_tqdm_class_aggregates_bytes(monkeypatch):
+    """The tqdm subclass sums byte-bars and reports (downloaded, total)."""
+    import sys
+    import types
+
+    from anyscribecli.providers import local_models
+
+    # Minimal tqdm base standing in for huggingface_hub.utils.tqdm.
+    class FakeTqdm:
+        def __init__(self, *args, unit=None, total=None, **kwargs):
+            self.unit = unit
+            self.total = total
+            self.n = 0
+
+        def update(self, n=1):
+            self.n += n
+
+        def close(self):
+            pass
+
+    fake_hub = types.ModuleType("huggingface_hub")
+    fake_hub_utils = types.ModuleType("huggingface_hub.utils")
+    fake_hub_utils.tqdm = FakeTqdm
+    monkeypatch.setitem(sys.modules, "huggingface_hub", fake_hub)
+    monkeypatch.setitem(sys.modules, "huggingface_hub.utils", fake_hub_utils)
+
+    reports = []
+    cls = local_models._progress_tqdm_class(lambda d, t: reports.append((d, t)))
+    assert cls is not None
+
+    bar = cls(unit="B", total=100)
+    bar.update(40)
+    assert reports[-1] == (40, 100)
+
+
+def test_pull_model_passes_tqdm_class_when_progress_cb_given():
+    from anyscribecli.providers import local_models
+
+    captured = {}
+
+    class FakeHub:
+        @staticmethod
+        def snapshot_download(**kwargs):
+            captured.update(kwargs)
+
+    with patch.object(local_models, "faster_whisper_importable", return_value=True):
+        with patch.object(local_models, "_safe_import_hub", return_value=FakeHub):
+            with patch.object(local_models, "is_cached", return_value=False):
+                with patch.object(local_models, "list_cached_models", return_value=[]):
+                    with patch.object(
+                        local_models,
+                        "_progress_tqdm_class",
+                        return_value=object,
+                    ):
+                        local_models.pull_model("base", progress_cb=lambda d, t: None)
+
+    assert "tqdm_class" in captured
+    assert captured["repo_id"] == local_models.MODEL_REPOS["base"]
+
+
+def test_pull_model_no_tqdm_class_without_cb():
+    from anyscribecli.providers import local_models
+
+    captured = {}
+
+    class FakeHub:
+        @staticmethod
+        def snapshot_download(**kwargs):
+            captured.update(kwargs)
+
+    with patch.object(local_models, "faster_whisper_importable", return_value=True):
+        with patch.object(local_models, "_safe_import_hub", return_value=FakeHub):
+            with patch.object(local_models, "is_cached", return_value=False):
+                with patch.object(local_models, "list_cached_models", return_value=[]):
+                    local_models.pull_model("base")
+
+    assert "tqdm_class" not in captured
+
+
 def test_run_setup_rejects_unknown_size():
     with pytest.raises(ValueError):
         local_setup.run_setup("huge")

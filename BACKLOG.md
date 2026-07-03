@@ -53,9 +53,9 @@ The `0.x` prefix means pre-stable — breaking changes are allowed between minor
 | 0.9.0 | Accuracy↔cost quality picker (accuracy/balanced/cost/free) + Groq provider; ElevenLabs scribe_v2; config-load resilience | Released 2026-06-29 |
 | 0.10.0 | Merge Instagram yt-dlp migration onto mainline (now with quality picker); Sarvam `saaras:v2.5` fix | Released 2026-06-29 |
 | 0.10.1 | Fix Sarvam: chunk at 28s (the 30s REST limit is exclusive — `v2.5` rejects exactly-30s clips) | Released 2026-06-29 |
-| 0.11.0 | Audit fixes: download crash, Groq test; duplicate detection + `--force`; `scribe rm` + delete across surfaces; web UI cancel/retry; MCP quality/force/delete_transcript; upload cap | **Current** |
-| 0.9.x | Byte-level download progress in Web UI — stream faster-whisper/HF progress via WebSocket to replace the spinner in `LocalSetupModal` and the Models table | Queued |
-| 0.12.0 | Menu-bar tray companion + auto-start ([plan](docs/building/journal/2026-04-18-menu-bar-tray-companion-plan.md)) | Planned |
+| 0.11.0 | Audit fixes: download crash, Groq test; duplicate detection + `--force`; `scribe rm` + delete across surfaces; web UI cancel/retry; MCP quality/force/delete_transcript; upload cap | Released 2026-07-03 |
+| 0.12.0 | `scribe logs`; `batch --timeout`; byte-level model-download progress in Web UI; 41 provider unit tests + sargam speaker-0 fix | **Current** |
+| 0.13.0 | Menu-bar tray companion + auto-start ([plan](docs/building/journal/2026-04-18-menu-bar-tray-companion-plan.md)) | Planned |
 | 1.0.0 | Stable: broader test coverage and release hardening | Future |
 
 ### How to bump versions
@@ -360,7 +360,7 @@ All features originally planned for v0.2.0–v0.5.0, built in one session:
 - [ ] Full test suite (pytest — unit tests for providers, downloaders, vault, config)
 - [x] Comprehensive error handling and retry logic (network failures, API rate limits)
 - [ ] Suppress instaloader's noisy retry output (redirect to log file)
-- [ ] `scribe logs` command to view recent log files
+- [x] `scribe logs` command to view recent log files — shipped as `scribe logs` in v0.12.0
 
 ---
 
@@ -380,7 +380,7 @@ See [journal/2026-06-29-quality-picker.md](docs/building/journal/2026-06-29-qual
 
 ---
 
-## Menu-bar tray companion (planned — v0.12.0)
+## Menu-bar tray companion (planned — v0.13.0)
 
 Turn `scribe ui` into a click-to-open, always-there experience without adopting a native-app build chain. Browser stays the UI surface — no Tauri/Electron.
 

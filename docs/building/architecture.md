@@ -1,6 +1,6 @@
 # Architecture
 
-**Last updated:** 2026-07-03 (v0.11.0 — duplicate detection + `--force`, `scribe rm`)
+**Last updated:** 2026-07-04 (v0.12.0 — `scribe logs`, `batch --timeout`, Web UI byte-level download progress)
 
 ## Overview
 
@@ -58,7 +58,7 @@ the Obsidian vault at `~/anyscribe/` stays pure markdown.
 ### CLI Layer (`cli/`)
 - Typer app with `rich_markup_mode="rich"`, custom `DefaultToTranscribe(TyperGroup)` class for bare-URL routing
 - Primary command: `scribe` (alias: `ascli` for backward compat)
-- Commands: `onboard`, `transcribe`, `download`, `batch`, `rm`, `config`, `providers`, `local`, `model`, `ui`, `update`, `doctor`, `install-skill`
+- Commands: `onboard`, `transcribe`, `download`, `batch`, `rm`, `logs`, `config`, `providers`, `local`, `model`, `ui`, `update`, `doctor`, `install-skill`
 - Bare URL: `scribe "url"` auto-routes to transcribe (first arg not a known subcommand → prepend `transcribe`)
 - `--json` and `--quiet` available on main commands (transcribe, download, batch, config show, providers list)
 - `--json` for AI agent and scripting integration
@@ -229,8 +229,10 @@ Not every feature lives on every surface. The asymmetry is intentional per-featu
 | Local setup/teardown | ✓ (`scribe local`) | ✓ (Setup modal, Teardown button) | Same `core/local_setup.py` |
 | History browse | Obsidian vault directly | ✓ (History page with search) | Web UI has richer UX; CLI leans on Obsidian |
 | Progress | Terminal progress | ✓ (WebSocket) | Same `on_progress` callback |
-| Batch processing | ✓ (`scribe batch`) | — | CLI-only. Add to UI if users ask |
+| Batch processing | ✓ (`scribe batch`, `--timeout` per URL) | — | CLI-only. Add to UI if users ask |
 | Download-only | ✓ (`scribe download`) | — | CLI-only |
+| View recent activity | ✓ (`scribe logs`) | — | Reads workspace `daily/*.md` + recovery dir directly; UI already has richer History browsing |
+| Local model download progress | — | ✓ (byte-level bar, `setup_progress`/`progress` on status polls) | UI-only — CLI shows NDJSON phase events, no byte counter |
 | System diagnostics | ✓ (`scribe doctor`) | ✓ (Settings → System section, lighter) | UI surfaces a subset |
 | Self-update | ✓ (`scribe update`) | — | CLI-only. Updating a running server is weird |
 | Claude Code skill install | ✓ (`scribe install-skill`) | — | CLI-only; runs automatically anyway |

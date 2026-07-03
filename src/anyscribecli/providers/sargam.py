@@ -200,7 +200,9 @@ class SargamProvider(TranscriptionProvider):
         turns = data.get("turns") or data.get("diarized_transcript") or []
         if turns:
             for i, turn in enumerate(turns):
-                speaker = turn.get("speaker") or turn.get("speaker_id")
+                speaker = turn.get("speaker")
+                if speaker is None:
+                    speaker = turn.get("speaker_id")
                 text = turn.get("text") or turn.get("transcript", "")
                 start = turn.get("start", 0.0) + offset
                 end = turn.get("end", start) + offset

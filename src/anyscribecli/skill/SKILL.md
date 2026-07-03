@@ -50,6 +50,7 @@ When the USER wants to run commands themselves, show them the human-readable for
 | Transcribe multiple URLs | `scribe batch urls.txt` |
 | Delete / remove a transcript | `scribe rm <path-or-slug>` |
 | Download video/audio only | `scribe download "url"` or `scribe download "url" --audio-only` |
+| See recent activity / what did I transcribe recently | `scribe logs` |
 | Change settings | `scribe config set <key> <value>` |
 | See current config | `scribe config show` |
 | Switch provider | `scribe config set provider <name>` |
@@ -222,6 +223,30 @@ EOF
 
 scribe batch /tmp/scribe-urls.txt --json --quiet
 ```
+
+Pass `--timeout <seconds>` to cap how long each URL is allowed to run; a timed-out
+URL is marked failed (`"timed out after Ns"`) and the batch continues to the next
+URL (combine with `--stop-on-error` to halt instead):
+
+```bash
+scribe batch /tmp/scribe-urls.txt --timeout 300 --json --quiet
+```
+
+## Viewing Recent Activity
+
+When the user asks what they transcribed recently, or wants to check on failed
+runs, use `scribe logs`:
+
+```bash
+scribe logs                 # last 20 entries, human-readable
+scribe logs --limit 50 --json   # more entries, machine output
+```
+
+It reads the workspace's `daily/*.md` logs (newest first) — there's no separate
+logging system, so nothing here can drift from what's actually in the vault. It
+also lists any **recovery artifacts**: audio saved from a failed transcription so
+it doesn't need to be re-downloaded. Point the user at `scribe "url"` (or
+`--force`) to retry, or tell them it's safe to delete if they've moved on.
 
 ## Troubleshooting
 

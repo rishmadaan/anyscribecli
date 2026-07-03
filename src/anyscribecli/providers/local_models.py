@@ -12,7 +12,8 @@ state without crashing.
 
 from __future__ import annotations
 
-from typing import Any
+import threading
+from typing import Any, Callable
 
 MODEL_SIZES: list[str] = ["tiny", "base", "small", "medium", "large-v3"]
 
@@ -151,12 +152,74 @@ def any_model_cached() -> bool:
     return any(e["cached"] for e in list_cached_models())
 
 
-def pull_model(size: str) -> dict[str, Any]:
+def _progress_tqdm_class(progress_cb: Callable[[int, int], None]):
+    """Build a tqdm subclass that reports summed byte progress to ``progress_cb``.
+
+    huggingface_hub's ``snapshot_download`` spawns one tqdm bar per file (plus a
+    files-count bar we ignore). Each byte-progress bar has ``unit == "B"``. We
+    aggregate ``total`` and ``n`` across all live byte bars into shared counters
+    and hand ``(downloaded, total)`` to the callback on every update — that's the
+    number the UI wants. ``huggingface_hub.utils.tqdm`` is the base so tqdm's own
+    ``HF_HUB_DISABLE_PROGRESS_BARS`` env respect is preserved.
+
+    Returns ``None`` if the tqdm base can't be imported — caller then downloads
+    without a progress hook (UI falls back to the spinner).
+    """
+    try:
+        from huggingface_hub.utils import tqdm as hf_tqdm  # type: ignore[import-not-found]
+    except ImportError:
+        return None
+
+    bars: dict[int, tuple[int, int]] = {}  # id(bar) -> (n, total)
+    lock = threading.Lock()
+
+    def _report() -> None:
+        with lock:
+            downloaded = sum(n for n, _ in bars.values())
+            total = sum(t for _, t in bars.values())
+        try:
+            progress_cb(downloaded, total)
+        except Exception:
+            pass
+
+    class _ProgressTqdm(hf_tqdm):  # type: ignore[misc, valid-type]
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            if self.unit == "B":
+                with lock:
+                    bars[id(self)] = (self.n, self.total or 0)
+                _report()
+
+        def update(self, n=1):
+            ret = super().update(n)
+            if self.unit == "B":
+                with lock:
+                    bars[id(self)] = (self.n, self.total or 0)
+                _report()
+            return ret
+
+        def close(self):
+            super().close()
+            if self.unit == "B":
+                with lock:
+                    bars[id(self)] = (self.total or self.n, self.total or self.n)
+                _report()
+
+    return _ProgressTqdm
+
+
+def pull_model(
+    size: str,
+    progress_cb: Callable[[int, int], None] | None = None,
+) -> dict[str, Any]:
     """Download the weights for ``size`` via huggingface_hub. Idempotent.
 
     Returns a dict with keys ``{status, size, repo, bytes}``. ``status`` is
     ``"already_present"`` if already fully cached, otherwise ``"downloaded"``.
     Raises if huggingface_hub or faster-whisper aren't installed.
+
+    ``progress_cb(downloaded_bytes, total_bytes)`` is called during download if
+    provided — used by the Web UI to show a byte-level progress bar.
     """
     validate_size(size)
 
@@ -187,7 +250,12 @@ def pull_model(size: str) -> dict[str, Any]:
             "bytes": bytes_on_disk,
         }
 
-    hub.snapshot_download(repo_id=repo)
+    download_kwargs: dict[str, Any] = {"repo_id": repo}
+    if progress_cb is not None:
+        tqdm_class = _progress_tqdm_class(progress_cb)
+        if tqdm_class is not None:
+            download_kwargs["tqdm_class"] = tqdm_class
+    hub.snapshot_download(**download_kwargs)
 
     bytes_on_disk = 0
     for entry in list_cached_models():

@@ -17,6 +17,7 @@ import type { LocalStatusResponse } from "../api/types";
 import Modal from "./Modal";
 
 const POLL_MS = 1500;
+const MB = 1024 * 1024;
 
 interface Props {
   onClose: () => void;
@@ -207,10 +208,31 @@ export default function LocalSetupModal({ onClose, onDone }: Props) {
 
       {running && (
         <div className="rounded-md border border-border-subtle bg-surface-raised px-3 py-2 mb-4">
-          <div className="flex items-center gap-2">
-            <Loader2 className="w-4 h-4 animate-spin text-amber" />
-            <p className="text-xs text-text font-mono">{describePhase(phase)}</p>
-          </div>
+          {status.setup_progress && status.setup_progress.total > 0 ? (
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <p className="text-xs text-text font-mono">
+                  Downloading model weights…
+                </p>
+                <p className="text-[11px] text-text-muted font-mono">
+                  {status.setup_progress.percent ?? 0}% ·{" "}
+                  {Math.round(status.setup_progress.downloaded / MB)} MB /{" "}
+                  {Math.round(status.setup_progress.total / MB)} MB
+                </p>
+              </div>
+              <div className="h-1.5 w-full rounded-full bg-border-subtle overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-amber transition-all duration-300"
+                  style={{ width: `${status.setup_progress.percent ?? 0}%` }}
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Loader2 className="w-4 h-4 animate-spin text-amber" />
+              <p className="text-xs text-text font-mono">{describePhase(phase)}</p>
+            </div>
+          )}
         </div>
       )}
 

@@ -267,8 +267,19 @@ def run_setup(
 
     _emit(on_progress, {"event": "downloading_model", "size": model_size})
 
+    def _dl_progress(downloaded: int, total: int) -> None:
+        _emit(
+            on_progress,
+            {
+                "event": "download_progress",
+                "size": model_size,
+                "downloaded": downloaded,
+                "total": total,
+            },
+        )
+
     try:
-        pull_result = pull_model(model_size)
+        pull_result = pull_model(model_size, progress_cb=_dl_progress)
     except Exception as e:
         return {
             "status": "failed",

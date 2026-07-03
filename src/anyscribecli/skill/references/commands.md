@@ -151,6 +151,7 @@ https://youtube.com/watch?v=def456
 | `--force` | `-f` | Re-transcribe sources already in the vault | Off |
 | `--quiet` | `-q` | Suppress progress | Off |
 | `--stop-on-error` | | Stop at first failure | Off (continues) |
+| `--timeout` | | Per-URL timeout in seconds. A timed-out URL is marked failed (`"timed out after Ns"`) and the batch moves to the next URL | None (no timeout) |
 
 Sources already in the vault are skipped (returned from cache) unless `--force` is passed. The summary table marks those rows `CACHED`, and each such result carries `"cached": true`.
 
@@ -166,6 +167,13 @@ Sources already in the vault are skipped (returned from cache) unless `--force` 
     {"success": false, "url": "...", "error": "..."}
   ]
 }
+```
+
+### Examples
+
+```bash
+# Cap each URL at 5 minutes; stop-on-error not set, so it moves to the next one
+scribe batch urls.txt --timeout 300
 ```
 
 ---
@@ -196,6 +204,59 @@ Accepts a full file path or a bare slug. If a slug matches more than one transcr
 ```
 
 Exits 1 (with `error` set) when no transcript matches, the slug is ambiguous, or the file cannot be deleted.
+
+---
+
+## scribe logs
+
+View recent transcription activity and any recovery artifacts left behind by failed runs.
+
+```bash
+scribe logs                     # last 20 entries, newest first
+scribe logs --limit 50          # more entries
+scribe logs --json              # machine-readable
+```
+
+Reads the workspace's `daily/*.md` logs — there's no separate log store, so this is
+always in sync with what's actually in the vault. Also lists files in the recovery
+directory (audio saved from a failed transcription) so you know what's safe to
+retry or delete.
+
+### Flags
+
+| Flag | Short | Description | Default |
+|------|-------|-------------|---------|
+| `--limit` | `-n` | Number of log entries to show | `20` |
+| `--json` | `-j` | Output result as JSON | Off |
+
+### JSON output
+
+```json
+{
+  "success": true,
+  "data": {
+    "entries": [
+      {"date": "2026-07-04", "time": "09:12", "platform": "youtube", "entry": "[[sources/youtube/title.md|Video Title]]", "duration": "12:34"}
+    ],
+    "recovery": [
+      {"name": "youtube/abc123.mp3", "size": 4821932, "mtime": "2026-07-03T22:14:01"}
+    ]
+  },
+  "error": null
+}
+```
+
+Empty state (human output): `No activity logged yet.`
+
+### Examples
+
+```bash
+# Quick check on what was transcribed today
+scribe logs --limit 5
+
+# Machine-readable for a status dashboard
+scribe logs --json --limit 100
+```
 
 ---
 
@@ -392,7 +453,7 @@ scribe update --force                   # Force update (stashes local changes)
 
 ```bash
 scribe --version
-# Output: scribe v0.11.0
+# Output: scribe v0.12.0
 ```
 
 ---

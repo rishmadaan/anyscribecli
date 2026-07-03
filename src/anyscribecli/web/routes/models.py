@@ -42,6 +42,7 @@ def _download_state(app) -> dict[str, Any]:
             "lock": threading.Lock(),
             "worker_running": False,
             "results": {},
+            "progress": {},  # size -> {downloaded, total, percent}
         }
         app.state.download_queue = state
     return state
@@ -65,8 +66,16 @@ def _worker_loop(app) -> None:
                 return
             size = state["queue"][0]  # running = head
 
+        def _progress(downloaded: int, total: int) -> None:
+            with state["lock"]:
+                state["progress"][size] = {
+                    "downloaded": downloaded,
+                    "total": total,
+                    "percent": round(downloaded / total * 100, 1) if total > 0 else None,
+                }
+
         try:
-            pull_model(size)
+            pull_model(size, progress_cb=_progress)
             with state["lock"]:
                 state["results"][size] = {"status": "completed"}
         except Exception as e:
@@ -76,6 +85,7 @@ def _worker_loop(app) -> None:
             with state["lock"]:
                 if state["queue"] and state["queue"][0] == size:
                     state["queue"].pop(0)
+                state["progress"].pop(size, None)
 
 
 def _kick_worker(app) -> None:
@@ -98,6 +108,7 @@ async def list_local_models(request: Request) -> dict:
     with state["lock"]:
         queue = list(state["queue"])
         results = dict(state["results"])
+        progress = dict(state["progress"])
 
     def _entry(m):
         size = m["size"]
@@ -111,6 +122,7 @@ async def list_local_models(request: Request) -> dict:
             "downloading": pos == 0,
             "queued": pos > 0,
             "queue_position": pos,
+            "progress": progress.get(size),
             "last_error": (results.get(size) or {}).get("error"),
         }
 

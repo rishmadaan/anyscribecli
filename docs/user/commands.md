@@ -30,6 +30,7 @@ Every scribe command. Copy-paste friendly.
 | `scribe download "<url>"` | Download video or audio only (no transcription) |
 | `scribe batch <file>` | Batch transcribe URLs or file paths from a file |
 | `scribe rm <path-or-slug>` | Delete a transcript and update the index |
+| `scribe logs` | View recent transcription activity + recovery artifacts |
 | `scribe config show` | View current settings |
 | `scribe config set <key> <value>` | Change a setting |
 | `scribe config path` | Print config file location |
@@ -321,6 +322,7 @@ scribe batch urls.txt
 | `--force` | `-f` | Re-transcribe sources already in your vault | Off |
 | `--quiet` | `-q` | Suppress progress | Off |
 | `--stop-on-error` | | Stop at first failure | Off (continues) |
+| `--timeout` | | Per-URL timeout in seconds. A URL that runs longer is marked failed (`"timed out after Ns"`) and the batch moves on to the next one | None (no timeout) |
 
 > **Duplicate detection applies here too.** Any source already in your vault is skipped and returned from the existing file — the summary table marks those rows `CACHED` and each such result carries `"cached": true`. This makes it safe to re-run a batch file: only the new entries are actually transcribed. Pass `--force` to re-transcribe everything.
 
@@ -344,7 +346,12 @@ scribe batch urls.txt --stop-on-error
 
 # JSON output for scripting
 scribe batch urls.txt --json
+
+# Cap each URL at 5 minutes — slow ones fail and the batch keeps going
+scribe batch urls.txt --timeout 300
 ```
+
+> **A timed-out URL doesn't stop cleanly mid-download or mid-transcription** — scribe can't kill that work outright, so it abandons it and moves on. This is fine for a normal batch run; just know the timed-out attempt may still be using network/API resources briefly in the background.
 
 ---
 
@@ -390,6 +397,66 @@ scribe rm my-video --yes --json
 ```
 
 If nothing matches, the slug is ambiguous, or the file can't be deleted, `success` is `false`, `error` explains why, and the command exits with code 1.
+
+---
+
+## scribe logs
+
+See what you've transcribed recently, and check for any leftover audio from failed runs.
+
+```bash
+scribe logs                # last 20 entries, newest first
+scribe logs --limit 50     # more entries
+```
+
+This reads straight from your workspace's `daily/YYYY-MM-DD.md` logs — the same
+files you can open in Obsidian — so there's nothing extra to keep in sync. It
+also lists **recovery artifacts**: if a transcription downloaded audio but then
+failed before finishing, scribe keeps that audio around instead of throwing it
+away, so you don't have to re-download it. Those show up in a separate section
+of the output.
+
+> **Empty vault?** You'll see `No activity logged yet.` — that's normal for a fresh install.
+
+### Flags
+
+| Flag | Short | Description | Default |
+|------|-------|-------------|---------|
+| `--limit` | `-n` | Number of log entries to show | `20` |
+| `--json` | `-j` | Output result as JSON | Off |
+
+### Examples
+
+```bash
+# Quick check on today's activity
+scribe logs --limit 5
+
+# JSON for scripting or piping to jq
+scribe logs --json --limit 100
+```
+
+### JSON Output
+
+```json
+{
+  "success": true,
+  "data": {
+    "entries": [
+      {
+        "date": "2026-07-04",
+        "time": "09:12",
+        "platform": "youtube",
+        "entry": "[[sources/youtube/video-title.md|Video Title]]",
+        "duration": "12:34"
+      }
+    ],
+    "recovery": [
+      { "name": "youtube/abc123.mp3", "size": 4821932, "mtime": "2026-07-03T22:14:01" }
+    ]
+  },
+  "error": null
+}
+```
 
 ---
 
@@ -711,7 +778,7 @@ Print the installed version.
 
 ```bash
 scribe --version
-# Output: scribe v0.11.0
+# Output: scribe v0.12.0
 ```
 
 ---

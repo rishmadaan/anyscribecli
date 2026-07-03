@@ -8,6 +8,15 @@ scribe doctor
 ```
 This checks dependencies, config, installation, and updates. Include output in any bug report.
 
+If the issue is about a specific past run (did it actually transcribe, what
+happened to a failed job), also check:
+```bash
+scribe logs
+```
+It shows recent daily-log activity plus any **recovery artifacts** — audio saved
+from a failed transcription so it doesn't need re-downloading. See "Recovery
+artifacts left after a failed run" below.
+
 ## Common Errors
 
 ### "command not found: scribe"
@@ -100,6 +109,21 @@ scribe "url" --force
 ```
 
 **If you want the old one gone entirely:** delete it first with `scribe rm <path-or-slug>`, then transcribe again.
+
+### Recovery artifacts left after a failed run
+
+If a transcription fails after the audio was already downloaded, scribe saves
+that audio to a recovery directory instead of throwing it away. Check for these
+with:
+
+```bash
+scribe logs
+```
+
+Recovery artifacts show up in a separate section from the activity log. Re-run
+`scribe "url"` (or `--force` if it partially wrote a transcript) to retry using
+fresh audio, or just delete the file if you've moved on — it's not referenced by
+anything else.
 
 ### "Provider error" or API failures
 

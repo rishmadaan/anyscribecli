@@ -30,6 +30,12 @@ export interface ModelSpec {
   quality: string;
 }
 
+export interface DownloadProgress {
+  downloaded: number;
+  total: number;
+  percent: number | null;
+}
+
 export interface LocalModelEntry {
   size: string;
   cached: boolean;
@@ -39,6 +45,7 @@ export interface LocalModelEntry {
   downloading?: boolean;
   queued?: boolean;
   queue_position?: number;
+  progress?: DownloadProgress | null;
   error?: string | null;
   last_error?: string | null;
 }
@@ -57,6 +64,7 @@ export interface LocalStatusResponse {
   setup_phase: string | null;
   setup_error: string | null;
   setup_last_model: string | null;
+  setup_progress: DownloadProgress | null;
   recommended_model: string;
   choices: string[];
 }
