@@ -40,3 +40,5 @@ Thumbs.db
 sessions/
 tmp/
 logs/
+.vercel
+.env*.local
