@@ -30,15 +30,35 @@ _SIGNALS = {signal.SIGTERM, signal.SIGINT}
 
 
 def _make_image():
-    """Build a simple template-style tray icon with Pillow (no shipped asset)."""
+    """Load the bundled waveform glyph (black + alpha, template-ready).
+
+    Falls back to a drawn circle if the asset is missing (e.g. odd
+    packaging), so the tray never fails to start over an icon.
+    """
+    import io
+    from importlib.resources import files
+
     from PIL import Image, ImageDraw
 
-    size = 64
-    img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-    d = ImageDraw.Draw(img)
-    # A filled circle — monochrome, reads fine in light/dark menu bars.
-    d.ellipse((10, 10, size - 10, size - 10), fill=(0, 0, 0, 255))
-    return img
+    try:
+        data = files("anyscribecli").joinpath("assets/tray-icon.png").read_bytes()
+        return Image.open(io.BytesIO(data)).convert("RGBA")
+    except Exception:
+        size = 64
+        img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+        d = ImageDraw.Draw(img)
+        d.ellipse((10, 10, size - 10, size - 10), fill=(0, 0, 0, 255))
+        return img
+
+
+def _mark_template(icon) -> None:
+    """Tell macOS the icon is a template image so it adapts to light/dark
+    menu bars (and stays visible on both). Reaches into pystray's darwin
+    backend; harmless no-op elsewhere or if pystray internals change."""
+    try:
+        icon._icon_image.setTemplate_(True)
+    except Exception:
+        pass
 
 
 def _shutdown_server(proc, port: int) -> None:
@@ -158,6 +178,7 @@ def _run_tray(port: int) -> None:
     icon = pystray.Icon("anyscribe", _make_image(), "anyscribe", menu)
     _start_server()
     try:
-        icon.run()  # blocks main thread until on_quit -> icon.stop()
+        # setup runs once the backend has built the native image.
+        icon.run(setup=_mark_template)  # blocks until on_quit -> icon.stop()
     finally:
         _teardown(state, port)  # any exit path stops the server we own

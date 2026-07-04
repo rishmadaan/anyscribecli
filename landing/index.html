@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>anyscribe — the command-line scribe for spoken things</title>
-<meta name="description" content="anyscribe turns any spoken thing — YouTube, Instagram, a voice memo, a meeting — into searchable markdown inside an Obsidian vault on your own machine. Open source, local-first, seven engines, one plain-English quality knob." />
-<meta property="og:title" content="anyscribe — the command-line scribe for spoken things" />
+<title>anyscribe: the command-line scribe for spoken things</title>
+<meta name="description" content="anyscribe turns any spoken thing (YouTube, Instagram, a voice memo, a meeting) into searchable markdown inside an Obsidian vault on your own machine. Open source, local-first, seven engines, one plain-English quality knob." />
+<meta property="og:title" content="anyscribe: the command-line scribe for spoken things" />
 <meta property="og:description" content="Turn any video, reel, or recording into clean, searchable markdown on your own machine. Open source, local-first, seven engines." />
 <meta property="og:type" content="website" />
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230E0D0B'/><circle cx='16' cy='16' r='4.5' fill='%23F5A524'/></svg>" />
@@ -22,12 +22,12 @@
     --bg-4:     #2A2620;
     --ink:      #ECE8DC;
     --ink-2:    #B6AE9D;
-    --ink-3:    #746D5E;
+    --ink-3:    #8D8574; /* AA 5.0:1 on --bg for small labels */
     --ink-4:    #3A362E;
     --rule:     rgba(236, 232, 220, 0.08);
     --rule-2:   rgba(236, 232, 220, 0.14);
 
-    --signal:   #F5A524;          /* warm amber — the "record light" */
+    --signal:   #F5A524;          /* warm amber: the "record light" */
     --signal-2: #FCD34D;          /* lifted amber */
     --signal-3: rgba(245, 165, 36, 0.15);
     --phosphor: #C8E887;          /* terminal phosphor green */
@@ -185,14 +185,14 @@
 
   /* --- HERO ----------------------------------------------------- */
   .hero {
-    padding: clamp(96px, 16vh, 180px) 0 clamp(72px, 10vh, 120px);
+    padding: clamp(32px, 5.5vh, 56px) 0 clamp(48px, 8vh, 88px); /* tight top: CTA must sit above the fold */
     position: relative;
     overflow: hidden;
   }
   .hero-meta-top {
     display: flex; justify-content: space-between; align-items: baseline;
-    flex-wrap: wrap; gap: 24px;
-    margin-bottom: clamp(56px, 8vh, 88px);
+    flex-wrap: wrap; gap: 10px 24px;
+    margin-bottom: clamp(22px, 3.5vh, 36px);
     padding-bottom: 20px;
     border-bottom: 1px solid var(--rule);
     font-family: var(--mono);
@@ -215,11 +215,11 @@
   h1.hero-h {
     font-family: var(--display);
     font-weight: 300;
-    font-size: clamp(34px, 9.8vw, 148px); /* floor low enough that "command-line" fits a 320px viewport */
-    line-height: 0.94;
-    letter-spacing: -0.05em;
-    max-width: 14ch;
-    margin: 0 0 clamp(40px, 6vh, 64px);
+    font-size: clamp(34px, 6.2vw, 80px); /* two lines at 1280 so the CTA clears the fold; floor fits 320px */
+    line-height: 1;
+    letter-spacing: -0.045em;
+    max-width: 24ch;
+    margin: 0 0 clamp(16px, 2.8vh, 26px);
     color: var(--ink);
   }
   h1.hero-h .it {
@@ -232,11 +232,11 @@
   }
 
   .hero-lede {
-    font-size: clamp(18px, 1.6vw, 22px);
-    line-height: 1.6;
+    font-size: clamp(17px, 1.5vw, 20px);
+    line-height: 1.55;
     color: var(--ink-2);
-    max-width: 60ch;
-    margin: 0 0 clamp(48px, 7vh, 72px);
+    max-width: 62ch;
+    margin: 0 0 clamp(20px, 3.2vh, 34px);
     font-weight: 400;
   }
   .hero-lede b { color: var(--ink); font-weight: 500; }
@@ -250,7 +250,7 @@
   }
 
   /* --- install card (hero) ------------------------------------- */
-  .install-card { max-width: 820px; }
+  .install-card { max-width: 980px; }
   .install-head {
     display: flex; justify-content: space-between; align-items: baseline;
     margin-bottom: 14px;
@@ -264,9 +264,9 @@
     background: var(--bg-3);
     border: 1px solid var(--rule-2);
     border-radius: 6px;
-    padding: 26px 150px 26px 28px;
+    padding: 24px 130px 24px 26px;
     font-family: var(--mono);
-    font-size: 15.5px;
+    font-size: 14px;
     color: var(--ink);
     overflow-x: auto;
     white-space: nowrap;
@@ -282,18 +282,37 @@
     transform: translateY(-50%);
     font-family: var(--mono); font-size: 11.5px;
     letter-spacing: 0.1em; text-transform: uppercase;
-    padding: 10px 18px;
-    border: 1px solid var(--rule-2);
+    padding: 12px 20px;
+    border: 1px solid var(--signal);
     border-radius: 4px;
-    color: var(--ink);
-    background: transparent;
+    color: var(--bg);
+    background: var(--signal); /* the one primary action on the first screen */
+    font-weight: 600;
     transition: all 180ms ease;
   }
   .install-cmd .copy:hover {
-    background: var(--signal);
-    color: var(--bg);
-    border-color: var(--signal);
+    background: var(--signal-2);
+    border-color: var(--signal-2);
   }
+  .install-cmd .copy:active { transform: translateY(-50%) translateY(1px); }
+
+  /* --- hero secondary actions ----------------------------------- */
+  .hero-actions {
+    margin-top: 22px;
+    display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+  }
+  .hero-actions .btn-ghost {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--mono); font-size: 12.5px;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    padding: 12px 20px;
+    border: 1px solid var(--rule-2);
+    border-radius: 4px;
+    color: var(--ink-2);
+    transition: all 180ms ease;
+  }
+  .hero-actions .btn-ghost:hover { border-color: var(--signal); color: var(--signal); }
+  .hero-actions .btn-ghost:active { transform: translateY(1px); }
   .install-alt {
     margin-top: 16px;
     display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center;
@@ -346,14 +365,23 @@
   }
   @media (max-width: 760px) {
     .hero-facts { grid-template-columns: 1fr 1fr; gap: 24px; }
-    .install-cmd { padding-right: 24px; font-size: 13px; white-space: normal; overflow: visible; overflow-wrap: anywhere; }
-    .install-cmd .copy { position: static; transform: none; display: inline-block; margin-top: 14px; }
+    .install-cmd { padding: 18px 20px; font-size: 13px; white-space: normal; overflow: visible; overflow-wrap: anywhere; }
+    .install-cmd .copy { position: static; transform: none; display: inline-block; margin-top: 14px; padding: 14px 24px; }
+    .install-cmd .copy:active { transform: translateY(1px); }
     .big-cmd { padding-right: 24px; font-size: 13px; white-space: normal; overflow: visible; overflow-wrap: anywhere; }
-    .big-cmd .copy-btn { position: static; transform: none; display: inline-block; margin-top: 14px; }
+    .big-cmd .copy-btn { position: static; transform: none; display: inline-block; margin-top: 14px; padding: 14px 24px; }
+    .big-cmd .copy-btn:active { transform: translateY(1px); }
+    /* touch targets >= 44px */
+    nav.links a { padding: 14px 4px; }
+    .gh-pill { padding: 12px 16px; }
+    .tabs button { padding: 15px 22px; }
+    .hero-actions .btn-ghost { padding: 14px 22px; }
+    .foot-col a { display: inline-block; padding: 10px 0; }
+    .foot-col ul { gap: 4px; }
   }
   .install-alt kbd { overflow-wrap: anywhere; }
 
-  /* reveal — no-op on first paint; optional subtle rise on scroll via JS */
+  /* reveal: no-op on first paint; optional subtle rise on scroll via JS */
   .reveal > * { opacity: 1; transform: none; }
   .rise-in { animation: rise 720ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
   @keyframes rise {
@@ -371,9 +399,9 @@
     color: var(--bg);
     border-top: 1px solid rgba(14,13,11,0.08);
   }
-  .sec.light .eyebrow { color: rgba(14,13,11,0.5); }
-  .sec.light .eyebrow::before { background: var(--signal-2); }
-  .sec.light .eyebrow .n { color: var(--signal-2); }
+  .sec.light .eyebrow { color: rgba(14,13,11,0.66); }
+  .sec.light .eyebrow::before { background: #B8730B; }
+  .sec.light .eyebrow .n { color: #8F5B04; } /* AA on cream */
 
   .sec-head {
     margin-bottom: clamp(64px, 10vh, 120px);
@@ -391,7 +419,7 @@
   .sec.light .sec-h { color: var(--bg); }
   .sec-h .it { color: var(--ink); }
   .sec-h .amber { color: var(--signal); }
-  .sec.light .sec-h .amber { color: var(--signal-2); }
+  .sec.light .sec-h .amber { color: #B8730B; } /* 3.3:1, large text on cream */
 
   .sec-sub {
     margin-top: 28px;
@@ -507,7 +535,7 @@
   .bar-title {
     margin-left: 18px;
     font-size: 12px;
-    color: rgba(236, 232, 220, 0.45);
+    color: rgba(236, 232, 220, 0.62);
     letter-spacing: 0.04em;
   }
   .bar-title .amber { color: var(--signal); }
@@ -536,13 +564,13 @@
     color: rgba(236, 232, 220, 0.78);
   }
   @keyframes fadein { to { opacity: 1; } }
-  .out.dim     { color: rgba(236, 232, 220, 0.42); }
+  .out.dim     { color: rgba(236, 232, 220, 0.58); }
   .out.phos    { color: var(--phosphor); }
   .out.amber   { color: var(--signal); }
   .out .bar    { display: inline-block; letter-spacing: -1px; color: var(--phosphor); }
   .out .arr    { color: var(--signal); }
   .out strong  { color: var(--ink); font-weight: 500; }
-  .out .d      { color: rgba(236, 232, 220, 0.3); }
+  .out .d      { color: rgba(236, 232, 220, 0.5); }
 
   .demo-caption {
     margin-top: clamp(40px, 6vh, 64px);
@@ -717,7 +745,7 @@
     font-style: italic;
     font-size: 28px;
     line-height: 1;
-    color: var(--signal-2);
+    color: #B8730B; /* 3.3:1, large text on cream */
     padding-top: 2px;
   }
   .vault-point h4 {
@@ -759,10 +787,10 @@
     border-bottom: 1px solid rgba(14,13,11,0.1);
     font-family: var(--mono);
     font-size: 11.5px;
-    color: rgba(14,13,11,0.5);
+    color: rgba(14,13,11,0.66);
     letter-spacing: 0.04em;
   }
-  .doc-chrome .path { color: rgba(14,13,11,0.7); }
+  .doc-chrome .path { color: rgba(14,13,11,0.78); }
   .doc-body { padding: 36px 44px 44px; }
   .doc .yaml {
     font-family: var(--mono);
@@ -773,8 +801,7 @@
     color: rgba(14,13,11,0.7);
     line-height: 1.75;
   }
-  .doc .yaml .k { color: var(--signal-2); }
-  .doc .yaml .k { color: #B8730B; }
+  .doc .yaml .k { color: #8F5B04; } /* AA on cream */
   .doc .yaml .v { color: var(--bg); }
   .doc .yaml .s { color: #4D6B3A; }
   .doc h1.dh {
@@ -789,7 +816,7 @@
   .doc .dh-meta {
     font-family: var(--mono);
     font-size: 11.5px;
-    color: rgba(14,13,11,0.45);
+    color: rgba(14,13,11,0.62);
     margin-bottom: 26px;
     letter-spacing: 0.04em;
   }
@@ -813,7 +840,7 @@
   .doc .ts {
     font-family: var(--mono);
     font-size: 11.5px;
-    color: #B8730B;
+    color: #8F5B04;
     margin-right: 10px;
     font-weight: 500;
   }
@@ -829,7 +856,7 @@
     font-family: var(--italic);
     font-style: italic;
     font-size: 14px;
-    color: rgba(14,13,11,0.4);
+    color: rgba(14,13,11,0.58);
     margin-top: 20px;
   }
 
@@ -948,18 +975,19 @@
     transform: translateY(-50%);
     font-family: var(--mono); font-size: 11.5px;
     letter-spacing: 0.1em; text-transform: uppercase;
-    padding: 10px 18px;
-    border: 1px solid var(--rule-2);
+    padding: 12px 20px;
+    border: 1px solid var(--signal);
     border-radius: 4px;
-    color: var(--ink);
-    background: transparent;
+    color: var(--bg);
+    background: var(--signal); /* same action as the hero copy: same look */
+    font-weight: 600;
     transition: all 180ms ease;
   }
   .big-cmd .copy-btn:hover {
-    background: var(--signal);
-    color: var(--bg);
-    border-color: var(--signal);
+    background: var(--signal-2);
+    border-color: var(--signal-2);
   }
+  .big-cmd .copy-btn:active { transform: translateY(-50%) translateY(1px); }
 
   .steps {
     margin-top: clamp(72px, 10vh, 120px);
@@ -1180,7 +1208,7 @@
 
   /* --- horizontal-overflow guards (narrow viewports) ------------ */
   /* grid/flex children default to min-width:auto and refuse to shrink
-     below nowrap content — zero that out so tracks can collapse */
+     below nowrap content; zero that out so tracks can collapse */
   .prov, .ai-card, .qtier,
   .feat-row > *, .statement > *, .demo-head > *, .vault-grid > *,
   .hero-facts dl, .foot-top > * { min-width: 0; }
@@ -1235,7 +1263,7 @@
     </h1>
 
     <p class="hero-lede">
-      Give <b>anyscribe</b> anything with a voice in it — a YouTube video, an Instagram reel, a podcast, a meeting recording, a file on your disk — and it hands back <span class="amber-underline">clean, searchable markdown</span> in an Obsidian vault on your own machine. Seven transcription engines behind one plain-English quality knob, speaker labels on request, and a fully offline mode. No account. No lock-in.
+      Turn YouTube videos, reels, podcasts, and recordings into <span class="amber-underline">clean, searchable markdown</span> in an Obsidian vault on your own machine. No account, no lock-in, fully offline if you want it.
     </p>
 
     <div class="install-card">
@@ -1254,9 +1282,13 @@
         <span>windows:</span>
         <kbd>irm https://…/install.ps1 | iex</kbd>
       </div>
+      <div class="hero-actions">
+        <a class="btn-ghost" href="#install">Full setup guide ↓</a>
+        <a class="btn-ghost" href="https://github.com/rishmadaan/anyscribecli" target="_blank" rel="noopener">View on GitHub</a>
+      </div>
     </div>
 
-    <!-- decorative waveform — generated with SVG -->
+    <!-- decorative waveform, generated with SVG -->
     <svg class="hero-wave" viewBox="0 0 1200 60" preserveAspectRatio="none" aria-hidden="true">
       <path id="hero-wave-path" d="" />
     </svg>
@@ -1283,14 +1315,14 @@
       </div>
       <div class="right">
         <p class="pull">
-          Point anyscribe at <span class="it">any</span> spoken thing — a link, a file, a folder of recordings — and it returns clean markdown you can read, grep, share, or hand to an&nbsp;AI.
+          Point anyscribe at <span class="it">any</span> spoken thing (a link, a file, a folder of recordings) and it returns clean markdown you can read, grep, share, or hand to an&nbsp;AI.
         </p>
         <div class="body">
           <p>
             No browser extensions. No paid SaaS dashboards. No scrubbing through a video to cherry-pick a quote. anyscribe is a single command on your machine: it downloads the media, cleans up the audio, sends it through the engine you've picked, and files the result into a folder of markdown you own forever.
           </p>
           <p>
-            Never touched a command line? There's a wizard for that — <code style="font-family: var(--mono); font-size: 14px; background: var(--bg-3); border: 1px solid var(--rule); padding: 2px 7px; border-radius: 3px; color: var(--ink);">scribe ui</code> opens a local dashboard in your browser and walks you through the whole thing.
+            Never touched a command line? There's a wizard for that: <code style="font-family: var(--mono); font-size: 14px; background: var(--bg-3); border: 1px solid var(--rule); padding: 2px 7px; border-radius: 3px; color: var(--ink);">scribe ui</code> opens a local dashboard in your browser and walks you through the whole thing.
           </p>
           <p style="margin-bottom: 0;">
             Written in Python. Open source under MIT. Small enough to read in an afternoon.
@@ -1301,7 +1333,7 @@
   </div>
 </section>
 
-<!-- 02 HOW IT FEELS — terminal demo ============================== -->
+<!-- 02 HOW IT FEELS: terminal demo =============================== -->
 <section class="sec" id="how">
   <div class="wrap">
     <span class="eyebrow"><span class="n">§02</span>&nbsp; how it feels</span>
@@ -1358,7 +1390,7 @@
         <span class="fn">01</span>
         <h3 class="ft">Obsidian-native <span class="it">output</span></h3>
         <p class="fd">
-          Every transcript is markdown with proper YAML frontmatter — title, platform, duration, language, word count, reading time, tags. Daily logs in <code>daily/</code>, a master <code>_index.md</code> newest-first, per-platform folders. Everything lives in <code>~/anyscribe/</code> — a real folder you can grep, git-clone, or open in Obsidian.
+          Every transcript is markdown with proper YAML frontmatter: title, platform, duration, language, word count, reading time, tags. Daily logs in <code>daily/</code>, a master <code>_index.md</code> newest-first, per-platform folders. Everything lives in <code>~/anyscribe/</code>, a real folder you can grep, git-clone, or open in Obsidian.
         </p>
       </div>
 
@@ -1366,7 +1398,7 @@
         <span class="fn">02</span>
         <h3 class="ft">One knob, seven <span class="it">engines</span></h3>
         <p class="fd">
-          Don't know which service to pick? Don't. Choose <code>--quality accuracy</code>, <code>balanced</code>, <code>cost</code>, or <code>free</code> and anyscribe routes to the right engine — from ElevenLabs Scribe down to fully offline Whisper. Seven providers in all; name one explicitly whenever you'd rather.
+          Don't know which service to pick? Don't. Choose <code>--quality accuracy</code>, <code>balanced</code>, <code>cost</code>, or <code>free</code> and anyscribe routes to the right engine, from ElevenLabs Scribe down to fully offline Whisper. Seven providers in all; name one explicitly whenever you'd rather.
         </p>
       </div>
 
@@ -1374,7 +1406,7 @@
         <span class="fn">03</span>
         <h3 class="ft">Speaker <span class="it">diarization</span></h3>
         <p class="fd">
-          Add <code>--diarize</code> for multi-speaker transcripts. Turns get grouped by speaker with timestamps — ideal for meetings, interviews, podcasts. anyscribe auto-switches to Deepgram for the best separation, unless you override it.
+          Add <code>--diarize</code> for multi-speaker transcripts. Turns get grouped by speaker with timestamps, ideal for meetings, interviews, and podcasts. anyscribe auto-switches to Deepgram for the best separation, unless you override it.
         </p>
       </div>
 
@@ -1382,7 +1414,7 @@
         <span class="fn">04</span>
         <h3 class="ft">A proper <span class="it">web UI,</span> too</h3>
         <p class="fd">
-          <code>scribe ui</code> launches a local dashboard at <code>127.0.0.1:8457</code>. Paste URLs, watch progress live over WebSocket, browse your transcript history, manage config — all backed by the exact same engine as the CLI.
+          <code>scribe ui</code> launches a local dashboard at <code>127.0.0.1:8457</code>. Paste URLs, watch progress live over WebSocket, browse your transcript history, manage config. It's all backed by the exact same engine as the CLI.
         </p>
       </div>
 
@@ -1390,7 +1422,7 @@
         <span class="fn">05</span>
         <h3 class="ft">Local &amp; private <span class="it">by default</span></h3>
         <p class="fd">
-          Audio never leaves your machine unless you've picked a cloud engine. The Local option is fully offline, no API key, free forever. Config and API keys live in <code>~/.anyscribecli/</code> — nowhere else. No analytics, no tracking, no cookies.
+          Audio never leaves your machine unless you've picked a cloud engine. The Local option is fully offline, no API key, free forever. Config and API keys live in <code>~/.anyscribecli/</code> and nowhere else. No analytics, no tracking, no cookies.
         </p>
       </div>
 
@@ -1398,7 +1430,7 @@
         <span class="fn">06</span>
         <h3 class="ft">Talks to <span class="it">your tools</span></h3>
         <p class="fd">
-          <code>--json</code> on every primary command for clean machine output. A Claude Code skill that installs itself when Claude is detected. An MCP server bundled in the box — <code>pip install anyscribecli[mcp]</code> — that plugs into Claude Desktop, Cursor, and anything else speaking MCP.
+          <code>--json</code> on every primary command for clean machine output. A Claude Code skill that installs itself when Claude is detected. An MCP server bundled in the box (<code>pip install anyscribecli[mcp]</code>) that plugs into Claude Desktop, Cursor, and anything else speaking MCP.
         </p>
       </div>
     </div>
@@ -1416,7 +1448,7 @@
         It picks the <span class="amber">engine.</span>
       </h2>
       <p class="sec-sub">
-        Comparing seven transcription services is nobody's idea of fun. So don't. Pass one word — how accurate, how cheap, or free — and anyscribe routes to the engine that fits. Want a specific provider? Name it and it obeys.
+        Comparing seven transcription services is nobody's idea of fun. So don't. Tell it what matters in one word (accuracy, balance, cost, or free) and anyscribe routes to the engine that fits. Want a specific provider? Name it and it obeys.
       </p>
     </div>
 
@@ -1424,7 +1456,7 @@
       <div class="qtier">
         <span class="flag">--quality <span class="d">accuracy</span></span>
         <h3 class="qname">Accuracy</h3>
-        <p class="qwhen">When the words have to be right — legal, medical, anything you'll quote.</p>
+        <p class="qwhen">When the words have to be right: legal, medical, anything you'll quote.</p>
         <span class="qeng">routes to <b>ElevenLabs Scribe</b></span>
       </div>
       <div class="qtier">
@@ -1448,7 +1480,7 @@
     </div>
 
     <p class="sec-sub" style="margin-top: clamp(56px, 8vh, 88px);">
-      Under the knob sit seven engines you can also call by name — <code style="font-family: var(--mono); font-size: 14px; background: var(--bg-3); border: 1px solid var(--rule); padding: 2px 7px; border-radius: 3px; color: var(--ink);">--provider deepgram</code> — each with its own strengths.
+      Under the knob sit seven engines you can also call by name, like <code style="font-family: var(--mono); font-size: 14px; background: var(--bg-3); border: 1px solid var(--rule); padding: 2px 7px; border-radius: 3px; color: var(--ink);">--provider deepgram</code>. Each has its own strengths.
     </p>
 
     <div class="prov-grid">
@@ -1497,7 +1529,7 @@
           <h3 class="name">Groq <span class="it">Whisper</span></h3>
           <span class="tag">cost tier</span>
         </div>
-        <p class="desc">Whisper-large-v3-turbo on Groq's silicon — the cheapest, fastest cloud route. The pick when you have a backlog to burn through.</p>
+        <p class="desc">Whisper-large-v3-turbo on Groq's silicon: the cheapest, fastest cloud route. The pick when you have a backlog to burn through.</p>
         <div class="specs">
           <span><b>cheapest cloud</b></span>
           <span>very fast</span>
@@ -1536,7 +1568,7 @@
           <h3 class="name">Local <span class="it">whisper</span></h3>
           <span class="tag">free · offline</span>
         </div>
-        <p class="desc">faster-whisper on your own CPU or GPU. No API key, no network, no bills, no audio leaving the building. Perfect for sensitive recordings — or a flight. Set it up once with <code style="font-family: var(--mono); font-size: 13px; background: rgba(0,0,0,0.3); border: 1px solid var(--rule); padding: 2px 7px; border-radius: 3px; color: var(--phosphor);">scribe local setup --model base</code>.</p>
+        <p class="desc">faster-whisper on your own CPU or GPU. No API key, no network, no bills, no audio leaving the building. Perfect for sensitive recordings, or a flight. Set it up once with <code style="font-family: var(--mono); font-size: 13px; background: rgba(0,0,0,0.3); border: 1px solid var(--rule); padding: 2px 7px; border-radius: 3px; color: var(--phosphor);">scribe local setup --model base</code>.</p>
         <div class="specs">
           <span><b>$0</b> · forever</span>
           <span>offline</span>
@@ -1561,7 +1593,7 @@
           like a document.
         </h2>
         <p class="sec-sub">
-          Not a transcript dump. Every note gets proper metadata, a sensible header, timestamps and speaker labels when you ask — so Obsidian, ripgrep, and git all play nicely, and so does any model you hand it to.
+          Not a transcript dump. Every note gets proper metadata, a sensible header, timestamps and speaker labels when you ask, so Obsidian, ripgrep, and git all play nicely. So does any model you hand it to.
         </p>
 
         <div class="vault-points">
@@ -1576,14 +1608,14 @@
             <span class="num">ii.</span>
             <div>
               <h4>Searchable out of the box.</h4>
-              <p>A master <code>_index.md</code> with every transcript newest-first. Daily logs in <code>daily/</code>. Per-platform folders — <code>youtube/</code>, <code>instagram/</code>, <code>local/</code>.</p>
+              <p>A master <code>_index.md</code> with every transcript newest-first. Daily logs in <code>daily/</code>. Per-platform folders: <code>youtube/</code>, <code>instagram/</code>, <code>local/</code>.</p>
             </div>
           </div>
           <div class="vault-point">
             <span class="num">iii.</span>
             <div>
               <h4>YAML for everything.</h4>
-              <p>Title, duration, language, word count, reading time, tags. Obsidian properties out of the box — filter, sort, query with Dataview.</p>
+              <p>Title, duration, language, word count, reading time, tags. Obsidian properties out of the box: filter, sort, query with Dataview.</p>
             </div>
           </div>
           <div class="vault-point">
@@ -1618,10 +1650,10 @@
 
           <h2 class="dh2">Transcript</h2>
 
-          <p class="line"><span class="ts">00:04</span><span class="spk">HOST</span>Today we're going to talk about the three variables that actually matter when you're pulling espresso — grind, dose, and yield.</p>
+          <p class="line"><span class="ts">00:04</span><span class="spk">HOST</span>Today we're going to talk about the three variables that actually matter when you're pulling espresso: grind, dose, and yield.</p>
           <p class="line"><span class="ts">00:19</span><span class="spk">GUEST</span>Right, and the trick is that none of them matter in isolation. It's the ratio between them that defines the shot.</p>
           <p class="line"><span class="ts">00:31</span><span class="spk">HOST</span>So if I'm starting out, what's the one thing I should lock in first?</p>
-          <p class="line"><span class="ts">00:38</span><span class="spk">GUEST</span>Dose. Weigh your beans — 18 grams in, 36 out, in 27 to 32 seconds…</p>
+          <p class="line"><span class="ts">00:38</span><span class="spk">GUEST</span>Dose. Weigh your beans: 18 grams in, 36 out, in 27 to 32 seconds…</p>
 
           <p class="more">… 1,739 more words</p>
         </div>
@@ -1641,26 +1673,26 @@
         Not just used. <span class="it">Called.</span>
       </h2>
       <p class="sec-sub">
-        Most people never need this section. But if you're wiring anyscribe into scripts, CI, or an AI agent — it's a good unix citizen. Every command takes <code class="mono" style="background: var(--bg-3); border: 1px solid var(--rule); padding: 2px 7px; border-radius: 3px; font-size: 14px;">--json</code>, a Claude Code skill ships in the box, and an MCP server is one flag away.
+        Most people never need this section. But if you're wiring anyscribe into scripts, CI, or an AI agent, it's a good unix citizen. Every command takes <code class="mono" style="background: var(--bg-3); border: 1px solid var(--rule); padding: 2px 7px; border-radius: 3px; font-size: 14px;">--json</code>, a Claude Code skill ships in the box, and an MCP server is one flag away.
       </p>
     </div>
 
     <div class="ai-grid">
       <div class="ai-card feat">
         <h3>Claude Code <span class="it">skill</span></h3>
-        <p>Onboarding detects Claude Code and installs a skill that teaches Claude how to use anyscribe — decision tree, safety rules, JSON patterns. Claude picks the right flags for the job.</p>
+        <p>Onboarding detects Claude Code and installs a skill that teaches Claude how to use anyscribe: decision tree, safety rules, JSON patterns. Claude picks the right flags for the job.</p>
         <div class="cmd"><span class="p">$</span>scribe install-skill</div>
       </div>
 
       <div class="ai-card">
         <h3>MCP <span class="it">server</span></h3>
-        <p>Ten tools over Model Context Protocol. Plugs into Claude Desktop, Cursor, and any MCP-speaking host. Transcribe, batch, configure — all scriptable.</p>
+        <p>Ten tools over Model Context Protocol. Plugs into Claude Desktop, Cursor, and any MCP-speaking host. Transcribe, batch, configure: all scriptable.</p>
         <div class="cmd"><span class="p">$</span>pip install anyscribecli[mcp]</div>
       </div>
 
       <div class="ai-card">
         <h3>JSON <span class="it">output</span></h3>
-        <p>Every primary command accepts <code class="mono" style="background: var(--bg-3); border: 1px solid var(--rule); padding: 2px 6px; border-radius: 3px; font-size: 13px;">--json</code>. Machine-readable metadata, file paths, provider info — ready for scripts and agents.</p>
+        <p>Every primary command accepts <code class="mono" style="background: var(--bg-3); border: 1px solid var(--rule); padding: 2px 6px; border-radius: 3px; font-size: 13px;">--json</code>. Machine-readable metadata, file paths, provider info, ready for scripts and agents.</p>
         <div class="cmd"><span class="p">$</span>scribe "url" --json</div>
       </div>
     </div>
@@ -1715,7 +1747,7 @@
         <span class="n">i.</span>
         <div>
           <h4>Open the wizard in your browser</h4>
-          <p>Runs a local dashboard at <code>127.0.0.1:8457</code> — no cloud, no account. Pick an engine, paste a key (with a live Test button), confirm your folder. Prefer the terminal? <code>scribe onboard</code> does the same with arrow keys. &nbsp;&nbsp;<code>scribe ui</code></p>
+          <p>Runs a local dashboard at <code>127.0.0.1:8457</code>. No cloud, no account. Pick an engine, paste a key (with a live Test button), confirm your folder. Prefer the terminal? <code>scribe onboard</code> does the same with arrow keys. &nbsp;&nbsp;<code>scribe ui</code></p>
         </div>
       </div>
       <div class="step">
