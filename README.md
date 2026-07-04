@@ -1,14 +1,14 @@
 # anyscribecli
 
-**Download. Transcribe. Markdown.** Turns YouTube videos, Instagram reels, and local audio/video files into structured, searchable markdown — browsable in Obsidian.
+**Let your AI agent transcribe anything.** Turns YouTube videos, Instagram reels, and local audio/video files into structured, searchable markdown, browsable in Obsidian.
 
-Three equivalent surfaces, pick whichever fits:
+Built agent-first, with three ways to reach it, in priority order:
 
-- **Web UI** (`scribe ui`) — click-through, for humans who prefer browsers.
-- **Terminal wizard** (`scribe onboard`, `scribe "<url>"`) — arrow-key prompts, for humans who live in terminals.
-- **Headless flags** (`scribe onboard --provider X --yes --json`, `scribe "<url>" --json`) — flag-driven, structured output, for AI agents / CI / scripts.
+- **With your AI agent** (primary) — anyscribe ships as a Claude Code skill that installs itself during onboarding, plus an MCP server (`pip install "anyscribecli[mcp]"`, ten tools) for Claude Desktop, Cursor, and any MCP host. Every command also takes `--json` and `--yes` for agents, CI, and scripts.
+- **The web UI** (`scribe ui`) — a clean local dashboard at `127.0.0.1:8457` for when you want to see it: paste a URL, watch progress live, browse history, change settings, first-run wizard included.
+- **The CLI** (`scribe "<url>"`, `scribe onboard`) — one command with arrow-key prompts, for when you want your hands on it.
 
-None of the three is "primary"; all three cover the full product. Human users reach the full product through Web UI or terminal without ever needing the other. Agents reach it through flags alone. Shared backend, shared state — a transcription started from any surface is visible to all of them.
+Shared backend, shared state: a transcription started from any surface is visible to all of them.
 
 ### Private by default, local-first
 

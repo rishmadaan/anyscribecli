@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>anyscribe: the command-line scribe for spoken things</title>
-<meta name="description" content="anyscribe turns any spoken thing (YouTube, Instagram, a voice memo, a meeting) into searchable markdown inside an Obsidian vault on your own machine. Open source, local-first, seven engines, one plain-English quality knob." />
-<meta property="og:title" content="anyscribe: the command-line scribe for spoken things" />
-<meta property="og:description" content="Turn any video, reel, or recording into clean, searchable markdown on your own machine. Open source, local-first, seven engines." />
+<title>anyscribe: let your AI agent transcribe anything</title>
+<meta name="description" content="anyscribe turns any spoken thing (YouTube, Instagram, a voice memo, a meeting) into searchable markdown on your own machine. Built so your AI agent can run it for you, with a clean local dashboard and a full CLI when you want your hands on it. Open source, local-first, seven engines." />
+<meta property="og:title" content="anyscribe: let your AI agent transcribe anything" />
+<meta property="og:description" content="Let your AI agent transcribe any video, reel, or recording into clean markdown on your own machine. A clean local dashboard when you want to see it, a full CLI when you want your hands on it." />
 <meta property="og:type" content="website" />
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230E0D0B'/><circle cx='16' cy='16' r='4.5' fill='%23F5A524'/></svg>" />
 
@@ -144,8 +144,6 @@
     0%, 100% { opacity: 0.7; transform: scale(1); }
     50%      { opacity: 1;   transform: scale(1.15); }
   }
-  .brand span.type { font-weight: 400; color: var(--ink-2); font-size: 13px; letter-spacing: 0.02em; }
-
   nav.links {
     display: flex; gap: 36px; align-items: center;
     font-size: 14px;
@@ -173,13 +171,12 @@
   @media (max-width: 760px) {
     nav.links .sm-hide { display: none; }
     nav.links { gap: 20px; }
-    .brand span.type { display: none; } /* "/ cli" wraps awkwardly at narrow widths */
   }
   @media (max-width: 480px) {
     .nav-inner { height: 64px; }
     .brand { font-size: 16px; gap: 10px; }
     nav.links { gap: 14px; font-size: 13px; }
-    nav.links a[href="#how"] { display: none; }
+    nav.links a[href="#agent"] { display: none; }
     .gh-pill { padding: 8px 12px; font-size: 12px; }
   }
 
@@ -247,6 +244,36 @@
     background-position: 0 100%;
     padding-bottom: 2px;
     color: var(--ink);
+  }
+
+  /* --- hero: three ways strip (priority order) ----------------- */
+  .hero-ways {
+    list-style: none; margin: 0 0 clamp(22px, 3.4vh, 36px); padding: 0;
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 1px; background: var(--rule);
+    border: 1px solid var(--rule); border-radius: 8px; overflow: hidden;
+    max-width: 980px;
+  }
+  .hero-ways li {
+    background: var(--bg-2);
+    padding: 16px 20px;
+    display: flex; flex-direction: column; gap: 3px;
+  }
+  .hero-ways .w-n {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em;
+    color: var(--signal); font-weight: 500;
+  }
+  .hero-ways .w-l {
+    font-family: var(--display); font-weight: 400; font-size: 16px;
+    letter-spacing: -0.02em; color: var(--ink);
+  }
+  .hero-ways .w-d {
+    font-size: 13px; color: var(--ink-3); line-height: 1.4;
+  }
+  @media (max-width: 640px) {
+    .hero-ways { grid-template-columns: 1fr; }
+    .hero-ways li { flex-direction: row; align-items: baseline; gap: 12px; padding: 13px 18px; }
+    .hero-ways .w-d { margin-left: auto; text-align: right; }
   }
 
   /* --- install card (hero) ------------------------------------- */
@@ -430,58 +457,44 @@
   }
   .sec.light .sec-sub { color: rgba(14,13,11,0.64); }
 
-  /* --- 01 statement -------------------------------------------- */
-  .statement {
+  /* --- 01 show, don't tell: command in | document out ----------- */
+  .show-grid {
     display: grid;
-    grid-template-columns: 0.9fr 1.2fr;
-    gap: clamp(48px, 8vw, 140px);
-    align-items: start;
-    margin-top: clamp(56px, 8vh, 88px);
+    grid-template-columns: 1.15fr 1fr;
+    gap: 24px;
+    align-items: stretch;
+    margin-top: clamp(40px, 6vh, 64px);
   }
-  @media (max-width: 860px) { .statement { grid-template-columns: 1fr; } }
+  @media (max-width: 1000px) { .show-grid { grid-template-columns: 1fr; } }
+  .show-grid > * { min-width: 0; }
+  .show-grid .terminal { margin-top: 0; }
+  .doc-mini .doc-body { padding: 26px 30px 30px; }
+  .doc-mini .dh { font-size: 24px; }
 
-  .statement .left .mega {
-    font-family: var(--italic);
-    font-style: italic;
-    font-weight: 400;
-    font-size: clamp(130px, 22vw, 280px);
-    line-height: 0.82;
-    color: var(--ink);
-    letter-spacing: -0.04em;
-    margin: 0 0 24px;
-  }
-  .statement .left .mega .dot {
-    color: var(--signal);
-    font-family: var(--display);
-    font-style: normal;
-  }
-  .statement .left .label {
-    font-family: var(--mono);
-    font-size: 12px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--ink-3);
-  }
-
-  .statement .right .pull {
-    font-family: var(--display);
-    font-weight: 300;
-    font-size: clamp(24px, 2.8vw, 38px);
-    line-height: 1.28;
-    letter-spacing: -0.02em;
-    color: var(--ink);
-    max-width: 24ch;
-    margin: 0 0 28px;
-  }
-  .statement .right .pull .it { color: var(--signal); }
-  .statement .right .body {
-    font-size: 18px;
-    color: var(--ink-2);
-    line-height: 1.7;
-    max-width: 46ch;
-    margin-top: 44px;
+  .show-notes {
+    margin-top: clamp(40px, 6vh, 64px);
     padding-top: 28px;
     border-top: 1px solid var(--rule);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(24px, 4vw, 64px);
+  }
+  @media (max-width: 860px) { .show-notes { grid-template-columns: 1fr; } }
+  .show-notes p {
+    font-size: 16.5px;
+    color: var(--ink-2);
+    line-height: 1.7;
+    margin: 0;
+    max-width: 56ch;
+  }
+  .show-notes code {
+    font-family: var(--mono);
+    font-size: 13px;
+    background: var(--bg-3);
+    border: 1px solid var(--rule);
+    padding: 2px 7px;
+    border-radius: 3px;
+    color: var(--ink);
   }
 
   /* --- 02 terminal demo ---------------------------------------- */
@@ -596,7 +609,157 @@
   .demo-caption .right { text-align: right; }
   @media (max-width: 760px) { .demo-caption { grid-template-columns: 1fr; text-align: left; } .demo-caption .right { text-align: left; } }
 
-  /* --- 03 features list ---------------------------------------- */
+  /* --- shared inline code -------------------------------------- */
+  .inline-code {
+    font-family: var(--mono); font-size: 0.86em;
+    background: var(--bg-3); border: 1px solid var(--rule);
+    padding: 2px 7px; border-radius: 3px; color: var(--ink);
+    overflow-wrap: anywhere;
+  }
+
+  /* --- 01 agent chat transcript -------------------------------- */
+  .agent-chat {
+    margin-top: clamp(40px, 6vh, 64px);
+    max-width: 860px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.015), transparent 18%),
+      #0A0908;
+    border: 1px solid var(--rule-2);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow:
+      0 40px 80px -44px rgba(245, 165, 36, 0.08),
+      inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+  .chat-bar {
+    display: flex; align-items: center; gap: 12px;
+    padding: 15px 22px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    font-family: var(--mono); font-size: 12.5px;
+    color: var(--ink-2); letter-spacing: 0.02em;
+  }
+  .chat-bar .d { color: var(--ink-3); }
+  .chat-dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--signal);
+    box-shadow: 0 0 10px rgba(245,165,36,0.6);
+    animation: breathe 2.8s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+  .chat-body { padding: clamp(22px, 3.5vw, 36px); display: flex; flex-direction: column; gap: 22px; }
+  .turn { display: grid; grid-template-columns: 64px 1fr; gap: 16px; }
+  @media (max-width: 560px) { .turn { grid-template-columns: 1fr; gap: 8px; } }
+  .turn .who {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--ink-3);
+    padding-top: 4px;
+  }
+  .turn.agent .who { color: var(--signal); }
+  .turn p { margin: 0 0 10px; font-size: 16px; line-height: 1.6; color: var(--ink); }
+  .turn.agent p { color: var(--ink-2); }
+  .turn.agent p:last-child { margin-bottom: 0; }
+  .turn .url { color: var(--signal); font-family: var(--mono); font-size: 13px; overflow-wrap: anywhere; }
+  .agent-say { display: flex; flex-direction: column; gap: 14px; }
+  .tool-call {
+    font-family: var(--mono); font-size: 13px;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid var(--rule-2);
+    border-left: 3px solid var(--signal);
+    border-radius: 4px;
+    padding: 13px 16px;
+    display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px;
+    overflow-x: auto;
+  }
+  .tool-call .tc-label {
+    font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--signal); flex-shrink: 0;
+  }
+  .tool-call code { color: var(--ink); white-space: nowrap; }
+  .tool-out {
+    font-family: var(--mono); font-size: 12.5px; line-height: 1.7;
+    color: var(--ink-2);
+    padding-left: 16px; border-left: 1px solid var(--rule-2);
+  }
+  .tool-out .tl.phos { color: var(--phosphor); font-weight: 500; }
+  .tool-out .d { color: var(--ink-3); }
+  .agent-list { margin: 2px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 7px; }
+  .agent-list li { font-size: 15.5px; line-height: 1.55; color: var(--ink-2); }
+  .agent-list li b { color: var(--ink); font-weight: 500; }
+
+  .agent-facts {
+    margin-top: clamp(40px, 6vh, 64px);
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
+  }
+  @media (max-width: 860px) { .agent-facts { grid-template-columns: 1fr; } }
+  .af {
+    background: var(--bg-2); border: 1px solid var(--rule-2);
+    border-radius: 8px; padding: 30px 28px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .af-eyebrow {
+    font-family: var(--display); font-weight: 400; font-size: 19px;
+    letter-spacing: -0.02em; color: var(--ink);
+  }
+  .af p { margin: 0; font-size: 15px; line-height: 1.6; color: var(--ink-2); }
+  .af p code {
+    font-family: var(--mono); font-size: 12.5px;
+    background: var(--bg-3); border: 1px solid var(--rule);
+    padding: 1px 6px; border-radius: 3px; color: var(--ink);
+    overflow-wrap: anywhere;
+  }
+  .af-cmd {
+    margin-top: auto; font-family: var(--mono); font-size: 12.5px;
+    background: rgba(0,0,0,0.4); border: 1px solid var(--rule);
+    padding: 12px 15px; border-radius: 4px; color: var(--phosphor);
+    overflow-x: auto; white-space: nowrap;
+  }
+  .af-cmd .p { color: var(--signal); margin-right: 9px; }
+  .af-cmd .d { color: var(--ink-3); }
+
+  /* --- 02 web UI browser frame --------------------------------- */
+  .browser {
+    margin: clamp(40px, 6vh, 64px) 0 0;
+    border: 1px solid var(--rule-2);
+    border-radius: 12px;
+    overflow: hidden;
+    background: #0A0908;
+    box-shadow:
+      0 50px 100px -50px rgba(0, 0, 0, 0.7),
+      0 40px 80px -50px rgba(245, 165, 36, 0.06),
+      inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+  .browser-bar {
+    display: flex; align-items: center; gap: 8px;
+    padding: 13px 18px;
+    background: rgba(255,255,255,0.02);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .b-dot { width: 11px; height: 11px; border-radius: 50%; }
+  .b-dot.r { background: #E06A5F; } .b-dot.y { background: #E0B050; } .b-dot.g { background: #6AC065; }
+  .b-url {
+    margin-left: 16px;
+    font-family: var(--mono); font-size: 12.5px;
+    color: var(--ink-3); letter-spacing: 0.02em;
+    background: var(--bg-3); border: 1px solid var(--rule);
+    padding: 4px 14px; border-radius: 100px;
+  }
+  .browser-shot { display: block; width: 100%; height: auto; }
+
+  .ui-points {
+    margin-top: clamp(40px, 6vh, 64px);
+    padding-top: 32px; border-top: 1px solid var(--rule);
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(24px, 4vw, 48px);
+  }
+  @media (max-width: 860px) { .ui-points { grid-template-columns: 1fr 1fr; gap: 28px; } }
+  @media (max-width: 480px) { .ui-points { grid-template-columns: 1fr; } }
+  .ui-point .p-n {
+    display: block; margin-bottom: 8px;
+    font-family: var(--display); font-weight: 400; font-size: 18px;
+    letter-spacing: -0.02em; color: var(--signal);
+  }
+  .ui-point p { margin: 0; font-size: 15px; line-height: 1.6; color: var(--ink-2); }
+
+  /* --- 04 features list ---------------------------------------- */
   .feat-list {
     display: flex;
     flex-direction: column;
@@ -804,7 +967,7 @@
   .doc .yaml .k { color: #8F5B04; } /* AA on cream */
   .doc .yaml .v { color: var(--bg); }
   .doc .yaml .s { color: #4D6B3A; }
-  .doc h1.dh {
+  .doc .dh {
     font-family: var(--display);
     font-weight: 400;
     font-size: 30px;
@@ -820,7 +983,7 @@
     margin-bottom: 26px;
     letter-spacing: 0.04em;
   }
-  .doc h2.dh2 {
+  .doc .dh2 {
     font-family: var(--display);
     font-weight: 500;
     font-size: 17px;
@@ -1209,10 +1372,11 @@
   /* --- horizontal-overflow guards (narrow viewports) ------------ */
   /* grid/flex children default to min-width:auto and refuse to shrink
      below nowrap content; zero that out so tracks can collapse */
-  .prov, .ai-card, .qtier,
-  .feat-row > *, .statement > *, .demo-head > *, .vault-grid > *,
+  .prov, .ai-card, .qtier, .af, .ui-point, .hero-ways li,
+  .feat-row > *, .show-grid > *, .demo-head > *, .vault-grid > *,
+  .agent-facts > *, .ui-points > *, .turn > *,
   .hero-facts dl, .foot-top > * { min-width: 0; }
-  .install-cmd, .big-cmd, .ai-card .cmd { max-width: 100%; }
+  .install-cmd, .big-cmd, .ai-card .cmd, .af-cmd, .tool-call { max-width: 100%; }
   .tabs { flex-wrap: wrap; max-width: 100%; }
   .doc-chrome .path { min-width: 0; overflow-wrap: anywhere; }
   .feat-row .fd code, .step code, .vault-point code { overflow-wrap: anywhere; }
@@ -1234,11 +1398,9 @@
     <a class="brand" href="#top">
       <span class="lamp"></span>
       <span>anyscribe</span>
-      <span class="type">/ cli</span>
     </a>
     <nav class="links">
-      <a href="#what" class="sm-hide">what</a>
-      <a href="#how">how</a>
+      <a href="#agent">use it</a>
       <a href="#providers" class="sm-hide">engines</a>
       <a href="#install">install</a>
       <a class="gh-pill" href="https://github.com/rishmadaan/anyscribecli" target="_blank" rel="noopener">
@@ -1254,17 +1416,23 @@
   <div class="wrap reveal">
 
     <div class="hero-meta-top">
-      <span><b>anyscribe</b> &nbsp;·&nbsp; v0.13.0 &nbsp;·&nbsp; MIT open source</span>
+      <span><b>anyscribe</b> &nbsp;·&nbsp; v0.13.1 &nbsp;·&nbsp; MIT open source</span>
       <span class="rec">recording · local-first</span>
     </div>
 
     <h1 class="hero-h">
-      The command&#8209;line scribe <span class="it">for</span> <span class="amber">spoken things.</span>
+      Let your AI agent <span class="it">scribe</span> <span class="amber">anything.</span>
     </h1>
 
     <p class="hero-lede">
-      Turn YouTube videos, reels, podcasts, and recordings into <span class="amber-underline">clean, searchable markdown</span> in an Obsidian vault on your own machine. No account, no lock-in, fully offline if you want it.
+      anyscribe turns YouTube videos, reels, podcasts, and recordings into <span class="amber-underline">clean, searchable markdown</span> on your own machine. Built so <b>your AI agent can run it for you</b>, with a clean local dashboard when you want to see it, and a full CLI when you want your hands on it.
     </p>
+
+    <ul class="hero-ways" aria-label="Three ways to use anyscribe">
+      <li><span class="w-n">01</span><span class="w-l">With your AI agent</span><span class="w-d">Claude Code skill + MCP server</span></li>
+      <li><span class="w-n">02</span><span class="w-l">The web UI</span><span class="w-d">a local dashboard in your browser</span></li>
+      <li><span class="w-n">03</span><span class="w-l">The CLI</span><span class="w-d">one command, for terminal people</span></li>
+    </ul>
 
     <div class="install-card">
       <div class="install-head">
@@ -1303,52 +1471,123 @@
   </div>
 </section>
 
-<!-- 01 WHAT IT IS ================================================ -->
-<section class="sec" id="what">
+<!-- 01 WITH YOUR AI AGENT (primary) ============================== -->
+<section class="sec" id="agent">
   <div class="wrap">
-    <span class="eyebrow"><span class="n">§01</span>&nbsp; what it is</span>
+    <span class="eyebrow"><span class="n">§01</span>&nbsp; the primary way &middot; with your AI agent</span>
 
-    <div class="statement">
-      <div class="left">
-        <div class="mega">any<span class="dot">.</span></div>
-        <div class="label">the promise · in one syllable</div>
+    <div class="sec-head">
+      <h2 class="sec-h">
+        Just ask. Your agent<br/>
+        does the <span class="amber">scribing.</span>
+      </h2>
+      <p class="sec-sub">
+        anyscribe was built agent-first. It ships as a Claude Code skill that installs itself during onboarding, plus an MCP server that plugs into Claude Desktop, Cursor, and any MCP host. You describe the outcome. The agent picks the flags, runs it, and hands back a markdown file you own.
+      </p>
+    </div>
+
+    <div class="agent-chat" id="agent-chat">
+      <div class="chat-bar">
+        <span class="chat-dot"></span>
+        <span class="chat-title">Claude Code &nbsp;<span class="d">·&nbsp; anyscribe skill active</span></span>
       </div>
-      <div class="right">
-        <p class="pull">
-          Point anyscribe at <span class="it">any</span> spoken thing (a link, a file, a folder of recordings) and it returns clean markdown you can read, grep, share, or hand to an&nbsp;AI.
-        </p>
-        <div class="body">
-          <p>
-            No browser extensions. No paid SaaS dashboards. No scrubbing through a video to cherry-pick a quote. anyscribe is a single command on your machine: it downloads the media, cleans up the audio, sends it through the engine you've picked, and files the result into a folder of markdown you own forever.
-          </p>
-          <p>
-            Never touched a command line? There's a wizard for that: <code style="font-family: var(--mono); font-size: 14px; background: var(--bg-3); border: 1px solid var(--rule); padding: 2px 7px; border-radius: 3px; color: var(--ink);">scribe ui</code> opens a local dashboard in your browser and walks you through the whole thing.
-          </p>
-          <p style="margin-bottom: 0;">
-            Written in Python. Open source under MIT. Small enough to read in an afternoon.
-          </p>
+      <div class="chat-body">
+        <div class="turn user">
+          <span class="who">you</span>
+          <p>Transcribe this conference talk and pull out the action items. <span class="url">https://youtube.com/watch?v=roadmap-2026</span></p>
         </div>
+        <div class="turn agent">
+          <span class="who">claude</span>
+          <div class="agent-say">
+            <p>On it. Routing to the balanced engine and diarizing so I can attribute the asks.</p>
+            <div class="tool-call">
+              <span class="tc-label">running</span>
+              <code>scribe "https://youtube.com/watch?v=roadmap-2026" --diarize --json</code>
+            </div>
+            <div class="tool-out">
+              <span class="tl phos">✓ saved</span> ~/anyscribe/sources/youtube/roadmap-2026.md<br/>
+              <span class="d">deepgram · 3 speakers · 6,204 words · 41 min read</span>
+            </div>
+            <p>Done. The full transcript is in your vault. Here are the action items I found:</p>
+            <ul class="agent-list">
+              <li><b>Priya</b>: ship the migration guide before the v2 cutover</li>
+              <li><b>Marco</b>: get the load-test numbers to the SRE channel by Friday</li>
+              <li><b>Team</b>: decide on the deprecation window at next week's sync</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="agent-facts">
+      <div class="af">
+        <span class="af-eyebrow">Claude Code skill</span>
+        <p>Onboarding detects Claude Code and installs a skill that teaches it how to drive anyscribe: a decision tree, safety rules, and JSON patterns. No config to write.</p>
+        <code class="af-cmd"><span class="p">$</span>scribe install-skill <span class="d"># or auto during onboarding</span></code>
+      </div>
+      <div class="af">
+        <span class="af-eyebrow">MCP server</span>
+        <p>Ten tools over the Model Context Protocol: transcribe, batch, download, browse history, read and set config, list and test providers, run diagnostics.</p>
+        <code class="af-cmd"><span class="p">$</span>pip install "anyscribecli[mcp]"</code>
+      </div>
+      <div class="af">
+        <span class="af-eyebrow">JSON on every command</span>
+        <p>Add <code>--json</code> to any primary command for machine-readable metadata, file paths, and provider info. Structured exit codes, no silent defaults.</p>
+        <code class="af-cmd"><span class="p">$</span>scribe "url" --json</code>
       </div>
     </div>
   </div>
 </section>
 
-<!-- 02 HOW IT FEELS: terminal demo =============================== -->
-<section class="sec" id="how">
+<!-- 02 THE WEB UI =============================================== -->
+<section class="sec" id="ui">
   <div class="wrap">
-    <span class="eyebrow"><span class="n">§02</span>&nbsp; how it feels</span>
+    <span class="eyebrow"><span class="n">§02</span>&nbsp; when you want to see it &middot; the web UI</span>
+
+    <div class="sec-head">
+      <h2 class="sec-h">
+        A clean local <span class="it">dashboard,</span><br/>
+        <span class="amber">on your machine.</span>
+      </h2>
+      <p class="sec-sub">
+        Run <code class="mono inline-code">scribe ui</code> and anyscribe opens a dashboard at <code class="mono inline-code">127.0.0.1:8457</code>, served from your own machine, no cloud behind it. Paste a URL, watch progress live, browse your history, change settings. First run walks you through setup in a wizard. It is a first-class surface, not a fallback.
+      </p>
+    </div>
+
+    <figure class="browser">
+      <div class="browser-bar">
+        <span class="b-dot r"></span><span class="b-dot y"></span><span class="b-dot g"></span>
+        <span class="b-url">127.0.0.1:8457</span>
+      </div>
+      <img class="browser-shot" src="assets/scribe-ui.png" loading="lazy" width="2880" height="1800"
+        alt="The anyscribe web UI: a dark dashboard with a Transcribe, History, and Settings sidebar, a URL input reading paste a URL or file path, an amber Transcribe button, and a balanced hi-Latn clean options row." />
+    </figure>
+
+    <div class="ui-points">
+      <div class="ui-point"><span class="p-n">Live progress</span><p>Download, convert, and transcribe stream over WebSocket, the same events the CLI prints.</p></div>
+      <div class="ui-point"><span class="p-n">History</span><p>Every transcript you have made, newest first, backed by the same vault the agent and CLI write to.</p></div>
+      <div class="ui-point"><span class="p-n">Settings</span><p>Pick an engine, paste a key with a live Test button, set your workspace folder.</p></div>
+      <div class="ui-point"><span class="p-n">First-run wizard</span><p>A full-screen setup on first launch: engine, key, offline option, workspace, done.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 03 THE CLI: command in, document out ========================= -->
+<section class="sec" id="cli">
+  <div class="wrap">
+    <span class="eyebrow"><span class="n">§03</span>&nbsp; when you want your hands on it &middot; the CLI</span>
 
     <div class="demo-head" style="margin-top: clamp(44px, 6vh, 72px);">
       <h2 class="sec-h">
         Paste a link.<br/>
-        Walk away. <span class="it">Come back</span><br/>
-        to a <span class="amber">manuscript.</span>
+        Get a <span class="amber">document.</span>
       </h2>
       <p class="sec-sub">
-        One command handles the whole pipeline. Download the media, normalise the audio, route it through your chosen engine, format with YAML frontmatter, file into your vault. No subcommand. No config flags. Just the URL.
+        For people who live in terminals. One command runs the whole pipeline: download the media, clean up the audio, transcribe it with the engine you picked, write markdown into your vault. The terminal is the command. The file next to it is what lands on your disk.
       </p>
     </div>
 
+    <div class="show-grid">
     <div class="terminal" id="term">
       <div class="terminal-bar">
         <span class="dot-r"></span>
@@ -1364,38 +1603,74 @@
       </div>
     </div>
 
+    <div class="doc doc-mini">
+      <div class="doc-chrome">
+        <span class="path">~/anyscribe/sources/youtube/perfect-espresso.md</span>
+        <span>MD</span>
+      </div>
+      <div class="doc-body">
+        <div class="yaml">
+<span class="k">title</span>: <span class="s">"How to Pull the Perfect Espresso"</span><br/>
+<span class="k">platform</span>: <span class="v">youtube</span><br/>
+<span class="k">duration</span>: <span class="s">"12:34"</span><br/>
+<span class="k">provider</span>: <span class="v">deepgram</span><br/>
+<span class="k">word_count</span>: <span class="v">1847</span><br/>
+<span class="k">tags</span>: [<span class="v">transcript</span>, <span class="v">coffee</span>]
+        </div>
+        <p class="dh">How to Pull the Perfect Espresso</p>
+        <div class="dh-meta">transcribed · deepgram · 2 speakers</div>
+        <p class="line"><span class="ts">00:04</span><span class="spk">HOST</span>Today we're going to talk about the three variables that actually matter when you're pulling espresso: grind, dose, and yield.</p>
+        <p class="line"><span class="ts">00:19</span><span class="spk">GUEST</span>Right, and the trick is that none of them matter in isolation. It's the ratio between them that defines the shot.</p>
+        <p class="more">… 1,798 more words, timestamped and speaker-labelled</p>
+      </div>
+    </div>
+    </div><!-- /show-grid -->
+
     <div class="demo-caption">
-      <span class="left"><b>01</b> &nbsp;·&nbsp; download, via yt-dlp + ffmpeg</span>
+      <span class="left"><b>in</b> &nbsp;·&nbsp; one command on a URL or file</span>
       <span class="center">click the terminal to replay</span>
-      <span class="right">transcribe, then write &nbsp;·&nbsp; <b>02</b></span>
+      <span class="right">markdown in your vault &nbsp;·&nbsp; <b>out</b></span>
+    </div>
+
+    <div class="show-notes">
+      <p>No browser extensions, no paid SaaS dashboard, no scrubbing through a video to cherry-pick a quote. One command on your machine, and the result is a folder of markdown you own forever. Written in Python, MIT-licensed.</p>
+      <p>Every flag the CLI takes, your agent takes too, and the web UI drives the same engine. Pick the surface that fits the moment: <code>scribe "&lt;url&gt;"</code> here, <code>scribe ui</code> for the dashboard, or just ask Claude.</p>
     </div>
   </div>
 </section>
 
-<!-- 03 FEATURES ================================================== -->
+<!-- 04 FEATURES ================================================== -->
 <section class="sec">
   <div class="wrap">
-    <span class="eyebrow"><span class="n">§03</span>&nbsp; what's in the box</span>
+    <span class="eyebrow"><span class="n">§04</span>&nbsp; what's in the box</span>
 
     <div class="sec-head">
       <h2 class="sec-h">
-        Every affordance you'd want if <span class="it">this</span><br/>
-        was your first CLI tool.<br/>
-        Every detail you'd want <span class="it">if it wasn't.</span>
+        The same engine, however<br/>
+        you <span class="it">reach for it,</span> and a vault<br/>
+        that <span class="amber">organises itself.</span>
       </h2>
     </div>
 
     <div class="feat-list">
       <div class="feat-row">
         <span class="fn">01</span>
-        <h3 class="ft">Obsidian-native <span class="it">output</span></h3>
+        <h3 class="ft">Your AI agent can <span class="it">drive it</span></h3>
         <p class="fd">
-          Every transcript is markdown with proper YAML frontmatter: title, platform, duration, language, word count, reading time, tags. Daily logs in <code>daily/</code>, a master <code>_index.md</code> newest-first, per-platform folders. Everything lives in <code>~/anyscribe/</code>, a real folder you can grep, git-clone, or open in Obsidian.
+          <code>--json</code> on every primary command for clean machine output. A Claude Code skill that installs itself when Claude is detected. An MCP server (<code>pip install anyscribecli[mcp]</code>) with ten tools that plugs into Claude Desktop, Cursor, and anything else speaking MCP.
         </p>
       </div>
 
       <div class="feat-row">
         <span class="fn">02</span>
+        <h3 class="ft">A proper <span class="it">web UI</span></h3>
+        <p class="fd">
+          <code>scribe ui</code> launches a local dashboard at <code>127.0.0.1:8457</code>. Paste URLs, watch progress live over WebSocket, browse your transcript history, manage config. It's all backed by the exact same engine as the CLI.
+        </p>
+      </div>
+
+      <div class="feat-row">
+        <span class="fn">03</span>
         <h3 class="ft">One knob, seven <span class="it">engines</span></h3>
         <p class="fd">
           Don't know which service to pick? Don't. Choose <code>--quality accuracy</code>, <code>balanced</code>, <code>cost</code>, or <code>free</code> and anyscribe routes to the right engine, from ElevenLabs Scribe down to fully offline Whisper. Seven providers in all; name one explicitly whenever you'd rather.
@@ -1403,7 +1678,15 @@
       </div>
 
       <div class="feat-row">
-        <span class="fn">03</span>
+        <span class="fn">04</span>
+        <h3 class="ft">Obsidian-native <span class="it">output</span></h3>
+        <p class="fd">
+          Every transcript is markdown with proper YAML frontmatter: title, platform, duration, language, word count, reading time, tags. Daily logs in <code>daily/</code>, a master <code>_index.md</code> newest-first, per-platform folders. Everything lives in <code>~/anyscribe/</code>, a real folder you can grep, git-clone, or open in Obsidian.
+        </p>
+      </div>
+
+      <div class="feat-row">
+        <span class="fn">05</span>
         <h3 class="ft">Speaker <span class="it">diarization</span></h3>
         <p class="fd">
           Add <code>--diarize</code> for multi-speaker transcripts. Turns get grouped by speaker with timestamps, ideal for meetings, interviews, and podcasts. anyscribe auto-switches to Deepgram for the best separation, unless you override it.
@@ -1411,36 +1694,20 @@
       </div>
 
       <div class="feat-row">
-        <span class="fn">04</span>
-        <h3 class="ft">A proper <span class="it">web UI,</span> too</h3>
-        <p class="fd">
-          <code>scribe ui</code> launches a local dashboard at <code>127.0.0.1:8457</code>. Paste URLs, watch progress live over WebSocket, browse your transcript history, manage config. It's all backed by the exact same engine as the CLI.
-        </p>
-      </div>
-
-      <div class="feat-row">
-        <span class="fn">05</span>
+        <span class="fn">06</span>
         <h3 class="ft">Local &amp; private <span class="it">by default</span></h3>
         <p class="fd">
           Audio never leaves your machine unless you've picked a cloud engine. The Local option is fully offline, no API key, free forever. Config and API keys live in <code>~/.anyscribecli/</code> and nowhere else. No analytics, no tracking, no cookies.
-        </p>
-      </div>
-
-      <div class="feat-row">
-        <span class="fn">06</span>
-        <h3 class="ft">Talks to <span class="it">your tools</span></h3>
-        <p class="fd">
-          <code>--json</code> on every primary command for clean machine output. A Claude Code skill that installs itself when Claude is detected. An MCP server bundled in the box (<code>pip install anyscribecli[mcp]</code>) that plugs into Claude Desktop, Cursor, and anything else speaking MCP.
         </p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- 04 PROVIDERS ================================================= -->
+<!-- 05 QUALITY KNOB + PROVIDERS ================================== -->
 <section class="sec" id="providers">
   <div class="wrap">
-    <span class="eyebrow"><span class="n">§04</span>&nbsp; the quality knob</span>
+    <span class="eyebrow"><span class="n">§05</span>&nbsp; the quality knob</span>
 
     <div class="sec-head">
       <h2 class="sec-h">
@@ -1580,10 +1847,10 @@
   </div>
 </section>
 
-<!-- 05 VAULT PREVIEW (LIGHT) ===================================== -->
+<!-- 06 VAULT PREVIEW (LIGHT) ===================================== -->
 <section class="sec light">
   <div class="wrap">
-    <span class="eyebrow"><span class="n">§05</span>&nbsp; what it writes</span>
+    <span class="eyebrow"><span class="n">§06</span>&nbsp; what it writes</span>
 
     <div class="vault-grid">
 
@@ -1630,71 +1897,35 @@
 
       <div class="doc">
         <div class="doc-chrome">
-          <span class="path">~/anyscribe/sources/youtube/perfect-espresso.md</span>
+          <span class="path">~/anyscribe/sources/local/weekly-standup.md</span>
           <span>MD</span>
         </div>
         <div class="doc-body">
           <div class="yaml">
-<span class="k">title</span>: <span class="s">"How to Pull the Perfect Espresso"</span><br/>
-<span class="k">platform</span>: <span class="v">youtube</span><br/>
-<span class="k">duration</span>: <span class="s">"12:34"</span><br/>
+<span class="k">title</span>: <span class="s">"Weekly Team Standup"</span><br/>
+<span class="k">platform</span>: <span class="v">local</span><br/>
+<span class="k">duration</span>: <span class="s">"28:51"</span><br/>
 <span class="k">language</span>: <span class="v">en</span><br/>
-<span class="k">word_count</span>: <span class="v">1847</span><br/>
-<span class="k">reading_time</span>: <span class="s">"9 min"</span><br/>
+<span class="k">word_count</span>: <span class="v">4212</span><br/>
+<span class="k">reading_time</span>: <span class="s">"21 min"</span><br/>
 <span class="k">provider</span>: <span class="v">deepgram</span><br/>
-<span class="k">tags</span>: [<span class="v">transcript</span>, <span class="v">coffee</span>]
+<span class="k">tags</span>: [<span class="v">transcript</span>, <span class="v">meetings</span>]
           </div>
 
-          <h1 class="dh">How to Pull the Perfect Espresso</h1>
-          <div class="dh-meta">Transcribed · 2026-04-18 · deepgram · diarized</div>
+          <p class="dh">Weekly Team Standup</p>
+          <div class="dh-meta">Transcribed · deepgram · diarized · from a local recording</div>
 
-          <h2 class="dh2">Transcript</h2>
+          <p class="dh2">Transcript</p>
 
-          <p class="line"><span class="ts">00:04</span><span class="spk">HOST</span>Today we're going to talk about the three variables that actually matter when you're pulling espresso: grind, dose, and yield.</p>
-          <p class="line"><span class="ts">00:19</span><span class="spk">GUEST</span>Right, and the trick is that none of them matter in isolation. It's the ratio between them that defines the shot.</p>
-          <p class="line"><span class="ts">00:31</span><span class="spk">HOST</span>So if I'm starting out, what's the one thing I should lock in first?</p>
-          <p class="line"><span class="ts">00:38</span><span class="spk">GUEST</span>Dose. Weigh your beans: 18 grams in, 36 out, in 27 to 32 seconds…</p>
+          <p class="line"><span class="ts">00:02</span><span class="spk">SPEAKER 1</span>Quick round: what shipped this week, and what's blocked.</p>
+          <p class="line"><span class="ts">00:09</span><span class="spk">SPEAKER 2</span>The payments retry logic went out on Tuesday. Error rate is back under one percent.</p>
+          <p class="line"><span class="ts">00:21</span><span class="spk">SPEAKER 1</span>Good. Anything blocked?</p>
+          <p class="line"><span class="ts">00:24</span><span class="spk">SPEAKER 2</span>Waiting on the schema review before I can merge the export job…</p>
 
-          <p class="more">… 1,739 more words</p>
+          <p class="more">… 4,140 more words</p>
         </div>
       </div>
 
-    </div>
-  </div>
-</section>
-
-<!-- 06 FOR AI / AGENTS =========================================== -->
-<section class="sec" id="agents">
-  <div class="wrap">
-    <span class="eyebrow"><span class="n">§06</span>&nbsp; for builders &amp; agents</span>
-
-    <div class="sec-head">
-      <h2 class="sec-h">
-        Not just used. <span class="it">Called.</span>
-      </h2>
-      <p class="sec-sub">
-        Most people never need this section. But if you're wiring anyscribe into scripts, CI, or an AI agent, it's a good unix citizen. Every command takes <code class="mono" style="background: var(--bg-3); border: 1px solid var(--rule); padding: 2px 7px; border-radius: 3px; font-size: 14px;">--json</code>, a Claude Code skill ships in the box, and an MCP server is one flag away.
-      </p>
-    </div>
-
-    <div class="ai-grid">
-      <div class="ai-card feat">
-        <h3>Claude Code <span class="it">skill</span></h3>
-        <p>Onboarding detects Claude Code and installs a skill that teaches Claude how to use anyscribe: decision tree, safety rules, JSON patterns. Claude picks the right flags for the job.</p>
-        <div class="cmd"><span class="p">$</span>scribe install-skill</div>
-      </div>
-
-      <div class="ai-card">
-        <h3>MCP <span class="it">server</span></h3>
-        <p>Ten tools over Model Context Protocol. Plugs into Claude Desktop, Cursor, and any MCP-speaking host. Transcribe, batch, configure: all scriptable.</p>
-        <div class="cmd"><span class="p">$</span>pip install anyscribecli[mcp]</div>
-      </div>
-
-      <div class="ai-card">
-        <h3>JSON <span class="it">output</span></h3>
-        <p>Every primary command accepts <code class="mono" style="background: var(--bg-3); border: 1px solid var(--rule); padding: 2px 6px; border-radius: 3px; font-size: 13px;">--json</code>. Machine-readable metadata, file paths, provider info, ready for scripts and agents.</p>
-        <div class="cmd"><span class="p">$</span>scribe "url" --json</div>
-      </div>
     </div>
   </div>
 </section>
@@ -1753,8 +1984,8 @@
       <div class="step">
         <span class="n">ii.</span>
         <div>
-          <h4>Transcribe your first thing</h4>
-          <p>Pass a YouTube URL, an Instagram reel, or a local file. The markdown lands in <code>~/anyscribe/</code>. Add <code>--diarize</code> for speaker labels. &nbsp;&nbsp;<code>scribe "https://youtube.com/watch?v=&hellip;"</code></p>
+          <h4>Ask Claude to transcribe it, or run it yourself</h4>
+          <p>The Claude Code skill auto-installs during onboarding, so you can just ask Claude to transcribe a talk and pull out the notes. Rather type it? Pass a YouTube URL, an Instagram reel, or a local file and the markdown lands in <code>~/anyscribe/</code>. Add <code>--diarize</code> for speaker labels. &nbsp;&nbsp;<code>scribe "https://youtube.com/watch?v=&hellip;"</code></p>
         </div>
       </div>
       <div class="step">
@@ -1779,7 +2010,7 @@
     <div class="foot-top">
       <div class="foot-brand">
         <h3>any<b>scribe</b><span class="lamp"></span></h3>
-        <p>A small, open-source command-line scribe for spoken things. Written with care. Distributed under MIT.</p>
+        <p>A small, open-source tool that lets your AI agent transcribe anything. Written with care. Distributed under MIT.</p>
         <div class="btn-row">
           <a class="btn primary" href="https://github.com/rishmadaan/anyscribecli" target="_blank" rel="noopener">GitHub →</a>
           <a class="btn" href="https://pypi.org/project/anyscribecli/" target="_blank" rel="noopener">PyPI</a>
@@ -1790,7 +2021,7 @@
         <h5>Get going</h5>
         <ul>
           <li><a href="#install">Install</a></li>
-          <li><a href="#how">Demo</a></li>
+          <li><a href="#agent">Ways to use it</a></li>
           <li><a href="https://github.com/rishmadaan/anyscribecli/blob/main/docs/user/getting-started.md" target="_blank" rel="noopener">Getting started</a></li>
           <li><a href="https://github.com/rishmadaan/anyscribecli/blob/main/docs/user/commands.md" target="_blank" rel="noopener">Commands</a></li>
         </ul>
@@ -1801,7 +2032,7 @@
         <ul>
           <li><a href="https://github.com/rishmadaan/anyscribecli/blob/main/docs/user/providers.md" target="_blank" rel="noopener">Providers</a></li>
           <li><a href="https://github.com/rishmadaan/anyscribecli/blob/main/docs/user/configuration.md" target="_blank" rel="noopener">Configuration</a></li>
-          <li><a href="#agents">AI agents</a></li>
+          <li><a href="#agent">AI agents</a></li>
           <li><a href="https://github.com/rishmadaan/anyscribecli/blob/main/BACKLOG.md" target="_blank" rel="noopener">Changelog</a></li>
         </ul>
       </div>
@@ -1817,8 +2048,8 @@
     </div>
 
     <div class="foot-bottom">
-      <span>MIT &nbsp;·&nbsp; v0.13.0 &nbsp;·&nbsp; no tracking · no analytics · no cookies</span>
-      <span class="right">one command, one transcript, one markdown file at a time.</span>
+      <span>MIT &nbsp;·&nbsp; v0.13.1 &nbsp;·&nbsp; no tracking · no analytics · no cookies</span>
+      <span class="right">your agent, your dashboard, your terminal. Same vault underneath.</span>
     </div>
 
   </div>
