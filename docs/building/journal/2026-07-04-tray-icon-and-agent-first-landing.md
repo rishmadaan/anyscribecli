@@ -71,3 +71,25 @@ workflow (never enabled, failing on every landing push) is removed; a minimal
 `vercel.json` (`outputDirectory: landing`, `cleanUrls`) makes the import
 zero-config. The PyPI project page picks up the new README pitch at the next
 release.
+
+## Addendum (same day): the icon shipped invisible — 0.13.2
+
+User report: `scribe tray` and `scribe ui` "not working as expected". Systematic
+debugging found two stacked causes:
+
+1. **Real regression in 0.13.1.** pystray's `Icon.run(setup=...)` REPLACES the
+   default setup callback, and the default's entire job is `icon.visible = True`
+   (`pystray/_base.py:395-400`). Our `_mark_template` setup only set the
+   template flag, so the status item was never shown at all: server running,
+   no icon, no menu, no way to quit — and the orphaned server then made a later
+   `scribe ui` fail with a port conflict. Fix: setup sets `icon.visible = True`
+   first (which also creates the native image), then `setTemplate_(True)`.
+   Regression test added (fake icon asserts visible after setup).
+2. **Environmental, worth knowing for support:** the user runs Hidden Bar.
+   macOS inserts new status items at the LEFT of the strip, which lands in
+   Hidden Bar's hidden zone — so even a working icon is invisible until the
+   user expands the chevron and drags it right of the separator. Verified via
+   the window server (`CGWindowListCopyWindowInfo`, layer 25: our
+   `org.python.python` item sat left of `hiddenbar_separate`). Screenshot-based
+   verification can't see this: the compositor filter hides non-allowlisted
+   apps' status items, so window-server queries are the reliable check.

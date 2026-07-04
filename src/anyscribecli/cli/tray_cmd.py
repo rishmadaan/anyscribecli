@@ -52,9 +52,15 @@ def _make_image():
 
 
 def _mark_template(icon) -> None:
-    """Tell macOS the icon is a template image so it adapts to light/dark
-    menu bars (and stays visible on both). Reaches into pystray's darwin
-    backend; harmless no-op elsewhere or if pystray internals change."""
+    """pystray setup callback: show the icon, then mark it as a macOS
+    template image so it adapts to light/dark menu bars.
+
+    Passing a custom setup to ``icon.run()`` REPLACES pystray's default,
+    whose whole job is ``icon.visible = True`` — so we must set it here or
+    the tray never appears. Visibility also creates the native image, which
+    is why setTemplate_ comes second. The template call reaches into
+    pystray's darwin backend; harmless no-op elsewhere."""
+    icon.visible = True
     try:
         icon._icon_image.setTemplate_(True)
     except Exception:

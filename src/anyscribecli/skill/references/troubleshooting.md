@@ -172,6 +172,10 @@ pip install -U "anyscribecli[tray]"
 scribe tray
 ```
 
+### Tray runs but no icon in the menu bar
+
+If the server responds at `http://127.0.0.1:8457` but you can't find the waveform icon, check whether a menu-bar manager (Hidden Bar, Bartender, Ice, Dozer) is running. macOS inserts new status items at the LEFT of the strip, which these apps hide by default — expand the manager (chevron icon) and drag the scribe waveform to the always-visible side. Also make sure scribe is v0.13.2+ (`scribe update`): 0.13.1 had a bug where the icon never appeared at all.
+
 ### "A scribe tray is already running"
 
 A tray is already active — its pidfile (`~/.anyscribecli/tray.pid`) still points at a live process. This is by design: `scribe tray` refuses to start a second instance instead of colliding.

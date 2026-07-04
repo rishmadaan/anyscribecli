@@ -182,3 +182,19 @@ def test_install_service_non_macos(monkeypatch):
     result = runner.invoke(app, ["install-service", "--yes"])
     assert result.exit_code == 1
     assert "macOS" in result.output
+
+
+def test_setup_callback_makes_icon_visible():
+    # pystray replaces its default setup (whose whole job is `icon.visible =
+    # True`) with ours — if ours doesn't set visible, the tray NEVER appears.
+    # Regression test for the invisible-tray bug in 0.13.1.
+    from anyscribecli.cli.tray_cmd import _mark_template
+
+    class FakeIcon:
+        def __init__(self):
+            self.visible = False
+            self._icon_image = None  # not yet created, like pystray pre-show
+
+    icon = FakeIcon()
+    _mark_template(icon)
+    assert icon.visible is True

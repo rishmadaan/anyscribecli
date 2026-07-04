@@ -56,10 +56,9 @@ The `0.x` prefix means pre-stable — breaking changes are allowed between minor
 | 0.11.0 | Audit fixes: download crash, Groq test; duplicate detection + `--force`; `scribe rm` + delete across surfaces; web UI cancel/retry; MCP quality/force/delete_transcript; upload cap | Released 2026-07-03 |
 | 0.12.0 | `scribe logs`; `batch --timeout`; byte-level model-download progress in Web UI; 41 provider unit tests + sargam speaker-0 fix | Released 2026-07-04 |
 | 0.13.0 | Menu-bar tray companion + launchd auto-start; GitHub Releases automation + 39-tag backfill; landing page unparked + Pages workflow; tray/youtube/vault tests | Released 2026-07-04 |
-| 0.13.1 | Real tray icon (nano-banana waveform, macOS template image); landing hero CTA above the fold + em-dash copy pass | **Current** |
+| 0.13.1 | Real tray icon (nano-banana waveform, macOS template image); landing hero CTA above the fold + em-dash copy pass. **Regression:** custom pystray setup dropped `icon.visible = True`, so the tray icon never appeared | Released 2026-07-04 |
+| 0.13.2 | Fix invisible tray icon (setup callback now sets `icon.visible = True` before marking template). Ships the agent-first landing/README repositioning + Vercel deploy config | **Current** |
 | 1.0.0 | Stable: broader test coverage and release hardening | Future |
-
-Post-0.13.1 on main (rides in the next release): agent-first repositioning of the landing page + README pitch (agents → Web UI → CLI); landing deploys via Vercel (Pages workflow removed, `vercel.json` added).
 
 ### How to bump versions
 
