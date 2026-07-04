@@ -215,6 +215,8 @@ This opens a local web dashboard in your browser where you can paste URLs, watch
 
 > **Same tool, different surface.** The web UI uses the exact same transcription pipeline as the CLI. Your transcripts end up in the same Obsidian vault.
 
+> **Want it always running?** `pip install "anyscribecli[tray]"` then `scribe tray` puts a menu-bar icon over the web server — click to open, no terminal needed. Add `scribe install-service` (macOS) to have it start automatically at login. See [Commands → scribe tray](commands.md#scribe-tray) for details.
+
 ## What to do next
 
 - **Try the web UI** — `scribe ui` for a visual dashboard

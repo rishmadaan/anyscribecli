@@ -54,8 +54,8 @@ The `0.x` prefix means pre-stable — breaking changes are allowed between minor
 | 0.10.0 | Merge Instagram yt-dlp migration onto mainline (now with quality picker); Sarvam `saaras:v2.5` fix | Released 2026-06-29 |
 | 0.10.1 | Fix Sarvam: chunk at 28s (the 30s REST limit is exclusive — `v2.5` rejects exactly-30s clips) | Released 2026-06-29 |
 | 0.11.0 | Audit fixes: download crash, Groq test; duplicate detection + `--force`; `scribe rm` + delete across surfaces; web UI cancel/retry; MCP quality/force/delete_transcript; upload cap | Released 2026-07-03 |
-| 0.12.0 | `scribe logs`; `batch --timeout`; byte-level model-download progress in Web UI; 41 provider unit tests + sargam speaker-0 fix | **Current** |
-| 0.13.0 | Menu-bar tray companion + auto-start ([plan](docs/building/journal/2026-04-18-menu-bar-tray-companion-plan.md)) | Planned |
+| 0.12.0 | `scribe logs`; `batch --timeout`; byte-level model-download progress in Web UI; 41 provider unit tests + sargam speaker-0 fix | Released 2026-07-04 |
+| 0.13.0 | Menu-bar tray companion + launchd auto-start; GitHub Releases automation + 39-tag backfill; landing page unparked + Pages workflow; tray/youtube/vault tests | **Current** |
 | 1.0.0 | Stable: broader test coverage and release hardening | Future |
 
 ### How to bump versions
@@ -380,20 +380,23 @@ See [journal/2026-06-29-quality-picker.md](docs/building/journal/2026-06-29-qual
 
 ---
 
-## Menu-bar tray companion (planned — v0.13.0)
+## Menu-bar tray companion (shipped — v0.13.0)
 
 Turn `scribe ui` into a click-to-open, always-there experience without adopting a native-app build chain. Browser stays the UI surface — no Tauri/Electron.
 
 **Full plan + pressure test:** [docs/building/journal/2026-04-18-menu-bar-tray-companion-plan.md](docs/building/journal/2026-04-18-menu-bar-tray-companion-plan.md)
+**Build + live-test record:** [docs/building/journal/2026-07-04-tray-releases-landing.md](docs/building/journal/2026-07-04-tray-releases-landing.md)
 
 Scope (minimal-first, stop whenever "enough"):
 
-- [ ] `scribe tray` — cross-platform tray icon (pystray) that supervises the FastAPI server as a subprocess. Menu: Open UI, Status, Restart, Check for updates, Quit.
-- [ ] `anyscribecli[tray]` extra — keeps base install CLI-only; tray deps (pystray, Pillow, pyobjc on macOS) only pulled when requested.
-- [ ] `scribe install-service` / `scribe uninstall-service` — writes launchd plist on macOS first; Linux systemd user unit and Windows startup shortcut added only if demand appears.
-- [ ] Port probe + pidfile at `~/.anyscribecli/tray.pid` — detect an already-running instance instead of failing with a port collision.
-- [ ] Update-from-tray deferred — "Check for updates" opens the GitHub releases page in the browser. Revisit once install-mode detection (pipx vs pip vs venv) is bulletproof.
-- [ ] Graceful shutdown via existing `/shutdown` endpoint → SIGTERM fallback after 5s.
+- [x] `scribe tray` — cross-platform tray icon (pystray) that supervises the FastAPI server as a subprocess. Menu: Open UI, Status, Restart, Check for updates, Quit.
+- [x] `anyscribecli[tray]` extra — keeps base install CLI-only; tray deps (pystray, Pillow, pyobjc on macOS) only pulled when requested.
+- [x] `scribe install-service` / `scribe uninstall-service` — writes launchd plist on macOS first; Linux systemd user unit and Windows startup shortcut deferred, as planned (no demand yet).
+- [x] Port probe + pidfile at `~/.anyscribecli/tray.pid` — detect an already-running instance instead of failing with a port collision.
+- [x] Update-from-tray as planned — "Check for updates" opens the GitHub releases page in the browser rather than performing an in-place update. Revisit once install-mode detection (pipx vs pip vs venv) is bulletproof.
+- [x] Graceful shutdown via existing `/shutdown` endpoint → SIGTERM fallback after 5s.
+
+Deviation found in live testing (not in the original plan): the Cocoa event loop that `pystray` runs on macOS can swallow a plain `signal.signal` handler, so SIGTERM/SIGINT (launchctl unload, logout) never reached Python bytecode. Fixed with a blocked-signal + `signal.sigwait` watcher thread — see the journal entry for the failure mode and fix.
 
 Accepted tradeoffs:
 
@@ -405,7 +408,7 @@ Accepted tradeoffs:
 ## v1.0.0 — Stable Release
 
 - [x] PyPI published (`pip install anyscribecli`) — live since v0.3.1
-- [ ] GitHub Releases with release notes for each tag
+- [x] GitHub Releases with release notes for each tag — publish workflow auto-creates a release on every tag push (`gh release create --generate-notes`); all 39 historical tags backfilled with BACKLOG descriptions (v0.13.0)
 - [ ] Full test coverage
 - [ ] Stable config format (breaking changes require v2.0.0)
 - [x] CI/CD pipeline (GitHub Actions: lint, test, build, publish)
@@ -419,25 +422,15 @@ See `docs/building/ops/pypi-guide.md` for PyPI setup, tokens, and troubleshootin
 
 ## Parked
 
-### Landing page — parked 2026-04-18
+### Landing page — unparked/shipped 2026-07-04
 
 **Goal:** a public landing / showcase page for anyscribe so anyone can discover it, read what it does, and install it without being handed CLI instructions by a friend. Reference point: [openclaw.ai](https://openclaw.ai) and similar single-command CLI tools that ship a polished marketing site alongside the repo.
 
-**Status:** two design iterations exist on disk at `landing/index.html` (see commits `c5c8fa5` and `ff48224`) but neither landed the design. Unparking this is deferred until there's time for proper design direction.
+**Status:** the v3 design direction was executed — `landing/index.html` reworked with a quality-picker section and claims updated to match the current product (quality tiers, seven providers, tray companion). `.github/workflows/pages.yml` deploys `landing/` to GitHub Pages on every push touching `landing/**`, but **Pages hosting is not yet enabled** for the repo (Settings → Pages → Source: GitHub Actions) — pending user approval. The workflow no-ops gracefully until then.
 
-**What's on disk (current head):** v3 — dark warm charcoal (`#0E0D0B`) with a single warm amber accent (`#F5A524`), Unbounded display + Instrument Serif italic + Geist body, animated SVG waveform motif, §01–§07 sections, generous 120–220 px vertical padding. Self-contained static HTML, no build step, deployable to GitHub Pages / Netlify / Vercel as-is.
+**Historical note (parked 2026-04-18 → unparked 2026-07-04):** two earlier design iterations (commits `c5c8fa5`, `ff48224`) didn't land; the blocker was converging on an aesthetic, not writing the HTML. v3 — dark warm charcoal (`#0E0D0B`) with a single warm amber accent (`#F5A524`), Unbounded display + Instrument Serif italic + Geist body, animated SVG waveform motif — is what finally shipped. Self-contained static HTML, no build step.
 
-**Why parked:** couldn't converge on an aesthetic that felt right in two attempts. Needs either (a) a concrete visual reference the build can follow, or (b) a collaborator with a clear design point-of-view. Continuing to iterate blind isn't a good use of time right now.
-
-**When to pick this back up:** before public launch. A landing page is not load-bearing for current users (who install via `pip install anyscribecli` or the one-line `install.sh`), but it is load-bearing for reaching new users who don't already know the tool exists.
-
-**On unpark, decide first:**
-- Who is the target reader? Semi-technical users who've never touched a CLI, or developers comfortable with `curl | bash`?
-- What's the primary call-to-action? The install one-liner, the web UI, or the GitHub repo?
-- Does the page need a screenshot of the web UI and the Obsidian vault, or is pure typography enough?
-- Hosting: GitHub Pages off this repo, or a separate `anyscribe.dev` / `anyscribe.cli` domain?
-
-The existing `landing/index.html` is a starting point, not a commitment — throw it away if a better direction presents itself.
+**Remaining step:** a human needs to flip Settings → Pages → Source: GitHub Actions in the repo to actually go live; the workflow is ready and waiting.
 
 ---
 

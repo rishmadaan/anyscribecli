@@ -4,7 +4,10 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>anyscribe — the command-line scribe for spoken things</title>
-<meta name="description" content="anyscribe turns any spoken thing — YouTube, Instagram, a voice memo, a meeting — into searchable markdown inside an Obsidian vault on your own machine. Open source, local-first, six engines." />
+<meta name="description" content="anyscribe turns any spoken thing — YouTube, Instagram, a voice memo, a meeting — into searchable markdown inside an Obsidian vault on your own machine. Open source, local-first, seven engines, one plain-English quality knob." />
+<meta property="og:title" content="anyscribe — the command-line scribe for spoken things" />
+<meta property="og:description" content="Turn any video, reel, or recording into clean, searchable markdown on your own machine. Open source, local-first, seven engines." />
+<meta property="og:type" content="website" />
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230E0D0B'/><circle cx='16' cy='16' r='4.5' fill='%23F5A524'/></svg>" />
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -170,6 +173,14 @@
   @media (max-width: 760px) {
     nav.links .sm-hide { display: none; }
     nav.links { gap: 20px; }
+    .brand span.type { display: none; } /* "/ cli" wraps awkwardly at narrow widths */
+  }
+  @media (max-width: 480px) {
+    .nav-inner { height: 64px; }
+    .brand { font-size: 16px; gap: 10px; }
+    nav.links { gap: 14px; font-size: 13px; }
+    nav.links a[href="#how"] { display: none; }
+    .gh-pill { padding: 8px 12px; font-size: 12px; }
   }
 
   /* --- HERO ----------------------------------------------------- */
@@ -204,7 +215,7 @@
   h1.hero-h {
     font-family: var(--display);
     font-weight: 300;
-    font-size: clamp(54px, 9.8vw, 148px);
+    font-size: clamp(34px, 9.8vw, 148px); /* floor low enough that "command-line" fits a 320px viewport */
     line-height: 0.94;
     letter-spacing: -0.05em;
     max-width: 14ch;
@@ -335,9 +346,12 @@
   }
   @media (max-width: 760px) {
     .hero-facts { grid-template-columns: 1fr 1fr; gap: 24px; }
-    .install-cmd { padding-right: 24px; font-size: 13px; white-space: normal; overflow: visible; }
+    .install-cmd { padding-right: 24px; font-size: 13px; white-space: normal; overflow: visible; overflow-wrap: anywhere; }
     .install-cmd .copy { position: static; transform: none; display: inline-block; margin-top: 14px; }
+    .big-cmd { padding-right: 24px; font-size: 13px; white-space: normal; overflow: visible; overflow-wrap: anywhere; }
+    .big-cmd .copy-btn { position: static; transform: none; display: inline-block; margin-top: 14px; }
   }
+  .install-alt kbd { overflow-wrap: anywhere; }
 
   /* reveal — no-op on first paint; optional subtle rise on scroll via JS */
   .reveal > * { opacity: 1; transform: none; }
@@ -366,7 +380,7 @@
   }
   .sec-h {
     font-family: var(--display);
-    font-size: clamp(44px, 6.5vw, 88px);
+    font-size: clamp(30px, 6.5vw, 88px); /* "transcription." must fit a 320px viewport */
     line-height: 1.02;
     letter-spacing: -0.035em;
     max-width: 22ch;
@@ -615,6 +629,8 @@
     margin-top: clamp(40px, 6vh, 72px);
   }
   @media (max-width: 760px) { .prov-grid { grid-template-columns: 1fr; } }
+  .prov-wide { grid-column: 1 / -1; min-height: 0; }
+  @media (max-width: 760px) { .prov-wide { grid-column: auto; } }
 
   .prov {
     background: var(--bg-2);
@@ -637,7 +653,7 @@
     border-color: rgba(245, 165, 36, 0.28);
   }
   .prov .head {
-    display: flex; justify-content: space-between; align-items: flex-start;
+    display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start;
     gap: 12px;
   }
   .prov .name {
@@ -1019,7 +1035,7 @@
   .foot-brand h3 {
     font-family: var(--display);
     font-weight: 300;
-    font-size: clamp(52px, 7vw, 88px);
+    font-size: clamp(38px, 7vw, 88px); /* "anyscribe" must fit a 320px viewport */
     line-height: 1;
     letter-spacing: -0.045em;
     margin: 0 0 18px;
@@ -1101,13 +1117,88 @@
   }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+  /* --- keyboard focus (accessibility) -------------------------- */
+  a:focus-visible,
+  button:focus-visible,
+  .tabs button:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 2px solid var(--signal);
+    outline-offset: 3px;
+    border-radius: 3px;
+  }
+  .sec.light a:focus-visible,
+  .sec.light button:focus-visible { outline-color: #B8730B; }
+  .skip-link {
+    position: absolute; left: -9999px; top: 0; z-index: 200;
+    background: var(--signal); color: var(--bg);
+    font-family: var(--mono); font-size: 13px;
+    padding: 12px 20px; border-radius: 0 0 6px 0;
+  }
+  .skip-link:focus { left: 0; }
+
+  /* --- 04 quality picker --------------------------------------- */
+  .qtiers {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-top: clamp(40px, 6vh, 72px);
+  }
+  @media (max-width: 860px) { .qtiers { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 480px) { .qtiers { grid-template-columns: 1fr; } }
+  .qtier {
+    background: var(--bg-2);
+    border: 1px solid var(--rule-2);
+    border-radius: 8px;
+    padding: 30px 26px 28px;
+    display: flex; flex-direction: column; gap: 14px;
+    transition: border-color 200ms ease, transform 250ms ease;
+  }
+  .qtier:hover { border-color: rgba(245,165,36,0.3); transform: translateY(-2px); }
+  .qtier .flag {
+    font-family: var(--mono); font-size: 12px;
+    letter-spacing: 0.04em; color: var(--signal);
+  }
+  .qtier .flag .d { color: var(--ink-3); }
+  .qtier .qname {
+    font-family: var(--display); font-weight: 400;
+    font-size: clamp(24px, 2.6vw, 32px);
+    letter-spacing: -0.025em; line-height: 1.05; color: var(--ink);
+  }
+  .qtier .qwhen {
+    font-size: 15px; color: var(--ink-2); line-height: 1.55; margin: 0;
+  }
+  .qtier .qeng {
+    margin-top: auto; padding-top: 18px;
+    border-top: 1px dashed var(--rule-2);
+    font-family: var(--mono); font-size: 11.5px;
+    letter-spacing: 0.04em; color: var(--ink-3);
+  }
+  .qtier .qeng b { color: var(--ink); font-weight: 500; }
+  .qtier.free { border-color: rgba(200,232,135,0.28); }
+  .qtier.free .flag, .qtier.free .qeng b { color: var(--phosphor); }
+  .qtier.free:hover { border-color: rgba(200,232,135,0.5); }
+
+  /* --- horizontal-overflow guards (narrow viewports) ------------ */
+  /* grid/flex children default to min-width:auto and refuse to shrink
+     below nowrap content — zero that out so tracks can collapse */
+  .prov, .ai-card, .qtier,
+  .feat-row > *, .statement > *, .demo-head > *, .vault-grid > *,
+  .hero-facts dl, .foot-top > * { min-width: 0; }
+  .install-cmd, .big-cmd, .ai-card .cmd { max-width: 100%; }
+  .tabs { flex-wrap: wrap; max-width: 100%; }
+  .doc-chrome .path { min-width: 0; overflow-wrap: anywhere; }
+  .feat-row .fd code, .step code, .vault-point code { overflow-wrap: anywhere; }
+
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }
+    html { scroll-behavior: auto; }
   }
 </style>
 </head>
 
 <body>
+
+<a class="skip-link" href="#top">Skip to content</a>
 
 <!-- NAV =========================================================== -->
 <header class="nav">
@@ -1135,7 +1226,7 @@
   <div class="wrap reveal">
 
     <div class="hero-meta-top">
-      <span><b>anyscribe</b> &nbsp;·&nbsp; v0.7.4.7 &nbsp;·&nbsp; MIT open source</span>
+      <span><b>anyscribe</b> &nbsp;·&nbsp; v0.13.0 &nbsp;·&nbsp; MIT open source</span>
       <span class="rec">recording · local-first</span>
     </div>
 
@@ -1144,7 +1235,7 @@
     </h1>
 
     <p class="hero-lede">
-      <b>anyscribe</b> listens to anything with a voice in it — a YouTube video, an Instagram reel, a podcast, a meeting recording, a file on your disk — and hands back <span class="amber-underline">clean, searchable markdown</span> in an Obsidian vault on your own machine. Six transcription engines, speaker diarization, a fully offline mode. Zero lock-in.
+      Give <b>anyscribe</b> anything with a voice in it — a YouTube video, an Instagram reel, a podcast, a meeting recording, a file on your disk — and it hands back <span class="amber-underline">clean, searchable markdown</span> in an Obsidian vault on your own machine. Seven transcription engines behind one plain-English quality knob, speaker labels on request, and a fully offline mode. No account. No lock-in.
     </p>
 
     <div class="install-card">
@@ -1173,7 +1264,7 @@
     <div class="hero-facts">
       <dl><dt>Platforms</dt><dd>macOS · Linux · Win</dd></dl>
       <dl><dt>Requires</dt><dd>Python 3.10+</dd></dl>
-      <dl><dt>Engines</dt><dd>Six, incl. offline</dd></dl>
+      <dl><dt>Engines</dt><dd>Seven, incl. offline</dd></dl>
       <dl><dt>Licence</dt><dd>MIT</dd></dl>
     </div>
 
@@ -1196,7 +1287,10 @@
         </p>
         <div class="body">
           <p>
-            No browser extensions. No paid SaaS dashboards. No scrubbing through a video to cherry-pick a quote. anyscribe is a single command on your machine: it downloads the media, normalises the audio, routes it through the transcription engine you've picked, and files the result into a folder of markdown you own forever.
+            No browser extensions. No paid SaaS dashboards. No scrubbing through a video to cherry-pick a quote. anyscribe is a single command on your machine: it downloads the media, cleans up the audio, sends it through the engine you've picked, and files the result into a folder of markdown you own forever.
+          </p>
+          <p>
+            Never touched a command line? There's a wizard for that — <code style="font-family: var(--mono); font-size: 14px; background: var(--bg-3); border: 1px solid var(--rule); padding: 2px 7px; border-radius: 3px; color: var(--ink);">scribe ui</code> opens a local dashboard in your browser and walks you through the whole thing.
           </p>
           <p style="margin-bottom: 0;">
             Written in Python. Open source under MIT. Small enough to read in an afternoon.
@@ -1270,9 +1364,9 @@
 
       <div class="feat-row">
         <span class="fn">02</span>
-        <h3 class="ft">Six transcription <span class="it">engines</span></h3>
+        <h3 class="ft">One knob, seven <span class="it">engines</span></h3>
         <p class="fd">
-          OpenAI Whisper, Deepgram Nova, ElevenLabs Scribe, Sarvam (for Indic languages), OpenRouter, and Local (faster-whisper — fully offline, no API key, no bills). Switch engines with one config flag. anyscribe auto-routes certain jobs to the right engine.
+          Don't know which service to pick? Don't. Choose <code>--quality accuracy</code>, <code>balanced</code>, <code>cost</code>, or <code>free</code> and anyscribe routes to the right engine — from ElevenLabs Scribe down to fully offline Whisper. Seven providers in all; name one explicitly whenever you'd rather.
         </p>
       </div>
 
@@ -1314,24 +1408,55 @@
 <!-- 04 PROVIDERS ================================================= -->
 <section class="sec" id="providers">
   <div class="wrap">
-    <span class="eyebrow"><span class="n">§04</span>&nbsp; the engines</span>
+    <span class="eyebrow"><span class="n">§04</span>&nbsp; the quality knob</span>
 
     <div class="sec-head">
       <h2 class="sec-h">
-        Pick the <span class="it">right</span><br/>
-        transcription engine for the job.
+        Tell it what <span class="it">matters.</span><br/>
+        It picks the <span class="amber">engine.</span>
       </h2>
       <p class="sec-sub">
-        Six engines, one config flag. Some are fast, some are cheap, some speak 99 languages, some run entirely on your laptop with no API key at all. anyscribe keeps you in control.
+        Comparing seven transcription services is nobody's idea of fun. So don't. Pass one word — how accurate, how cheap, or free — and anyscribe routes to the engine that fits. Want a specific provider? Name it and it obeys.
       </p>
     </div>
+
+    <div class="qtiers">
+      <div class="qtier">
+        <span class="flag">--quality <span class="d">accuracy</span></span>
+        <h3 class="qname">Accuracy</h3>
+        <p class="qwhen">When the words have to be right — legal, medical, anything you'll quote.</p>
+        <span class="qeng">routes to <b>ElevenLabs Scribe</b></span>
+      </div>
+      <div class="qtier">
+        <span class="flag">--quality <span class="d">balanced</span></span>
+        <h3 class="qname">Balanced</h3>
+        <p class="qwhen">The sensible default. Great transcripts, native speaker labels, fair price.</p>
+        <span class="qeng">routes to <b>Deepgram Nova</b></span>
+      </div>
+      <div class="qtier">
+        <span class="flag">--quality <span class="d">cost</span></span>
+        <h3 class="qname">Cost</h3>
+        <p class="qwhen">Long backlogs, rough drafts, anything where cheap-and-fast wins.</p>
+        <span class="qeng">routes to <b>Groq Whisper</b></span>
+      </div>
+      <div class="qtier free">
+        <span class="flag">--quality <span class="d">free</span></span>
+        <h3 class="qname">Free</h3>
+        <p class="qwhen">Sensitive audio, no budget, no signal. Runs entirely on your machine.</p>
+        <span class="qeng">routes to <b>Local Whisper · $0</b></span>
+      </div>
+    </div>
+
+    <p class="sec-sub" style="margin-top: clamp(56px, 8vh, 88px);">
+      Under the knob sit seven engines you can also call by name — <code style="font-family: var(--mono); font-size: 14px; background: var(--bg-3); border: 1px solid var(--rule); padding: 2px 7px; border-radius: 3px; color: var(--ink);">--provider deepgram</code> — each with its own strengths.
+    </p>
 
     <div class="prov-grid">
 
       <div class="prov">
         <div class="head">
           <h3 class="name">OpenAI <span class="it">Whisper</span></h3>
-          <span class="tag">default</span>
+          <span class="tag">general</span>
         </div>
         <p class="desc">The reliable workhorse. General-purpose, multilingual, word-level timestamps. Files &gt;25 MB get auto-chunked.</p>
         <div class="specs">
@@ -1344,7 +1469,7 @@
       <div class="prov">
         <div class="head">
           <h3 class="name">Deepgram <span class="it">Nova</span></h3>
-          <span class="tag">diarization</span>
+          <span class="tag">balanced tier</span>
         </div>
         <p class="desc">Best-in-class speaker separation. Native diarization, Hinglish support, $200 free credit on signup.</p>
         <div class="specs">
@@ -1357,13 +1482,26 @@
       <div class="prov">
         <div class="head">
           <h3 class="name">ElevenLabs <span class="it">Scribe</span></h3>
-          <span class="tag">accuracy</span>
+          <span class="tag">accuracy tier</span>
         </div>
-        <p class="desc">99 languages, highest accuracy on Western European audio. Word-level timestamps plus per-word confidence scores.</p>
+        <p class="desc">99 languages, top-tier accuracy on Western European audio. Word-level timestamps plus per-word confidence scores.</p>
         <div class="specs">
           <span><b>~$0.005</b> / min</span>
           <span>99 languages</span>
           <span>word confidence</span>
+        </div>
+      </div>
+
+      <div class="prov">
+        <div class="head">
+          <h3 class="name">Groq <span class="it">Whisper</span></h3>
+          <span class="tag">cost tier</span>
+        </div>
+        <p class="desc">Whisper-large-v3-turbo on Groq's silicon — the cheapest, fastest cloud route. The pick when you have a backlog to burn through.</p>
+        <div class="specs">
+          <span><b>cheapest cloud</b></span>
+          <span>very fast</span>
+          <span>multilingual</span>
         </div>
       </div>
 
@@ -1393,12 +1531,12 @@
         </div>
       </div>
 
-      <div class="prov feat">
+      <div class="prov feat prov-wide">
         <div class="head">
           <h3 class="name">Local <span class="it">whisper</span></h3>
           <span class="tag">free · offline</span>
         </div>
-        <p class="desc">faster-whisper on your own CPU or GPU. No API key, no network, no bills. Perfect for sensitive audio or a flight.</p>
+        <p class="desc">faster-whisper on your own CPU or GPU. No API key, no network, no bills, no audio leaving the building. Perfect for sensitive recordings — or a flight. Set it up once with <code style="font-family: var(--mono); font-size: 13px; background: rgba(0,0,0,0.3); border: 1px solid var(--rule); padding: 2px 7px; border-radius: 3px; color: var(--phosphor);">scribe local setup --model base</code>.</p>
         <div class="specs">
           <span><b>$0</b> · forever</span>
           <span>offline</span>
@@ -1496,14 +1634,14 @@
 <!-- 06 FOR AI / AGENTS =========================================== -->
 <section class="sec" id="agents">
   <div class="wrap">
-    <span class="eyebrow"><span class="n">§06</span>&nbsp; built to be called</span>
+    <span class="eyebrow"><span class="n">§06</span>&nbsp; for builders &amp; agents</span>
 
     <div class="sec-head">
       <h2 class="sec-h">
         Not just used. <span class="it">Called.</span>
       </h2>
       <p class="sec-sub">
-        anyscribe is a good unix citizen — every command takes <code class="mono" style="background: var(--bg-3); border: 1px solid var(--rule); padding: 2px 7px; border-radius: 3px; font-size: 14px;">--json</code>, a Claude Code skill ships in the box, and an MCP server is one flag away. Plug it into whatever you're already building with.
+        Most people never need this section. But if you're wiring anyscribe into scripts, CI, or an AI agent — it's a good unix citizen. Every command takes <code class="mono" style="background: var(--bg-3); border: 1px solid var(--rule); padding: 2px 7px; border-radius: 3px; font-size: 14px;">--json</code>, a Claude Code skill ships in the box, and an MCP server is one flag away.
       </p>
     </div>
 
@@ -1516,7 +1654,7 @@
 
       <div class="ai-card">
         <h3>MCP <span class="it">server</span></h3>
-        <p>Nine tools over Model Context Protocol. Plugs into Claude Desktop, Cursor, and any MCP-speaking host. Transcribe, batch, configure — all scriptable.</p>
+        <p>Ten tools over Model Context Protocol. Plugs into Claude Desktop, Cursor, and any MCP-speaking host. Transcribe, batch, configure — all scriptable.</p>
         <div class="cmd"><span class="p">$</span>pip install anyscribecli[mcp]</div>
       </div>
 
@@ -1540,7 +1678,7 @@
         the wizard. <span class="amber">Go.</span>
       </h2>
       <p class="sec-sub">
-        The setup wizard checks your system, installs missing pieces (<code class="mono" style="background: var(--bg-3); border: 1px solid var(--rule); padding: 2px 7px; border-radius: 3px; font-size: 13px;">yt-dlp</code>, <code class="mono" style="background: var(--bg-3); border: 1px solid var(--rule); padding: 2px 7px; border-radius: 3px; font-size: 13px;">ffmpeg</code>), walks you through picking an engine, and asks for an API key. Nothing to working in about five minutes.
+        One command installs everything. Then <code class="mono" style="background: var(--bg-3); border: 1px solid var(--rule); padding: 2px 7px; border-radius: 3px; font-size: 13px;">scribe ui</code> opens a wizard in your browser that checks your system, installs missing pieces (<code class="mono" style="background: var(--bg-3); border: 1px solid var(--rule); padding: 2px 7px; border-radius: 3px; font-size: 13px;">yt-dlp</code>, <code class="mono" style="background: var(--bg-3); border: 1px solid var(--rule); padding: 2px 7px; border-radius: 3px; font-size: 13px;">ffmpeg</code>), and walks you through picking an engine. From nothing to your first transcript in about five minutes.
       </p>
     </div>
 
@@ -1576,26 +1714,19 @@
       <div class="step">
         <span class="n">i.</span>
         <div>
-          <h4>Run the onboarding wizard</h4>
-          <p>Arrow-key selectors for engine, language, workspace path. Your API key lands at <code>~/.anyscribecli/.env</code>, never sent anywhere except the provider you chose. &nbsp;&nbsp;<code>scribe onboard</code></p>
+          <h4>Open the wizard in your browser</h4>
+          <p>Runs a local dashboard at <code>127.0.0.1:8457</code> — no cloud, no account. Pick an engine, paste a key (with a live Test button), confirm your folder. Prefer the terminal? <code>scribe onboard</code> does the same with arrow keys. &nbsp;&nbsp;<code>scribe ui</code></p>
         </div>
       </div>
       <div class="step">
         <span class="n">ii.</span>
         <div>
-          <h4>Open the web UI (optional)</h4>
-          <p>A local dashboard at <code>127.0.0.1:8457</code>. Same pipeline as the CLI, just with a mouse. &nbsp;&nbsp;<code>scribe ui</code></p>
+          <h4>Transcribe your first thing</h4>
+          <p>Pass a YouTube URL, an Instagram reel, or a local file. The markdown lands in <code>~/anyscribe/</code>. Add <code>--diarize</code> for speaker labels. &nbsp;&nbsp;<code>scribe "https://youtube.com/watch?v=&hellip;"</code></p>
         </div>
       </div>
       <div class="step">
         <span class="n">iii.</span>
-        <div>
-          <h4>Transcribe your first thing</h4>
-          <p>Pass a YouTube URL, an Instagram reel, or a local file. The markdown lands in <code>~/anyscribe/</code>. &nbsp;&nbsp;<code>scribe "https://youtube.com/watch?v=&hellip;"</code></p>
-        </div>
-      </div>
-      <div class="step">
-        <span class="n">iv.</span>
         <div>
           <h4>Open the vault in Obsidian</h4>
           <p>&ldquo;Open folder as vault&rdquo; → point at <code>~/anyscribe/</code>. You'll see <code>_index.md</code>, <code>sources/</code>, and <code>daily/</code>.</p>
@@ -1654,7 +1785,7 @@
     </div>
 
     <div class="foot-bottom">
-      <span>MIT &nbsp;·&nbsp; v0.7.4.7 &nbsp;·&nbsp; no tracking · no analytics · no cookies</span>
+      <span>MIT &nbsp;·&nbsp; v0.13.0 &nbsp;·&nbsp; no tracking · no analytics · no cookies</span>
       <span class="right">one command, one transcript, one markdown file at a time.</span>
     </div>
 

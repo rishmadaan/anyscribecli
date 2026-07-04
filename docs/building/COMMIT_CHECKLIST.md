@@ -65,6 +65,7 @@ User-facing = new command, new flag, changed output, changed config option, new 
 - [ ] `src/anyscribecli/__init__.py` — `__version__` updated
 - [ ] `pyproject.toml` — `version` field matches
 - [ ] All docs referencing version number updated (search for old version)
+- [ ] `landing/index.html` — version badge strings (2 places, grep the old version)
 - [ ] `BACKLOG.md` — version section marked complete, new section added
 - [ ] Git tag created: `git tag vX.Y.Z`
 

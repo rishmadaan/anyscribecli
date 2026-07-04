@@ -115,6 +115,8 @@ scribe download "https://www.youtube.com/watch?v=VIDEO_ID" --audio-only  # audio
 | `scribe local status` / `scribe local teardown` | Report / remove offline transcription |
 | `scribe model list / pull / rm / reinstall / info` | Manage cached Whisper model weights |
 | `scribe ui` | Launch the web UI in your browser |
+| `scribe tray` | Menu-bar icon that supervises the web server (needs `pip install "anyscribecli[tray]"`) |
+| `scribe install-service` / `scribe uninstall-service` | Auto-start the tray at login (macOS) |
 | `scribe install-skill` | Install Claude Code skill |
 | `scribe update` | Update to the latest version |
 | `scribe doctor` | Check system health |
@@ -182,6 +184,16 @@ scribe transcribe "https://youtube.com/watch?v=abc123" --json
   "word_count": 1500,
   "provider": "openai"
 }
+```
+
+## Menu-bar app
+
+Want `scribe ui` always running instead of launching it by hand? Install the tray extra and click the icon:
+
+```bash
+pip install "anyscribecli[tray]"
+scribe tray                    # menu-bar icon: Open UI, Status, Restart, Check for updates, Quit
+scribe install-service         # optional: auto-start the tray at login (macOS)
 ```
 
 ## Prerequisites

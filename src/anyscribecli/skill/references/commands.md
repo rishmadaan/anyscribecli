@@ -281,6 +281,49 @@ Local only (127.0.0.1). Stop with Ctrl+C.
 
 ---
 
+## scribe tray
+
+Menu-bar/tray icon that supervises `scribe ui` as a subprocess — click to open instead of running a command. **Needs the `[tray]` extra**: `pip install -U "anyscribecli[tray]"` (pystray, Pillow, pyobjc on macOS). Without it, the command prints an install hint and exits 1 instead of crashing.
+
+```bash
+scribe tray                # start the tray, default port 8457
+scribe tray --port 9000    # supervise a server on a different port
+```
+
+Menu: Open UI, Status (running/stopped), Restart server, Check for updates… (opens the GitHub releases page), Quit.
+
+- If a server is already listening on the port, `scribe tray` attaches to it instead of starting a second one.
+- If a tray is already running (pidfile at `~/.anyscribecli/tray.pid`), a second `scribe tray` refuses to start rather than colliding.
+- Quit / SIGTERM / SIGINT all run the same teardown: stop the server *if the tray started it*, remove the pidfile.
+
+### Flags
+
+| Flag | Short | Description | Default |
+|------|-------|-------------|---------|
+| `--port` | `-p` | Port the supervised web server listens on | `8457` |
+
+---
+
+## scribe install-service / scribe uninstall-service
+
+Auto-start `scribe tray` at login. **macOS only for now** — other platforms get a clean "not supported yet" error, not a crash.
+
+```bash
+scribe install-service --yes --json     # writes + loads ~/Library/LaunchAgents/com.anyscribe.tray.plist
+scribe uninstall-service --yes --json   # unloads + deletes it
+```
+
+### Flags
+
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--yes` | `-y` | Skip confirmation prompt. Required in non-TTY (agent) contexts. |
+| `--json` | `-j` | Output result as JSON: `{"success": true, "data": {...}, "error": null}` |
+
+`install-service` returns `{"plist": "<path>"}`; `uninstall-service` returns `{"removed": true|false}`. This only toggles login auto-start — it doesn't stop a tray that's currently running (quit that from its menu) and doesn't uninstall scribe itself.
+
+---
+
 ## scribe config
 
 View and change settings.
@@ -453,7 +496,7 @@ scribe update --force                   # Force update (stashes local changes)
 
 ```bash
 scribe --version
-# Output: scribe v0.12.0
+# Output: scribe v0.13.0
 ```
 
 ---

@@ -162,6 +162,38 @@ pip install faster-whisper
 
 First run downloads the model from Hugging Face (~150 MB for base). Needs internet for that initial download.
 
+### "The tray companion needs extra packages" / tray won't start
+
+`scribe tray` needs the optional `[tray]` extra (pystray, Pillow, and pyobjc on macOS) — the base install doesn't pull it in so `pip install anyscribecli` stays lightweight.
+
+**Fix:**
+```bash
+pip install -U "anyscribecli[tray]"
+scribe tray
+```
+
+### "A scribe tray is already running"
+
+A tray is already active — its pidfile (`~/.anyscribecli/tray.pid`) still points at a live process. This is by design: `scribe tray` refuses to start a second instance instead of colliding.
+
+**Fix:** Use the existing tray (check the menu bar), or quit it first (menu → Quit, or Ctrl+C in its terminal), then relaunch.
+
+### "port already in use" when starting the tray or `scribe ui`
+
+If a `scribe ui` server is already listening on that port, `scribe tray` **attaches** to it rather than erroring — that's expected behavior, not a bug. If a *different, unrelated* process holds the port, pick another one:
+
+```bash
+scribe tray --port 9000
+```
+
+### Fully removing the tray / menu-bar auto-start
+
+1. Quit the tray if it's running (menu → Quit).
+2. Remove login auto-start (macOS): `scribe uninstall-service --yes`
+3. Optionally uninstall the extra: `pip uninstall pystray Pillow`
+
+`uninstall-service` only removes the login LaunchAgent — it doesn't stop an already-running tray or uninstall scribe itself.
+
 ### Permission denied errors
 
 **Fix:** Check file ownership:

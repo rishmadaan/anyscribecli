@@ -60,6 +60,11 @@ local = [
 mcp = [
     "mcp>=1.0",
 ]
+tray = [
+    "pystray>=0.19",
+    "Pillow>=10.0",
+    "pyobjc-framework-Cocoa>=10.0; sys_platform == 'darwin'",
+]
 
 [project.scripts]
 scribe = "anyscribecli.cli.main:app"

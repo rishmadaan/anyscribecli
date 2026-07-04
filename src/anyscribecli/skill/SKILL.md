@@ -65,6 +65,9 @@ When the USER wants to run commands themselves, show them the human-readable for
 | Initial setup (interactive, for a human) | `scribe onboard` (or `--force` to re-run) |
 | Initial setup (headless, agent or script) | `scribe onboard --provider X --api-key $KEY --yes --json` *(see rule below)* |
 | Use the web UI | `scribe ui` (opens browser dashboard at 127.0.0.1:8457) |
+| Keep scribe available in the menu bar / always running | `scribe tray` (needs `pip install "anyscribecli[tray]"` first) |
+| Auto-start the menu bar at login (macOS) | `scribe install-service` |
+| Remove menu-bar auto-start | `scribe uninstall-service` |
 | Diagnose problems | `scribe doctor` |
 | Update scribe | `scribe update` |
 | Check for updates | `scribe update --check` |

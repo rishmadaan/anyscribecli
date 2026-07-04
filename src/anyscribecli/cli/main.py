@@ -188,6 +188,8 @@ from anyscribecli.cli.logs_cmd import logs  # noqa: E402
 from anyscribecli.cli.skill_cmd import install_skill  # noqa: E402
 from anyscribecli.cli.local_cmd import local_app  # noqa: E402
 from anyscribecli.cli.models_cmd import models_app  # noqa: E402
+from anyscribecli.cli.tray_cmd import tray  # noqa: E402
+from anyscribecli.cli.service_cmd import install_service, uninstall_service  # noqa: E402
 
 app.command()(onboard)
 app.command()(transcribe)
@@ -196,6 +198,9 @@ app.command()(download)
 app.command()(rm)
 app.command()(logs)
 app.command("install-skill")(install_skill)
+app.command()(tray)
+app.command("install-service")(install_service)
+app.command("uninstall-service")(uninstall_service)
 app.add_typer(config_app, name="config")
 app.add_typer(providers_app, name="providers")
 app.add_typer(local_app, name="local")

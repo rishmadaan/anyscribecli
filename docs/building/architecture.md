@@ -1,6 +1,6 @@
 # Architecture
 
-**Last updated:** 2026-07-04 (v0.12.0 — `scribe logs`, `batch --timeout`, Web UI byte-level download progress)
+**Last updated:** 2026-07-04 (v0.13.0 — menu-bar tray companion + launchd auto-start, GitHub Releases automation)
 
 ## Overview
 
@@ -58,7 +58,8 @@ the Obsidian vault at `~/anyscribe/` stays pure markdown.
 ### CLI Layer (`cli/`)
 - Typer app with `rich_markup_mode="rich"`, custom `DefaultToTranscribe(TyperGroup)` class for bare-URL routing
 - Primary command: `scribe` (alias: `ascli` for backward compat)
-- Commands: `onboard`, `transcribe`, `download`, `batch`, `rm`, `logs`, `config`, `providers`, `local`, `model`, `ui`, `update`, `doctor`, `install-skill`
+- Commands: `onboard`, `transcribe`, `download`, `batch`, `rm`, `logs`, `config`, `providers`, `local`, `model`, `ui`, `tray`, `install-service`, `uninstall-service`, `update`, `doctor`, `install-skill`
+- **Tray supervision model** (`cli/tray_cmd.py` + `core/tray.py`): `scribe tray` is a `pystray` menu-bar icon that supervises `scribe ui` as a subprocess — attaches to an already-running server instead of colliding (TCP connect-probe), guards against double-launch with a pidfile at `~/.anyscribecli/tray.pid`, and tears down via a `signal.pthread_sigmask` + `signal.sigwait` watcher thread rather than a plain `signal.signal` handler (pystray's macOS Cocoa event loop can block Python bytecode from running, so a normal handler can miss SIGTERM/SIGINT). `core/service.py` registers a macOS launchd LaunchAgent (`scribe install-service`) that runs `{python} -m anyscribecli tray` at login.
 - Bare URL: `scribe "url"` auto-routes to transcribe (first arg not a known subcommand → prepend `transcribe`)
 - `--json` and `--quiet` available on main commands (transcribe, download, batch, config show, providers list)
 - `--json` for AI agent and scripting integration
@@ -148,7 +149,8 @@ the Obsidian vault at `~/anyscribe/` stays pure markdown.
 - **Three install paths**: install.sh (users), pip from PyPI (recommended), git clone (devs)
 - **SemVer**: 0.x for pre-stable, 1.0.0 when all platforms + providers stable
 - **Auto-migration**: Startup migrations handle legacy paths transparently (workspace rename, media→downloads, date folder flattening)
-- **CI + PyPI automation**: GitHub Actions runs lint, tests, package build, and frontend bundle freshness checks on pushes/PRs. Tag pushes publish to PyPI via trusted publishing; `scripts/release.sh` handles one-command releases.
+- **CI + PyPI automation**: GitHub Actions runs lint, tests, package build, and frontend bundle freshness checks on pushes/PRs. Tag pushes publish to PyPI via trusted publishing; `scripts/release.sh` handles one-command releases. The same workflow also runs `gh release create --generate-notes` after publish, so every tag gets a GitHub Release automatically.
+- **Tray as a supervisor, not a rewrite**: `scribe tray` spawns/attaches to the existing `scribe ui` server rather than embedding a webview or rewriting the UI as a native app — the browser stays the UI surface, the tray only adds discoverability and process supervision.
 - **AI-first skill management**: Claude Code skill auto-installs and auto-updates on every CLI invocation. `.version` marker pattern borrowed from gitstow — one file read + string compare, never blocks CLI
 - **MCP server**: Thin wrapper around core modules. Both CLI and MCP use same orchestrator/providers/settings — only output format differs (Rich console vs JSON)
 - **Web UI as core dependency**: FastAPI/uvicorn ship with `pip install anyscribecli` (not optional). One app, one install. Same pattern as gitstow. React SPA builds to `web/static/`, committed to repo — end users don't need Node.js
@@ -236,6 +238,7 @@ Not every feature lives on every surface. The asymmetry is intentional per-featu
 | System diagnostics | ✓ (`scribe doctor`) | ✓ (Settings → System section, lighter) | UI surfaces a subset |
 | Self-update | ✓ (`scribe update`) | — | CLI-only. Updating a running server is weird |
 | Claude Code skill install | ✓ (`scribe install-skill`) | — | CLI-only; runs automatically anyway |
+| Menu-bar tray + login auto-start | ✓ (`scribe tray`, `install-service`/`uninstall-service`) | — | CLI-only by nature — a tray icon and a launchd registration aren't Web UI concepts; the tray supervises the Web UI server, it doesn't compete with it |
 | Drag-and-drop upload | — | ✓ | UI-only |
 | API key management | ✓ (`scribe config set <prov>_api_key`) | ✓ (inline per-provider with Test) | UI has richer UX |
 

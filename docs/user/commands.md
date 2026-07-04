@@ -45,6 +45,9 @@ Every scribe command. Copy-paste friendly.
 | `scribe model reinstall <size> --yes` | Delete + re-download in one step (for corrupted weights) |
 | `scribe model info <size>` | Inspect a single Whisper model |
 | `scribe ui` | Launch the web UI in your browser |
+| `scribe tray` | Menu-bar icon that supervises the web server (needs the `[tray]` extra) |
+| `scribe install-service` | Auto-start the tray at login (macOS only) |
+| `scribe uninstall-service` | Remove the login auto-start |
 | `scribe install-skill` | Install/update Claude Code skill |
 | `scribe update` | Update to the latest version |
 | `scribe doctor` | Check system health |
@@ -703,6 +706,106 @@ scribe ui --no-open
 
 ---
 
+## scribe tray
+
+A menu-bar icon that keeps `scribe ui` running in the background — click the icon instead of remembering to run a command every time.
+
+> **Requires an extra install:** `pip install -U "anyscribecli[tray]"`. This pulls in `pystray`, `Pillow`, and (on macOS) `pyobjc` — kept out of the base install so `pip install anyscribecli` stays lightweight. If you run `scribe tray` without it, you'll get an install hint instead of a crash.
+
+```bash
+scribe tray
+```
+
+The icon appears in your menu bar (macOS) or system tray (Linux/Windows) with:
+
+- **Open UI** — opens `http://127.0.0.1:8457` in your browser
+- **Status** — shows `running` or `stopped`
+- **Restart server** — stops and restarts the web server
+- **Check for updates…** — opens the [GitHub releases page](https://github.com/rishmadaan/anyscribecli/releases)
+- **Quit** — stops the server and exits the tray cleanly
+
+If a `scribe ui` server is already running on the port, `scribe tray` attaches to it instead of starting a second one. If a tray is already running, a second `scribe tray` refuses to start (no port collisions, no duplicate icons).
+
+### Flags
+
+| Flag | Short | Description | Default |
+|------|-------|-------------|---------|
+| `--port` | `-p` | Port the supervised web server listens on | `8457` |
+
+### Examples
+
+```bash
+# Start the tray (installs the extra first, one time)
+pip install -U "anyscribecli[tray]"
+scribe tray
+
+# Use a different port
+scribe tray --port 9000
+```
+
+> **Tip:** Quitting the tray (menu → Quit, or Ctrl+C in the terminal) stops the server it started and cleans up its pidfile. If it attached to a server it didn't start, quitting the tray leaves that server running.
+
+---
+
+## scribe install-service
+
+Register `scribe tray` to start automatically every time you log in — so the menu-bar icon is just always there, no manual launch.
+
+> **macOS only for now.** Other platforms print a friendly "not supported yet" error.
+
+```bash
+scribe install-service
+```
+
+Writes a launchd `LaunchAgent` (`~/Library/LaunchAgents/com.anyscribe.tray.plist`) with `RunAtLoad` set, and loads it immediately — so the tray starts now *and* at every future login.
+
+### Flags
+
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--yes` | `-y` | Skip the confirmation prompt |
+| `--json` | `-j` | Output result as JSON |
+
+### Examples
+
+```bash
+scribe install-service              # prompts for confirmation
+scribe install-service --yes        # no prompt
+scribe install-service --json       # {"success": true, "data": {"plist": "..."}, "error": null}
+```
+
+---
+
+## scribe uninstall-service
+
+Remove the login auto-start registered by `scribe install-service`.
+
+> **macOS only for now.** Other platforms print a friendly "not supported yet" error.
+
+```bash
+scribe uninstall-service
+```
+
+Unloads and deletes the LaunchAgent plist. This only removes the auto-start — it doesn't uninstall scribe itself or stop a tray that's currently running.
+
+### Flags
+
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--yes` | `-y` | Skip the confirmation prompt |
+| `--json` | `-j` | Output result as JSON |
+
+### Examples
+
+```bash
+scribe uninstall-service            # prompts for confirmation
+scribe uninstall-service --yes      # no prompt
+```
+
+> **Fully removing the tray?** `scribe uninstall-service` stops it from auto-starting at login. If a tray is currently running, quit it separately from its menu (or Ctrl+C the terminal it's running in).
+
+---
+
 ## scribe install-skill
 
 Manually install or update the scribe skill for [Claude Code](https://docs.anthropic.com/en/docs/claude-code). This teaches Claude how to transcribe, configure providers, and troubleshoot scribe on your behalf.
@@ -778,7 +881,7 @@ Print the installed version.
 
 ```bash
 scribe --version
-# Output: scribe v0.12.0
+# Output: scribe v0.13.0
 ```
 
 ---
