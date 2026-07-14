@@ -8,7 +8,15 @@ import httpx
 from fastapi import APIRouter, Body
 
 from anyscribecli.config.paths import get_workspace_dir
-from anyscribecli.config.settings import load_config, load_env, save_config, save_env
+from anyscribecli.config.settings import (
+    delete_env,
+    env_file_keys,
+    forget_env_var,
+    load_config,
+    load_env,
+    save_config,
+    save_env,
+)
 from anyscribecli.core.local_setup import local_ready
 from anyscribecli.providers import PROVIDER_REGISTRY, list_providers
 from anyscribecli.providers.languages import PROVIDER_LANGUAGES
@@ -78,6 +86,7 @@ async def get_providers() -> list[dict]:
     load_env()
     result = []
     local_is_ready = local_ready()
+    persisted = env_file_keys()  # keys actually saved in .env (vs inherited env)
     for name in list_providers():
         env_var = PROVIDER_KEY_MAP.get(name)
         if name == "local":
@@ -86,15 +95,20 @@ async def get_providers() -> list[dict]:
             # of a Test button — driven by set_up=False.
             has_key = local_is_ready
             set_up = local_is_ready
+            key_in_env_file = False
         else:
             has_key = bool(os.environ.get(env_var)) if env_var else False
             set_up = True  # API providers have no separate setup step
+            # Only .env-persisted keys are removable; a key inherited from the
+            # parent shell can't be durably deleted, so the UI hides "Remove".
+            key_in_env_file = bool(env_var and env_var in persisted)
         result.append(
             {
                 "name": name,
                 "description": PROVIDER_INFO.get(name, ""),
                 "has_key": has_key,
                 "set_up": set_up,
+                "key_in_env_file": key_in_env_file,
                 "key_url": PROVIDER_SIGNUP_URLS.get(name),
             }
         )
@@ -258,4 +272,17 @@ async def update_key(req: KeyUpdateRequest) -> dict:
         return {"success": False, "message": f"No API key for provider: {req.provider_name}"}
     save_env({env_var: req.api_key})
     os.environ[env_var] = req.api_key
+    return {"success": True}
+
+
+@router.delete("/keys/{provider_name}")
+async def delete_key(provider_name: str) -> dict:
+    """Remove a provider's saved API key from .env and the live environment."""
+    env_var = PROVIDER_KEY_MAP.get(provider_name)
+    if not env_var:
+        return {"success": False, "message": f"No API key for provider: {provider_name}"}
+    delete_env([env_var])
+    # Drop it from the live process env, but keep any value inherited from the
+    # parent shell — deleting our saved copy must not disable a shell-set key.
+    forget_env_var(env_var)
     return {"success": True}

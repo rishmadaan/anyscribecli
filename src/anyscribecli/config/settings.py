@@ -2,12 +2,19 @@
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass, field, asdict, fields
 
 import yaml
-from dotenv import load_dotenv
+from dotenv import dotenv_values, load_dotenv, set_key, unset_key
 
 from anyscribecli.config.paths import CONFIG_FILE, ENV_FILE
+
+# Snapshot of the environment as the process was launched — captured before any
+# .env is loaded (load_env lives in this module, so nothing has loaded it yet).
+# Lets us tell a key inherited from the parent shell, which we don't own and
+# must not discard, from one we merely loaded out of .env.
+_PRISTINE_ENV: dict[str, str] = dict(os.environ)
 
 
 @dataclass
@@ -83,22 +90,63 @@ def load_env() -> None:
         load_dotenv(ENV_FILE)
 
 
+def env_file_keys() -> set[str]:
+    """The set of secret names persisted in .env (empty if the file is absent).
+
+    Uses python-dotenv's own parser, so it sees exactly what ``load_env`` will
+    load — including ``export``-prefixed and quoted forms. Lets callers tell a
+    key we actually saved from one merely inherited from the parent process
+    environment; only the former is removable.
+    """
+    if not ENV_FILE.exists():
+        return set()
+    return set(dotenv_values(ENV_FILE))
+
+
 def save_env(keys: dict[str, str]) -> None:
-    """Write or update secrets in .env file (atomic write)."""
-    from anyscribecli.core.fileutil import atomic_write
+    """Write or update secrets in .env, one key at a time.
 
+    Delegates to python-dotenv's ``set_key`` (atomic temp-file + os.replace),
+    which updates or appends the target key while preserving every other line —
+    comments, multiline values, and unrelated bindings — verbatim. ``quote_mode
+    ="never"`` keeps our plain ``KEY=value`` format for single-line tokens.
+
+    The file is created and kept mode ``0600`` (owner-only) — it holds API keys
+    and must never be world-readable, matching the prior ``atomic_write`` path.
+    """
     ENV_FILE.parent.mkdir(parents=True, exist_ok=True)
+    if not ENV_FILE.exists():
+        # Create owner-only up front; os.open applies the mode atomically, so
+        # there's no world-readable window before the first key lands.
+        os.close(os.open(ENV_FILE, os.O_CREAT | os.O_WRONLY, 0o600))
+    for k, v in keys.items():
+        set_key(ENV_FILE, k, v, quote_mode="never")
+    ENV_FILE.chmod(0o600)  # enforce owner-only even if the file predated this
 
-    existing: dict[str, str] = {}
-    if ENV_FILE.exists():
-        with open(ENV_FILE) as f:
-            for line in f:
-                line = line.strip()
-                if line and not line.startswith("#") and "=" in line:
-                    k, v = line.split("=", 1)
-                    existing[k.strip()] = v.strip()
 
-    existing.update(keys)
+def delete_env(names: list[str]) -> None:
+    """Remove secrets from .env. No-op if the file is absent.
 
-    content = "".join(f"{k}={v}\n" for k, v in existing.items())
-    atomic_write(ENV_FILE, content)
+    The counterpart to ``save_env`` — python-dotenv's ``unset_key`` removes only
+    the named binding (matching the same grammar ``load_env`` accepts) and
+    leaves every other line's original text intact.
+    """
+    if not ENV_FILE.exists():
+        return
+    for name in names:
+        unset_key(ENV_FILE, name)
+
+
+def forget_env_var(name: str) -> None:
+    """Reflect a .env deletion in the live process environment.
+
+    Restores the value the process inherited from its parent shell (if any), so
+    removing a saved key never discards a credential that also comes from the
+    environment; otherwise drops it entirely. Mirrors what a fresh start would
+    resolve now that the key is gone from .env.
+    """
+    inherited = _PRISTINE_ENV.get(name)
+    if inherited is None:
+        os.environ.pop(name, None)
+    else:
+        os.environ[name] = inherited

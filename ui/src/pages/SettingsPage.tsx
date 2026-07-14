@@ -7,6 +7,7 @@ import {
   testProvider,
   getHealth,
   updateKey,
+  deleteKey,
   getLocalStatus,
   pullLocalModel,
   deleteLocalModel,
@@ -61,6 +62,8 @@ export default function SettingsPage() {
   const [savingKey, setSavingKey] = useState(false);
   const [keySaved, setKeySaved] = useState<string | null>(null);
   const [confirmOverwrite, setConfirmOverwrite] = useState(false);
+  const [confirmRemoveKey, setConfirmRemoveKey] = useState(false);
+  const [removingKey, setRemovingKey] = useState(false);
   const [showSetupModal, setShowSetupModal] = useState(false);
   const [pullingSize, setPullingSize] = useState<string | null>(null);
   const [deletingSize, setDeletingSize] = useState<string | null>(null);
@@ -458,6 +461,7 @@ export default function SettingsPage() {
                         setKeyInput("");
                         setKeySaved(null);
                         setConfirmOverwrite(false);
+                        setConfirmRemoveKey(false);
                       }
                     }}
                     className={`rounded-md px-1.5 py-1 transition-colors cursor-pointer ${
@@ -551,6 +555,52 @@ export default function SettingsPage() {
                           {p.key_url.replace(/^https?:\/\//, "")}
                         </a>
                       </p>
+                    )}
+                    {p.key_in_env_file && (
+                      <div className="mt-3 flex items-center justify-end gap-2">
+                        {confirmRemoveKey && (
+                          <button
+                            onClick={() => setConfirmRemoveKey(false)}
+                            className="text-xs font-mono text-text-muted hover:text-text transition-colors cursor-pointer"
+                          >
+                            Cancel
+                          </button>
+                        )}
+                        <button
+                          onClick={async () => {
+                            if (!confirmRemoveKey) {
+                              setConfirmRemoveKey(true);
+                              return;
+                            }
+                            setRemovingKey(true);
+                            setError(null);
+                            try {
+                              await deleteKey(p.name);
+                              setConfirmRemoveKey(false);
+                              setExpandedProvider(null);
+                              const updated = await getProviders();
+                              setProviders(updated);
+                            } catch (err) {
+                              setError(
+                                err instanceof Error
+                                  ? err.message
+                                  : "Failed to remove key"
+                              );
+                            } finally {
+                              setRemovingKey(false);
+                            }
+                          }}
+                          disabled={removingKey}
+                          className="flex items-center gap-1 text-xs font-mono text-text-muted hover:text-red transition-colors cursor-pointer disabled:opacity-50"
+                        >
+                          {removingKey ? (
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                          ) : (
+                            <Trash2 className="w-3 h-3" />
+                          )}
+                          {confirmRemoveKey ? "Remove?" : "Remove key"}
+                        </button>
+                      </div>
                     )}
                   </div>
                 )}

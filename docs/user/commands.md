@@ -678,7 +678,9 @@ Opens your browser at `http://127.0.0.1:8457` with three views:
 
 - **Transcribe** — paste a URL, choose options (provider, language, multi-speaker mode), watch real-time progress, see results
 - **History** — browse past transcripts from your vault, grouped by date, with search
-- **Settings** — change config, view provider status, test API keys, check system health
+- **Settings** — change config, view provider status, add/replace/remove API keys, check system health
+
+> **Managing API keys in Settings → Providers:** expand a provider to add or replace its key. Once a key is saved, a **Remove key** button appears — click it, then click **Remove?** to confirm, and the key is deleted from `~/.anyscribecli/.env`. If a key comes from your shell environment instead (e.g. `export OPENAI_API_KEY=…` in your shell profile), the Remove button is hidden — scribe can't edit your shell, so unset it there instead.
 
 > **Web UI label conventions:** the `--diarize` CLI flag appears as a `Multi-speaker` toggle, and the `diarized` output format is labelled `with-speaker-labels`. Wire values (what gets sent to the API and saved to config) are unchanged — only the display labels are friendlier. The provider dropdown also disables unconfigured providers with a `· needs key` suffix and a one-click link to Settings, and the language input is a per-provider dropdown of every supported code (clear the field on focus to see the full list).
 

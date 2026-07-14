@@ -20,6 +20,7 @@ export interface Provider {
   description: string;
   has_key: boolean;
   set_up: boolean;
+  key_in_env_file?: boolean; // key is saved in .env (removable), not just inherited
   key_url?: string;
 }
 

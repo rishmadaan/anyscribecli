@@ -52,12 +52,20 @@ class TestConfig:
             assert "name" in p
             assert "description" in p
             assert "has_key" in p
+            assert "key_in_env_file" in p
 
     def test_get_keys_status(self, client):
         r = client.get("/api/keys/status")
         assert r.status_code == 200
         data = r.json()
         assert isinstance(data, dict)
+
+    def test_delete_key_unknown_provider(self, client):
+        # Route is wired and rejects a provider with no API key. Uses a name
+        # with no env var, so it never touches the real .env.
+        r = client.delete("/api/keys/local")
+        assert r.status_code == 200
+        assert r.json()["success"] is False
 
     def test_test_unknown_provider(self, client):
         r = client.post("/api/providers/nonexistent/test")
