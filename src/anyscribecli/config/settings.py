@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field, asdict, fields
 
 import yaml
-from dotenv import load_dotenv
+from dotenv import dotenv_values, load_dotenv, set_key, unset_key
 
 from anyscribecli.config.paths import CONFIG_FILE, ENV_FILE
 
@@ -83,64 +83,41 @@ def load_env() -> None:
         load_dotenv(ENV_FILE)
 
 
-def _read_env_pairs() -> dict[str, str]:
-    """Parse .env into {key: value}, returning {} if the file is absent.
-
-    Tolerates an optional ``export `` prefix on keys (valid dotenv syntax that
-    python-dotenv also honours) by normalizing it away — so ``export FOO=x`` is
-    read as key ``FOO``. Comments and blank lines are skipped. Rewriting via
-    save_env/delete_env therefore normalizes any export-prefixed lines to plain
-    ``KEY=value`` form. Shared by save_env and delete_env so both agree on what
-    a key name is.
-    """
-    pairs: dict[str, str] = {}
-    if not ENV_FILE.exists():
-        return pairs
-    with open(ENV_FILE) as f:
-        for line in f:
-            line = line.strip()
-            if not line or line.startswith("#") or "=" not in line:
-                continue
-            k, v = line.split("=", 1)
-            k = k.strip()
-            if k.startswith("export "):
-                k = k[len("export ") :].strip()
-            pairs[k] = v.strip()
-    return pairs
-
-
 def env_file_keys() -> set[str]:
     """The set of secret names persisted in .env (empty if the file is absent).
 
-    Lets callers distinguish a key we actually saved from one merely inherited
-    from the parent process environment — only the former is removable.
+    Uses python-dotenv's own parser, so it sees exactly what ``load_env`` will
+    load — including ``export``-prefixed and quoted forms. Lets callers tell a
+    key we actually saved from one merely inherited from the parent process
+    environment; only the former is removable.
     """
-    return set(_read_env_pairs())
+    if not ENV_FILE.exists():
+        return set()
+    return set(dotenv_values(ENV_FILE))
 
 
 def save_env(keys: dict[str, str]) -> None:
-    """Write or update secrets in .env file (atomic write)."""
-    from anyscribecli.core.fileutil import atomic_write
+    """Write or update secrets in .env, one key at a time.
 
+    Delegates to python-dotenv's ``set_key`` (atomic temp-file + os.replace),
+    which updates or appends the target key while preserving every other line —
+    comments, multiline values, and unrelated bindings — verbatim. ``quote_mode
+    ="never"`` keeps our plain ``KEY=value`` format for single-line tokens.
+    """
     ENV_FILE.parent.mkdir(parents=True, exist_ok=True)
-    existing = _read_env_pairs()
-    existing.update(keys)
-    content = "".join(f"{k}={v}\n" for k, v in existing.items())
-    atomic_write(ENV_FILE, content)
+    ENV_FILE.touch(exist_ok=True)
+    for k, v in keys.items():
+        set_key(ENV_FILE, k, v, quote_mode="never")
 
 
 def delete_env(names: list[str]) -> None:
-    """Remove secrets from .env, rewriting it without them (atomic write).
+    """Remove secrets from .env. No-op if the file is absent.
 
-    No-op if the file is absent. The counterpart to ``save_env`` — same
-    export-aware parsing, minus the dropped keys.
+    The counterpart to ``save_env`` — python-dotenv's ``unset_key`` removes only
+    the named binding (matching the same grammar ``load_env`` accepts) and
+    leaves every other line's original text intact.
     """
-    from anyscribecli.core.fileutil import atomic_write
-
     if not ENV_FILE.exists():
         return
-
-    drop = set(names)
-    remaining = {k: v for k, v in _read_env_pairs().items() if k not in drop}
-    content = "".join(f"{k}={v}\n" for k, v in remaining.items())
-    atomic_write(ENV_FILE, content)
+    for name in names:
+        unset_key(ENV_FILE, name)

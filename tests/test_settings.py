@@ -71,3 +71,36 @@ def test_env_file_keys_normalizes_export_and_skips_noise(tmp_path):
 def test_env_file_keys_empty_when_absent(tmp_path):
     with patch("anyscribecli.config.settings.ENV_FILE", tmp_path / ".env"):
         assert env_file_keys() == set()
+
+
+def test_delete_preserves_comments_multiline_and_handles_export_tab(tmp_path):
+    # Codex re-review (2026-07-14): env parsing must match the full dotenv
+    # grammar load_env() accepts. Deleting one key must preserve comments and
+    # unrelated multiline values, and `export\tKEY` (tab, not space) must be
+    # both visible to env_file_keys and deletable.
+    env_file = tmp_path / ".env"
+    env_file.write_text(
+        "# my secrets\n"
+        'OTHER="line1\nline2"\n'
+        "export\tDEEPGRAM_API_KEY=dg\n"
+        "OPENAI_API_KEY=sk-plain\n"
+    )
+    with patch("anyscribecli.config.settings.ENV_FILE", env_file):
+        assert env_file_keys() == {"OTHER", "DEEPGRAM_API_KEY", "OPENAI_API_KEY"}
+        delete_env(["OPENAI_API_KEY"])
+        after = env_file.read_text()
+        assert "# my secrets" in after  # comment preserved
+        assert 'OTHER="line1\nline2"' in after  # multiline value intact
+        assert "OPENAI_API_KEY" not in after
+        delete_env(["DEEPGRAM_API_KEY"])  # export-tab key is deletable
+        assert env_file_keys() == {"OTHER"}
+
+
+def test_save_env_keeps_plain_format_and_preserves_others(tmp_path):
+    env_file = tmp_path / ".env"
+    with patch("anyscribecli.config.settings.ENV_FILE", env_file):
+        save_env({"OPENAI_API_KEY": "sk-a"})
+        save_env({"DEEPGRAM_API_KEY": "dg-b"})  # must not clobber the first
+        text = env_file.read_text()
+    assert "OPENAI_API_KEY=sk-a" in text  # unquoted, plain KEY=value
+    assert "DEEPGRAM_API_KEY=dg-b" in text
