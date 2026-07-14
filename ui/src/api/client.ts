@@ -62,6 +62,11 @@ export const updateKey = (provider_name: string, api_key: string) =>
     body: JSON.stringify({ provider_name, api_key }),
   });
 
+export const deleteKey = (provider_name: string) =>
+  fetchJSON<{ success: boolean }>(`/keys/${provider_name}`, {
+    method: "DELETE",
+  });
+
 // ── Transcription ────────────────────────────────────
 
 export const startTranscribe = (data: {

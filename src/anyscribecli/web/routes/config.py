@@ -8,7 +8,13 @@ import httpx
 from fastapi import APIRouter, Body
 
 from anyscribecli.config.paths import get_workspace_dir
-from anyscribecli.config.settings import load_config, load_env, save_config, save_env
+from anyscribecli.config.settings import (
+    delete_env,
+    load_config,
+    load_env,
+    save_config,
+    save_env,
+)
 from anyscribecli.core.local_setup import local_ready
 from anyscribecli.providers import PROVIDER_REGISTRY, list_providers
 from anyscribecli.providers.languages import PROVIDER_LANGUAGES
@@ -258,4 +264,15 @@ async def update_key(req: KeyUpdateRequest) -> dict:
         return {"success": False, "message": f"No API key for provider: {req.provider_name}"}
     save_env({env_var: req.api_key})
     os.environ[env_var] = req.api_key
+    return {"success": True}
+
+
+@router.delete("/keys/{provider_name}")
+async def delete_key(provider_name: str) -> dict:
+    """Remove a provider's saved API key from .env and the live environment."""
+    env_var = PROVIDER_KEY_MAP.get(provider_name)
+    if not env_var:
+        return {"success": False, "message": f"No API key for provider: {provider_name}"}
+    delete_env([env_var])
+    os.environ.pop(env_var, None)
     return {"success": True}

@@ -226,6 +226,7 @@ One masked field per provider. Each has:
 - Show/hide toggle
 - "Get API key →" link to the provider's dashboard
 - "Test" button that hits the provider test endpoint
+- "Remove key" action (two-step confirm) shown only when a key is set → DELETE /api/keys/{provider}
 - Green/red dot indicating if key is set
 
 | Provider | Env var | Key URL |
@@ -274,6 +275,7 @@ GET  /api/providers           → [{ name, description, active, has_key }]
 POST /api/providers/test      ← { name } → { success, message }
 
 PUT  /api/keys                ← { provider_name, api_key } → { success }
+DELETE /api/keys/{provider}   → { success }   (removes the key from .env + live env)
 GET  /api/keys/status         → { openai: true, elevenlabs: false, ... }
 
 POST /api/transcribe          ← { url, provider?, language?, diarize?, keep_media? }

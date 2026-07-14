@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from anyscribecli.config.settings import Settings
+from unittest.mock import patch
+
+from anyscribecli.config.settings import Settings, delete_env, save_env
 
 
 def test_from_dict_tolerates_unknown_keys():
@@ -22,3 +24,20 @@ def test_from_dict_tolerates_unknown_keys():
 
 def test_quality_defaults_to_balanced():
     assert Settings().quality == "balanced"
+
+
+def test_delete_env_removes_only_named_keys(tmp_path):
+    env_file = tmp_path / ".env"
+    with patch("anyscribecli.config.settings.ENV_FILE", env_file):
+        save_env({"OPENAI_API_KEY": "sk-a", "DEEPGRAM_API_KEY": "dg-b"})
+        delete_env(["OPENAI_API_KEY"])
+        remaining = env_file.read_text()
+    assert "OPENAI_API_KEY" not in remaining
+    assert "DEEPGRAM_API_KEY=dg-b" in remaining
+
+
+def test_delete_env_missing_file_is_noop(tmp_path):
+    env_file = tmp_path / ".env"  # never created
+    with patch("anyscribecli.config.settings.ENV_FILE", env_file):
+        delete_env(["OPENAI_API_KEY"])  # must not raise
+    assert not env_file.exists()

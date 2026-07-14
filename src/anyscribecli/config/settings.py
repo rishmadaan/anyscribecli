@@ -102,3 +102,28 @@ def save_env(keys: dict[str, str]) -> None:
 
     content = "".join(f"{k}={v}\n" for k, v in existing.items())
     atomic_write(ENV_FILE, content)
+
+
+def delete_env(names: list[str]) -> None:
+    """Remove secrets from .env, rewriting it without them (atomic write).
+
+    No-op if the file is absent or none of the names are present. The
+    counterpart to ``save_env`` — same line-parsing, minus the dropped keys.
+    """
+    from anyscribecli.core.fileutil import atomic_write
+
+    if not ENV_FILE.exists():
+        return
+
+    drop = set(names)
+    remaining: dict[str, str] = {}
+    with open(ENV_FILE) as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                k, v = line.split("=", 1)
+                if k.strip() not in drop:
+                    remaining[k.strip()] = v.strip()
+
+    content = "".join(f"{k}={v}\n" for k, v in remaining.items())
+    atomic_write(ENV_FILE, content)
