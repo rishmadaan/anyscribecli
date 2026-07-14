@@ -11,6 +11,7 @@ from anyscribecli.config.paths import get_workspace_dir
 from anyscribecli.config.settings import (
     delete_env,
     env_file_keys,
+    forget_env_var,
     load_config,
     load_env,
     save_config,
@@ -281,5 +282,7 @@ async def delete_key(provider_name: str) -> dict:
     if not env_var:
         return {"success": False, "message": f"No API key for provider: {provider_name}"}
     delete_env([env_var])
-    os.environ.pop(env_var, None)
+    # Drop it from the live process env, but keep any value inherited from the
+    # parent shell — deleting our saved copy must not disable a shell-set key.
+    forget_env_var(env_var)
     return {"success": True}

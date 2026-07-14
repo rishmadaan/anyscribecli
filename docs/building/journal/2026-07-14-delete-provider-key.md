@@ -74,6 +74,24 @@ single-line tokens we store. Read, write, delete, and load now share one
 parser, so they can't disagree. Regression tests cover export-tab deletion,
 comment/multiline preservation, and the `key_in_env_file` signal.
 
+**Pass 3 — one real fix, one false positive.**
+
+- *Real:* deleting a key that is **both** saved in `.env` and exported by the
+  parent shell used to `os.environ.pop()` it unconditionally, disabling the
+  provider for the rest of the session (the shell value returned only on
+  restart). Fix: capture a `_PRISTINE_ENV` snapshot of the process environment
+  at import (before any `.env` load), and a new `forget_env_var()` that restores
+  the inherited value on delete instead of dropping it — so removing our saved
+  copy never discards a credential the shell owns. The DELETE handler calls it.
+- *False positive:* Codex claimed the switch to `set_key`/`unset_key` regressed
+  atomicity (default-dir temp + `shutil.move`, non-atomic cross-filesystem).
+  Verified from source: the installed python-dotenv (1.2.2) rewrites via a
+  **same-directory** `NamedTemporaryFile` + **`os.replace`** — atomic in place,
+  matching the old `atomic_write`. No regression. The `>=1.0` floor already
+  predates the old `shutil.move` implementation; floor nudged to `>=1.1.0` as
+  cheap insurance and documented inline in `pyproject.toml`.
+
 All verified end-to-end against the live app in an isolated `.env` (including a
-file with a comment, a multiline value, an `export\t`-prefixed key, and an
-inherited-only key). Full suite 291 passed, 1 skipped; ruff + eslint clean.
+file with a comment, a multiline value, an `export\t`-prefixed key, an
+inherited-only key, and a key present in both shell and `.env`). Full suite 293
+passed, 1 skipped; ruff + eslint clean.

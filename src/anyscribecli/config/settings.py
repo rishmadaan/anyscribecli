@@ -2,12 +2,19 @@
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass, field, asdict, fields
 
 import yaml
 from dotenv import dotenv_values, load_dotenv, set_key, unset_key
 
 from anyscribecli.config.paths import CONFIG_FILE, ENV_FILE
+
+# Snapshot of the environment as the process was launched — captured before any
+# .env is loaded (load_env lives in this module, so nothing has loaded it yet).
+# Lets us tell a key inherited from the parent shell, which we don't own and
+# must not discard, from one we merely loaded out of .env.
+_PRISTINE_ENV: dict[str, str] = dict(os.environ)
 
 
 @dataclass
@@ -121,3 +128,18 @@ def delete_env(names: list[str]) -> None:
         return
     for name in names:
         unset_key(ENV_FILE, name)
+
+
+def forget_env_var(name: str) -> None:
+    """Reflect a .env deletion in the live process environment.
+
+    Restores the value the process inherited from its parent shell (if any), so
+    removing a saved key never discards a credential that also comes from the
+    environment; otherwise drops it entirely. Mirrors what a fresh start would
+    resolve now that the key is gone from .env.
+    """
+    inherited = _PRISTINE_ENV.get(name)
+    if inherited is None:
+        os.environ.pop(name, None)
+    else:
+        os.environ[name] = inherited

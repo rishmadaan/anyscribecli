@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import os
 from unittest.mock import patch
 
 from anyscribecli.config.settings import (
     Settings,
     delete_env,
     env_file_keys,
+    forget_env_var,
     save_env,
 )
 
@@ -104,3 +106,21 @@ def test_save_env_keeps_plain_format_and_preserves_others(tmp_path):
         text = env_file.read_text()
     assert "OPENAI_API_KEY=sk-a" in text  # unquoted, plain KEY=value
     assert "DEEPGRAM_API_KEY=dg-b" in text
+
+
+def test_forget_env_var_restores_value_inherited_from_shell():
+    # Codex re-review (2026-07-14): deleting a saved key that is ALSO exported by
+    # the parent shell must not disable the shell-provided credential.
+    with (
+        patch.dict("anyscribecli.config.settings._PRISTINE_ENV", {"XY_KEY": "from-shell"}),
+        patch.dict(os.environ, {"XY_KEY": "from-env"}),
+    ):
+        forget_env_var("XY_KEY")
+        assert os.environ["XY_KEY"] == "from-shell"  # inherited value retained
+
+
+def test_forget_env_var_drops_key_not_inherited():
+    with patch.dict("anyscribecli.config.settings._PRISTINE_ENV", {}, clear=True):
+        with patch.dict(os.environ, {"XY_KEY": "session-only"}):
+            forget_env_var("XY_KEY")
+            assert "XY_KEY" not in os.environ
