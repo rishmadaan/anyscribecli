@@ -57,7 +57,8 @@ The `0.x` prefix means pre-stable — breaking changes are allowed between minor
 | 0.12.0 | `scribe logs`; `batch --timeout`; byte-level model-download progress in Web UI; 41 provider unit tests + sargam speaker-0 fix | Released 2026-07-04 |
 | 0.13.0 | Menu-bar tray companion + launchd auto-start; GitHub Releases automation + 39-tag backfill; landing page unparked + Pages workflow; tray/youtube/vault tests | Released 2026-07-04 |
 | 0.13.1 | Real tray icon (nano-banana waveform, macOS template image); landing hero CTA above the fold + em-dash copy pass. **Regression:** custom pystray setup dropped `icon.visible = True`, so the tray icon never appeared | Released 2026-07-04 |
-| 0.13.2 | Fix invisible tray icon (setup callback now sets `icon.visible = True` before marking template). Ships the agent-first landing/README repositioning + Vercel deploy config | **Current** |
+| 0.13.2 | Fix invisible tray icon (setup callback now sets `icon.visible = True` before marking template). Ships the agent-first landing/README repositioning + Vercel deploy config | Released 2026-07-04 |
+| 0.13.3 | Web UI: remove a saved provider API key (Settings → Providers, two-step confirm, gated on `.env`-persisted keys). `.env` writes hardened over 6 Codex review passes — delegated to python-dotenv `set_key`/`unset_key`/`dotenv_values`, retain shell-inherited keys on delete, and create the secrets file `0600` (P1 fix) | **Current** |
 | 1.0.0 | Stable: broader test coverage and release hardening | Future |
 
 ### How to bump versions
