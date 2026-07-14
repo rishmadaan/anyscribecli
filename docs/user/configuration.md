@@ -48,6 +48,8 @@ instagram:                 # Instagram settings
 
 > **Note:** API keys are stored in `~/.anyscribecli/.env`, not in config.yaml. Secrets never go in config.
 
+> **Adding and removing keys:** Set a key with `scribe config set openai_api_key sk-…`, or in the Web UI under **Settings → Providers** (expand a provider to paste one). To **remove** a saved key, open that provider in the Web UI and click **Remove key → Remove?** — it's deleted from `.env`. You can also just delete the line from `~/.anyscribecli/.env` by hand. A key you set through your shell environment (e.g. `export OPENAI_API_KEY=…` in your shell profile) isn't stored in `.env`, so the Web UI can't remove it — unset it in your shell.
+
 ### Settings Explained
 
 #### provider

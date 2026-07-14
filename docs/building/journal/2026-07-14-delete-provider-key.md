@@ -83,13 +83,19 @@ comment/multiline preservation, and the `key_in_env_file` signal.
   at import (before any `.env` load), and a new `forget_env_var()` that restores
   the inherited value on delete instead of dropping it — so removing our saved
   copy never discards a credential the shell owns. The DELETE handler calls it.
-- *False positive:* Codex claimed the switch to `set_key`/`unset_key` regressed
+- *Atomicity:* Codex claimed the switch to `set_key`/`unset_key` regressed
   atomicity (default-dir temp + `shutil.move`, non-atomic cross-filesystem).
-  Verified from source: the installed python-dotenv (1.2.2) rewrites via a
+  Verified from source that the installed python-dotenv (1.2.2) rewrites via a
   **same-directory** `NamedTemporaryFile` + **`os.replace`** — atomic in place,
-  matching the old `atomic_write`. No regression. The `>=1.0` floor already
-  predates the old `shutil.move` implementation; floor nudged to `>=1.1.0` as
-  cheap insurance and documented inline in `pyproject.toml`.
+  matching the old `atomic_write`. Since I can't audit every release's internals
+  offline and this is secret-file integrity, the floor is pinned to the version
+  I did verify: **`python-dotenv>=1.2.2`** (documented inline in `pyproject.toml`).
+
+**Pass 4 — pin + user docs.** Pin tightened to `>=1.2.2` (above). Codex also
+correctly noted the CLAUDE.md rule that interactive features need *user* docs,
+not just the building spec: added key add/replace/**remove** coverage to
+`docs/user/commands.md` (`scribe ui` → Settings) and `docs/user/configuration.md`,
+including the caveat that shell-inherited keys can't be removed from the UI.
 
 All verified end-to-end against the live app in an isolated `.env` (including a
 file with a comment, a multiline value, an `export\t`-prefixed key, an
