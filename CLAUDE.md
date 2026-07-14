@@ -156,6 +156,12 @@ via the API at runtime.
 
 SemVer: `MAJOR.MINOR.PATCH`. See `BACKLOG.md` for the full version roadmap.
 
+**Reserve minor bumps for milestones; ship small features and UI additions as a
+patch.** Don't apply "any new feature → minor" mechanically — a single bounded
+addition (e.g. a Web UI control) takes the next patch. (Rish, 2026-07-14: chose
+`0.13.3` over a proposed `0.14.0` for the web-UI "Remove key" feature; consistent
+with the patch-heavy history in `BACKLOG.md`.)
+
 Version lives in TWO places that must match: `src/anyscribecli/__init__.py` and `pyproject.toml`.
 
 ```bash
