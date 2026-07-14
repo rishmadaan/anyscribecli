@@ -52,6 +52,7 @@ class TestConfig:
             assert "name" in p
             assert "description" in p
             assert "has_key" in p
+            assert "key_in_env_file" in p
 
     def test_get_keys_status(self, client):
         r = client.get("/api/keys/status")

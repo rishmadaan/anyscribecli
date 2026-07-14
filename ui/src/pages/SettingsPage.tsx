@@ -556,7 +556,7 @@ export default function SettingsPage() {
                         </a>
                       </p>
                     )}
-                    {p.has_key && (
+                    {p.key_in_env_file && (
                       <div className="mt-3 flex items-center justify-end gap-2">
                         {confirmRemoveKey && (
                           <button

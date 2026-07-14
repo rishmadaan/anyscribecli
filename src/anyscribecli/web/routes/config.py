@@ -10,6 +10,7 @@ from fastapi import APIRouter, Body
 from anyscribecli.config.paths import get_workspace_dir
 from anyscribecli.config.settings import (
     delete_env,
+    env_file_keys,
     load_config,
     load_env,
     save_config,
@@ -84,6 +85,7 @@ async def get_providers() -> list[dict]:
     load_env()
     result = []
     local_is_ready = local_ready()
+    persisted = env_file_keys()  # keys actually saved in .env (vs inherited env)
     for name in list_providers():
         env_var = PROVIDER_KEY_MAP.get(name)
         if name == "local":
@@ -92,15 +94,20 @@ async def get_providers() -> list[dict]:
             # of a Test button — driven by set_up=False.
             has_key = local_is_ready
             set_up = local_is_ready
+            key_in_env_file = False
         else:
             has_key = bool(os.environ.get(env_var)) if env_var else False
             set_up = True  # API providers have no separate setup step
+            # Only .env-persisted keys are removable; a key inherited from the
+            # parent shell can't be durably deleted, so the UI hides "Remove".
+            key_in_env_file = bool(env_var and env_var in persisted)
         result.append(
             {
                 "name": name,
                 "description": PROVIDER_INFO.get(name, ""),
                 "has_key": has_key,
                 "set_up": set_up,
+                "key_in_env_file": key_in_env_file,
                 "key_url": PROVIDER_SIGNUP_URLS.get(name),
             }
         )
