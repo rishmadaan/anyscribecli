@@ -97,7 +97,18 @@ not just the building spec: added key add/replace/**remove** coverage to
 `docs/user/commands.md` (`scribe ui` → Settings) and `docs/user/configuration.md`,
 including the caveat that shell-inherited keys can't be removed from the UI.
 
+**Pass 5 — a real P1 the earlier passes set up.** Switching from `atomic_write`
+(which created its temp via `mkstemp`, mode `0600`) to a plain
+`ENV_FILE.touch()` meant a **fresh `.env` was created world-readable (`0644`)**
+— `set_key` then preserves that mode, so a brand-new install would store API
+keys readable by every local user. Fix: `save_env` creates the file owner-only
+via `os.open(..., 0o600)` and `chmod(0o600)` on every write (idempotent, also
+tightens any pre-existing loose file). `unset_key` preserves the mode, so delete
+stays `0600`. Regression tests assert the mode on create and on a
+pre-existing loose file. This is exactly the kind of security regression a
+same-family reviewer that watched me make the change would be primed to miss.
+
 All verified end-to-end against the live app in an isolated `.env` (including a
 file with a comment, a multiline value, an `export\t`-prefixed key, an
-inherited-only key, and a key present in both shell and `.env`). Full suite 293
-passed, 1 skipped; ruff + eslint clean.
+inherited-only key, a key present in both shell and `.env`, and file-permission
+checks). Full suite 295 passed, 1 skipped; ruff + eslint clean.

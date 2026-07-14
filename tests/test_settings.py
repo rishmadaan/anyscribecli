@@ -108,6 +108,29 @@ def test_save_env_keeps_plain_format_and_preserves_others(tmp_path):
     assert "DEEPGRAM_API_KEY=dg-b" in text
 
 
+def test_save_env_creates_owner_only_secret_file(tmp_path):
+    # Codex review (P1, 2026-07-14): the .env holds API keys and must never be
+    # world-readable — regression guard against the 0644 `touch()` default.
+    import stat
+
+    env_file = tmp_path / ".env"
+    with patch("anyscribecli.config.settings.ENV_FILE", env_file):
+        save_env({"OPENAI_API_KEY": "sk-secret"})
+    mode = stat.S_IMODE(env_file.stat().st_mode)
+    assert mode == 0o600, f"expected 0600, got {mode:o}"
+
+
+def test_save_env_tightens_preexisting_world_readable_file(tmp_path):
+    import stat
+
+    env_file = tmp_path / ".env"
+    env_file.write_text("DEEPGRAM_API_KEY=dg\n")
+    env_file.chmod(0o644)  # simulate a loosely-created file
+    with patch("anyscribecli.config.settings.ENV_FILE", env_file):
+        save_env({"OPENAI_API_KEY": "sk-a"})
+    assert stat.S_IMODE(env_file.stat().st_mode) == 0o600
+
+
 def test_forget_env_var_restores_value_inherited_from_shell():
     # Codex re-review (2026-07-14): deleting a saved key that is ALSO exported by
     # the parent shell must not disable the shell-provided credential.

@@ -110,11 +110,18 @@ def save_env(keys: dict[str, str]) -> None:
     which updates or appends the target key while preserving every other line —
     comments, multiline values, and unrelated bindings — verbatim. ``quote_mode
     ="never"`` keeps our plain ``KEY=value`` format for single-line tokens.
+
+    The file is created and kept mode ``0600`` (owner-only) — it holds API keys
+    and must never be world-readable, matching the prior ``atomic_write`` path.
     """
     ENV_FILE.parent.mkdir(parents=True, exist_ok=True)
-    ENV_FILE.touch(exist_ok=True)
+    if not ENV_FILE.exists():
+        # Create owner-only up front; os.open applies the mode atomically, so
+        # there's no world-readable window before the first key lands.
+        os.close(os.open(ENV_FILE, os.O_CREAT | os.O_WRONLY, 0o600))
     for k, v in keys.items():
         set_key(ENV_FILE, k, v, quote_mode="never")
+    ENV_FILE.chmod(0o600)  # enforce owner-only even if the file predated this
 
 
 def delete_env(names: list[str]) -> None:
