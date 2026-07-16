@@ -505,7 +505,8 @@ class TestSargam:
         assert audio.exists()
         assert not list(audio.parent.glob("*_sarvam*.mp3"))  # chunk files cleaned up
 
-    def test_diarized_turns_parsed_with_offset(self):
+    def test_diarized_turns_parsed_chunk_local(self):
+        # Offsets/ids are applied by the shared chunk loop, not the parser.
         data = {
             "transcript": "hello there",
             "language_code": "hi-IN",
@@ -514,12 +515,12 @@ class TestSargam:
                 {"speaker": "SPEAKER_1", "text": "there", "start": 1.0, "end": 2.0},
             ],
         }
-        result = SargamProvider()._parse_response(data, offset=28.0, start_id=2)
+        result = SargamProvider()._parse_response(data)
         first, second = result.segments
-        assert (first.id, first.start, first.end) == (2, 28.0, 29.0)
+        assert (first.id, first.start, first.end) == (0, 0.0, 1.0)
         assert first.text == "hello"
         assert first.speaker == "SPEAKER_0"
-        assert (second.id, second.speaker) == (3, "SPEAKER_1")
+        assert (second.id, second.speaker) == (1, "SPEAKER_1")
 
     def test_speaker_zero_label_kept(self):
         # Integer speaker id 0 is falsy — a bare `or` chain used to drop the
