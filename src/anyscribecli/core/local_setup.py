@@ -28,7 +28,6 @@ from typing import Any, Callable, Literal
 from anyscribecli.config.settings import load_config, save_config
 from anyscribecli.core.deps import check_dependencies
 from anyscribecli.providers.local_models import (
-    MODEL_SIZES,  # noqa: F401  # re-exported: callers use local_setup.MODEL_SIZES
     any_model_cached,
     delete_all_models,
     faster_whisper_importable,
