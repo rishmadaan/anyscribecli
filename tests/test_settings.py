@@ -82,10 +82,7 @@ def test_delete_preserves_comments_multiline_and_handles_export_tab(tmp_path):
     # both visible to env_file_keys and deletable.
     env_file = tmp_path / ".env"
     env_file.write_text(
-        "# my secrets\n"
-        'OTHER="line1\nline2"\n'
-        "export\tDEEPGRAM_API_KEY=dg\n"
-        "OPENAI_API_KEY=sk-plain\n"
+        '# my secrets\nOTHER="line1\nline2"\nexport\tDEEPGRAM_API_KEY=dg\nOPENAI_API_KEY=sk-plain\n'
     )
     with patch("anyscribecli.config.settings.ENV_FILE", env_file):
         assert env_file_keys() == {"OTHER", "DEEPGRAM_API_KEY", "OPENAI_API_KEY"}

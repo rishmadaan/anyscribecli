@@ -43,9 +43,7 @@ def test_can_handle_instagram_urls(downloader: InstagramDownloader, url: str) ->
         "",
     ],
 )
-def test_rejects_non_instagram_post_urls(
-    downloader: InstagramDownloader, url: str
-) -> None:
+def test_rejects_non_instagram_post_urls(downloader: InstagramDownloader, url: str) -> None:
     assert downloader.can_handle(url) is False
 
 
@@ -60,9 +58,7 @@ def test_rejects_non_instagram_post_urls(
         ("https://www.instagram.com/someuser/reel/XYZ789/", "XYZ789"),
     ],
 )
-def test_extract_shortcode(
-    downloader: InstagramDownloader, url: str, expected: str
-) -> None:
+def test_extract_shortcode(downloader: InstagramDownloader, url: str, expected: str) -> None:
     assert downloader._extract_shortcode(url) == expected
 
 
@@ -128,6 +124,7 @@ def test_download_invokes_ytdlp_with_audio_flags(
         "description": "caption text",
     }
     import json as _json
+
     mock_run.side_effect = [
         MagicMock(returncode=0, stdout=_json.dumps(metadata), stderr=""),
         MagicMock(returncode=0, stdout="", stderr=""),
@@ -136,9 +133,7 @@ def test_download_invokes_ytdlp_with_audio_flags(
     audio_file = tmp_path / "ABC123.mp3"
     audio_file.write_bytes(b"fake mp3 bytes")
 
-    result = downloader.download(
-        "https://www.instagram.com/reel/ABC123/", tmp_path
-    )
+    result = downloader.download("https://www.instagram.com/reel/ABC123/", tmp_path)
 
     assert mock_run.call_count == 2
     meta_args = mock_run.call_args_list[0].args[0]

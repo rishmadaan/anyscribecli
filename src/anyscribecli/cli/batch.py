@@ -136,7 +136,14 @@ def batch(
             for url in urls:
                 progress.update(task, description=f"[bold]{_shorten_url(url)}")
                 succeeded, failed = _process_url(
-                    url, settings, results, succeeded, failed, quiet=True, force=force, timeout=timeout
+                    url,
+                    settings,
+                    results,
+                    succeeded,
+                    failed,
+                    quiet=True,
+                    force=force,
+                    timeout=timeout,
                 )
                 _save_batch_state(state_file, url, results[-1].get("success", False))
                 progress.advance(task)

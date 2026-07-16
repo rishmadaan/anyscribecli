@@ -53,12 +53,8 @@ def test_empty_state_json(tmp_path, monkeypatch):
 
 def test_default_shows_recent_entries_newest_first(tmp_path, monkeypatch):
     ws = _patch_workspace(monkeypatch, tmp_path)
-    _write_daily_log(
-        ws, "2026-07-01", [("09:00", "youtube", "[[a|Video A]]", "1:00")]
-    )
-    _write_daily_log(
-        ws, "2026-07-02", [("10:00", "instagram", "[[b|Video B]]", "2:00")]
-    )
+    _write_daily_log(ws, "2026-07-01", [("09:00", "youtube", "[[a|Video A]]", "1:00")])
+    _write_daily_log(ws, "2026-07-02", [("10:00", "instagram", "[[b|Video B]]", "2:00")])
 
     result = runner.invoke(app, ["logs"])
     assert result.exit_code == 0

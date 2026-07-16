@@ -22,7 +22,9 @@ class TestChunkCheckpoint:
 
         with patch("anyscribecli.core.checkpoint.CHECKPOINT_DIR", tmp_path / "ckpts"):
             ckpt = ChunkCheckpoint.load_or_create(audio, "openai", "en", 3)
-            ckpt.mark_completed(0, {"text": "hello", "language": "en", "duration": 10.0, "segments": []})
+            ckpt.mark_completed(
+                0, {"text": "hello", "language": "en", "duration": 10.0, "segments": []}
+            )
             ckpt.save()
 
             ckpt2 = ChunkCheckpoint.load_or_create(audio, "openai", "en", 3)
@@ -36,7 +38,9 @@ class TestChunkCheckpoint:
 
         with patch("anyscribecli.core.checkpoint.CHECKPOINT_DIR", tmp_path / "ckpts"):
             ckpt = ChunkCheckpoint.load_or_create(audio, "openai", "en", 2)
-            ckpt.mark_completed(0, {"text": "hi", "language": "en", "duration": 5.0, "segments": []})
+            ckpt.mark_completed(
+                0, {"text": "hi", "language": "en", "duration": 5.0, "segments": []}
+            )
             ckpt.save()
 
             # Checkpoint file should exist
@@ -58,6 +62,7 @@ class TestChunkCheckpoint:
 
             # Corrupt the file
             from anyscribecli.core.checkpoint import _file_hash, _checkpoint_path
+
             h = _file_hash(audio)
             path = _checkpoint_path(h, "openai")
             path.write_text("not json")

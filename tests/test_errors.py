@@ -65,11 +65,13 @@ class TestWithRetry:
 
     @patch("anyscribecli.core.errors.time.sleep")
     def test_retries_on_server_error(self, mock_sleep):
-        fn = MagicMock(side_effect=[
-            ServerError("fail", status_code=500, provider="openai"),
-            ServerError("fail again", status_code=500, provider="openai"),
-            "ok",
-        ])
+        fn = MagicMock(
+            side_effect=[
+                ServerError("fail", status_code=500, provider="openai"),
+                ServerError("fail again", status_code=500, provider="openai"),
+                "ok",
+            ]
+        )
         decorated = with_retry(max_retries=3, base_delay=0.01)(fn)
         assert decorated() == "ok"
         assert fn.call_count == 3
@@ -77,9 +79,9 @@ class TestWithRetry:
 
     @patch("anyscribecli.core.errors.time.sleep")
     def test_no_retry_on_auth_error(self, mock_sleep):
-        fn = MagicMock(side_effect=AuthenticationError(
-            "bad key", status_code=401, provider="openai"
-        ))
+        fn = MagicMock(
+            side_effect=AuthenticationError("bad key", status_code=401, provider="openai")
+        )
         decorated = with_retry(max_retries=3)(fn)
         with pytest.raises(AuthenticationError):
             decorated()
@@ -88,9 +90,7 @@ class TestWithRetry:
 
     @patch("anyscribecli.core.errors.time.sleep")
     def test_exhausts_retries(self, mock_sleep):
-        fn = MagicMock(side_effect=RateLimitError(
-            "limited", status_code=429, provider="openai"
-        ))
+        fn = MagicMock(side_effect=RateLimitError("limited", status_code=429, provider="openai"))
         decorated = with_retry(max_retries=2, base_delay=0.01)(fn)
         with pytest.raises(RateLimitError):
             decorated()

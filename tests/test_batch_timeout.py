@@ -73,9 +73,7 @@ def test_timeout_marks_slow_url_failed_and_continues(tmp_path, monkeypatch):
     monkeypatch.setattr(orchestrator, "process", fake_process)
 
     urls_file = _write_urls(tmp_path)
-    result = runner.invoke(
-        app, ["batch", str(urls_file), "--json", "--quiet", "--timeout", "0.1"]
-    )
+    result = runner.invoke(app, ["batch", str(urls_file), "--json", "--quiet", "--timeout", "0.1"])
 
     assert result.exit_code == 1  # one failure
     data = json.loads(result.output)["data"]

@@ -233,12 +233,8 @@ def test_model_reinstall_unknown_size_exits_2():
 
 
 def test_model_reinstall_without_faster_whisper_exits_2():
-    with patch(
-        "anyscribecli.cli.models_cmd.faster_whisper_importable", return_value=False
-    ):
-        result = runner.invoke(
-            models_app, ["reinstall", "base", "--yes", "--json"]
-        )
+    with patch("anyscribecli.cli.models_cmd.faster_whisper_importable", return_value=False):
+        result = runner.invoke(models_app, ["reinstall", "base", "--yes", "--json"])
     assert result.exit_code == 2
     err = json.loads(result.stderr.strip().splitlines()[-1])
     assert err["error"] == "local transcription not set up"
@@ -246,9 +242,7 @@ def test_model_reinstall_without_faster_whisper_exits_2():
 
 def test_model_reinstall_without_yes_in_non_tty_exits_2():
     # CliRunner reports non-TTY; destructive ops must require --yes there.
-    with patch(
-        "anyscribecli.cli.models_cmd.faster_whisper_importable", return_value=True
-    ):
+    with patch("anyscribecli.cli.models_cmd.faster_whisper_importable", return_value=True):
         result = runner.invoke(models_app, ["reinstall", "base", "--json"])
     assert result.exit_code == 2
 
@@ -260,19 +254,11 @@ def test_model_reinstall_not_cached_returns_downloaded_only():
         "repo": "r",
         "bytes": 300,
     }
-    with patch(
-        "anyscribecli.cli.models_cmd.faster_whisper_importable", return_value=True
-    ):
+    with patch("anyscribecli.cli.models_cmd.faster_whisper_importable", return_value=True):
         with patch("anyscribecli.cli.models_cmd.is_cached", return_value=False):
-            with patch(
-                "anyscribecli.cli.models_cmd.pull_model", return_value=pull_result
-            ) as pull:
-                with patch(
-                    "anyscribecli.cli.models_cmd.delete_model"
-                ) as delete:
-                    result = runner.invoke(
-                        models_app, ["reinstall", "base", "--yes", "--json"]
-                    )
+            with patch("anyscribecli.cli.models_cmd.pull_model", return_value=pull_result) as pull:
+                with patch("anyscribecli.cli.models_cmd.delete_model") as delete:
+                    result = runner.invoke(models_app, ["reinstall", "base", "--yes", "--json"])
     assert result.exit_code == 0
     payload = json.loads(result.stdout)
     assert payload["status"] == "downloaded_only"
@@ -290,9 +276,7 @@ def test_model_reinstall_cached_deletes_then_pulls():
         "repo": "r",
         "bytes": 300,
     }
-    with patch(
-        "anyscribecli.cli.models_cmd.faster_whisper_importable", return_value=True
-    ):
+    with patch("anyscribecli.cli.models_cmd.faster_whisper_importable", return_value=True):
         with patch("anyscribecli.cli.models_cmd.is_cached", return_value=True):
             with patch(
                 "anyscribecli.cli.models_cmd.delete_model", return_value=delete_result
@@ -300,9 +284,7 @@ def test_model_reinstall_cached_deletes_then_pulls():
                 with patch(
                     "anyscribecli.cli.models_cmd.pull_model", return_value=pull_result
                 ) as pull:
-                    result = runner.invoke(
-                        models_app, ["reinstall", "base", "--yes", "--json"]
-                    )
+                    result = runner.invoke(models_app, ["reinstall", "base", "--yes", "--json"])
     assert result.exit_code == 0
     payload = json.loads(result.stdout)
     assert payload["status"] == "reinstalled"
@@ -317,20 +299,14 @@ def test_model_reinstall_pull_failure_reports_bytes_freed():
     payload carries the bytes we already freed so the caller can tell how
     much damage was done."""
     delete_result = {"status": "removed", "size": "base", "bytes_freed": 150}
-    with patch(
-        "anyscribecli.cli.models_cmd.faster_whisper_importable", return_value=True
-    ):
+    with patch("anyscribecli.cli.models_cmd.faster_whisper_importable", return_value=True):
         with patch("anyscribecli.cli.models_cmd.is_cached", return_value=True):
-            with patch(
-                "anyscribecli.cli.models_cmd.delete_model", return_value=delete_result
-            ):
+            with patch("anyscribecli.cli.models_cmd.delete_model", return_value=delete_result):
                 with patch(
                     "anyscribecli.cli.models_cmd.pull_model",
                     side_effect=RuntimeError("network down"),
                 ):
-                    result = runner.invoke(
-                        models_app, ["reinstall", "base", "--yes", "--json"]
-                    )
+                    result = runner.invoke(models_app, ["reinstall", "base", "--yes", "--json"])
     assert result.exit_code == 1
     err = json.loads(result.stderr.strip().splitlines()[-1])
     assert "network down" in err["error"]

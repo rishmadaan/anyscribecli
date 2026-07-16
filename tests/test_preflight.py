@@ -14,7 +14,10 @@ class TestPreflightCheck:
         with pytest.raises(RuntimeError, match="ffmpeg not found"):
             preflight_check(Settings(), "https://youtube.com/watch?v=x")
 
-    @patch("anyscribecli.core.preflight.shutil.which", side_effect=lambda x: "/usr/bin/ffmpeg" if x == "ffmpeg" else None)
+    @patch(
+        "anyscribecli.core.preflight.shutil.which",
+        side_effect=lambda x: "/usr/bin/ffmpeg" if x == "ffmpeg" else None,
+    )
     def test_missing_ffprobe(self, mock_which):
         with pytest.raises(RuntimeError, match="ffprobe not found"):
             preflight_check(Settings(), "https://youtube.com/watch?v=x")

@@ -48,7 +48,9 @@ def logs(
                     {
                         "name": str(item.relative_to(RECOVERY_DIR)),
                         "size": stat.st_size,
-                        "mtime": datetime.fromtimestamp(stat.st_mtime).isoformat(timespec="seconds"),
+                        "mtime": datetime.fromtimestamp(stat.st_mtime).isoformat(
+                            timespec="seconds"
+                        ),
                     }
                 )
 
