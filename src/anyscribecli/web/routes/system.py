@@ -1,10 +1,8 @@
-"""System endpoints — shutdown, version."""
+"""System endpoints — shutdown."""
 
 from __future__ import annotations
 
 from fastapi import APIRouter, Request
-
-from anyscribecli import __version__
 
 router = APIRouter(prefix="/api", tags=["system"])
 
@@ -16,8 +14,3 @@ async def shutdown(request: Request) -> dict:
     if server:
         server.should_exit = True
     return {"ok": True, "message": "shutting down"}
-
-
-@router.get("/version")
-async def version() -> dict:
-    return {"version": __version__}

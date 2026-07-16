@@ -40,7 +40,6 @@ dependencies = [
     "beaupy>=3.0",
     "fastapi>=0.110",
     "uvicorn[standard]>=0.27",
-    "websockets>=12.0",
     "python-multipart>=0.0.6",
 ]
 

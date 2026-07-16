@@ -104,11 +104,9 @@ def model_list(
 @models_app.command("pull")
 def model_pull(
     size: str = typer.Argument(..., help="Model size to download."),
-    yes: bool = typer.Option(False, "--yes", "-y", help="Reserved; pull is safe, never prompts."),
     output_json: bool = typer.Option(False, "--json", "-j", help="Output as JSON."),
 ) -> None:
     """[bold]Download[/bold] a Whisper model to the local cache. Idempotent."""
-    _ = yes  # accepted for API symmetry with rm
     if size not in MODEL_SIZES:
         err = {"error": f"unknown size '{size}'", "choices": list(MODEL_SIZES)}
         if output_json:

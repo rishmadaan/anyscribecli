@@ -13,6 +13,7 @@ from unittest.mock import patch
 import pytest
 
 from anyscribecli.core import local_setup
+from anyscribecli.providers.local_models import MODEL_SIZES
 
 
 def test_detect_install_method_venv(monkeypatch):
@@ -82,7 +83,7 @@ def test_check_status_reports_missing_faster_whisper(tmp_path, monkeypatch):
         status = local_setup.check_status()
     assert status["set_up"] is False
     assert status["faster_whisper_installed"] is False
-    assert len(status["models"]) == len(local_setup.MODEL_SIZES)
+    assert len(status["models"]) == len(MODEL_SIZES)
     assert all(not m["cached"] for m in status["models"])
 
 

@@ -34,19 +34,9 @@ from anyscribecli.config.settings import (
     save_config,
     save_env,
 )
+from anyscribecli.providers import PROVIDER_KEY_ENV
 
-# Maps provider → env var for its API key. Kept in sync with config_cmd.py and
-# web/routes/config.py; extracting once more would be premature abstraction.
-PROVIDER_KEY_ENV = {
-    "openai": "OPENAI_API_KEY",
-    "deepgram": "DEEPGRAM_API_KEY",
-    "elevenlabs": "ELEVENLABS_API_KEY",
-    "sargam": "SARGAM_API_KEY",
-    "openrouter": "OPENROUTER_API_KEY",
-    "groq": "GROQ_API_KEY",
-}
-
-API_PROVIDERS = set(PROVIDER_KEY_ENV.keys())
+API_PROVIDERS = {name for name, env in PROVIDER_KEY_ENV.items() if env}
 ALL_PROVIDERS = API_PROVIDERS | {"local"}
 
 ProgressFn = Callable[[dict[str, Any]], None]

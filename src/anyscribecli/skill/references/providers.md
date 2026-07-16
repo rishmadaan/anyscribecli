@@ -150,7 +150,7 @@ Idempotent — re-running with an already-set-up model just updates the default.
 | Task | Command |
 |------|---------|
 | See what's cached | `scribe model list --json` |
-| Add another size | `scribe model pull <size> --yes --json` |
+| Add another size | `scribe model pull <size> --json` |
 | Delete a cached size | `scribe model rm <size> --yes --json` |
 | Inspect a size | `scribe model info <size> --json` |
 | Switch default model | `scribe config set local_model <size>` (must already be cached) |

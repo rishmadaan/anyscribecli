@@ -9,18 +9,10 @@ from pathlib import Path
 
 from anyscribecli.config.paths import TMP_DIR
 from anyscribecli.config.settings import Settings
+from anyscribecli.providers import PROVIDER_KEY_ENV
 
 # Minimum free space required (500 MB)
 MIN_FREE_BYTES = 500 * 1024 * 1024
-
-# Provider -> env var mapping
-_PROVIDER_ENV_VARS: dict[str, str] = {
-    "openai": "OPENAI_API_KEY",
-    "deepgram": "DEEPGRAM_API_KEY",
-    "elevenlabs": "ELEVENLABS_API_KEY",
-    "sargam": "SARGAM_API_KEY",
-    "openrouter": "OPENROUTER_API_KEY",
-}
 
 SUPPORTED_AUDIO_EXTS = {
     ".mp3",
@@ -57,7 +49,7 @@ def preflight_check(settings: Settings, url: str) -> None:
         )
 
     # 2. Check API key for configured provider
-    env_var = _PROVIDER_ENV_VARS.get(settings.provider)
+    env_var = PROVIDER_KEY_ENV.get(settings.provider)
     if env_var and not os.environ.get(env_var):
         raise RuntimeError(
             f"{env_var} not set for provider '{settings.provider}'.\n"

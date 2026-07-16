@@ -27,6 +27,15 @@ class TestPreflightCheck:
             preflight_check(settings, "https://youtube.com/watch?v=x")
 
     @patch("anyscribecli.core.preflight.shutil.which", return_value="/usr/bin/ffmpeg")
+    @patch.dict("os.environ", {}, clear=True)
+    def test_missing_groq_api_key(self, mock_which):
+        # Regression: groq had drifted out of preflight's provider->env map,
+        # so a missing GROQ_API_KEY passed preflight and failed mid-run.
+        settings = Settings(provider="groq")
+        with pytest.raises(RuntimeError, match="GROQ_API_KEY not set"):
+            preflight_check(settings, "https://youtube.com/watch?v=x")
+
+    @patch("anyscribecli.core.preflight.shutil.which", return_value="/usr/bin/ffmpeg")
     @patch.dict("os.environ", {"OPENAI_API_KEY": "sk-test"})
     def test_unsupported_local_format(self, mock_which, tmp_path):
         bad_file = tmp_path / "file.xyz"

@@ -18,6 +18,20 @@ PROVIDER_REGISTRY: dict[str, tuple[str, str]] = {
     "local": ("anyscribecli.providers.local", "LocalProvider"),
 }
 
+# Canonical provider -> env var holding its API key (None = no key needed).
+# Single source of truth — every other map (web, cli, mcp, preflight,
+# onboarding, quality) imports or derives from this. Was hand-copied in
+# 7 places and drifted twice (groq went missing from preflight + mcp).
+PROVIDER_KEY_ENV: dict[str, str | None] = {
+    "openai": "OPENAI_API_KEY",
+    "deepgram": "DEEPGRAM_API_KEY",
+    "elevenlabs": "ELEVENLABS_API_KEY",
+    "sargam": "SARGAM_API_KEY",
+    "openrouter": "OPENROUTER_API_KEY",
+    "groq": "GROQ_API_KEY",
+    "local": None,
+}
+
 
 def get_provider(name: str) -> TranscriptionProvider:
     """Get an instantiated provider by name."""

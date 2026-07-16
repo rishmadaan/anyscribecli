@@ -19,11 +19,6 @@ from anyscribecli.providers.base import (
 from anyscribecli.providers.local_models import MODEL_SIZES, RECOMMENDED_MODEL
 
 
-# Exported for back-compat; new code should import from local_models.
-LOCAL_MODELS = MODEL_SIZES
-DEFAULT_MODEL = RECOMMENDED_MODEL
-
-
 def _resolve_model_size() -> str:
     """Pick the model size for this transcription.
 
@@ -70,8 +65,8 @@ class LocalProvider(TranscriptionProvider):
             )
 
         model_size = _resolve_model_size()
-        if model_size not in LOCAL_MODELS:
-            raise ValueError(f"Unknown model '{model_size}'. Available: {', '.join(LOCAL_MODELS)}")
+        if model_size not in MODEL_SIZES:
+            raise ValueError(f"Unknown model '{model_size}'. Available: {', '.join(MODEL_SIZES)}")
 
         # Auto-detect compute type
         device = "cpu"
