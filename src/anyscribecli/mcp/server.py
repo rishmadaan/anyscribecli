@@ -383,7 +383,7 @@ def get_config() -> str:
 def set_config(key: str, value: str) -> str:
     """Change a scribe configuration setting.
 
-    Use dot-notation for nested keys (e.g., "instagram.username").
+    Use dot-notation for nested keys (e.g., "instagram.browser").
 
     Args:
         key: Setting key (provider, language, keep_media, workspace_path, etc.).

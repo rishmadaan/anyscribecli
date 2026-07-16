@@ -421,7 +421,7 @@ Cache management for Whisper models. All subcommands accept `--json`.
 
 ```bash
 scribe model list --json                      # Show every size + cache state
-scribe model pull <size> --yes --json         # Download (idempotent)
+scribe model pull <size> --json               # Download (idempotent)
 scribe model rm <size> --yes --json           # Delete cached weights
 scribe model reinstall <size> --yes --json    # Delete + re-download (corrupted weights)
 scribe model info <size> --json               # Inspect a single size

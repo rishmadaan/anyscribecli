@@ -28,7 +28,7 @@ from typing import Any, Callable, Literal
 from anyscribecli.config.settings import load_config, save_config
 from anyscribecli.core.deps import check_dependencies
 from anyscribecli.providers.local_models import (
-    MODEL_SIZES,
+    MODEL_SIZES,  # noqa: F401  # re-exported: callers use local_setup.MODEL_SIZES
     any_model_cached,
     delete_all_models,
     faster_whisper_importable,
@@ -337,11 +337,6 @@ def run_teardown(on_progress: ProgressFn | None = None) -> dict[str, Any]:
         "uninstall": uninstall,
         "provider_reset": provider_changed,
     }
-
-
-def valid_model_sizes() -> list[str]:
-    """Shorthand for callers that want the list without touching local_models."""
-    return list(MODEL_SIZES)
 
 
 def local_ready() -> bool:

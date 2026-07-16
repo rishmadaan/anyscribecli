@@ -57,13 +57,13 @@ def config_show(
 @config_app.command("set")
 def config_set(
     key: str = typer.Argument(
-        ..., help="Setting key (e.g., 'provider', 'language', 'instagram.username')."
+        ..., help="Setting key (e.g., 'provider', 'language', 'instagram.browser')."
     ),
     value: str = typer.Argument(..., help="New value."),
 ) -> None:
     """[bold]Change[/bold] a configuration setting.
 
-    Use dot-notation for nested keys: `scribe config set instagram.username myuser`
+    Use dot-notation for nested keys: `scribe config set instagram.browser firefox`
     """
     # Handle API keys — store in .env, not config.yaml
     key_lower = key.lower().replace("-", "_")
@@ -76,7 +76,7 @@ def config_set(
     settings = load_config()
     data = settings.to_dict()
 
-    # Handle dot-notation (e.g., instagram.username)
+    # Handle dot-notation (e.g., instagram.browser)
     keys = key.split(".")
     target = data
     for k in keys[:-1]:

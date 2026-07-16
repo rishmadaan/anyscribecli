@@ -362,11 +362,3 @@ PROVIDER_LANGUAGES: dict[str, list[dict[str, str]] | None] = {
     "sargam": SARVAM_LANGUAGES,
     "openrouter": None,
 }
-
-
-def get_languages(provider_name: str) -> list[dict[str, str]] | None:
-    """Return the supported-language list for a provider, or None if freeform.
-
-    Raises KeyError if the provider name is unknown.
-    """
-    return PROVIDER_LANGUAGES[provider_name]

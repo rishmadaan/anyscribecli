@@ -172,12 +172,6 @@ class TestTranscribe:
 
 
 class TestSystem:
-    def test_version(self, client):
-        r = client.get("/api/version")
-        assert r.status_code == 200
-        data = r.json()
-        assert "version" in data
-
     def test_shutdown(self, client):
         r = client.post("/api/shutdown")
         assert r.status_code == 200

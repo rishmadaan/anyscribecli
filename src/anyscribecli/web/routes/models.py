@@ -48,14 +48,6 @@ def _download_state(app) -> dict[str, Any]:
     return state
 
 
-def _queue_position(state: dict, size: str) -> int:
-    """Return size's position in the queue, or -1 if not queued."""
-    try:
-        return state["queue"].index(size)
-    except ValueError:
-        return -1
-
-
 def _worker_loop(app) -> None:
     """Single consumer: pop from queue head, pull the model, repeat until empty."""
     state = _download_state(app)
