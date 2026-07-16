@@ -17,7 +17,7 @@ from anyscribecli.providers.base import (
     TranscriptResult,
     TranscriptSegment,
 )
-from anyscribecli.core.audio import chunk_audio, deduplicate_overlap, needs_chunking
+from anyscribecli.core.audio import chunk_audio, needs_chunking
 
 
 class ElevenLabsProvider(TranscriptionProvider):
@@ -66,71 +66,11 @@ class ElevenLabsProvider(TranscriptionProvider):
         if not needs_chunking(audio_path):
             return self._parse_response(self._transcribe_single(audio_path, language, api_key))
 
-        # Chunk large files
-        from anyscribecli.core.checkpoint import ChunkCheckpoint
-
-        chunks = chunk_audio(audio_path)
-        ckpt = ChunkCheckpoint.load_or_create(audio_path, self.name, language, len(chunks))
-        all_text_parts: list[str] = []
-        all_segments: list[TranscriptSegment] = []
-        detected_language = ""
-        total_duration = 0.0
-        segment_id = 0
-
-        for i, (chunk_path, offset) in enumerate(chunks):
-            if ckpt.is_completed(i):
-                saved = ckpt.get(i)
-                all_text_parts.append(saved["text"])
-                if not detected_language:
-                    detected_language = saved.get("language", "")
-                for seg_data in saved.get("segments", []):
-                    all_segments.append(TranscriptSegment(**seg_data))
-                    segment_id = max(segment_id, seg_data.get("id", 0) + 1)
-                if saved.get("duration"):
-                    total_duration = max(total_duration, offset + saved["duration"])
-                chunk_path.unlink(missing_ok=True)
-                continue
-            try:
-                resp = self._transcribe_single(chunk_path, language, api_key)
-                result = self._parse_response(resp)
-                text = (
-                    deduplicate_overlap(all_text_parts[-1], result.text)
-                    if all_text_parts
-                    else result.text
-                )
-                all_text_parts.append(text)
-                if not detected_language:
-                    detected_language = result.language
-                for seg in result.segments:
-                    seg.id = segment_id
-                    seg.start += offset
-                    seg.end += offset
-                    segment_id += 1
-                    all_segments.append(seg)
-                if result.duration:
-                    total_duration = max(total_duration, offset + result.duration)
-
-                ckpt.mark_completed(
-                    i,
-                    {
-                        "text": result.text,
-                        "language": result.language,
-                        "duration": result.duration,
-                        "segments": result.segments,
-                    },
-                )
-                ckpt.save()
-            finally:
-                chunk_path.unlink(missing_ok=True)
-
-        ckpt.cleanup()
-        full_text = " ".join(all_text_parts)
-        return TranscriptResult(
-            text=full_text,
-            language=detected_language,
-            duration=total_duration or None,
-            segments=all_segments,
-            word_count=len(full_text.split()),
+        return self._transcribe_chunked(
+            audio_path,
+            chunk_audio(audio_path),
+            language,
+            lambda p: self._parse_response(self._transcribe_single(p, language, api_key)),
         )
 
     def _parse_response(self, data: dict) -> TranscriptResult:

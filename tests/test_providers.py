@@ -203,6 +203,62 @@ class TestOpenAI:
         assert result.duration == 1180.0  # offset + chunk duration
         assert not c1.exists() and not c2.exists()  # chunk files cleaned up
 
+    def test_chunked_resume_skips_completed_chunks(self, audio, tmp_path, monkeypatch):
+        """A checkpoint written by a previous (v0.13.3) run replays without re-posting."""
+        from anyscribecli.core.checkpoint import ChunkCheckpoint
+
+        # Two fake chunks at offsets 0 and 1080s (mirror the existing chunk test's setup)
+        chunk1 = tmp_path / "c1.mp3"
+        chunk2 = tmp_path / "c2.mp3"
+        chunk1.write_bytes(b"x")
+        chunk2.write_bytes(b"y")
+        monkeypatch.setattr("anyscribecli.providers.openai.needs_chunking", lambda p: True)
+        monkeypatch.setattr(
+            "anyscribecli.providers.openai.chunk_audio",
+            lambda p: [(chunk1, 0.0), (chunk2, 1080.0)],
+        )
+
+        # Pre-seed chunk 0 as completed, exactly as the old loop saved it:
+        # globally-offset segments, chunk-local text/duration.
+        ckpt = ChunkCheckpoint.load_or_create(audio, "openai", "auto", 2)
+        ckpt.mark_completed(
+            0,
+            {
+                "text": "part one",
+                "language": "en",
+                "duration": 1080.0,
+                "segments": [
+                    {"id": 0, "start": 0.0, "end": 5.0, "text": "part one", "speaker": None}
+                ],
+            },
+        )
+        ckpt.save()
+
+        resp = {
+            "text": "part two",
+            "language": "en",
+            "duration": 30.0,
+            "segments": [{"start": 0.0, "end": 5.0, "text": "part two"}],
+        }
+        calls = stub_post(monkeypatch, FakeResponse(json_data=resp))
+        result = OpenAIProvider().transcribe(audio)
+
+        assert len(calls) == 1  # chunk 0 replayed from checkpoint, not re-posted
+        assert result.text == "part one part two"
+        assert [s.id for s in result.segments] == [0, 1]
+        assert result.segments[1].start == 1080.0  # offset applied to live chunk
+
+    def test_large_short_file_is_not_deleted(self, audio, monkeypatch):
+        """>25MB but ≤18min: chunk_audio hands back the original file as the
+        sole chunk — the old loop's unconditional unlink deleted it."""
+        monkeypatch.setattr("anyscribecli.providers.openai.needs_chunking", lambda p: True)
+        monkeypatch.setattr("anyscribecli.providers.openai.chunk_audio", lambda p: [(p, 0.0)])
+        resp = {"text": "hello", "language": "en", "duration": 30.0, "segments": []}
+        stub_post(monkeypatch, FakeResponse(json_data=resp))
+        result = OpenAIProvider().transcribe(audio)
+        assert result.text == "hello"
+        assert audio.exists()  # original source file must survive
+
 
 # ── deepgram ────────────────────────────────────────────
 
@@ -258,12 +314,19 @@ class TestDeepgram:
             {"word": "there", "punctuated_word": "there.", "start": 0.4, "end": 0.8, "speaker": 0},
             {"word": "hello", "punctuated_word": "Hello.", "start": 1.0, "end": 1.5, "speaker": 1},
         ]
-        calls = stub_post(monkeypatch, FakeResponse(json_data=dg_response(words, "Hi there. Hello.")))
+        calls = stub_post(
+            monkeypatch, FakeResponse(json_data=dg_response(words, "Hi there. Hello."))
+        )
         result = DeepgramProvider().transcribe(audio, diarize=True)
         assert calls[0]["params"]["diarize"] == "true"
         assert len(result.segments) == 2
         first, second = result.segments
-        assert (first.speaker, first.text, first.start, first.end) == ("Speaker 0", "Hi there.", 0.0, 0.8)
+        assert (first.speaker, first.text, first.start, first.end) == (
+            "Speaker 0",
+            "Hi there.",
+            0.0,
+            0.8,
+        )
         assert (second.speaker, second.text) == ("Speaker 1", "Hello.")
 
     def test_empty_channels_returns_empty_result(self, audio, monkeypatch):
@@ -470,6 +533,8 @@ class TestSargam:
         assert result.segments[0].speaker == "0"
 
     def test_diarize_flag_sent(self, audio, monkeypatch):
-        calls = stub_post(monkeypatch, FakeResponse(json_data={"transcript": "x", "language_code": "hi-IN"}))
+        calls = stub_post(
+            monkeypatch, FakeResponse(json_data={"transcript": "x", "language_code": "hi-IN"})
+        )
         SargamProvider().transcribe(audio, diarize=True)
         assert calls[0]["data"]["with_diarization"] == "true"
