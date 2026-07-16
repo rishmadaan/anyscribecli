@@ -85,6 +85,13 @@ class TestRegistry:
         with pytest.raises(ValueError, match="Unknown provider"):
             get_provider("nope")
 
+    def test_key_env_map_covers_registry_exactly(self):
+        from anyscribecli.providers import PROVIDER_KEY_ENV
+
+        assert set(PROVIDER_KEY_ENV) == set(PROVIDER_REGISTRY)
+        assert PROVIDER_KEY_ENV["local"] is None
+        assert all(v for k, v in PROVIDER_KEY_ENV.items() if k != "local")
+
 
 # ── error classification (shared raise-path in every provider) ──
 

@@ -11,6 +11,7 @@ from __future__ import annotations
 import os
 
 from anyscribecli.config.settings import Settings
+from anyscribecli.providers import PROVIDER_KEY_ENV
 
 # tier -> provider. The provider's own default model is correct for the tier:
 #   accuracy → elevenlabs scribe_v2 (top WER, best for primarily-English)
@@ -24,22 +25,10 @@ QUALITY_TIERS: dict[str, str] = {
     "free": "local",
 }
 
-# provider -> required API-key env var (None = no key needed).
-# ponytail: small local map; cli/config_cmd.py:_API_KEY_MAP holds the reverse for `config set`.
-_PROVIDER_KEY_ENV: dict[str, str | None] = {
-    "elevenlabs": "ELEVENLABS_API_KEY",
-    "deepgram": "DEEPGRAM_API_KEY",
-    "groq": "GROQ_API_KEY",
-    "openai": "OPENAI_API_KEY",
-    "openrouter": "OPENROUTER_API_KEY",
-    "sargam": "SARGAM_API_KEY",
-    "local": None,
-}
-
 
 def _has_key(provider: str) -> bool:
     """True if the provider needs no key, or its key is set in the environment."""
-    env = _PROVIDER_KEY_ENV.get(provider)
+    env = PROVIDER_KEY_ENV.get(provider)
     return env is None or bool(os.environ.get(env))
 
 

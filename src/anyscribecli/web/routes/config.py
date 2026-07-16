@@ -18,7 +18,7 @@ from anyscribecli.config.settings import (
     save_env,
 )
 from anyscribecli.core.local_setup import local_ready
-from anyscribecli.providers import PROVIDER_REGISTRY, list_providers
+from anyscribecli.providers import PROVIDER_KEY_ENV, PROVIDER_REGISTRY, list_providers
 from anyscribecli.providers.languages import PROVIDER_LANGUAGES
 from anyscribecli.providers.local_models import (
     faster_whisper_importable,
@@ -40,15 +40,8 @@ PROVIDER_INFO: dict[str, str] = {
     "local": "Offline, free, runs on your machine (requires faster-whisper)",
 }
 
-# Maps provider name -> env var for its API key
-PROVIDER_KEY_MAP: dict[str, str] = {
-    "openai": "OPENAI_API_KEY",
-    "deepgram": "DEEPGRAM_API_KEY",
-    "elevenlabs": "ELEVENLABS_API_KEY",
-    "sargam": "SARGAM_API_KEY",
-    "openrouter": "OPENROUTER_API_KEY",
-    "groq": "GROQ_API_KEY",
-}
+# Maps provider name -> env var for its API key (API providers only)
+PROVIDER_KEY_MAP: dict[str, str] = {k: v for k, v in PROVIDER_KEY_ENV.items() if v}
 
 # URLs where users can obtain API keys
 PROVIDER_SIGNUP_URLS: dict[str, str] = {

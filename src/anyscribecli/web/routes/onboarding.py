@@ -64,7 +64,7 @@ async def onboarding_status() -> dict[str, Any]:
     has_workspace = workspace.exists()
 
     provider_keys = {
-        name: bool(os.environ.get(env_var)) for name, env_var in PROVIDER_KEY_ENV.items()
+        name: bool(os.environ.get(env_var)) for name, env_var in PROVIDER_KEY_ENV.items() if env_var
     }
     has_any_api_key = any(provider_keys.values())
     local = local_ready()

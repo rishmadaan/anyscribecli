@@ -14,17 +14,10 @@ from rich.table import Table
 
 from anyscribecli.config.paths import CONFIG_FILE
 from anyscribecli.config.settings import load_config, save_config, load_env, save_env
-from anyscribecli.providers import list_providers, get_provider
+from anyscribecli.providers import PROVIDER_KEY_ENV, list_providers, get_provider
 
-# API key names that should be stored in .env, not config.yaml
-_API_KEY_MAP = {
-    "openai_api_key": "OPENAI_API_KEY",
-    "openrouter_api_key": "OPENROUTER_API_KEY",
-    "elevenlabs_api_key": "ELEVENLABS_API_KEY",
-    "sargam_api_key": "SARGAM_API_KEY",
-    "deepgram_api_key": "DEEPGRAM_API_KEY",
-    "groq_api_key": "GROQ_API_KEY",
-}
+# "openai_api_key" -> "OPENAI_API_KEY", for `scribe config set <x>_api_key`
+_API_KEY_MAP = {f"{name}_api_key": env for name, env in PROVIDER_KEY_ENV.items() if env}
 
 console = Console()
 err_console = Console(stderr=True)
@@ -233,15 +226,7 @@ def providers_test(
         raise typer.Exit(code=1)
 
     # Check if API key is set
-    key_map = {
-        "openai": "OPENAI_API_KEY",
-        "openrouter": "OPENROUTER_API_KEY",
-        "elevenlabs": "ELEVENLABS_API_KEY",
-        "sargam": "SARGAM_API_KEY",
-        "deepgram": "DEEPGRAM_API_KEY",
-        "groq": "GROQ_API_KEY",
-    }
-    env_var = key_map.get(provider_name)
+    env_var = PROVIDER_KEY_ENV.get(provider_name)
     if env_var:
         if os.environ.get(env_var):
             console.print(f"  API key ({env_var}): [green]Set[/green]")

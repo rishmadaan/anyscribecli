@@ -18,6 +18,7 @@ from typing import Optional
 from mcp.server.fastmcp import FastMCP
 
 from anyscribecli import __version__
+from anyscribecli.providers import PROVIDER_KEY_ENV
 
 mcp = FastMCP(
     "scribe",
@@ -467,20 +468,12 @@ def test_provider(name: Optional[str] = None) -> str:
     settings = _load_settings()
     provider_name = name or settings.provider
 
-    key_map = {
-        "openai": "OPENAI_API_KEY",
-        "openrouter": "OPENROUTER_API_KEY",
-        "elevenlabs": "ELEVENLABS_API_KEY",
-        "sargam": "SARGAM_API_KEY",
-        "deepgram": "DEEPGRAM_API_KEY",
-    }
-
     try:
         provider = get_provider(provider_name)
     except ValueError as e:
         return json.dumps({"success": False, "provider": provider_name, "error": str(e)})
 
-    env_var = key_map.get(provider_name)
+    env_var = PROVIDER_KEY_ENV.get(provider_name)
     api_key_set = True
     if env_var:
         api_key_set = bool(os.environ.get(env_var))
