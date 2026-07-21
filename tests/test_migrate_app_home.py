@@ -210,9 +210,36 @@ def test_os_error_fails_closed_with_one_line_and_no_traceback(home, capsys):
     err = capsys.readouterr().err
     assert "Traceback" not in err
     assert str(_new(home)) in err
+    # The OFFENDING path, not just the "could not move X to Y" prefix: the
+    # entry we tripped on is <new home>/config.yaml, which the fixed prefix
+    # never contains. Pins `e.filename` — swap it for a constant and this fails.
+    assert str(_new(home) / "config.yaml") in err
+    assert "Not a directory" in err
     assert "anyscribe migrate" in err
     # Legacy dir untouched — nothing was half-moved.
     assert (_legacy(home) / "config.yaml").read_text() == "provider: openai\n"
+
+
+def test_os_error_re_fails_on_every_call(home, capsys):
+    """The once-flag is armed by SUCCESS, not by the attempt.
+
+    A SystemExit raised on a web worker thread is captured by the Future and
+    never reaches the process, and no web route runs the migration at startup.
+    If the attempt armed the flag, the first request would eat the exit and
+    every later call would be a silent no-op — the Web UI would then re-onboard
+    against the un-migrated home and strand the user's keys, which is the exact
+    outcome the fail-closed decision exists to prevent.
+    """
+    _make_legacy(home, **{"config.yaml": "provider: openai\n"})
+    _new(home).write_text("this is a file, not a directory")
+
+    for _ in range(3):
+        with pytest.raises(SystemExit) as exc:
+            migrate_app_home_once()
+        assert exc.value.code == 1
+        assert str(_new(home)) in capsys.readouterr().err
+
+    assert migrate._app_home_migrated is False  # never armed by a failure
 
 
 @pytest.mark.parametrize("entrypoint", ["load_config", "load_env", "ensure_app_dirs"])

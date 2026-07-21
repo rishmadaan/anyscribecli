@@ -23,11 +23,15 @@ def migrate_app_home_once() -> None:
     carry on, the user lands in an empty ~/.anyscribe, re-onboards into it,
     and their existing keys are stranded in the legacy dir — the exact trap
     this migration exists to close. Better to stop and be told why.
+
+    The flag is armed by SUCCESS, not by the attempt: a SystemExit raised on a
+    web worker thread is swallowed by the Future, so an attempt-armed flag
+    would turn every later call into a silent no-op and re-open exactly that
+    trap. Failing again on every call is the point.
     """
     global _app_home_migrated
     if _app_home_migrated:
         return
-    _app_home_migrated = True
     try:
         maybe_migrate_app_home()
     except OSError as e:
@@ -42,6 +46,7 @@ def migrate_app_home_once() -> None:
             file=sys.stderr,
         )
         raise SystemExit(1) from None
+    _app_home_migrated = True
 
 
 def maybe_migrate_app_home() -> bool:
