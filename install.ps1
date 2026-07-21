@@ -2,13 +2,13 @@
 # scribe installer for Windows
 #
 # Usage (PowerShell):
-#   irm https://raw.githubusercontent.com/rishmadaan/anyscribecli/main/install.ps1 | iex
+#   irm https://raw.githubusercontent.com/rishmadaan/anyscribe/main/install.ps1 | iex
 #
 # What it does:
 #   1. Checks for Python 3.10+, offers to install via winget
 #   2. Checks for ffmpeg, offers to install via winget/choco
 #   3. Installs yt-dlp via pip
-#   4. Installs anyscribecli via pip
+#   4. Installs anyscribe via pip
 #   5. Fixes PATH so `scribe` works from any terminal
 #   6. Tells you to run `scribe ui`
 # ──────────────────────────────────────────────────────────────
@@ -155,7 +155,7 @@ function Test-YtDlp {
 
 function Install-Scribe {
     Write-Info "Installing scribe..."
-    & $script:PythonCmd -m pip install --quiet anyscribecli
+    & $script:PythonCmd -m pip install --quiet anyscribe
 
     # Verify
     Refresh-Path
@@ -221,7 +221,7 @@ try {
 
     if (-not (Test-CommandExists 'scribe')) {
         Write-Warn "If 'scribe' is not recognized, use:"
-        Write-Host "    $script:PythonCmd -m anyscribecli ui" -ForegroundColor Cyan
+        Write-Host "    $script:PythonCmd -m anyscribe ui" -ForegroundColor Cyan
         Write-Host ""
     }
 } catch {
@@ -229,7 +229,7 @@ try {
     Write-Host ""
     Write-Host "  Manual install:" -ForegroundColor Yellow
     Write-Host "    1. Install Python 3.10+ from https://python.org" -ForegroundColor Yellow
-    Write-Host "    2. pip install anyscribecli" -ForegroundColor Yellow
+    Write-Host "    2. pip install anyscribe" -ForegroundColor Yellow
     Write-Host "    3. Install ffmpeg from https://www.gyan.dev/ffmpeg/builds/" -ForegroundColor Yellow
     Write-Host ""
     exit 1

@@ -12,7 +12,7 @@ from unittest.mock import patch
 
 import pytest
 
-from anyscribecli.providers import local_models
+from anyscribe.providers import local_models
 
 
 def test_model_sizes_and_repos_aligned():

@@ -11,13 +11,13 @@ from unittest.mock import patch
 
 import pytest
 
-from anyscribecli.core import onboard_headless
+from anyscribe.core import onboard_headless
 
 
 def _isolated_config(tmp_path):
-    app_home = tmp_path / ".anyscribecli"
+    app_home = tmp_path / ".anyscribe"
     return patch.multiple(
-        "anyscribecli.config.settings",
+        "anyscribe.config.settings",
         CONFIG_FILE=app_home / "config.yaml",
         ENV_FILE=app_home / ".env",
     )
@@ -50,9 +50,9 @@ def test_env_var_satisfies_api_key_requirement(tmp_path, monkeypatch):
     monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
     with _isolated_config(tmp_path):
-        with patch("anyscribecli.vault.scaffold.create_vault", return_value=tmp_path):
-            with patch("anyscribecli.core.migrate.maybe_migrate_workspace", return_value=None):
-                with patch("anyscribecli.core.onboard_headless.ensure_app_dirs"):
+        with patch("anyscribe.vault.scaffold.create_vault", return_value=tmp_path):
+            with patch("anyscribe.core.migrate.maybe_migrate_workspace", return_value=None):
+                with patch("anyscribe.core.onboard_headless.ensure_app_dirs"):
                     result = onboard_headless.run_headless_onboard(
                         provider="openai", install_skill=False
                     )
@@ -69,11 +69,11 @@ def test_api_key_arg_is_written_to_env_and_process(tmp_path, monkeypatch):
         saved.update(keys)
 
     with _isolated_config(tmp_path):
-        with patch("anyscribecli.vault.scaffold.create_vault", return_value=tmp_path):
-            with patch("anyscribecli.core.migrate.maybe_migrate_workspace", return_value=None):
-                with patch("anyscribecli.core.onboard_headless.ensure_app_dirs"):
+        with patch("anyscribe.vault.scaffold.create_vault", return_value=tmp_path):
+            with patch("anyscribe.core.migrate.maybe_migrate_workspace", return_value=None):
+                with patch("anyscribe.core.onboard_headless.ensure_app_dirs"):
                     with patch(
-                        "anyscribecli.core.onboard_headless.save_env", side_effect=fake_save_env
+                        "anyscribe.core.onboard_headless.save_env", side_effect=fake_save_env
                     ):
                         result = onboard_headless.run_headless_onboard(
                             provider="openai", api_key="sk-abc", install_skill=False
@@ -88,10 +88,10 @@ def test_local_provider_runs_local_setup_and_returns_partial_on_failure(tmp_path
     failure = {"status": "failed", "phase": "install", "install": {"stderr": "denied"}}
 
     with _isolated_config(tmp_path):
-        with patch("anyscribecli.vault.scaffold.create_vault", return_value=tmp_path):
-            with patch("anyscribecli.core.migrate.maybe_migrate_workspace", return_value=None):
-                with patch("anyscribecli.core.onboard_headless.ensure_app_dirs"):
-                    with patch("anyscribecli.core.local_setup.run_setup", return_value=failure):
+        with patch("anyscribe.vault.scaffold.create_vault", return_value=tmp_path):
+            with patch("anyscribe.core.migrate.maybe_migrate_workspace", return_value=None):
+                with patch("anyscribe.core.onboard_headless.ensure_app_dirs"):
+                    with patch("anyscribe.core.local_setup.run_setup", return_value=failure):
                         result = onboard_headless.run_headless_onboard(
                             provider="local", local_model="tiny", install_skill=False
                         )
@@ -120,9 +120,9 @@ def test_instagram_browser_validation_accepts_empty_and_none(tmp_path, monkeypat
     monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
 
-    with patch("anyscribecli.vault.scaffold.create_vault", return_value=tmp_path):
-        with patch("anyscribecli.core.migrate.maybe_migrate_workspace", return_value=None):
-            with patch("anyscribecli.core.onboard_headless.ensure_app_dirs"):
+    with patch("anyscribe.vault.scaffold.create_vault", return_value=tmp_path):
+        with patch("anyscribe.core.migrate.maybe_migrate_workspace", return_value=None):
+            with patch("anyscribe.core.onboard_headless.ensure_app_dirs"):
                 # Empty — accepted.
                 result1 = onboard_headless.run_headless_onboard(
                     provider="openai",
@@ -132,9 +132,9 @@ def test_instagram_browser_validation_accepts_empty_and_none(tmp_path, monkeypat
                 )
     assert result1["status"] in ("onboarded", "partial")
 
-    with patch("anyscribecli.vault.scaffold.create_vault", return_value=tmp_path):
-        with patch("anyscribecli.core.migrate.maybe_migrate_workspace", return_value=None):
-            with patch("anyscribecli.core.onboard_headless.ensure_app_dirs"):
+    with patch("anyscribe.vault.scaffold.create_vault", return_value=tmp_path):
+        with patch("anyscribe.core.migrate.maybe_migrate_workspace", return_value=None):
+            with patch("anyscribe.core.onboard_headless.ensure_app_dirs"):
                 # 'none' — accepted.
                 result2 = onboard_headless.run_headless_onboard(
                     provider="openai",
@@ -153,12 +153,10 @@ def test_instagram_browser_routes_to_config_not_env(tmp_path, monkeypatch):
     def fake_save_env(keys):
         saved.update(keys)
 
-    with patch("anyscribecli.vault.scaffold.create_vault", return_value=tmp_path):
-        with patch("anyscribecli.core.migrate.maybe_migrate_workspace", return_value=None):
-            with patch("anyscribecli.core.onboard_headless.ensure_app_dirs"):
-                with patch(
-                    "anyscribecli.core.onboard_headless.save_env", side_effect=fake_save_env
-                ):
+    with patch("anyscribe.vault.scaffold.create_vault", return_value=tmp_path):
+        with patch("anyscribe.core.migrate.maybe_migrate_workspace", return_value=None):
+            with patch("anyscribe.core.onboard_headless.ensure_app_dirs"):
+                with patch("anyscribe.core.onboard_headless.save_env", side_effect=fake_save_env):
                     result = onboard_headless.run_headless_onboard(
                         provider="openai",
                         instagram_browser="firefox",
@@ -173,7 +171,7 @@ def test_instagram_browser_validation_runs_even_when_provider_is_local(tmp_path,
     """Regression: previously _validate returned early on provider='local',
     skipping the IG browser check. The validator must reject typos
     regardless of provider."""
-    from anyscribecli.core.onboard_headless import (
+    from anyscribe.core.onboard_headless import (
         OnboardValidationError,
         run_headless_onboard,
     )
@@ -191,17 +189,17 @@ def test_instagram_browser_validation_runs_even_when_provider_is_local(tmp_path,
 
 def test_instagram_browser_is_normalized_on_save(tmp_path, monkeypatch):
     """Browser is stored in canonical form: lowercase, stripped, with 'none' -> ''."""
-    from anyscribecli.config.settings import load_config
-    from anyscribecli.core.onboard_headless import run_headless_onboard
+    from anyscribe.config.settings import load_config
+    from anyscribe.core.onboard_headless import run_headless_onboard
 
     monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.setenv("ANYSCRIBE_HOME", str(tmp_path))
-    monkeypatch.setattr("anyscribecli.config.paths.APP_HOME", tmp_path)
+    monkeypatch.setattr("anyscribe.config.paths.APP_HOME", tmp_path)
 
     # Uppercase + whitespace -> canonical lowercase
-    with patch("anyscribecli.vault.scaffold.create_vault", return_value=tmp_path):
-        with patch("anyscribecli.core.migrate.maybe_migrate_workspace", return_value=None):
-            with patch("anyscribecli.core.onboard_headless.ensure_app_dirs"):
+    with patch("anyscribe.vault.scaffold.create_vault", return_value=tmp_path):
+        with patch("anyscribe.core.migrate.maybe_migrate_workspace", return_value=None):
+            with patch("anyscribe.core.onboard_headless.ensure_app_dirs"):
                 run_headless_onboard(
                     provider="openai",
                     api_key="sk-test",
@@ -211,9 +209,9 @@ def test_instagram_browser_is_normalized_on_save(tmp_path, monkeypatch):
     assert load_config().instagram.browser == "firefox"
 
     # 'none' -> empty string (canonical "no cookies")
-    with patch("anyscribecli.vault.scaffold.create_vault", return_value=tmp_path):
-        with patch("anyscribecli.core.migrate.maybe_migrate_workspace", return_value=None):
-            with patch("anyscribecli.core.onboard_headless.ensure_app_dirs"):
+    with patch("anyscribe.vault.scaffold.create_vault", return_value=tmp_path):
+        with patch("anyscribe.core.migrate.maybe_migrate_workspace", return_value=None):
+            with patch("anyscribe.core.onboard_headless.ensure_app_dirs"):
                 run_headless_onboard(
                     provider="openai",
                     api_key="sk-test",

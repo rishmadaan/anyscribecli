@@ -8,7 +8,7 @@ import subprocess
 import pytest
 from typer.testing import CliRunner
 
-from anyscribecli.core import service, tray
+from anyscribe.core import service, tray
 
 runner = CliRunner()
 
@@ -68,7 +68,7 @@ def test_render_plist_contents():
     assert f"<string>{service.LABEL}</string>" in xml
     assert "<string>/usr/bin/python3</string>" in xml
     assert "<string>-m</string>" in xml
-    assert "<string>anyscribecli</string>" in xml
+    assert "<string>anyscribe</string>" in xml
     assert "<string>tray</string>" in xml
     assert "<key>RunAtLoad</key>" in xml
 
@@ -128,7 +128,7 @@ class FakeProc:
 
 
 def test_teardown_stops_owned_server_and_removes_pidfile(monkeypatch, tmp_path):
-    from anyscribecli.cli import tray_cmd
+    from anyscribe.cli import tray_cmd
 
     monkeypatch.setattr(tray, "PIDFILE", tmp_path / "tray.pid")
     tray.write_pidfile()
@@ -144,7 +144,7 @@ def test_teardown_stops_owned_server_and_removes_pidfile(monkeypatch, tmp_path):
 
 
 def test_teardown_leaves_attached_server_alone(monkeypatch, tmp_path):
-    from anyscribecli.cli import tray_cmd
+    from anyscribe.cli import tray_cmd
 
     monkeypatch.setattr(tray, "PIDFILE", tmp_path / "tray.pid")
     tray.write_pidfile()
@@ -160,7 +160,7 @@ def test_teardown_leaves_attached_server_alone(monkeypatch, tmp_path):
 def test_tray_missing_extra(monkeypatch):
     import builtins
 
-    from anyscribecli.cli.main import app
+    from anyscribe.cli.main import app
 
     real_import = builtins.__import__
 
@@ -172,11 +172,11 @@ def test_tray_missing_extra(monkeypatch):
     monkeypatch.setattr(builtins, "__import__", fake_import)
     result = runner.invoke(app, ["tray"])
     assert result.exit_code == 1
-    assert "anyscribecli[tray]" in result.output
+    assert "anyscribe[tray]" in result.output
 
 
 def test_install_service_non_macos(monkeypatch):
-    from anyscribecli.cli.main import app
+    from anyscribe.cli.main import app
 
     monkeypatch.setattr("platform.system", lambda: "Linux")
     result = runner.invoke(app, ["install-service", "--yes"])
@@ -188,7 +188,7 @@ def test_setup_callback_makes_icon_visible():
     # pystray replaces its default setup (whose whole job is `icon.visible =
     # True`) with ours — if ours doesn't set visible, the tray NEVER appears.
     # Regression test for the invisible-tray bug in 0.13.1.
-    from anyscribecli.cli.tray_cmd import _mark_template
+    from anyscribe.cli.tray_cmd import _mark_template
 
     class FakeIcon:
         def __init__(self):

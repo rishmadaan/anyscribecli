@@ -14,7 +14,7 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: '../src/anyscribecli/web/static',
+    outDir: '../src/anyscribe/web/static',
     emptyOutDir: true,
   },
 })

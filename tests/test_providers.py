@@ -12,15 +12,15 @@ from types import SimpleNamespace
 import httpx
 import pytest
 
-from anyscribecli.core.errors import AuthenticationError, RateLimitError
-from anyscribecli.providers import PROVIDER_REGISTRY, get_provider
-from anyscribecli.providers.base import TranscriptionProvider, TranscriptResult
-from anyscribecli.providers.deepgram import DeepgramProvider
-from anyscribecli.providers.elevenlabs import ElevenLabsProvider
-from anyscribecli.providers.groq import GroqProvider
-from anyscribecli.providers.openai import OpenAIProvider
-from anyscribecli.providers.openrouter import OpenRouterProvider
-from anyscribecli.providers.sargam import SargamProvider
+from anyscribe.core.errors import AuthenticationError, RateLimitError
+from anyscribe.providers import PROVIDER_REGISTRY, get_provider
+from anyscribe.providers.base import TranscriptionProvider, TranscriptResult
+from anyscribe.providers.deepgram import DeepgramProvider
+from anyscribe.providers.elevenlabs import ElevenLabsProvider
+from anyscribe.providers.groq import GroqProvider
+from anyscribe.providers.openai import OpenAIProvider
+from anyscribe.providers.openrouter import OpenRouterProvider
+from anyscribe.providers.sargam import SargamProvider
 
 CLOUD_PROVIDERS = ["openai", "deepgram", "elevenlabs", "groq", "openrouter", "sargam"]
 
@@ -34,10 +34,10 @@ def _isolate(monkeypatch, tmp_path):
     for name in CLOUD_PROVIDERS:
         monkeypatch.setenv(f"{name.upper()}_API_KEY", f"key-{name}")
     monkeypatch.delenv("OPENROUTER_MODEL", raising=False)
-    monkeypatch.setattr("anyscribecli.core.errors.time.sleep", lambda s: None)
-    monkeypatch.setattr("anyscribecli.core.checkpoint.CHECKPOINT_DIR", tmp_path / "ckpt")
+    monkeypatch.setattr("anyscribe.core.errors.time.sleep", lambda s: None)
+    monkeypatch.setattr("anyscribe.core.checkpoint.CHECKPOINT_DIR", tmp_path / "ckpt")
     # Small fake file + 10s duration → needs_chunking() is False everywhere by default
-    monkeypatch.setattr("anyscribecli.core.audio.get_audio_duration", lambda p: 10.0)
+    monkeypatch.setattr("anyscribe.core.audio.get_audio_duration", lambda p: 10.0)
 
 
 @pytest.fixture
@@ -86,7 +86,7 @@ class TestRegistry:
             get_provider("nope")
 
     def test_key_env_map_covers_registry_exactly(self):
-        from anyscribecli.providers import PROVIDER_KEY_ENV
+        from anyscribe.providers import PROVIDER_KEY_ENV
 
         assert set(PROVIDER_KEY_ENV) == set(PROVIDER_REGISTRY)
         assert PROVIDER_KEY_ENV["local"] is None
@@ -169,7 +169,7 @@ class TestOpenAI:
         assert result.segments[0].speaker == "A"
 
     def test_diarize_rejects_large_files(self, audio, monkeypatch):
-        monkeypatch.setattr("anyscribecli.providers.openai.needs_chunking", lambda p: True)
+        monkeypatch.setattr("anyscribe.providers.openai.needs_chunking", lambda p: True)
         with pytest.raises(RuntimeError, match="25MB"):
             OpenAIProvider().transcribe(audio, diarize=True)
 
@@ -177,9 +177,9 @@ class TestOpenAI:
         c1, c2 = tmp_path / "c1.mp3", tmp_path / "c2.mp3"
         c1.write_bytes(b"1")
         c2.write_bytes(b"2")
-        monkeypatch.setattr("anyscribecli.providers.openai.needs_chunking", lambda p: True)
+        monkeypatch.setattr("anyscribe.providers.openai.needs_chunking", lambda p: True)
         monkeypatch.setattr(
-            "anyscribecli.providers.openai.chunk_audio", lambda p: [(c1, 0.0), (c2, 1080.0)]
+            "anyscribe.providers.openai.chunk_audio", lambda p: [(c1, 0.0), (c2, 1080.0)]
         )
         r1 = {
             "text": "part one",
@@ -205,16 +205,16 @@ class TestOpenAI:
 
     def test_chunked_resume_skips_completed_chunks(self, audio, tmp_path, monkeypatch):
         """A checkpoint written by a previous (v0.13.3) run replays without re-posting."""
-        from anyscribecli.core.checkpoint import ChunkCheckpoint
+        from anyscribe.core.checkpoint import ChunkCheckpoint
 
         # Two fake chunks at offsets 0 and 1080s (mirror the existing chunk test's setup)
         chunk1 = tmp_path / "c1.mp3"
         chunk2 = tmp_path / "c2.mp3"
         chunk1.write_bytes(b"x")
         chunk2.write_bytes(b"y")
-        monkeypatch.setattr("anyscribecli.providers.openai.needs_chunking", lambda p: True)
+        monkeypatch.setattr("anyscribe.providers.openai.needs_chunking", lambda p: True)
         monkeypatch.setattr(
-            "anyscribecli.providers.openai.chunk_audio",
+            "anyscribe.providers.openai.chunk_audio",
             lambda p: [(chunk1, 0.0), (chunk2, 1080.0)],
         )
 
@@ -251,8 +251,8 @@ class TestOpenAI:
     def test_large_short_file_is_not_deleted(self, audio, monkeypatch):
         """>25MB but ≤18min: chunk_audio hands back the original file as the
         sole chunk — the old loop's unconditional unlink deleted it."""
-        monkeypatch.setattr("anyscribecli.providers.openai.needs_chunking", lambda p: True)
-        monkeypatch.setattr("anyscribecli.providers.openai.chunk_audio", lambda p: [(p, 0.0)])
+        monkeypatch.setattr("anyscribe.providers.openai.needs_chunking", lambda p: True)
+        monkeypatch.setattr("anyscribe.providers.openai.chunk_audio", lambda p: [(p, 0.0)])
         resp = {"text": "hello", "language": "en", "duration": 30.0, "segments": []}
         stub_post(monkeypatch, FakeResponse(json_data=resp))
         result = OpenAIProvider().transcribe(audio)
@@ -472,15 +472,15 @@ class TestSargam:
         assert audio.exists()  # original file is never deleted
 
     def test_28s_clip_not_chunked(self, audio, monkeypatch):
-        monkeypatch.setattr("anyscribecli.core.audio.get_audio_duration", lambda p: 28.0)
+        monkeypatch.setattr("anyscribe.core.audio.get_audio_duration", lambda p: 28.0)
         assert SargamProvider()._chunk_for_sarvam(audio) == [(audio, 0.0)]
 
     def test_30s_clip_chunked_into_28s_pieces(self, audio, monkeypatch):
         # Sarvam's 30s limit is EXCLUSIVE — exactly-30s clips are rejected upstream,
         # so a 30.0s file must be split into <=28s chunks.
-        monkeypatch.setattr("anyscribecli.core.audio.get_audio_duration", lambda p: 30.0)
+        monkeypatch.setattr("anyscribe.core.audio.get_audio_duration", lambda p: 30.0)
         commands: list = []
-        monkeypatch.setattr("anyscribecli.providers.sargam.subprocess.run", fake_ffmpeg(commands))
+        monkeypatch.setattr("anyscribe.providers.sargam.subprocess.run", fake_ffmpeg(commands))
         chunks = SargamProvider()._chunk_for_sarvam(audio)
         assert [offset for _, offset in chunks] == [0.0, 28.0]
         for cmd in commands:
@@ -489,9 +489,9 @@ class TestSargam:
             path.unlink()
 
     def test_multi_chunk_transcripts_stitched(self, audio, monkeypatch):
-        monkeypatch.setattr("anyscribecli.core.audio.get_audio_duration", lambda p: 60.0)
+        monkeypatch.setattr("anyscribe.core.audio.get_audio_duration", lambda p: 60.0)
         commands: list = []
-        monkeypatch.setattr("anyscribecli.providers.sargam.subprocess.run", fake_ffmpeg(commands))
+        monkeypatch.setattr("anyscribe.providers.sargam.subprocess.run", fake_ffmpeg(commands))
         calls = stub_post(
             monkeypatch,
             FakeResponse(json_data={"transcript": "one", "language_code": "hi-IN"}),

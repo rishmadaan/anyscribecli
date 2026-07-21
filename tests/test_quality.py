@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from anyscribecli.config.settings import Settings
-from anyscribecli.core.quality import apply_quality
+from anyscribe.config.settings import Settings
+from anyscribe.core.quality import apply_quality
 
 
 @pytest.fixture(autouse=True)

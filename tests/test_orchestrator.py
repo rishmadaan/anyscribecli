@@ -6,9 +6,9 @@ from pathlib import Path
 
 import pytest
 
-from anyscribecli.config.settings import Settings
-from anyscribecli.downloaders.base import DownloadResult
-from anyscribecli.providers.base import TranscriptResult
+from anyscribe.config.settings import Settings
+from anyscribe.downloaders.base import DownloadResult
+from anyscribe.providers.base import TranscriptResult
 
 URL = "https://www.youtube.com/watch?v=abc123"
 
@@ -40,8 +40,8 @@ class FakeProvider:
 @pytest.fixture
 def env(tmp_path, monkeypatch):
     """Isolated workspace + stubbed download/transcribe/migrations/preflight."""
-    from anyscribecli.core import dedup, migrate, orchestrator, preflight
-    from anyscribecli.vault import index, writer
+    from anyscribe.core import dedup, migrate, orchestrator, preflight
+    from anyscribe.vault import index, writer
 
     ws = tmp_path / "workspace"
     for mod in (dedup, writer, index):
@@ -60,7 +60,7 @@ def env(tmp_path, monkeypatch):
 
 
 def test_process_dedup_and_force(env):
-    from anyscribecli.core.orchestrator import process
+    from anyscribe.core.orchestrator import process
 
     ws, downloader = env
     settings = Settings()

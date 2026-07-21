@@ -1,0 +1,237 @@
+"""Write transcript markdown files with frontmatter."""
+
+from __future__ import annotations
+
+import re
+import shutil
+from datetime import date
+from pathlib import Path
+
+from anyscribe.config.paths import get_workspace_dir, AUDIO_DIR
+from anyscribe.config.settings import Settings
+from anyscribe.downloaders.base import DownloadResult
+from anyscribe.providers.base import TranscriptResult, TranscriptSegment
+
+
+def slugify(text: str, max_length: int = 60) -> str:
+    """Convert text to a URL/filename-safe slug."""
+    text = text.lower().strip()
+    text = re.sub(r"[^\w\s-]", "", text)
+    text = re.sub(r"[\s_]+", "-", text)
+    text = re.sub(r"-+", "-", text)
+    text = text.strip("-")
+    return text[:max_length]
+
+
+def format_duration(seconds: float | None) -> str:
+    """Format seconds as mm:ss or hh:mm:ss."""
+    if seconds is None:
+        return "unknown"
+    total = int(seconds)
+    h, remainder = divmod(total, 3600)
+    m, s = divmod(remainder, 60)
+    if h > 0:
+        return f"{h}:{m:02d}:{s:02d}"
+    return f"{m}:{s:02d}"
+
+
+def estimate_reading_time(word_count: int) -> str:
+    """Estimate reading time at 200 wpm."""
+    minutes = max(1, round(word_count / 200))
+    return f"{minutes} min"
+
+
+def write_transcript(
+    download: DownloadResult,
+    transcript: TranscriptResult,
+    settings: Settings,
+    workspace: Path | None = None,
+) -> Path:
+    """Write a transcript to the vault as a markdown file.
+
+    Returns the path to the written file.
+    """
+    ws = workspace or get_workspace_dir()
+    today = date.today().isoformat()
+    slug = slugify(download.title)
+    if not slug:
+        slug = "untitled"
+
+    # Determine output path: sources/<platform>/<slug>.md
+    out_dir = ws / "sources" / download.platform
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    # Handle slug collisions
+    out_path = out_dir / f"{slug}.md"
+    counter = 2
+    while out_path.exists():
+        out_path = out_dir / f"{slug}-{counter}.md"
+        counter += 1
+
+    # Build frontmatter
+    duration_str = format_duration(download.duration or transcript.duration)
+    word_count = transcript.word_count
+    reading_time = estimate_reading_time(word_count)
+
+    fm_lines = [
+        "---",
+        f"source: {download.original_url}",
+        f"platform: {download.platform}",
+        f'title: "{download.title}"',
+        f'duration: "{duration_str}"',
+        f"language: {transcript.language}",
+        f"provider: {settings.provider}",
+        f"date_processed: {today}",
+        f"word_count: {word_count}",
+        f'reading_time: "{reading_time}"',
+    ]
+    if settings.diarize:
+        fm_lines.append("diarized: true")
+    fm_lines.extend(
+        [
+            "tags:",
+            "  - transcript",
+            f"  - {download.platform}",
+            f'tldr: "{download.title}"',
+            "---",
+        ]
+    )
+    frontmatter = "\n".join(fm_lines) + "\n"
+
+    # Build body
+    body_parts = [
+        f"# {download.title}\n",
+    ]
+
+    if download.channel:
+        body_parts.append(f"**Channel:** {download.channel}\n")
+
+    if download.platform == "local":
+        body_parts.append(f"**Source:** local file (`{download.original_url}`)\n")
+    else:
+        body_parts.append(f"**Source:** [{download.platform}]({download.original_url})\n")
+    body_parts.append(
+        f"**Duration:** {duration_str} | **Words:** {word_count} | **Reading time:** {reading_time}\n"
+    )
+    body_parts.append("\n---\n")
+
+    # Transcript body — format depends on output_format setting
+    if settings.output_format == "diarized" and transcript.segments:
+        body_parts.append("\n## Transcript\n")
+        body_parts.append(_format_diarized(transcript.segments))
+    elif settings.output_format == "timestamped" and transcript.segments:
+        body_parts.append("\n## Transcript\n")
+        for seg in transcript.segments:
+            ts = format_duration(seg.start)
+            body_parts.append(f"\n**[{ts}]** {seg.text}\n")
+    else:
+        body_parts.append(f"\n## Transcript\n\n{transcript.text}\n")
+
+    content = frontmatter + "\n" + "\n".join(body_parts)
+    out_path.write_text(content)
+
+    # Handle media file retention
+    if download.platform == "local":
+        _handle_local_file_media(download, settings, slug, today)
+    elif settings.keep_media and download.audio_path.exists():
+        # URL downloads: save converted audio to media dir
+        audio_dir = AUDIO_DIR / download.platform
+        audio_dir.mkdir(parents=True, exist_ok=True)
+        dest = audio_dir / f"{slug}{download.audio_path.suffix}"
+        shutil.copy2(download.audio_path, dest)
+
+    return out_path
+
+
+def _format_diarized(segments: list[TranscriptSegment]) -> str:
+    """Format segments as speaker-grouped turns with timestamps.
+
+    Groups consecutive segments by the same speaker into a single block.
+    Matches the dashing-kx/Fireflies transcript format:
+      **Speaker 0** *[00:01:15]*: sentence1 sentence2
+
+      **Speaker 1** *[00:02:30]*: response text
+    """
+    # Check if any segment has speaker data; fall back to timestamped if not
+    has_speakers = any(seg.speaker is not None for seg in segments)
+    if not has_speakers:
+        # Fallback: timestamped format without speakers
+        parts = []
+        for seg in segments:
+            ts = format_duration(seg.start)
+            parts.append(f"\n**[{ts}]** {seg.text}\n")
+        return "".join(parts)
+
+    parts: list[str] = []
+    current_speaker: str | None = None
+    current_words: list[str] = []
+    block_start = 0.0
+
+    for seg in segments:
+        speaker = seg.speaker or "Speaker"
+
+        if speaker != current_speaker and current_words:
+            # Emit previous block
+            ts = format_duration(block_start)
+            label = current_speaker or "Speaker"
+            parts.append(f"\n**{label}** *[{ts}]*: {' '.join(current_words)}\n")
+            current_words = []
+
+        if not current_words:
+            block_start = seg.start
+            current_speaker = speaker
+
+        current_words.append(seg.text)
+
+    # Emit final block
+    if current_words:
+        ts = format_duration(block_start)
+        label = current_speaker or "Speaker"
+        parts.append(f"\n**{label}** *[{ts}]*: {' '.join(current_words)}\n")
+
+    return "".join(parts)
+
+
+def _handle_local_file_media(
+    download: DownloadResult,
+    settings: Settings,
+    slug: str,
+    today: str,
+) -> None:
+    """Handle the original source file for local file transcriptions."""
+    from rich.console import Console
+
+    action = settings.local_file_media
+    original = Path(download.original_url)
+
+    if action == "skip":
+        return
+
+    if action == "ask":
+        import typer
+
+        err_console = Console(stderr=True)
+        err_console.print(f"\n  Original file: [cyan]{original}[/cyan]")
+        choice = (
+            typer.prompt(
+                "  What to do with the original file? (skip/copy/move)",
+                default="skip",
+            )
+            .strip()
+            .lower()
+        )
+        if choice not in ("copy", "move"):
+            return
+        action = choice
+
+    if not original.exists():
+        return
+
+    audio_dir = AUDIO_DIR / "local"
+    audio_dir.mkdir(parents=True, exist_ok=True)
+    dest = audio_dir / f"{slug}{original.suffix}"
+
+    if action == "copy":
+        shutil.copy2(original, dest)
+    elif action == "move":
+        shutil.move(str(original), str(dest))

@@ -1,0 +1,139 @@
+"""OpenRouter transcription provider.
+
+OpenRouter doesn't have a dedicated speech-to-text endpoint. Instead, this
+provider uses audio-capable chat models (like GPT-4o-audio) to transcribe
+by sending audio as base64 in a chat message.
+
+Note: This is more expensive and slower than dedicated STT APIs.
+Best used when you need a specific model that's only on OpenRouter.
+"""
+
+from __future__ import annotations
+
+import base64
+import os
+from pathlib import Path
+
+import httpx
+
+from anyscribe.core.errors import classify_api_error, with_retry
+from anyscribe.providers.base import (
+    TranscriptionProvider,
+    TranscriptResult,
+)
+from anyscribe.core.audio import chunk_audio, deduplicate_overlap, needs_chunking
+
+
+class OpenRouterProvider(TranscriptionProvider):
+    """Transcribe using OpenRouter's audio-capable chat models.
+
+    Since OpenRouter doesn't have a Whisper endpoint, this uses
+    audio-in-chat (e.g., GPT-4o-audio-preview) with a transcription prompt.
+    """
+
+    API_URL = "https://openrouter.ai/api/v1/chat/completions"
+    DEFAULT_MODEL = "openai/gpt-4o-audio-preview"
+
+    @property
+    def name(self) -> str:
+        return "openrouter"
+
+    def _get_api_key(self) -> str:
+        key = os.environ.get("OPENROUTER_API_KEY", "")
+        if not key:
+            raise RuntimeError("OPENROUTER_API_KEY not set. Add it to ~/.anyscribe/.env")
+        return key
+
+    @with_retry()
+    def _transcribe_single(self, audio_path: Path, language: str, api_key: str) -> str:
+        """Transcribe a single audio file via OpenRouter chat API."""
+        audio_bytes = audio_path.read_bytes()
+        audio_b64 = base64.b64encode(audio_bytes).decode("utf-8")
+
+        lang_instruction = ""
+        if language != "auto":
+            lang_instruction = f" The audio is in {language}."
+
+        response = httpx.post(
+            self.API_URL,
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "HTTP-Referer": "https://github.com/rishmadaan/anyscribe",
+                "X-Title": "anyscribe",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": os.environ.get("OPENROUTER_MODEL", self.DEFAULT_MODEL),
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": (
+                                    "Transcribe this audio accurately and completely. "
+                                    "Output only the transcript text, no commentary."
+                                    f"{lang_instruction}"
+                                ),
+                            },
+                            {
+                                "type": "input_audio",
+                                "input_audio": {
+                                    "data": audio_b64,
+                                    "format": "mp3",
+                                },
+                            },
+                        ],
+                    }
+                ],
+            },
+            timeout=300.0,
+        )
+
+        if response.status_code != 200:
+            raise classify_api_error(response.status_code, response.text, self.name)
+
+        data = response.json()
+        return data["choices"][0]["message"]["content"]
+
+    def transcribe(
+        self, audio_path: Path, language: str = "auto", diarize: bool = False
+    ) -> TranscriptResult:
+        api_key = self._get_api_key()
+
+        if not needs_chunking(audio_path):
+            text = self._transcribe_single(audio_path, language, api_key)
+            return TranscriptResult(
+                text=text, language=language if language != "auto" else "unknown"
+            )
+
+        # Chunk large files
+        from anyscribe.core.checkpoint import ChunkCheckpoint
+
+        chunks = chunk_audio(audio_path)
+        ckpt = ChunkCheckpoint.load_or_create(audio_path, self.name, language, len(chunks))
+        all_text_parts: list[str] = []
+
+        for i, (chunk_path, offset) in enumerate(chunks):
+            if ckpt.is_completed(i):
+                all_text_parts.append(ckpt.get(i)["text"])
+                chunk_path.unlink(missing_ok=True)
+                continue
+            try:
+                raw = self._transcribe_single(chunk_path, language, api_key)
+                text = deduplicate_overlap(all_text_parts[-1], raw) if all_text_parts else raw
+                all_text_parts.append(text)
+                ckpt.mark_completed(
+                    i, {"text": raw, "language": language, "duration": None, "segments": []}
+                )
+                ckpt.save()
+            finally:
+                chunk_path.unlink(missing_ok=True)
+
+        ckpt.cleanup()
+        full_text = " ".join(all_text_parts)
+        return TranscriptResult(
+            text=full_text,
+            language=language if language != "auto" else "unknown",
+            segments=[],  # Chat-based transcription doesn't provide timestamps
+        )

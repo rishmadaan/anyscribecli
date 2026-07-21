@@ -1,6 +1,6 @@
 """Tests for audio overlap deduplication."""
 
-from anyscribecli.core.audio import deduplicate_overlap
+from anyscribe.core.audio import deduplicate_overlap
 
 
 class TestDeduplicateOverlap:

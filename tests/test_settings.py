@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 from unittest.mock import patch
 
-from anyscribecli.config.settings import (
+from anyscribe.config.settings import (
     Settings,
     delete_env,
     env_file_keys,
@@ -35,7 +35,7 @@ def test_quality_defaults_to_balanced():
 
 def test_delete_env_removes_only_named_keys(tmp_path):
     env_file = tmp_path / ".env"
-    with patch("anyscribecli.config.settings.ENV_FILE", env_file):
+    with patch("anyscribe.config.settings.ENV_FILE", env_file):
         save_env({"OPENAI_API_KEY": "sk-a", "DEEPGRAM_API_KEY": "dg-b"})
         delete_env(["OPENAI_API_KEY"])
         remaining = env_file.read_text()
@@ -45,7 +45,7 @@ def test_delete_env_removes_only_named_keys(tmp_path):
 
 def test_delete_env_missing_file_is_noop(tmp_path):
     env_file = tmp_path / ".env"  # never created
-    with patch("anyscribecli.config.settings.ENV_FILE", env_file):
+    with patch("anyscribe.config.settings.ENV_FILE", env_file):
         delete_env(["OPENAI_API_KEY"])  # must not raise
     assert not env_file.exists()
 
@@ -56,7 +56,7 @@ def test_delete_env_handles_export_prefixed_keys(tmp_path):
     # reloads it. (Codex review finding, 2026-07-14.)
     env_file = tmp_path / ".env"
     env_file.write_text("export OPENAI_API_KEY=sk-a\nDEEPGRAM_API_KEY=dg-b\n")
-    with patch("anyscribecli.config.settings.ENV_FILE", env_file):
+    with patch("anyscribe.config.settings.ENV_FILE", env_file):
         delete_env(["OPENAI_API_KEY"])
         remaining = env_file.read_text()
     assert "OPENAI_API_KEY" not in remaining
@@ -66,12 +66,12 @@ def test_delete_env_handles_export_prefixed_keys(tmp_path):
 def test_env_file_keys_normalizes_export_and_skips_noise(tmp_path):
     env_file = tmp_path / ".env"
     env_file.write_text("export OPENAI_API_KEY=sk-a\nDEEPGRAM_API_KEY=dg-b\n# note\n\n")
-    with patch("anyscribecli.config.settings.ENV_FILE", env_file):
+    with patch("anyscribe.config.settings.ENV_FILE", env_file):
         assert env_file_keys() == {"OPENAI_API_KEY", "DEEPGRAM_API_KEY"}
 
 
 def test_env_file_keys_empty_when_absent(tmp_path):
-    with patch("anyscribecli.config.settings.ENV_FILE", tmp_path / ".env"):
+    with patch("anyscribe.config.settings.ENV_FILE", tmp_path / ".env"):
         assert env_file_keys() == set()
 
 
@@ -84,7 +84,7 @@ def test_delete_preserves_comments_multiline_and_handles_export_tab(tmp_path):
     env_file.write_text(
         '# my secrets\nOTHER="line1\nline2"\nexport\tDEEPGRAM_API_KEY=dg\nOPENAI_API_KEY=sk-plain\n'
     )
-    with patch("anyscribecli.config.settings.ENV_FILE", env_file):
+    with patch("anyscribe.config.settings.ENV_FILE", env_file):
         assert env_file_keys() == {"OTHER", "DEEPGRAM_API_KEY", "OPENAI_API_KEY"}
         delete_env(["OPENAI_API_KEY"])
         after = env_file.read_text()
@@ -97,7 +97,7 @@ def test_delete_preserves_comments_multiline_and_handles_export_tab(tmp_path):
 
 def test_save_env_keeps_plain_format_and_preserves_others(tmp_path):
     env_file = tmp_path / ".env"
-    with patch("anyscribecli.config.settings.ENV_FILE", env_file):
+    with patch("anyscribe.config.settings.ENV_FILE", env_file):
         save_env({"OPENAI_API_KEY": "sk-a"})
         save_env({"DEEPGRAM_API_KEY": "dg-b"})  # must not clobber the first
         text = env_file.read_text()
@@ -111,7 +111,7 @@ def test_save_env_creates_owner_only_secret_file(tmp_path):
     import stat
 
     env_file = tmp_path / ".env"
-    with patch("anyscribecli.config.settings.ENV_FILE", env_file):
+    with patch("anyscribe.config.settings.ENV_FILE", env_file):
         save_env({"OPENAI_API_KEY": "sk-secret"})
     mode = stat.S_IMODE(env_file.stat().st_mode)
     assert mode == 0o600, f"expected 0600, got {mode:o}"
@@ -123,7 +123,7 @@ def test_save_env_tightens_preexisting_world_readable_file(tmp_path):
     env_file = tmp_path / ".env"
     env_file.write_text("DEEPGRAM_API_KEY=dg\n")
     env_file.chmod(0o644)  # simulate a loosely-created file
-    with patch("anyscribecli.config.settings.ENV_FILE", env_file):
+    with patch("anyscribe.config.settings.ENV_FILE", env_file):
         save_env({"OPENAI_API_KEY": "sk-a"})
     assert stat.S_IMODE(env_file.stat().st_mode) == 0o600
 
@@ -132,7 +132,7 @@ def test_forget_env_var_restores_value_inherited_from_shell():
     # Codex re-review (2026-07-14): deleting a saved key that is ALSO exported by
     # the parent shell must not disable the shell-provided credential.
     with (
-        patch.dict("anyscribecli.config.settings._PRISTINE_ENV", {"XY_KEY": "from-shell"}),
+        patch.dict("anyscribe.config.settings._PRISTINE_ENV", {"XY_KEY": "from-shell"}),
         patch.dict(os.environ, {"XY_KEY": "from-env"}),
     ):
         forget_env_var("XY_KEY")
@@ -140,7 +140,7 @@ def test_forget_env_var_restores_value_inherited_from_shell():
 
 
 def test_forget_env_var_drops_key_not_inherited():
-    with patch.dict("anyscribecli.config.settings._PRISTINE_ENV", {}, clear=True):
+    with patch.dict("anyscribe.config.settings._PRISTINE_ENV", {}, clear=True):
         with patch.dict(os.environ, {"XY_KEY": "session-only"}):
             forget_env_var("XY_KEY")
             assert "XY_KEY" not in os.environ

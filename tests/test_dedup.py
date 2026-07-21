@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from anyscribecli.core import dedup
+from anyscribe.core import dedup
 
 URL = "https://www.youtube.com/watch?v=abc123"
 

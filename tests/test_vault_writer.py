@@ -6,10 +6,10 @@ from pathlib import Path
 
 import pytest
 
-from anyscribecli.config.settings import Settings
-from anyscribecli.downloaders.base import DownloadResult
-from anyscribecli.providers.base import TranscriptResult, TranscriptSegment
-from anyscribecli.vault.writer import slugify, write_transcript
+from anyscribe.config.settings import Settings
+from anyscribe.downloaders.base import DownloadResult
+from anyscribe.providers.base import TranscriptResult, TranscriptSegment
+from anyscribe.vault.writer import slugify, write_transcript
 
 
 def make_download(**overrides) -> DownloadResult:

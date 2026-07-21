@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-from anyscribecli.web.app import create_app
+from anyscribe.web.app import create_app
 
 
 @pytest.fixture
@@ -117,7 +117,7 @@ class TestTranscribe:
         assert "job_id" in data
 
     def test_upload_preserves_safe_original_filename(self, client, tmp_path, monkeypatch):
-        from anyscribecli.web.routes import transcribe
+        from anyscribe.web.routes import transcribe
 
         monkeypatch.setattr(transcribe, "TMP_DIR", tmp_path)
         r = client.post(
@@ -132,7 +132,7 @@ class TestTranscribe:
         assert path.read_bytes() == b"fake audio"
 
     def test_upload_sanitizes_path_like_filename(self, client, tmp_path, monkeypatch):
-        from anyscribecli.web.routes import transcribe
+        from anyscribe.web.routes import transcribe
 
         monkeypatch.setattr(transcribe, "TMP_DIR", tmp_path)
         r = client.post(
@@ -157,7 +157,7 @@ class TestTranscribe:
         assert r.status_code == 404
 
     def test_cancel_finished_job_is_noop(self, client):
-        from anyscribecli.web.jobs import Job, JobStatus, job_manager
+        from anyscribe.web.jobs import Job, JobStatus, job_manager
 
         job = Job(id="finished1", url="https://example.com/x", status=JobStatus.COMPLETED)
         job_manager._jobs[job.id] = job

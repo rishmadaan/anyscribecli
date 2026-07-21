@@ -12,8 +12,8 @@ from unittest.mock import patch
 
 import pytest
 
-from anyscribecli.core import local_setup
-from anyscribecli.providers.local_models import MODEL_SIZES
+from anyscribe.core import local_setup
+from anyscribe.providers.local_models import MODEL_SIZES
 
 
 def test_detect_install_method_venv(monkeypatch):
@@ -36,9 +36,9 @@ def test_detect_install_method_system(monkeypatch):
 
 def test_install_command_uses_pipx_inject_for_pipx_method():
     with patch.object(local_setup, "detect_install_method", return_value="pipx"):
-        with patch.object(local_setup, "_pipx_venv_name", return_value="anyscribecli"):
+        with patch.object(local_setup, "_pipx_venv_name", return_value="anyscribe"):
             cmd = local_setup._install_command("pipx")
-    assert cmd == ["pipx", "inject", "anyscribecli", local_setup.FASTER_WHISPER_SPEC]
+    assert cmd == ["pipx", "inject", "anyscribe", local_setup.FASTER_WHISPER_SPEC]
 
 
 def test_install_command_uses_pip_for_venv_method():
@@ -106,7 +106,7 @@ def test_progress_tqdm_class_aggregates_bytes(monkeypatch):
     import sys
     import types
 
-    from anyscribecli.providers import local_models
+    from anyscribe.providers import local_models
 
     # Minimal tqdm base standing in for huggingface_hub.utils.tqdm.
     class FakeTqdm:
@@ -137,7 +137,7 @@ def test_progress_tqdm_class_aggregates_bytes(monkeypatch):
 
 
 def test_pull_model_passes_tqdm_class_when_progress_cb_given():
-    from anyscribecli.providers import local_models
+    from anyscribe.providers import local_models
 
     captured = {}
 
@@ -162,7 +162,7 @@ def test_pull_model_passes_tqdm_class_when_progress_cb_given():
 
 
 def test_pull_model_no_tqdm_class_without_cb():
-    from anyscribecli.providers import local_models
+    from anyscribe.providers import local_models
 
     captured = {}
 

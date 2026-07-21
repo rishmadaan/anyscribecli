@@ -1,4 +1,4 @@
-"""Tests for the ~/.anyscribecli -> ~/.anyscribe app-home migration.
+"""Tests for the legacy app home -> ~/.anyscribe app-home migration.
 
 Real filesystem only: every case builds actual dirs/files under tmp_path and
 asserts what ends up on disk.
@@ -13,9 +13,13 @@ from pathlib import Path
 
 import pytest
 
-from anyscribecli.config import paths
-from anyscribecli.core import migrate
-from anyscribecli.core.migrate import maybe_migrate_app_home, migrate_app_home_once
+from anyscribe.config import paths
+from anyscribe.core import migrate
+from anyscribe.core.migrate import maybe_migrate_app_home, migrate_app_home_once
+
+# Captured before any fixture patches it, so the tests exercise the real
+# legacy dir name without hardcoding the old package name here.
+LEGACY_NAME = paths.LEGACY_APP_HOME.name
 
 
 @pytest.fixture
@@ -25,13 +29,13 @@ def home(tmp_path, monkeypatch):
     # paths.py binds APP_HOME at import time, so patching Path.home alone
     # wouldn't reach the already-computed constants.
     monkeypatch.setattr(paths, "APP_HOME", tmp_path / ".anyscribe")
-    monkeypatch.setattr(paths, "LEGACY_APP_HOME", tmp_path / ".anyscribecli")
+    monkeypatch.setattr(paths, "LEGACY_APP_HOME", tmp_path / LEGACY_NAME)
     monkeypatch.setattr(migrate, "_app_home_migrated", False)
     return tmp_path
 
 
 def _legacy(home: Path) -> Path:
-    return home / ".anyscribecli"
+    return home / LEGACY_NAME
 
 
 def _new(home: Path) -> Path:
@@ -190,6 +194,27 @@ def test_migrate_app_home_once_runs_only_once(home):
     assert not _new(home).exists()
 
 
+def test_os_error_fails_closed_with_one_line_and_no_traceback(home, capsys):
+    """A deterministic failure must stop the process, not silently continue.
+
+    Continuing would drop the user into an empty ~/.anyscribe and strand their
+    keys in the legacy dir — the exact trap this migration exists to close.
+    """
+    _make_legacy(home, **{"config.yaml": "provider: openai\n"})
+    _new(home).write_text("this is a file, not a directory")
+
+    with pytest.raises(SystemExit) as exc:
+        migrate_app_home_once()
+
+    assert exc.value.code == 1
+    err = capsys.readouterr().err
+    assert "Traceback" not in err
+    assert str(_new(home)) in err
+    assert "anyscribe migrate" in err
+    # Legacy dir untouched — nothing was half-moved.
+    assert (_legacy(home) / "config.yaml").read_text() == "provider: openai\n"
+
+
 @pytest.mark.parametrize("entrypoint", ["load_config", "load_env", "ensure_app_dirs"])
 def test_choke_points_trigger_migration(home, monkeypatch, entrypoint):
     _make_legacy(home, **{"config.yaml": "provider: deepgram\n", ".env": "DG=1\n"})
@@ -202,7 +227,7 @@ def test_choke_points_trigger_migration(home, monkeypatch, entrypoint):
     if entrypoint == "ensure_app_dirs":
         paths.ensure_app_dirs()
     else:
-        from anyscribecli.config import settings
+        from anyscribe.config import settings
 
         monkeypatch.setattr(settings, "CONFIG_FILE", new / "config.yaml")
         monkeypatch.setattr(settings, "ENV_FILE", new / ".env")
