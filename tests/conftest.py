@@ -7,6 +7,14 @@ from pathlib import Path
 
 import pytest
 
+# Imported for side effect: the sweep below only re-roots modules already in
+# sys.modules, so the ones that bind home paths at import time must be loaded
+# before it runs. Without this a single-file run (e.g. pytest tests/test_web_
+# onboarding.py) leaves them unloaded until the test body, past the fixture.
+import anyscribe.cli.skill_cmd  # noqa: F401
+import anyscribe.config.paths  # noqa: F401
+import anyscribe.config.settings  # noqa: F401
+import anyscribe.core.onboard_headless  # noqa: F401
 from anyscribe.core import migrate
 
 
