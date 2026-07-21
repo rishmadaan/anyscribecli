@@ -4,7 +4,64 @@ from __future__ import annotations
 
 import re
 import shutil
+import time
 from pathlib import Path
+
+_app_home_migrated = False
+
+
+def migrate_app_home_once() -> None:
+    """Run ``maybe_migrate_app_home`` at most once per process.
+
+    ``load_config``/``load_env``/``ensure_app_dirs`` call this on every
+    invocation; without the flag they'd stat the filesystem each time.
+    """
+    global _app_home_migrated
+    if _app_home_migrated:
+        return
+    _app_home_migrated = True
+    maybe_migrate_app_home()
+
+
+def maybe_migrate_app_home() -> bool:
+    """Move ~/.anyscribecli/ to ~/.anyscribe/. Returns True if anything moved.
+
+    Idempotent. Never overwrites: an entry already present in the new home
+    wins and its legacy twin is left on disk untouched.
+    """
+    from anyscribecli.config.paths import APP_HOME, LEGACY_APP_HOME
+
+    if not LEGACY_APP_HOME.is_dir():
+        return False
+
+    # ponytail: crude mtime guard — a recent write under the legacy tmp dir
+    # means another process may be mid-transcription, so leave it alone.
+    # A real lock file only if this ever bites.
+    legacy_tmp = LEGACY_APP_HOME / "tmp"
+    if legacy_tmp.is_dir():
+        cutoff = time.time() - 300
+        if any(p.stat().st_mtime > cutoff for p in legacy_tmp.rglob("*")):
+            return False
+
+    if not APP_HOME.exists():
+        shutil.move(str(LEGACY_APP_HOME), str(APP_HOME))
+        return True
+
+    # New home already exists. If it holds real config, it's either already
+    # migrated or a genuine new-style setup — don't touch either.
+    if (APP_HOME / "config.yaml").exists() or (APP_HOME / ".env").exists():
+        return False
+
+    # Empty-ish new home, created by a post-upgrade command that ran before
+    # the migration existed. Rescue every entry that doesn't collide.
+    moved = 0
+    for entry in sorted(LEGACY_APP_HOME.iterdir()):
+        dest = APP_HOME / entry.name
+        if dest.exists():
+            continue
+        shutil.move(str(entry), str(dest))
+        moved += 1
+    return moved > 0
 
 
 def maybe_migrate_workspace() -> Path | None:

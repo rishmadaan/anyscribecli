@@ -69,6 +69,9 @@ class Settings:
 
 def load_config() -> Settings:
     """Load settings from config.yaml. Returns defaults if file doesn't exist."""
+    from anyscribecli.core.migrate import migrate_app_home_once
+
+    migrate_app_home_once()
     if not CONFIG_FILE.exists():
         return Settings()
     with open(CONFIG_FILE) as f:
@@ -86,6 +89,9 @@ def save_config(settings: Settings) -> None:
 
 def load_env() -> None:
     """Load API keys and secrets from .env file."""
+    from anyscribecli.core.migrate import migrate_app_home_once
+
+    migrate_app_home_once()
     if ENV_FILE.exists():
         load_dotenv(ENV_FILE)
 

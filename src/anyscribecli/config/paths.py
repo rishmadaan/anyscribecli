@@ -3,7 +3,8 @@
 from importlib.resources import files as pkg_files
 from pathlib import Path
 
-APP_HOME = Path.home() / ".anyscribecli"
+APP_HOME = Path.home() / ".anyscribe"
+LEGACY_APP_HOME = Path.home() / ".anyscribecli"
 CONFIG_FILE = APP_HOME / "config.yaml"
 ENV_FILE = APP_HOME / ".env"
 LOGS_DIR = APP_HOME / "logs"
@@ -53,5 +54,8 @@ def get_skill_source_dir():
 
 def ensure_app_dirs() -> None:
     """Create all required app directories if they don't exist."""
+    from anyscribecli.core.migrate import migrate_app_home_once
+
+    migrate_app_home_once()  # before mkdir, or we create an empty new home
     for d in [APP_HOME, LOGS_DIR, SESSIONS_DIR, TMP_DIR]:
         d.mkdir(parents=True, exist_ok=True)
