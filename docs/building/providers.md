@@ -4,7 +4,7 @@
 
 ## Language Lists
 
-Per-provider supported-language lists live in `src/anyscribecli/providers/languages.py`
+Per-provider supported-language lists live in `src/anyscribe/providers/languages.py`
 and are exposed via `GET /api/providers/{name}/languages`. The web UI's
 language picker (Transcribe + Settings pages) consumes that endpoint and
 renders a native HTML `<datalist>` — suggestions drop down, but free
@@ -60,7 +60,7 @@ to the configured provider (graceful, keyless users still work).
 ### ElevenLabs (`providers/elevenlabs.py`)
 - Uses `scribe_v2` model, `xi-api-key` auth header (migrated from `scribe_v1`, which ElevenLabs removed 2026-07-09; v2 is the current top-accuracy model)
 - Returns word-level timestamps (grouped into ~30-word segments for readability)
-- ElevenLabs API accepts up to 3GB, but ascli chunks at 25MB (same `WHISPER_MAX_BYTES` threshold) for consistency
+- ElevenLabs API accepts up to 3GB, but anyscribe chunks at 25MB (same `WHISPER_MAX_BYTES` threshold) for consistency
 - This is the provider the `accuracy` quality tier (default) selects
 
 ### OpenRouter (`providers/openrouter.py`)
@@ -97,7 +97,7 @@ to the configured provider (graceful, keyless users still work).
 
 ## Adding a Provider
 
-1. Create `src/anyscribecli/providers/<name>.py`
+1. Create `src/anyscribe/providers/<name>.py`
 2. Implement `TranscriptionProvider` from `base.py`:
    - `name` property returning the provider name
    - `transcribe(audio_path, language)` returning `TranscriptResult`

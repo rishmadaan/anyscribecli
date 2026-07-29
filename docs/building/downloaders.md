@@ -44,8 +44,8 @@
 `registry.py` directly imports all downloaders:
 
 ```python
-from anyscribecli.downloaders.youtube import YouTubeDownloader
-from anyscribecli.downloaders.instagram import InstagramDownloader
+from anyscribe.downloaders.youtube import YouTubeDownloader
+from anyscribe.downloaders.instagram import InstagramDownloader
 
 DOWNLOADERS = [YouTubeDownloader(), InstagramDownloader()]
 ```
@@ -61,7 +61,7 @@ except ImportError:
 
 ## Adding a Downloader
 
-1. Create `src/anyscribecli/downloaders/<name>.py`
+1. Create `src/anyscribe/downloaders/<name>.py`
 2. Implement `AbstractDownloader` from `base.py`:
    - `can_handle(url)` returning bool
    - `download(url, output_dir)` returning `DownloadResult`

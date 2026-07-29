@@ -62,7 +62,7 @@ User-facing = new command, new flag, changed output, changed config option, new 
 
 ## After version bumps
 
-- [ ] `src/anyscribecli/__init__.py` — `__version__` updated
+- [ ] `src/anyscribe/__init__.py` — `__version__` updated
 - [ ] `pyproject.toml` — `version` field matches
 - [ ] All docs referencing version number updated (search for old version)
 - [ ] `landing/index.html` — version badge strings (2 places, grep the old version)
@@ -71,7 +71,7 @@ User-facing = new command, new flag, changed output, changed config option, new 
 
 ## After adding a new provider
 
-1. [ ] `src/anyscribecli/providers/<name>.py` — implements TranscriptionProvider
+1. [ ] `src/anyscribe/providers/<name>.py` — implements TranscriptionProvider
 2. [ ] `providers/__init__.py` — added to PROVIDER_REGISTRY
 3. [ ] `cli/onboard.py` — added to PROVIDER_INFO dict
 4. [ ] `docs/building/providers.md` — added to table + provider-specific notes
@@ -82,7 +82,7 @@ User-facing = new command, new flag, changed output, changed config option, new 
 
 ## After adding a new downloader
 
-1. [ ] `src/anyscribecli/downloaders/<name>.py` — implements AbstractDownloader
+1. [ ] `src/anyscribe/downloaders/<name>.py` — implements AbstractDownloader
 2. [ ] `downloaders/registry.py` — added to `_load_downloaders()`
 3. [ ] `docs/building/downloaders.md` — added to table + notes
 4. [ ] `docs/user/commands.md` — added to Supported Platforms table
@@ -90,7 +90,7 @@ User-facing = new command, new flag, changed output, changed config option, new 
 
 ## After adding a new command
 
-1. [ ] `src/anyscribecli/cli/<name>.py` — command implemented
+1. [ ] `src/anyscribe/cli/<name>.py` — command implemented
 2. [ ] `cli/main.py` — command registered
 3. [ ] `docs/user/commands.md` — added to Quick Overview + full section with flags/examples
 4. [ ] `README.md` — added to Commands table

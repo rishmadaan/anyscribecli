@@ -6,13 +6,13 @@ tldr: "What the app already handles automatically — update detection, self-upd
 
 # What's Automated vs Manual
 
-This doc explains what anyscribecli already does automatically behind the scenes, so you know what's handled and what needs your attention.
+This doc explains what anyscribe already does automatically behind the scenes, so you know what's handled and what needs your attention.
 
 ---
 
 ## Automated: Self-Update System
 
-**File:** `src/anyscribecli/core/updater.py`
+**File:** `src/anyscribe/core/updater.py`
 
 The app has a built-in self-update system that users interact with via `scribe update`.
 
@@ -36,8 +36,8 @@ Detection is fully automatic. No config needed.
 6. Reports old → new version
 
 **For pip installs:**
-1. Runs `pip install --upgrade anyscribecli` (tries PyPI first)
-2. If PyPI fails: falls back to `git+https://github.com/rishmadaan/anyscribecli.git`
+1. Runs `pip install --upgrade anyscribe` (tries PyPI first)
+2. If PyPI fails: falls back to `git+https://github.com/rishmadaan/anyscribe.git`
 3. Spawns a subprocess to read the new version (avoids module cache)
 4. Reports old → new version
 
@@ -46,7 +46,7 @@ Detection is fully automatic. No config needed.
 Checks for available updates **without installing**:
 
 - **Git:** fetches remote, checks `git log HEAD..origin/main` for new commits, reads remote `__init__.py` for version
-- **Pip:** runs `pip index versions anyscribecli` to check PyPI for latest
+- **Pip:** runs `pip index versions anyscribe` to check PyPI for latest
 
 ### Timeouts
 
@@ -64,7 +64,7 @@ All operations have timeouts to prevent hanging:
 
 ## Automated: Doctor Command
 
-**File:** `src/anyscribecli/cli/main.py`
+**File:** `src/anyscribe/cli/main.py`
 
 `scribe doctor` runs a health check that includes:
 
@@ -79,7 +79,7 @@ This is the only place the app checks for updates without the user explicitly ru
 
 ## Automated: Version Display
 
-`scribe --version` (or `scribe -v`) reads from `src/anyscribecli/__init__.py:__version__` and prints it.
+`scribe --version` (or `scribe -v`) reads from `src/anyscribe/__init__.py:__version__` and prints it.
 
 ---
 
@@ -92,7 +92,7 @@ When you push a tag matching `v*`, GitHub Actions automatically:
 2. Verifies the tag matches `pyproject.toml` version (fails if mismatched)
 3. Publishes to PyPI via trusted publishing (no API token in secrets needed after setup)
 
-**Setup (one-time):** Configure trusted publishing on [pypi.org](https://pypi.org/manage/project/anyscribecli/settings/publishing/) — add GitHub as a trusted publisher with repository `rishmadaan/anyscribecli`, workflow `publish.yml`.
+**Setup (one-time):** Configure trusted publishing on [pypi.org](https://pypi.org/manage/project/anyscribe/settings/publishing/) — add GitHub as a trusted publisher with repository `rishmadaan/anyscribe`, workflow `publish.yml`.
 
 ### Release Script
 
@@ -109,7 +109,7 @@ Includes safety checks: clean working tree, semver format, no duplicate tags, br
 
 ## Automated: CI Checks
 
-GitHub Actions runs lint, tests, and package build on pushes to `main` and pull requests. It also rebuilds the frontend and verifies the committed `src/anyscribecli/web/static/` bundle is current.
+GitHub Actions runs lint, tests, and package build on pushes to `main` and pull requests. It also rebuilds the frontend and verifies the committed `src/anyscribe/web/static/` bundle is current.
 
 ---
 
