@@ -11,6 +11,7 @@ import type {
   OnboardingPayload,
   OnboardingResult,
   SetupLogResponse,
+  TranscribeAccepted,
   TranscribeRequest,
   TranscriptMeta,
   TranscriptDetail,
@@ -71,7 +72,7 @@ export const deleteKey = (provider_name: string) =>
 // ── Transcription ────────────────────────────────────
 
 export const startTranscribe = (data: TranscribeRequest) =>
-  fetchJSON<{ job_id: string }>("/transcribe", {
+  fetchJSON<TranscribeAccepted>("/transcribe", {
     method: "POST",
     body: JSON.stringify(data),
   });

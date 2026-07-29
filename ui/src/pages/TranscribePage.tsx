@@ -8,15 +8,37 @@ import ProgressTracker from "../components/ProgressTracker";
 import ResultCard from "../components/ResultCard";
 import LanguageInput from "../components/LanguageInput";
 import ModelInput from "../components/ModelInput";
-import { defaultModelFor, hasModelChoice } from "../api/models";
+import { defaultModelFor } from "../api/models";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
 // User-facing label for the diarize/diarized output format. The wire value
 // stays "diarized" so the API contract doesn't change.
 const formatLabel = (fmt: string) => (fmt === "diarized" ? "with-speaker-labels" : fmt);
 
+/** What actually runs, plus any swap the backend made (keyless tier, whisper-1). */
+function PlanNotes({
+  plan,
+}: {
+  plan: { provider: string; model: string | null; notes: string[] } | null;
+}) {
+  if (!plan) return null;
+  return (
+    <div className="mt-4 self-start text-xs font-mono space-y-0.5">
+      <p className="text-text-muted">
+        {plan.provider}
+        {plan.model ? ` · ${plan.model}` : ""}
+      </p>
+      {plan.notes.map((n) => (
+        <p key={n} className={n.startsWith("WARNING") ? "text-amber" : "text-text-muted/70"}>
+          {n}
+        </p>
+      ))}
+    </div>
+  );
+}
+
 export default function TranscribePage() {
-  const { phase, events, result, error, submit, cancel, reset } = useJob();
+  const { phase, events, result, error, plan, submit, cancel, reset } = useJob();
   const [config, setConfig] = useState<Config | null>(null);
   const [providers, setProviders] = useState<Provider[]>([]);
   const [showOptions, setShowOptions] = useState(false);
@@ -149,7 +171,7 @@ export default function TranscribePage() {
                     </select>
                   </div>
 
-                  {hasModelChoice(selectedProvider) && (
+                  {provider && provider !== "local" && (
                     <div className="flex items-center gap-4">
                       <label className="text-xs text-text-muted w-32 shrink-0">Model</label>
                       <ModelInput
@@ -248,6 +270,7 @@ export default function TranscribePage() {
       {phase === "running" && (
         <div className="w-full max-w-2xl flex flex-col items-center">
           <ProgressTracker events={events} title={downloadedTitle} />
+          <PlanNotes plan={plan} />
           <button
             onClick={cancel}
             className="
@@ -306,7 +329,10 @@ export default function TranscribePage() {
       )}
 
       {phase === "completed" && result && !result.cached && (
-        <ResultCard result={result} onReset={reset} />
+        <div className="w-full max-w-2xl flex flex-col items-center">
+          <ResultCard result={result} onReset={reset} />
+          <PlanNotes plan={plan} />
+        </div>
       )}
 
       {phase === "cancelled" && (

@@ -109,16 +109,18 @@ the Obsidian vault at `~/anyscribe/` stays pure markdown.
 - Abstract base with `transcribe(audio_path, language, diarize) -> TranscriptResult`
 - `TranscriptSegment` includes optional `speaker` field for diarization
 - 7 providers implemented:
-  - **OpenAI** (default): Whisper API or `gpt-4o-transcribe-diarize` with `--diarize`. `MODEL` class attr so Groq can subclass it.
-  - **Deepgram**: Nova-3, native diarization, `hi-Latn` support
+  - **OpenAI** (default): `gpt-transcribe`, or `whisper-1` when timestamps are needed, or `gpt-4o-transcribe-diarize` with `--diarize`. `MODEL` class attr so Groq can subclass it.
+  - **Deepgram**: Nova-3 (nova-2 also pickable), native diarization, `hi-Latn` support
   - **ElevenLabs**: Scribe v2, word-level timestamps, 90+ languages
-  - **OpenRouter**: Audio-via-chat (GPT-4o-audio-preview), no timestamps
-  - **Sargam/Sarvam**: Indic languages, auto-chunks to 30s REST API limit, diarization support
+  - **OpenRouter**: Audio-via-chat (`openai/gpt-audio-mini`), no timestamps, freeform model slugs
+  - **Sargam/Sarvam**: Indic languages, `saaras:v3` only, auto-chunks to 30s REST API limit
   - **Groq**: `whisper-large-v3-turbo`, OpenAI-compatible — thin subclass of `OpenAIProvider`. Cheapest + fastest.
   - **Local**: faster-whisper, offline, CPU/GPU, no API key
 - Lazy-import registry — each provider only loaded when requested
 - Provider selected via config, overridable per-run with `--provider`
-- **Quality routing**: `quality` (accuracy/balanced/cost/free) resolves to a provider via `core/quality.py::apply_quality`, mirroring the `--diarize → deepgram` auto-routing. Precedence: explicit `--provider` → `--diarize` → `quality` → configured provider.
+- **One resolution point**: `core/resolve.py::resolve_run(settings, cli_provider=, cli_model=, diarize=)` returns `RunPlan(provider, model, via, notes)` and is the only implementation of the ladder — explicit `--provider` → `--diarize` → `quality` tier → configured provider. All four run surfaces (CLI transcribe, batch, web, MCP) call it; none may reimplement it. `via` explains the choice; `notes` carry every automatic decision (keyless-tier fallback, whisper-1 timestamp switch, hi-Latn, diarize reroute) so no surface can silently swallow one.
+- **Quality routing**: `quality` ∈ accuracy/balanced/cost/free (tier → provider, `core/quality.py::QUALITY_TIERS`) or `custom` (use `settings.provider`). Every write that sets a provider also writes `quality="custom"` — see `core/config_set.py::set_value` and `core/onboard_headless.py`.
+- **Model resolution**: per-run `--model` (validated) > `settings.provider_models[provider]` > `get_models(provider, settings.extra_models)[0]` > `None` (local only).
 - Diarization enabled per-run with `--diarize` flag or `diarize: true` in config
 
 ### Vault Layer (`vault/`)
@@ -186,7 +188,7 @@ Hard-coded constants and where they live:
 | Whisper duration trigger | 30 min (`WHISPER_MAX_DURATION_SECONDS`) | `core/audio.py:16` | HTTP timeout ceiling |
 | Chunk length / overlap | 18 min / 5 s | `core/audio.py:20,23` | Stays under 25 MB at 64 kbps |
 | Sarvam chunk | 30 s (`SARVAM_MAX_DURATION`) | `providers/sargam.py:27` | Sarvam sync REST cap |
-| Provider model IDs | `PROVIDER_MODELS` in `providers/__init__.py` (defaults: `whisper-1`, `nova-3`/`nova`, `scribe_v2`, `saaras:v3`, `openai/gpt-audio-mini`, `whisper-large-v3-turbo`); diarize pins `gpt-4o-transcribe-diarize` | `providers/__init__.py` + each `providers/*.py` | Pickable since 0.14.0 via `settings.provider_models` / `--model`; the `quality` tier still picks the provider, the pin rides on top |
+| Provider model catalogs | `PROVIDER_MODELS` in `providers/__init__.py` (defaults: `gpt-transcribe`, `nova-3`/`nova`, `scribe_v2`, `saaras:v3`, `openai/gpt-audio-mini`, `whisper-large-v3-turbo`); diarize pins `gpt-4o-transcribe-diarize` | `providers/__init__.py` + each `providers/*.py` | Pickable since 0.14.0 via `settings.provider_models` / `--model`; the `quality` tier still picks the provider, the pin rides on top. **Closed catalogs are release-managed** — each entry needs response-parsing code, so users can't extend them. `settings.extra_models` is the one escape hatch and is openrouter-only (0.15.0), because an open-model provider forwards any slug. Read catalogs via `get_models(name, extra_models)`, never `PROVIDER_MODELS` directly |
 | App home | `~/.anyscribecli` | `config/paths.py:6` | Fixed root for config + state |
 | Web bind host | `127.0.0.1` (port is configurable via `--port`) | `web/app.py:63` | Localhost-only by design; server has no auth |
 | Registries | provider & downloader plugin tables | `providers/__init__.py`, `downloaders/registry.py` | Code-level extension points |

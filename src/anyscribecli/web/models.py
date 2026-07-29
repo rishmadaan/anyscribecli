@@ -41,6 +41,7 @@ class ConfigUpdateRequest(BaseModel):
     workspace_path: str | None = None
     local_model: str | None = None
     provider_models: dict[str, str] | None = None
+    extra_models: dict[str, list[str]] | None = None
 
 
 class LocalSetupRequest(BaseModel):

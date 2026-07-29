@@ -221,3 +221,79 @@ def test_instagram_browser_is_normalized_on_save(tmp_path, monkeypatch):
                     install_skill=False,
                 )
     assert load_config().instagram.browser == ""
+
+
+def _run_isolated(tmp_path, **kwargs):
+    """run_headless_onboard against an isolated config file, no side effects."""
+    with _isolated_config(tmp_path):
+        with patch("anyscribecli.vault.scaffold.create_vault", return_value=tmp_path):
+            with patch("anyscribecli.core.migrate.maybe_migrate_workspace", return_value=None):
+                with patch("anyscribecli.core.onboard_headless.ensure_app_dirs"):
+                    result = onboard_headless.run_headless_onboard(install_skill=False, **kwargs)
+                    from anyscribecli.config.settings import load_config
+
+                    return result, load_config()
+
+
+def test_explicit_provider_persists_quality_custom(tmp_path, monkeypatch):
+    monkeypatch.setenv("HOME", str(tmp_path))
+    result, saved = _run_isolated(tmp_path, provider="deepgram", api_key="dg-key")
+    assert saved.quality == "custom"
+    assert saved.provider == "deepgram"
+    assert result["quality"] == "custom"
+
+
+def test_explicit_quality_flag_wins_over_custom(tmp_path, monkeypatch):
+    monkeypatch.setenv("HOME", str(tmp_path))
+    result, saved = _run_isolated(
+        tmp_path, provider="openai", api_key="sk-test", quality="accuracy"
+    )
+    assert saved.quality == "accuracy"
+    assert result["quality"] == "accuracy"
+
+
+def test_unknown_quality_is_rejected_with_choices(tmp_path, monkeypatch):
+    monkeypatch.setenv("HOME", str(tmp_path))
+    with pytest.raises(onboard_headless.OnboardValidationError) as exc:
+        onboard_headless.run_headless_onboard(provider="openai", api_key="sk-test", quality="turbo")
+    assert "turbo" in exc.value.payload["error"]
+    assert "balanced" in exc.value.payload["choices"]
+
+
+def test_model_flag_persists_pin(tmp_path, monkeypatch):
+    monkeypatch.setenv("HOME", str(tmp_path))
+    result, saved = _run_isolated(tmp_path, provider="openai", api_key="sk-test", model="whisper-1")
+    assert saved.provider_models["openai"] == "whisper-1"
+    assert result["model"] == "whisper-1"
+
+
+def test_no_model_flag_reports_catalog_default_without_pinning(tmp_path, monkeypatch):
+    monkeypatch.setenv("HOME", str(tmp_path))
+    result, saved = _run_isolated(tmp_path, provider="openai", api_key="sk-test")
+    assert saved.provider_models == {}
+    assert result["model"] == "gpt-transcribe"
+
+
+def test_unknown_model_is_rejected_with_choices(tmp_path, monkeypatch):
+    monkeypatch.setenv("HOME", str(tmp_path))
+    with pytest.raises(onboard_headless.OnboardValidationError) as exc:
+        onboard_headless.run_headless_onboard(provider="deepgram", api_key="dg-key", model="nova-9")
+    assert "nova-9" in exc.value.payload["error"]
+    assert exc.value.payload["choices"] == ["nova-3", "nova-2"]
+
+
+def test_openrouter_accepts_any_model_slug(tmp_path, monkeypatch):
+    monkeypatch.setenv("HOME", str(tmp_path))
+    _, saved = _run_isolated(
+        tmp_path, provider="openrouter", api_key="or-key", model="vendor/whatever"
+    )
+    assert saved.provider_models["openrouter"] == "vendor/whatever"
+
+
+def test_local_provider_model_flag_points_at_local_model(tmp_path, monkeypatch):
+    monkeypatch.setenv("HOME", str(tmp_path))
+    with pytest.raises(onboard_headless.OnboardValidationError) as exc:
+        onboard_headless.run_headless_onboard(
+            provider="local", local_model="tiny", model="large-v3"
+        )
+    assert "--local-model" in exc.value.payload["hint"]

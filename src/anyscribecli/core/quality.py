@@ -3,15 +3,19 @@
 `quality` is a friendly knob that resolves to a provider. Each tier maps to a
 distinct provider whose own default model is right for that tier; a pinned
 model in `settings.provider_models` (or `--model`) rides on top of whichever
-provider wins. Resolution mirrors the `--diarize → deepgram` auto-routing in
-`cli/transcribe.py`.
+provider wins. The tier is applied by `core/resolve.py`, which owns the whole
+provider ladder (flag > diarize > tier > config).
+
+`quality = "custom"` is the sentinel for "respect `settings.provider`": it is
+not a tier, so `apply_quality` finds no target and leaves the provider alone.
+Setting a provider anywhere writes `quality = "custom"` in the same write, so
+the choice sticks instead of being overridden by a tier on the next run.
 """
 
 from __future__ import annotations
 
 import os
 
-from anyscribecli.config.settings import Settings
 from anyscribecli.providers import PROVIDER_KEY_ENV
 
 # tier -> provider. The provider's own default model is correct for the tier:
@@ -27,22 +31,7 @@ QUALITY_TIERS: dict[str, str] = {
 }
 
 
-def _has_key(provider: str) -> bool:
+def has_key(provider: str) -> bool:
     """True if the provider needs no key, or its key is set in the environment."""
     env = PROVIDER_KEY_ENV.get(provider)
     return env is None or bool(os.environ.get(env))
-
-
-def apply_quality(settings: Settings, explicit_provider: bool) -> None:
-    """Resolve `settings.quality` into `settings.provider`, in place.
-
-    No-op when the user explicitly chose a provider. If the tier's provider has
-    no API key configured, keep the configured provider (graceful fallback) so a
-    keyless user still works out of the box.
-    """
-    if explicit_provider:
-        return
-    target = QUALITY_TIERS.get(settings.quality)
-    if target and _has_key(target):
-        settings.provider = target
-    # unknown tier or missing key → leave settings.provider unchanged

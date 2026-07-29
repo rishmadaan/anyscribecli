@@ -156,3 +156,39 @@ def test_provider_models_null_yaml_coerced_to_empty_dict():
         assert s.provider_models == {}
     s = Settings.from_dict({"provider_models": {"openai": "gpt-transcribe"}})
     assert s.provider_models == {"openai": "gpt-transcribe"}
+
+
+def test_extra_models_coerced_to_dict_of_lists():
+    from anyscribecli.config.settings import Settings
+
+    assert Settings().extra_models == {}
+    for bad in (None, "hello", 7, ["x"]):
+        assert Settings.from_dict({"extra_models": bad}).extra_models == {}
+    # Non-list values are dropped; list entries are stringified.
+    s = Settings.from_dict({"extra_models": {"openrouter": ["a/b", 7], "openai": "nope"}})
+    assert s.extra_models == {"openrouter": ["a/b", "7"]}
+
+
+def test_sargam_v25_pin_migrated_away(tmp_path):
+    from anyscribecli.core.migrate import maybe_migrate_sargam_model
+
+    cfg = tmp_path / "config.yaml"
+    with patch("anyscribecli.config.settings.CONFIG_FILE", cfg):
+        s = Settings(provider_models={"sargam": "saaras:v2.5", "openai": "whisper-1"})
+        assert maybe_migrate_sargam_model(s) is True
+        # Pin dropped (v3 is the default), unrelated pins untouched, config saved.
+        assert s.provider_models == {"openai": "whisper-1"}
+        assert "saaras" not in cfg.read_text()
+        # Second run is a no-op and must not rewrite the file.
+        assert maybe_migrate_sargam_model(s) is False
+        assert maybe_migrate_sargam_model(Settings()) is False
+
+
+def test_extra_models_round_trips_through_yaml(tmp_path):
+    import yaml
+    from anyscribecli.config.settings import Settings
+
+    s = Settings(extra_models={"openrouter": ["vendor/x"]})
+    assert Settings.from_dict(yaml.safe_load(yaml.dump(s.to_dict()))).extra_models == {
+        "openrouter": ["vendor/x"]
+    }

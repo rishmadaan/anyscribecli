@@ -34,7 +34,8 @@ class OpenRouterProvider(TranscriptionProvider):
     API_URL = "https://openrouter.ai/api/v1/chat/completions"
     # gpt-4o-audio-preview was removed from OpenRouter (verified 2026-07-29);
     # gpt-audio-mini is its like-for-like successor. Pin any other audio-capable
-    # slug via the model picker or OPENROUTER_MODEL.
+    # slug via the model picker (settings.provider_models / extra_models);
+    # the old OPENROUTER_MODEL env var is gone.
     DEFAULT_MODEL = "openai/gpt-audio-mini"
 
     @property
@@ -66,7 +67,7 @@ class OpenRouterProvider(TranscriptionProvider):
                 "Content-Type": "application/json",
             },
             json={
-                "model": self.model or os.environ.get("OPENROUTER_MODEL", self.DEFAULT_MODEL),
+                "model": self.model or self.DEFAULT_MODEL,
                 "messages": [
                     {
                         "role": "user",

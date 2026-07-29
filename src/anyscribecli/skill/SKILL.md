@@ -42,6 +42,7 @@ When the USER wants to run commands themselves, show them the human-readable for
 
 | User wants to... | Command |
 |---|---|
+| **Find out what scribe will actually run** | `scribe config --json` — settings + `resolved` (provider/model/why) + `providers` (models, keys, tiers). **Start here** for any "what am I using / what can I change" question |
 | Transcribe a URL or local file | `scribe "url"` or `scribe /path/to/file` |
 | Pick accuracy vs cost | `scribe "url" --quality accuracy\|balanced\|cost\|free` (default `balanced` → Deepgram; picks the provider) |
 | Pin a specific model for one run | `scribe "url" -p <provider> -m <model>` *(see "Picking a Model" below)* |
@@ -54,8 +55,9 @@ When the USER wants to run commands themselves, show them the human-readable for
 | Download video/audio only | `scribe download "url"` or `scribe download "url" --audio-only` |
 | See recent activity / what did I transcribe recently | `scribe logs` |
 | Change settings | `scribe config set <key> <value>` |
-| See current config | `scribe config show` |
-| Switch provider | `scribe config set provider <name>` |
+| See current config | `scribe config show` (raw settings) or `scribe config --json` (settings + what runs next) |
+| Switch provider | `scribe config set provider <name>` (also writes `quality=custom` so it sticks) |
+| Add an OpenRouter model to the pickers | `scribe config set extra_models.openrouter "<slug>,<slug>"` (openrouter only) |
 | Test a provider | `scribe providers test <name>` |
 | List providers | `scribe providers list` |
 | Set up offline transcription | `scribe local setup --model base --yes` *(see rule below)* |
@@ -91,6 +93,13 @@ For local/offline transcription as primary provider:
 ```bash
 scribe onboard --provider local --local-model base --yes --json
 ```
+
+Two optional flags worth knowing:
+
+- `--model <id>` — pin the chosen provider's model at setup time (writes `provider_models.<provider>`). Rejected with the valid list if the provider doesn't offer it. Not for `local` — that's `--local-model`.
+- `--quality <tier>` — set the tier instead of a fixed provider. **Omit it and onboarding writes `quality=custom`**, so the `--provider` the user picked is the one that runs. Only pass `--quality` if the user asked for a tier.
+
+The `--json` result reports what landed: `{"status", "provider", "quality", "model", "workspace", ...}`.
 
 **Prefer env vars over `--api-key` on argv** — argv leaks into shell history. Reference the env var by name (`"$OPENAI_API_KEY"`) in examples you give the user.
 
@@ -155,6 +164,19 @@ Supported values: `firefox`, `chrome`, `safari`, `brave`, `edge`, `chromium`, `v
 
 If the user asks which browser to specify, ask which browser they use when logged into Instagram.
 
+## Provider Selection — One Knob
+
+`quality` and `provider` are **one setting with two positions**, not two competing settings:
+
+- `quality` is a tier (`accuracy` / `balanced` / `cost` / `free`) → the tier picks the provider, `provider` is ignored.
+- `quality` is `custom` → `provider` is used as-is.
+
+**Setting a provider anywhere writes `quality=custom` in the same save.** `scribe config set provider deepgram`, the Web UI Settings page, and the MCP `set_config` tool all do this. You never need to write `quality=custom` yourself, and you should not "helpfully" set it separately.
+
+**Rule: to answer "what will run?", call `scribe config --json` — never infer it from `provider` alone.** The `resolved` block gives you `provider`, `model`, `via` (`config` / `quality: <tier>` / `flag` / `diarize`), and `notes`. `via` is the audit trail.
+
+**Keyless tier = warning, not failure.** If the tier's provider has no key, scribe prints `WARNING: quality 'balanced' wants deepgram but no DEEPGRAM_API_KEY is set — using openai instead` and runs on the configured provider anyway. When you see this note, surface it to the user with the fix (`scribe config set deepgram_api_key <key>` or pick a different tier) — don't swallow it.
+
 ## Provider Selection Guidance
 
 When the user asks which provider to use, or when you need to suggest one:
@@ -181,27 +203,38 @@ scribe "url" -p openai -m gpt-transcribe --json --quiet   # one run
 scribe config set provider_models.openai gpt-transcribe   # every run from now on
 ```
 
-`-m` pins the model on whichever provider handles that run, and `--model` works the same on `scribe batch`. `scribe providers list --json` shows each provider's current model plus its alternatives — run it before you guess.
+`-m` pins the model on whichever provider handles that run, and `--model` works the same on `scribe batch`. `scribe config --json` (or `scribe providers list --json`) shows each provider's current model plus its alternatives — run it before you guess.
 
-**OpenAI — the one real decision:**
+**OpenAI — and the one rule you must not get wrong:**
 
 | User wants | Use | Why |
 |---|---|---|
-| Default / anything with timestamps | `whisper-1` | The only OpenAI model that returns segment timestamps |
-| Cheaper *and* more accurate plain text | `gpt-transcribe` | $0.0045/min vs $0.006/min, roughly half Whisper's error rate |
+| Default — best accuracy per dollar | `gpt-transcribe` | Already the default. $0.0045/min, roughly half Whisper's error rate |
+| Timestamps (`[mm:ss]` markers) | *nothing — leave it alone* | scribe auto-switches to `whisper-1` when it's needed |
 | Cheapest OpenAI option | `gpt-4o-mini-transcribe` | $0.003/min, lower accuracy than `gpt-transcribe` |
 
-**Hard rule — timestamps.** `gpt-transcribe`, `gpt-4o-transcribe`, and `gpt-4o-mini-transcribe` do **not** return segment timestamps. If `output_format` is `timestamped` or `diarized`, those models produce plain text with no `[mm:ss]` markers (`--diarize` itself is unaffected — it always reroutes to the dedicated diarize model). Check `scribe config show` before recommending one; if the user wants timestamps, keep `whisper-1`.
+**Decision rule — do NOT pin a model to get timestamps.** `gpt-transcribe`, `gpt-4o-transcribe`, and `gpt-4o-mini-transcribe` can't return segment timestamps. scribe already handles this: when `output_format` is `timestamped` or `diarized` **and the model wasn't pinned per-run**, it switches to `whisper-1` and emits the note `switched to whisper-1 — gpt-transcribe can't produce timestamps`.
+
+The consequence for you: **passing `-m gpt-transcribe` disables that safety net**, because an explicit per-run model is always honoured. So:
+
+- User wants timestamps → say nothing, run the command, and report the note if it appears.
+- User explicitly asks for `-m gpt-transcribe` while their format is `timestamped`/`diarized` → tell them they'll get plain paragraphs, then do what they asked.
+- A `provider_models.openai` pin in config does **not** disable the switch — only `-m` on the run does.
+
+(`--diarize` is unaffected either way — it always reroutes to OpenAI's dedicated diarize model.)
 
 > `gpt-live-transcribe` is a realtime/streaming model on OpenAI's Realtime API. scribe transcribes files, so it is not supported — don't offer it.
 
 **Other providers, in one line each:**
 
-- **deepgram** (`nova-3`) and **elevenlabs** (`scribe_v2`) have one model each — nothing to pick.
-- **sargam**: `saaras:v3` (default, best Indic accuracy). `saaras:v2.5` only if the user explicitly wants the legacy endpoint.
+- **deepgram**: `nova-3` (default) or `nova-2` (previous generation — only for matching older transcripts).
+- **elevenlabs**: `scribe_v2` only — nothing to pick.
+- **sargam**: `saaras:v3` only. `saaras:v2.5` was retired upstream; an old pin is dropped automatically on the next run with a one-line notice.
 - **groq**: `whisper-large-v3-turbo` (default, cheapest/fastest) or `whisper-large-v3` for higher accuracy.
-- **openrouter**: accepts *any* audio-capable slug, not just the listed ones — a typo will fail at the API, not at scribe. Default `openai/gpt-audio-mini`.
+- **openrouter**: accepts *any* audio-capable slug, not just the listed ones — a typo will fail at the API, not at scribe. Default `openai/gpt-audio-mini`. Add slugs the user reuses with `scribe config set extra_models.openrouter "<slug>,<slug>"` so they show up in the pickers (marked `(custom)`); an empty value clears them.
 - **local**: model choice is separate — it's `scribe local setup --model <size>` / `scribe model pull <size>`, not `-m`.
+
+**"Can I add a model to Deepgram / ElevenLabs / OpenAI?"** No — `extra_models` is openrouter-only, by design. Those providers' lists are curated per scribe release because scribe needs code that parses each model's response. The answer is `scribe update`, not a config change.
 
 Diarization on OpenAI always routes to `gpt-4o-transcribe-diarize` internally regardless of the pinned model — that's automatic, not something to set.
 
@@ -308,11 +341,18 @@ App config lives at `~/.anyscribecli/`. Transcripts default to `~/anyscribe/` (c
 
 Quick config changes:
 ```bash
-scribe config set provider elevenlabs    # Switch provider
+scribe config set provider elevenlabs    # Switch provider (also writes quality=custom)
+scribe config set quality cost           # Or let a tier pick the provider
 scribe config set language hi            # Set default language
 scribe config set keep_media true        # Keep audio files
 scribe config set deepgram_api_key KEY   # Set API key (stored in .env)
+scribe config set provider_models.groq whisper-large-v3          # Pin a model
+scribe config set extra_models.openrouter "qwen/qwen3-omni-flash" # Add an OpenRouter slug
 ```
+
+**`scribe config set` is one entrypoint for everything** — plain settings, dotted keys (`instagram.browser`, `provider_models.<p>`, `extra_models.openrouter`), and API keys (`<provider>_api_key`, which go to `.env`, never to `config.yaml`). On a bad key or value it exits 1 and prints the valid choices; parse those instead of guessing. `scribe config list-keys --json` enumerates every settable key with its current value.
+
+**Via MCP:** the `set_config` tool covers the same key space (settings, pins, `extra_models.openrouter`, API keys) and returns `{"success": false, "error", "choices"}` on rejection. `get_config` returns all settings plus the resolved workspace path; for what will actually run, use `scribe config --json`.
 
 ## What scribe Outputs
 

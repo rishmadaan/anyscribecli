@@ -44,6 +44,23 @@ def maybe_migrate_media_to_downloads() -> bool:
     return False
 
 
+def maybe_migrate_sargam_model(settings) -> bool:
+    """Rewrite a pinned ``saaras:v2.5`` sargam model to ``saaras:v3``.
+
+    Sarvam deprecated v2.5 along with its ``/speech-to-text-translate``
+    endpoint, so the pin would now fail at request time. v3 is the catalog
+    default, so the rewritten pin is redundant and gets dropped entirely.
+    Mutates and persists ``settings``; returns True if anything changed.
+    """
+    from anyscribecli.config.settings import save_config
+
+    if settings.provider_models.get("sargam") != "saaras:v2.5":
+        return False
+    settings.provider_models = {k: v for k, v in settings.provider_models.items() if k != "sargam"}
+    save_config(settings)
+    return True
+
+
 _DATE_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 

@@ -14,10 +14,11 @@
 ## config.yaml Settings
 
 ```yaml
-provider: openai          # explicit provider (or let `quality` pick): openai | deepgram | elevenlabs | sargam | groq | openrouter | local
+provider: openai          # used when quality is `custom`: openai | deepgram | elevenlabs | sargam | groq | openrouter | local
 provider_models: {}       # provider -> pinned model id; missing key = that provider's default
+extra_models: {}          # openrouter -> [user-added slugs], merged into the pickers
 local_model: base         # offline Whisper size (local provider only)
-quality: balanced         # accuracy | balanced | cost | free — picks a provider
+quality: balanced         # accuracy | balanced | cost | free | custom — picks the provider
 language: auto            # auto | ISO code (en, es, fr, hi, hi-Latn, ar, zh, ja, ko...)
 keep_media: false         # Keep audio files after transcription
 output_format: clean      # clean | timestamped | diarized
@@ -31,22 +32,43 @@ instagram:
 
 ### Setting details
 
-**provider** — Explicit transcription service. Usually you set `quality` instead and leave this; it's the fallback when a `quality` tier's key is missing. Override per-command with `--provider`.
+**provider** — The transcription service used when `quality` is `custom`. It is also the fallback when a `quality` tier's key is missing. Override per-command with `--provider`.
+
+> **The invariant:** setting `provider` anywhere — `scribe config set provider`, the Web UI Settings page, MCP `set_config` — writes `quality: custom` in the same save, so the choice sticks. Never set `quality: custom` as a separate step.
+>
+> To see which one is winning: `scribe config --json` → `resolved.via` is `config`, `quality: <tier>`, `flag`, or `diarize`.
 
 **provider_models** — A map of provider name → pinned model id. Each provider has its own entry, so switching providers keeps whatever model you chose for each one. A provider with no entry uses its built-in default (the first in its list). Set with `scribe config set provider_models.<provider> <model>`; override for a single run with `-m`.
 
 ```yaml
 provider_models:
-  openai: gpt-transcribe        # cheaper + more accurate, but no segment timestamps
+  openai: whisper-1             # forces Whisper on every run (the default is gpt-transcribe)
   groq: whisper-large-v3        # higher accuracy than the turbo default
   openrouter: google/gemini-2.5-flash
 ```
 
 Invalid models are rejected at set time with the valid list (exit 1); `openrouter` accepts any audio-capable slug. `provider_models.local` is rejected — the local provider's model lives in `local_model` because it has a download/cache lifecycle. See [providers.md](providers.md) for each provider's models and their tradeoffs.
 
+**extra_models** — User-added model ids merged into the pickers, **openrouter only**:
+
+```bash
+scribe config set extra_models.openrouter "qwen/qwen3-omni-flash,openai/gpt-audio"
+scribe config set extra_models.openrouter ""      # empty value removes the entry
+```
+
+```yaml
+extra_models:
+  openrouter:
+    - qwen/qwen3-omni-flash
+```
+
+`extra_models.<any other provider>` is rejected: *custom models are only supported for openrouter (curated lists elsewhere)*. Those catalogs ship with scribe releases because each model needs response-parsing code — the fix for "my provider added a model" is `scribe update`.
+
 **local_model** — Which cached Whisper size the `local` provider loads: `tiny`, `base`, `small`, `medium`, `large-v3`, `large-v3-turbo`, `distil-large-v3.5`. Set by `scribe local setup --model <size>`; changing it with `scribe config set local_model <size>` requires the size to already be cached (`scribe model pull <size>` first).
 
-**quality** — Accuracy↔cost preset that picks a provider: `accuracy`→ElevenLabs scribe_v2, `balanced`→Deepgram nova-3, `cost`→Groq, `free`→local. Default `balanced` (Deepgram). Override per-command with `--quality`. `--provider` wins over it.
+**quality** — Accuracy↔cost preset that picks a provider: `accuracy`→ElevenLabs scribe_v2, `balanced`→Deepgram nova-3, `cost`→Groq, `free`→local, or `custom`→whatever `provider` says. Default `balanced`. Override per-command with `--quality`; `--provider` wins over it for that run.
+
+If the tier's provider has no key, scribe emits `WARNING: quality '<tier>' wants <p> but no <ENV> is set — using <provider> instead` and runs on the configured provider. Relay the warning; don't treat it as a failure.
 
 **language** — Default audio language. `auto` lets the provider detect it. Set explicitly if detection is wrong. Override per-command with `--language`.
 
@@ -90,9 +112,11 @@ ELEVENLABS_API_KEY=xi-...
 OPENROUTER_API_KEY=sk-or-...
 SARGAM_API_KEY=...
 GROQ_API_KEY=gsk-...
-OPENROUTER_MODEL=openai/gpt-audio-mini   # Optional; `provider_models.openrouter` / -m wins over it
 ASCLI_LOCAL_MODEL=base                   # Optional: tiny|base|small|medium|large-v3|large-v3-turbo|distil-large-v3.5
 ```
+
+> `OPENROUTER_MODEL` was removed in 0.15.0 and is no longer read. Use
+> `scribe config set provider_models.openrouter <slug>` and delete the line.
 
 ## Workspace Structure
 

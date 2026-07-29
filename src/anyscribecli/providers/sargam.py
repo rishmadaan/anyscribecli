@@ -36,12 +36,12 @@ class SargamProvider(TranscriptionProvider):
     Note: REST API limited to 30-second clips — audio is auto-chunked.
     """
 
-    # saaras:v3 (default) lives on /speech-to-text with a mode param; the old
-    # /speech-to-text-translate endpoint is legacy, kept only for saaras:v2.5.
-    # mode=translate preserves the historical translate-to-English behaviour.
-    # Both endpoints share the 30s sync limit, so chunking is identical.
+    # saaras:v3 lives on /speech-to-text with a mode param; mode=translate
+    # preserves the historical translate-to-English behaviour. The old
+    # /speech-to-text-translate endpoint (saaras:v2.5) is deprecated upstream
+    # and no longer reachable from here — see core/migrate.py for the pin fix.
     API_URL = "https://api.sarvam.ai/speech-to-text"
-    LEGACY_API_URL = "https://api.sarvam.ai/speech-to-text-translate"
+    DEFAULT_MODEL = "saaras:v3"
 
     @property
     def name(self) -> str:
@@ -58,20 +58,19 @@ class SargamProvider(TranscriptionProvider):
         self, audio_path: Path, language: str, api_key: str, diarize: bool = False
     ) -> dict:
         """Transcribe a single audio file via Sarvam API (must be <=30s)."""
-        model = self.model or "saaras:v3"
-        legacy = model == "saaras:v2.5"
         with open(audio_path, "rb") as f:
             files = {"file": (audio_path.name, f, "audio/mpeg")}
-            data: dict[str, str] = {"model": model}
-            if not legacy:
-                data["mode"] = "translate"
+            data: dict[str, str] = {
+                "model": self.model or self.DEFAULT_MODEL,
+                "mode": "translate",
+            }
             if language != "auto":
                 data["language_code"] = language
             # Note: diarization is Batch-API-only at Sarvam; neither sync
             # endpoint documents a with_diarization field, so none is sent.
 
             response = httpx.post(
-                self.LEGACY_API_URL if legacy else self.API_URL,
+                self.API_URL,
                 headers={"api-subscription-key": api_key},
                 files=files,
                 data=data,

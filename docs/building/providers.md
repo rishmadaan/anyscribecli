@@ -5,22 +5,30 @@
 ## Model Picker
 
 Every cloud provider has a pickable model list in
-`providers/__init__.py::PROVIDER_MODELS` (first entry = default; single-entry
-lists render no picker; `OPEN_MODEL_PROVIDERS` marks openrouter as freeform).
+`providers/__init__.py::PROVIDER_MODELS` (first entry = default;
+`OPEN_MODEL_PROVIDERS` marks openrouter as freeform). Read it through
+`get_models(name, settings.extra_models)`, never `PROVIDER_MODELS` directly —
+that merge is what makes user-added openrouter slugs visible in the pickers.
 Pin per-run with `--model/-m`, persistently via
 `settings.provider_models` (`scribe config set provider_models.<provider> <model>`),
-or in the Web UI (Transcribe + Settings). `get_provider(name, model)` validates
-and sets `provider.model`; providers read `self.model or <default>`.
+or in the Web UI (Transcribe + Settings). `validate_model(name, model, extra)`
+raises on an unknown model; `get_provider(name, model)` calls it and sets
+`provider.model`; providers read `self.model or <default>`.
+
+`settings.extra_models` is a `provider -> [slug]` map, **openrouter only** by
+owner decision (`core/config_set.py` rejects every other key). Rationale: an
+open-model provider forwards any slug, while a closed provider needs
+response-parsing code per model, so its catalog belongs to a release.
 
 | Provider | Default | Also pickable | Notes |
 |----------|---------|---------------|-------|
-| openai | whisper-1 | gpt-transcribe, gpt-4o-transcribe, gpt-4o-mini-transcribe | Non-whisper models have **no segment timestamps** (json-only) — whisper-1 stays default for timestamped/diarized output; gpt-transcribe is cheaper ($0.0045/min) + more accurate for clean text |
-| deepgram | nova-3 | — | hi-Latn still auto-routes to legacy `nova` |
-| elevenlabs | scribe_v2 | — | |
-| sargam | saaras:v3 | saaras:v2.5 | v3 on `/speech-to-text` + `mode=translate`; v2.5 pins the legacy deprecated endpoint |
-| openrouter | openai/gpt-audio-mini | gemini flash family, voxtral, gpt-audio + any slug (freeform) | old default `gpt-4o-audio-preview` was removed by OpenRouter |
+| openai | gpt-transcribe | whisper-1, gpt-4o-transcribe, gpt-4o-mini-transcribe | Non-whisper models have **no segment timestamps** (json-only). `core/resolve.py` auto-switches to whisper-1 when `output_format ∈ {timestamped, diarized}` and no per-run `-m` was given |
+| deepgram | nova-3 | nova-2 | hi-Latn still auto-routes to legacy `nova` |
+| elevenlabs | scribe_v2 | — | scribe_v1 removed upstream 2026-07-09, excluded |
+| sargam | saaras:v3 | — | always `/speech-to-text` + `mode=translate`; saaras:v2.5 and the legacy endpoint deleted, migration drops old pins |
+| openrouter | openai/gpt-audio-mini | gemini flash family, voxtral, gpt-audio + any slug (freeform) + `extra_models.openrouter` | old default `gpt-4o-audio-preview` was removed by OpenRouter; `OPENROUTER_MODEL` env var removed in 0.15.0 |
 | groq | whisper-large-v3-turbo | whisper-large-v3 | |
-| local | (settings.local_model) | tiny…large-v3, large-v3-turbo, distil-large-v3.5 | separate lifecycle: `scribe model pull`, HF cache |
+| local | (settings.local_model) | tiny…large-v3, large-v3-turbo, distil-large-v3.5 | `PROVIDER_MODELS["local"] = []`; separate lifecycle: `scribe model pull`, HF cache |
 
 ## Language Lists
 
@@ -52,17 +60,32 @@ Language Lists".
 ## Quality Routing
 
 `quality` (accuracy/balanced/cost/free) is a friendly alias that resolves to a
-provider in `core/quality.py::apply_quality`, mirroring the `--diarize → deepgram`
-auto-routing. `QUALITY_TIERS` maps: accuracy→elevenlabs, balanced→deepgram,
-cost→groq, free→local. Precedence: explicit `--provider` → `--diarize` →
-`quality` → configured provider. If the tier's provider has no key, it falls back
-to the configured provider (graceful, keyless users still work).
+provider; `custom` is the sentinel meaning "respect `settings.provider`".
+`QUALITY_TIERS` (`core/quality.py`) maps: accuracy→elevenlabs,
+balanced→deepgram, cost→groq, free→local.
+
+The whole ladder lives in **`core/resolve.py::resolve_run`** — one function, four
+surfaces (CLI, batch, web, MCP). Precedence: explicit `--provider` → `--diarize`
+→ `quality` tier → configured provider. It returns a `RunPlan(provider, model,
+via, notes)`; `via` ∈ `flag | diarize | quality: <tier> | config`. Nothing else
+should reimplement this ladder — that duplication is exactly what it replaced
+(`apply_quality` is gone).
+
+If the tier's provider has no key, `resolve_run` keeps `settings.provider` and
+appends a WARNING note (keyless users still run, but the fallback is now visible
+instead of silent).
+
+**The provider→custom invariant:** any write that sets a provider also sets
+`quality="custom"` in the same save — `core/config_set.py::set_value("provider", …)`
+(CLI/web/MCP all route through it) and `core/onboard_headless.py`. Without it a
+tier would silently re-override the user's choice on the next run.
 
 ## Provider-Specific Notes
 
 ### OpenAI (`providers/openai.py`)
-- Uses `whisper-1` model (default) or `gpt-4o-transcribe-diarize` when `diarize=True`
-- `verbose_json` response format, segment-level timestamps
+- `MODEL = "gpt-transcribe"` (default) or `gpt-4o-transcribe-diarize` when `diarize=True`
+- `NO_SEGMENT_MODELS` is the set `resolve_run` checks before falling back to `whisper-1` for timestamped/diarized output — keep it in sync when the catalog changes
+- `verbose_json` response format (whisper-1 only; the gpt-* models are json-only), segment-level timestamps
 - 25MB file limit — auto-chunked into 18-min segments (standard mode)
 - Diarize mode: `gpt-4o-transcribe-diarize` model, 25MB upload limit applies (same as standard)
 - Diarize response includes `speaker` field per segment
@@ -85,13 +108,13 @@ to the configured provider (graceful, keyless users still work).
 
 ### OpenRouter (`providers/openrouter.py`)
 - No dedicated STT endpoint — sends base64 audio to chat models
-- Default model: `openai/gpt-audio-mini` (pin any slug via the model picker; `OPENROUTER_MODEL` env var still honored, pinned model wins)
+- Default model: `openai/gpt-audio-mini` (pin any slug via the model picker; `settings.extra_models["openrouter"]` keeps user slugs in the picker). The `OPENROUTER_MODEL` env var was removed in 0.15.0 — the pin supersedes it
 - No timestamps returned — plain text only
 - Auto-chunked at 25MB (same `WHISPER_MAX_BYTES` threshold as OpenAI/ElevenLabs)
 - More expensive than dedicated STT APIs
 
 ### Sargam/Sarvam (`providers/sargam.py`)
-- Uses `saaras:v3` on `/speech-to-text` with `mode=translate`, so output is an **English translation**, not verbatim Hindi/Hinglish (same behaviour as the legacy `/speech-to-text-translate` endpoint, which Sarvam deprecated and which a `saaras:v2.5` pin still reaches).
+- Always `saaras:v3` on `/speech-to-text` with `mode=translate`, so output is an **English translation**, not verbatim Hindi/Hinglish (same behaviour as the legacy `/speech-to-text-translate` endpoint, which Sarvam deprecated). That legacy path and `LEGACY_API_URL` are deleted; `core/migrate.py::maybe_migrate_sargam_model` drops a stale `saaras:v2.5` pin on first run.
 - REST sync API limited to 30 seconds **exclusive** — a clip of exactly 30.0s is rejected. `SARVAM_MAX_DURATION = 28` chunks just under the boundary (raised from 30 in 0.10.1 after `v2.5` enforced the limit strictly).
 - Auto-chunks audio into 28s segments (different from the standard 18-min Whisper chunks)
 - `api-subscription-key` auth header

@@ -1,6 +1,5 @@
 import { useId, useState } from "react";
 import type { Provider } from "../api/types";
-import { hasModelChoice } from "../api/models";
 
 interface ModelInputProps {
   provider?: Provider;
@@ -14,9 +13,10 @@ const INPUT_CLS =
   "flex-1 bg-surface-raised border border-border rounded-md px-2.5 py-1.5 text-sm text-text font-mono outline-none focus:border-amber/40";
 
 /**
- * Model picker for one provider. Renders nothing unless there's a choice:
- * a <select> for fixed lists, a datalist-backed text input for openrouter
- * (any slug is valid). Local has its own model cards elsewhere.
+ * Model picker for one provider: a <select> for fixed lists (single-model
+ * providers show their one model), a datalist-backed text input for openrouter
+ * (any slug is valid). Renders nothing only when there is no list at all —
+ * i.e. local, whose model choice lives in its own cards.
  */
 export default function ModelInput({
   provider,
@@ -31,7 +31,8 @@ export default function ModelInput({
   const [focused, setFocused] = useState(false);
   const [draft, setDraft] = useState("");
 
-  if (!hasModelChoice(provider) || !provider) return null;
+  if (!provider || (!provider.freeform_model && provider.models.length === 0))
+    return null;
   const cls = className ?? INPUT_CLS;
 
   if (!provider.freeform_model) {
