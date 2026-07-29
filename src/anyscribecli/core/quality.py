@@ -7,7 +7,7 @@ provider wins. The tier is applied by `core/resolve.py`, which owns the whole
 provider ladder (flag > diarize > tier > config).
 
 `quality = "custom"` is the sentinel for "respect `settings.provider`": it is
-not a tier, so `apply_quality` finds no target and leaves the provider alone.
+not a tier, so `resolve_run` finds no target and leaves the provider alone.
 Setting a provider anywhere writes `quality = "custom"` in the same write, so
 the choice sticks instead of being overridden by a tier on the next run.
 """

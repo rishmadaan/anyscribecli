@@ -45,19 +45,30 @@ def maybe_migrate_media_to_downloads() -> bool:
 
 
 def maybe_migrate_sargam_model(settings) -> bool:
-    """Rewrite a pinned ``saaras:v2.5`` sargam model to ``saaras:v3``.
+    """Drop a pinned ``saaras:v2.5`` sargam model (v3 is the catalog default).
 
     Sarvam deprecated v2.5 along with its ``/speech-to-text-translate``
-    endpoint, so the pin would now fail at request time. v3 is the catalog
-    default, so the rewritten pin is redundant and gets dropped entirely.
-    Mutates and persists ``settings``; returns True if anything changed.
-    """
-    from anyscribecli.config.settings import save_config
+    endpoint, so the pin would now fail at request time.
 
+    Runs from ``load_config`` on the freshly-parsed state — BEFORE any caller
+    mutates settings with per-run flags and before any resolution reads the
+    pin. Running it later (it used to live in ``orchestrator.process``) had two
+    audit-confirmed failure modes: it persisted the caller's transient per-run
+    overrides into config.yaml, and the run that printed the migration notice
+    still failed on the stale pin captured at resolve time.
+
+    Only rewrites ``provider_models`` on disk via the YAML the settings just
+    came from; returns True if anything changed.
+    """
     if settings.provider_models.get("sargam") != "saaras:v2.5":
         return False
     settings.provider_models = {k: v for k, v in settings.provider_models.items() if k != "sargam"}
+    from anyscribecli.config.settings import save_config
+
     save_config(settings)
+    import sys
+
+    print("Sarvam saaras:v2.5 is retired — using saaras:v3", file=sys.stderr)
     return True
 
 

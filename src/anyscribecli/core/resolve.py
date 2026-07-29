@@ -37,9 +37,15 @@ def resolve_run(
     cli_model: str | None = None,
     diarize: bool = False,
 ) -> RunPlan:
-    """Resolve the provider + model for one run. Raises ValueError on a bad model."""
+    """Resolve the provider + model for one run. Raises ValueError on a bad
+    provider or model."""
+    from anyscribecli.providers import PROVIDER_REGISTRY
+
     notes: list[str] = []
     provider, via = settings.provider, "config"
+    # A per-run --diarize flag and a persisted diarize: true default must
+    # resolve identically — the run executes the same diarize branch either way.
+    diarize = diarize or settings.diarize
 
     if cli_provider:
         provider, via = cli_provider, "flag"
@@ -49,6 +55,11 @@ def resolve_run(
         if provider != "deepgram" and os.environ.get("DEEPGRAM_API_KEY"):
             notes.append(f"switched from {provider} to deepgram for diarization")
             provider, via = "deepgram", "diarize"
+        elif QUALITY_TIERS.get(settings.quality):
+            notes.append(
+                f"diarize: quality '{settings.quality}' tier skipped (its provider "
+                f"can't diarize) — using {provider}"
+            )
     else:
         tier = QUALITY_TIERS.get(settings.quality)
         if tier and has_key(tier):
@@ -58,6 +69,10 @@ def resolve_run(
                 f"WARNING: quality '{settings.quality}' wants {tier} but no "
                 f"{PROVIDER_KEY_ENV[tier]} is set — using {provider} instead"
             )
+
+    if provider not in PROVIDER_REGISTRY:
+        available = ", ".join(sorted(PROVIDER_REGISTRY))
+        raise ValueError(f"Unknown provider '{provider}'. Available: {available}")
 
     if cli_model:
         validate_model(provider, cli_model, settings.extra_models)

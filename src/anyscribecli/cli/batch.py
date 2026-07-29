@@ -172,6 +172,8 @@ def batch(
                     "failed": failed,
                     "provider": plan.provider,
                     "model": plan.model,
+                    "via": plan.via,
+                    "notes": plan.notes,
                     "results": results,
                 },
                 "error": None,

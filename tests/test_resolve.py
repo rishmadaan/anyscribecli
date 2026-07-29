@@ -244,3 +244,39 @@ def test_cli_rejects_an_unknown_model(tmp_path, monkeypatch):
 
     assert result.exit_code == 1
     assert "Unknown model 'nope'" in result.stderr
+
+
+def test_config_level_diarize_folds_into_resolution(monkeypatch):
+    # Persisted diarize: true must resolve like --diarize (audit finding).
+    from anyscribecli.config.settings import Settings
+    from anyscribecli.core.resolve import resolve_run
+
+    monkeypatch.setenv("DEEPGRAM_API_KEY", "k")
+    s = Settings(provider="openai", quality="custom", diarize=True, output_format="diarized")
+    plan = resolve_run(s)
+    assert plan.provider == "deepgram"
+    assert any("diarization" in n for n in plan.notes)
+    # And no false whisper-1 note when diarize drives the run
+    assert not any("whisper-1" in n for n in plan.notes)
+
+
+def test_diarize_without_deepgram_key_notes_skipped_tier(monkeypatch):
+    from anyscribecli.config.settings import Settings
+    from anyscribecli.core.resolve import resolve_run
+
+    monkeypatch.delenv("DEEPGRAM_API_KEY", raising=False)
+    monkeypatch.setenv("GROQ_API_KEY", "k")
+    s = Settings(provider="openai", quality="cost")
+    plan = resolve_run(s, diarize=True)
+    assert plan.provider == "openai"
+    assert any("tier skipped" in n for n in plan.notes)
+
+
+def test_unknown_provider_rejected_at_resolve():
+    import pytest as _pytest
+
+    from anyscribecli.config.settings import Settings
+    from anyscribecli.core.resolve import resolve_run
+
+    with _pytest.raises(ValueError, match="Unknown provider"):
+        resolve_run(Settings(), cli_provider="nope")

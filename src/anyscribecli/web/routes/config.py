@@ -79,11 +79,21 @@ async def get_config() -> dict:
 
 @router.put("/config")
 async def update_config(req: ConfigUpdateRequest):
+    from anyscribecli.config.paths import CONFIG_FILE
+
+    # set_value persists per field; snapshot config.yaml so a mixed
+    # valid+invalid payload rolls back instead of half-committing (a 422
+    # must mean "nothing was saved").
+    snapshot = CONFIG_FILE.read_bytes() if CONFIG_FILE.exists() else None
     for field_name, value in req.model_dump(exclude_unset=True).items():
         if value is None:
             continue
         outcome = set_value(field_name, value)
         if not outcome.ok:
+            if snapshot is not None:
+                CONFIG_FILE.write_bytes(snapshot)
+            elif CONFIG_FILE.exists():
+                CONFIG_FILE.unlink()
             return JSONResponse(
                 status_code=422,
                 content={"success": False, "error": outcome.error, "choices": outcome.choices},

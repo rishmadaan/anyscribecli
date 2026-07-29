@@ -140,6 +140,8 @@ def transcribe(
                     "word_count": result.word_count,
                     "provider": result.provider,
                     "model": plan.model,
+                    "via": plan.via,
+                    "notes": plan.notes,
                     "cached": result.cached,
                 },
                 "error": None,

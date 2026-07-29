@@ -192,3 +192,34 @@ def test_extra_models_round_trips_through_yaml(tmp_path):
     assert Settings.from_dict(yaml.safe_load(yaml.dump(s.to_dict()))).extra_models == {
         "openrouter": ["vendor/x"]
     }
+
+
+def test_load_config_migrates_stale_sargam_pin_before_callers_see_it(tmp_path, monkeypatch, capsys):
+    # The migration must run at load on fresh state (audit: running it inside
+    # process() persisted per-run flag mutations and the first run still
+    # failed on the stale pin).
+    import yaml as _yaml
+
+    import anyscribecli.config.settings as settings_mod
+
+    cfg = tmp_path / "config.yaml"
+    cfg.write_text(
+        _yaml.dump(
+            {
+                "provider": "sargam",
+                "quality": "balanced",
+                "provider_models": {"sargam": "saaras:v2.5"},
+            }
+        )
+    )
+    monkeypatch.setattr(settings_mod, "CONFIG_FILE", cfg)
+    loaded = settings_mod.load_config()
+    assert "sargam" not in loaded.provider_models  # callers never see the pin
+    on_disk = _yaml.safe_load(cfg.read_text())
+    assert on_disk["provider_models"] == {}
+    assert on_disk["quality"] == "balanced"  # nothing else rewritten
+    assert "saaras:v2.5 is retired" in capsys.readouterr().err
+    # Idempotent: second load makes no further writes
+    before = cfg.read_text()
+    settings_mod.load_config()
+    assert cfg.read_text() == before

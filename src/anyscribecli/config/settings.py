@@ -89,12 +89,21 @@ class Settings:
 
 
 def load_config() -> Settings:
-    """Load settings from config.yaml. Returns defaults if file doesn't exist."""
+    """Load settings from config.yaml. Returns defaults if file doesn't exist.
+
+    Config migrations run here, on the freshly-parsed state — before any
+    caller mutates the object with per-run overrides and before resolution
+    reads it. See migrate.maybe_migrate_sargam_model for why.
+    """
     if not CONFIG_FILE.exists():
         return Settings()
     with open(CONFIG_FILE) as f:
         data = yaml.safe_load(f) or {}
-    return Settings.from_dict(data)
+    settings = Settings.from_dict(data)
+    from anyscribecli.core.migrate import maybe_migrate_sargam_model
+
+    maybe_migrate_sargam_model(settings)
+    return settings
 
 
 def save_config(settings: Settings) -> None:

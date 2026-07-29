@@ -65,16 +65,12 @@ def process(
         maybe_migrate_workspace,
         maybe_migrate_media_to_downloads,
         maybe_flatten_date_folders,
-        maybe_migrate_sargam_model,
     )
 
     migrated = maybe_migrate_workspace()
     if migrated and not quiet:
         err_console.print(f"  [yellow]Workspace moved to {migrated}[/yellow]")
     maybe_migrate_media_to_downloads()
-
-    if maybe_migrate_sargam_model(settings) and not quiet:
-        err_console.print("  [yellow]Sarvam saaras:v2.5 is retired — using saaras:v3[/yellow]")
 
     flattened = maybe_flatten_date_folders()
     if flattened and not quiet:

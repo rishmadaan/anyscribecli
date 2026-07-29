@@ -113,6 +113,7 @@ def transcribe(
 def batch_transcribe(
     urls: list[str],
     provider: Optional[str] = None,
+    model: Optional[str] = None,
     language: Optional[str] = None,
     diarize: bool = False,
     stop_on_error: bool = False,
@@ -128,6 +129,7 @@ def batch_transcribe(
     Args:
         urls: List of YouTube/Instagram URLs or local file paths.
         provider: Override provider for all transcriptions.
+        model: Override the provider's model for all transcriptions.
         language: Override language for all transcriptions.
         diarize: Enable speaker diarization for multi-speaker transcripts.
         stop_on_error: Stop processing at first failure.
@@ -151,8 +153,10 @@ def batch_transcribe(
     if quality:
         settings.quality = quality
 
-    # No per-run model here, so resolve_run has nothing to reject.
-    plan = resolve_run(settings, cli_provider=provider, diarize=diarize)
+    try:
+        plan = resolve_run(settings, cli_provider=provider, cli_model=model, diarize=diarize)
+    except ValueError as e:
+        return json.dumps({"total": len(urls), "succeeded": 0, "failed": 0, "error": str(e)})
     settings.provider = plan.provider
 
     results = []

@@ -78,11 +78,13 @@ Before transcribing, scribe scans the vault for a transcript whose frontmatter `
   "word_count": 1500,
   "provider": "openai",
   "model": "gpt-transcribe",
+  "via": "config",
+  "notes": [],
   "cached": false
 }
 ```
 
-`model` is the model that actually ran — read it rather than assuming the pin, since scribe may have switched it (timestamps) or the provider may have come from a tier.
+`model` is the model that actually ran — read it rather than assuming the pin, since scribe may have switched it (timestamps) or the provider may have come from a tier. `via` says which rung picked the provider (`flag` | `diarize` | `quality: <tier>` | `config`), and `notes` carries every swap or warning in machine-readable form (keyless-tier fallback, whisper-1 timestamp switch, diarize routing) — surface any `WARNING:` note to the user even in `--quiet` runs. Batch `--json` carries the same two fields at the top level.
 
 When the source was already in the vault, the same shape comes back with `"cached": true` and the existing file's path.
 
