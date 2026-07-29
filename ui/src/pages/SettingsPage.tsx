@@ -21,6 +21,7 @@ import type {
   LocalStatusResponse,
 } from "../api/types";
 import LanguageInput from "../components/LanguageInput";
+import ModelInput, { defaultModelFor, hasModelChoice } from "../components/ModelInput";
 import LocalSetupModal from "../components/LocalSetupModal";
 import {
   Check,
@@ -323,6 +324,25 @@ export default function SettingsPage() {
               )}
             </div>
           </SettingRow>
+
+          {hasModelChoice(selectedProvider) && (
+            <SettingRow label="Model">
+              <ModelInput
+                provider={selectedProvider}
+                value={defaultModelFor(selectedProvider, config.provider_models)}
+                onChange={(v) =>
+                  handleSave({
+                    provider_models: {
+                      ...(config.provider_models ?? {}),
+                      [config.provider]: v,
+                    },
+                  })
+                }
+                disabled={saving}
+                className="bg-surface-raised border border-border rounded-md px-2.5 py-1.5 text-sm text-text font-mono outline-none focus:border-amber/40 w-48"
+              />
+            </SettingRow>
+          )}
 
           <SettingRow label="Default language">
             <LanguageInput

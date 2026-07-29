@@ -11,6 +11,7 @@ export interface Config {
   local_file_media: string;
   workspace_path: string;
   local_model: string;
+  provider_models: Record<string, string>;
   instagram: { browser: string };
   _resolved_workspace?: string;
 }
@@ -22,6 +23,8 @@ export interface Provider {
   set_up: boolean;
   key_in_env_file?: boolean; // key is saved in .env (removable), not just inherited
   key_url?: string;
+  models: string[]; // pickable model ids; first is the provider default
+  freeform_model: boolean; // any slug is valid (openrouter) → text input, not select
 }
 
 export interface ModelSpec {
@@ -146,6 +149,7 @@ export interface ProviderLanguagesResponse {
 export interface TranscribeRequest {
   url: string;
   provider?: string;
+  model?: string;
   quality?: string;
   language?: string;
   diarize?: boolean;

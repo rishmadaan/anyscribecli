@@ -186,7 +186,7 @@ Hard-coded constants and where they live:
 | Whisper duration trigger | 30 min (`WHISPER_MAX_DURATION_SECONDS`) | `core/audio.py:16` | HTTP timeout ceiling |
 | Chunk length / overlap | 18 min / 5 s | `core/audio.py:20,23` | Stays under 25 MB at 64 kbps |
 | Sarvam chunk | 30 s (`SARVAM_MAX_DURATION`) | `providers/sargam.py:27` | Sarvam sync REST cap |
-| Provider model IDs | `whisper-1`, `gpt-4o-transcribe-diarize`, `nova-3`/`nova`, `scribe_v2`, `saaras:v2`, `whisper-large-v3-turbo` (groq) | each `providers/*.py` | Pinned per provider (the `quality` tier picks the provider, not the model) |
+| Provider model IDs | `PROVIDER_MODELS` in `providers/__init__.py` (defaults: `whisper-1`, `nova-3`/`nova`, `scribe_v2`, `saaras:v3`, `openai/gpt-audio-mini`, `whisper-large-v3-turbo`); diarize pins `gpt-4o-transcribe-diarize` | `providers/__init__.py` + each `providers/*.py` | Pickable since 0.14.0 via `settings.provider_models` / `--model`; the `quality` tier still picks the provider, the pin rides on top |
 | App home | `~/.anyscribecli` | `config/paths.py:6` | Fixed root for config + state |
 | Web bind host | `127.0.0.1` (port is configurable via `--port`) | `web/app.py:63` | Localhost-only by design; server has no auth |
 | Registries | provider & downloader plugin tables | `providers/__init__.py`, `downloaders/registry.py` | Code-level extension points |

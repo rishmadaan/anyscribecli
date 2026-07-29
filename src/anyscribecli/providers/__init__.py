@@ -32,9 +32,35 @@ PROVIDER_KEY_ENV: dict[str, str | None] = {
     "local": None,
 }
 
+# Canonical provider -> pickable model ids. First entry is the provider's
+# default; a single-entry list means "no picker" (UI hides the dropdown).
+# "local" is empty because local model choice lives in settings.local_model
+# with its own download/cache lifecycle (scribe model pull, Web UI cards).
+# Verified against provider docs 2026-07-29 — see journal entry of that date.
+PROVIDER_MODELS: dict[str, list[str]] = {
+    "openai": ["whisper-1", "gpt-transcribe", "gpt-4o-transcribe", "gpt-4o-mini-transcribe"],
+    "deepgram": ["nova-3"],
+    "elevenlabs": ["scribe_v2"],
+    "sargam": ["saaras:v3", "saaras:v2.5"],
+    "openrouter": [
+        "openai/gpt-audio-mini",
+        "google/gemini-2.5-flash-lite",
+        "google/gemini-2.5-flash",
+        "google/gemini-3-flash-preview",
+        "mistralai/voxtral-small-24b-2507",
+        "openai/gpt-audio",
+    ],
+    "groq": ["whisper-large-v3-turbo", "whisper-large-v3"],
+    "local": [],
+}
 
-def get_provider(name: str) -> TranscriptionProvider:
-    """Get an instantiated provider by name."""
+# Providers whose model list is open-ended (any slug the service accepts is
+# valid), so a pinned model outside PROVIDER_MODELS is allowed through.
+OPEN_MODEL_PROVIDERS = {"openrouter"}
+
+
+def get_provider(name: str, model: str | None = None) -> TranscriptionProvider:
+    """Get an instantiated provider by name, optionally pinned to a model."""
     if name not in PROVIDER_REGISTRY:
         available = ", ".join(sorted(PROVIDER_REGISTRY.keys()))
         raise ValueError(f"Unknown provider '{name}'. Available: {available}")
@@ -44,7 +70,15 @@ def get_provider(name: str) -> TranscriptionProvider:
 
     module = importlib.import_module(module_path)
     provider_class = getattr(module, class_name)
-    return provider_class()
+    provider = provider_class()
+    if model:
+        known = PROVIDER_MODELS.get(name, [])
+        if known and model not in known and name not in OPEN_MODEL_PROVIDERS:
+            raise ValueError(
+                f"Unknown model '{model}' for provider '{name}'. Available: {', '.join(known)}"
+            )
+        provider.model = model
+    return provider
 
 
 def list_providers() -> list[str]:

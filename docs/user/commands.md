@@ -33,6 +33,7 @@ Every scribe command. Copy-paste friendly.
 | `scribe logs` | View recent transcription activity + recovery artifacts |
 | `scribe config show` | View current settings |
 | `scribe config set <key> <value>` | Change a setting |
+| `scribe config set provider_models.<provider> <model>` | Pin which model a provider uses |
 | `scribe config path` | Print config file location |
 | `scribe providers list` | Show available providers |
 | `scribe providers test [name]` | Test a provider's API key |
@@ -171,6 +172,7 @@ scribe --clipboard
 |------|-------|-------------|---------|
 | `--quality` | | Quality preset: `accuracy` \| `balanced` \| `cost` \| `free` (picks a provider) | From config (balanced) |
 | `--provider` | `-p` | Explicit provider — overrides `--quality` | From config |
+| `--model` | `-m` | Specific model to use within that provider | The provider's default |
 | `--language` | `-l` | Language code for transcription | `auto` (auto-detect) |
 | `--json` | `-j` | Output result as JSON | Off |
 | `--keep-media` | | Keep the downloaded audio file | From config (false) |
@@ -178,6 +180,34 @@ scribe --clipboard
 | `--force` | `-f` | Re-transcribe even if this source was already transcribed | Off |
 | `--quiet` | `-q` | No progress output (just the result) | Off |
 | `--clipboard` | `-c` | Read URL from system clipboard | Off |
+
+### Choosing a model (`--model`)
+
+A **provider** is the service that does the transcribing (OpenAI, Deepgram, Groq...). A **model** is the specific engine inside that service. Each provider has a default model that scribe uses unless you say otherwise — you can ignore this entirely and everything still works.
+
+Use `--model` (short: `-m`) when you want a different one for a single run:
+
+```bash
+# OpenAI's newer model — cheaper and more accurate than the default
+scribe "https://youtube.com/watch?v=abc123" -p openai -m gpt-transcribe
+
+# Groq's more accurate (slightly slower) model
+scribe "https://youtube.com/watch?v=abc123" -p groq -m whisper-large-v3
+```
+
+To see what's available, run:
+
+```bash
+scribe providers list
+```
+
+That prints every provider, the model it's currently using, and the other models you can pick.
+
+> **Want it every time?** `--model` only affects the one run. To make it stick, see [`scribe config set provider_models`](#pinning-a-model-per-provider) below.
+
+> **Heads up on timestamps.** OpenAI's `gpt-transcribe`, `gpt-4o-transcribe`, and `gpt-4o-mini-transcribe` don't return timestamps. If your output format is `timestamped` or `diarized`, you'll get plain paragraphs with no `[mm:ss]` markers. The default `whisper-1` keeps timestamps — that's why it's still the default. See [providers.md](providers.md) for the full picture.
+
+> **The `local` provider is different.** Its models are downloaded to your machine, so you pick them with `scribe local setup --model <size>` and `scribe model pull <size>`, not with `-m`.
 
 > **Already transcribed something? scribe won't do it twice.** Before transcribing, scribe checks your vault for a transcript of the same URL or file (it matches the `source:` line in each note's frontmatter — the metadata block at the top). If it finds one, it hands you back that existing file instead of spending time and API credits re-transcribing. You'll see `Already transcribed: <path> — use --force to re-transcribe.` To force a fresh transcription anyway (say you switched providers, or the video was re-uploaded), add `--force`.
 
@@ -318,6 +348,7 @@ scribe batch urls.txt
 |------|-------|-------------|---------|
 | `--quality` | | Quality preset: `accuracy` \| `balanced` \| `cost` \| `free` | From config |
 | `--provider` | `-p` | Override provider (wins over `--quality`) | From config |
+| `--model` | `-m` | Specific model within that provider, applied to every URL in the batch | The provider's default |
 | `--language` | `-l` | Override language | `auto` |
 | `--json` | `-j` | Output results as JSON | Off |
 | `--keep-media` | | Keep audio files | From config |
@@ -352,6 +383,9 @@ scribe batch urls.txt --json
 
 # Cap each URL at 5 minutes — slow ones fail and the batch keeps going
 scribe batch urls.txt --timeout 300
+
+# Run the whole batch on a cheaper model
+scribe batch urls.txt -p openai -m gpt-4o-mini-transcribe
 ```
 
 > **A timed-out URL doesn't stop cleanly mid-download or mid-transcription** — scribe can't kill that work outright, so it abandons it and moves on. This is fine for a normal batch run; just know the timed-out attempt may still be using network/API resources briefly in the background.
@@ -535,6 +569,9 @@ scribe config set language hi
 scribe config set deepgram_api_key YOUR_KEY
 scribe config set openai_api_key YOUR_KEY
 
+# Pin a model for a provider (see below)
+scribe config set provider_models.openai gpt-transcribe
+
 # Set Instagram browser (for cookie-based downloads)
 scribe config set instagram.browser firefox
 
@@ -542,7 +579,30 @@ scribe config set instagram.browser firefox
 scribe config show --json
 ```
 
-> **Dot-notation:** Use dots for nested keys like `instagram.browser`.
+### Pinning a model per provider
+
+`--model` on a single command is temporary. To make a model choice permanent, set it in your config:
+
+```bash
+scribe config set provider_models.openai gpt-transcribe
+scribe config set provider_models.groq whisper-large-v3
+```
+
+The key is `provider_models.` followed by the provider name. Each provider gets its own entry, so if you switch between providers, each one remembers the model you picked for it. Anything you haven't set keeps that provider's default.
+
+If you type a model that provider doesn't have, scribe refuses the change and prints the list of valid ones:
+
+```
+Unknown model 'whisper-2' for openai. Available: whisper-1, gpt-transcribe, gpt-4o-transcribe, gpt-4o-mini-transcribe
+```
+
+> **OpenRouter is the exception.** It accepts any audio-capable model slug, so scribe doesn't check it — a typo won't be caught until the request reaches OpenRouter.
+
+> **For the `local` provider, use `local_model` instead** (`scribe config set local_model small`). Local models are downloaded to your machine, so they have their own commands — see `scribe model` below.
+
+See [configuration.md](configuration.md) for the full setting reference and [providers.md](providers.md) for what each model is good at.
+
+> **Dot-notation:** Use dots for nested keys like `instagram.browser` and `provider_models.openai`.
 >
 > **API keys:** `scribe config set` also accepts API key names (e.g., `deepgram_api_key`, `openai_api_key`, `elevenlabs_api_key`, `sargam_api_key`, `groq_api_key`, `openrouter_api_key`). These are stored in `~/.anyscribecli/.env`, not in config.yaml.
 
@@ -563,6 +623,25 @@ scribe providers test openai   # test a specific provider
 | Command | Flag | Short | Description |
 |---------|------|-------|-------------|
 | `providers list` | `--json` | `-j` | Output provider list as JSON |
+
+### What `providers list` shows
+
+```
+        Transcription Providers
+Provider    Model             Also available            Active
+deepgram    nova-3                                      Active
+openai      whisper-1         gpt-transcribe, ...
+...
+```
+
+| Column | Meaning |
+|--------|---------|
+| **Provider** | The service name you'd pass to `--provider` |
+| **Model** | The model that would actually be used right now — your pinned model if you set one, otherwise that provider's default |
+| **Also available** | The other models you could switch to with `-m` or `provider_models` |
+| **Active** | Marks your current default provider |
+
+This is the quickest way to check what a run will use before you start it.
 
 ### Available Providers
 
@@ -594,7 +673,7 @@ Installs faster-whisper into the same Python environment as scribe, downloads th
 
 | Flag | Description |
 |------|-------------|
-| `--model`, `-m` | **Required.** Whisper size: `tiny`, `base`, `small`, `medium`, `large-v3`. Recommended: `base`. No default — the CLI refuses to pick silently. |
+| `--model`, `-m` | **Required.** Whisper size: `tiny`, `base`, `small`, `medium`, `large-v3`, `large-v3-turbo`, `distil-large-v3.5`. Recommended: `base`. No default — the CLI refuses to pick silently. |
 | `--yes`, `-y` | Skip the confirmation prompt. Required in non-TTY (agent) contexts. |
 | `--json`, `-j` | Stream NDJSON progress events to stdout (one JSON object per phase). |
 
@@ -620,6 +699,10 @@ Uninstalls faster-whisper via the same method it was installed with, deletes eve
 
 Day-to-day management of the Whisper cache. Requires `scribe local setup` to have run first (otherwise `pull` and `rm` error out with a hint pointing you at setup).
 
+Valid sizes: `tiny`, `base`, `small`, `medium`, `large-v3`, `large-v3-turbo`, `distil-large-v3.5`. See [providers.md → Local](providers.md) for download sizes, RAM needs, and speed.
+
+> **This is offline models only.** Cloud providers' models don't need downloading — you pick those with `-m` or `provider_models` (see above).
+
 ### scribe model list
 
 ```bash
@@ -633,7 +716,7 @@ Shows every size with cache status, disk usage, and which one is your default.
 
 ```bash
 scribe model pull small
-scribe model pull large-v3 --json
+scribe model pull large-v3-turbo --json
 ```
 
 Downloads an additional model into the cache. Idempotent — re-running on a cached size returns `{status: "already_present"}`.

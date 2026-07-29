@@ -21,6 +21,7 @@ err_console = Console(stderr=True)
 def batch(
     file: Path = typer.Argument(..., help="File containing URLs or file paths (one per line)."),
     provider: str | None = typer.Option(None, "--provider", "-p", help="Override provider."),
+    model: str | None = typer.Option(None, "--model", "-m", help="Override the provider's model."),
     quality: str | None = typer.Option(
         None, "--quality", help="Quality preset: accuracy | balanced | cost | free."
     ),
@@ -108,6 +109,9 @@ def batch(
     from anyscribecli.core.quality import apply_quality
 
     apply_quality(settings, explicit_provider=bool(provider) or diarize)
+
+    if model:
+        settings.provider_models = {**settings.provider_models, settings.provider: model}
 
     results: list[dict] = []
     succeeded = 0

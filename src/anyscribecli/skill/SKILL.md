@@ -44,6 +44,8 @@ When the USER wants to run commands themselves, show them the human-readable for
 |---|---|
 | Transcribe a URL or local file | `scribe "url"` or `scribe /path/to/file` |
 | Pick accuracy vs cost | `scribe "url" --quality accuracy\|balanced\|cost\|free` (default `balanced` → Deepgram; picks the provider) |
+| Pin a specific model for one run | `scribe "url" -p <provider> -m <model>` *(see "Picking a Model" below)* |
+| Pin a model permanently | `scribe config set provider_models.<provider> <model>` |
 | Transcribe with speaker diarization | `scribe "url" --diarize` (auto-routes to Deepgram if configured) |
 | Hindi / Hinglish with speakers | `scribe "url" --diarize --language hi-Latn` — **always use this combo for Hindi content with multiple speakers** |
 | Re-transcribe a source already in the vault | `scribe "url" --force` (skips the "already transcribed" shortcut) |
@@ -100,7 +102,7 @@ scribe onboard --provider local --local-model base --yes --json
 
 The `local` provider runs Whisper on the user's own machine via `faster-whisper` — no API, no network. It's **opt-in** and requires a one-time setup that installs `faster-whisper` and downloads a Whisper model.
 
-**Critical rule — you must pass `--model` explicitly.** `scribe local setup` refuses to pick a model silently; it exits 2 with a hint if `--model` is omitted. When the user hasn't specified a size, default to the recommended model: **`base`**. It's a ~145 MB download, runs on modest CPUs, and produces good results for most content. Only escalate to `small`/`medium`/`large-v3` if the user mentions quality is insufficient, tricky accents, or critical recordings.
+**Critical rule — you must pass `--model` explicitly.** `scribe local setup` refuses to pick a model silently; it exits 2 with a hint if `--model` is omitted. When the user hasn't specified a size, default to the recommended model: **`base`**. It's a ~145 MB download, runs on modest CPUs, and produces good results for most content. Only escalate if the user mentions quality is insufficient, tricky accents, or critical recordings — try `small` first, then `large-v3-turbo` (~1.6 GB, near `large-v3` quality at ~6x realtime on CPU) or `distil-large-v3.5` (~1.5 GB, near `large-v3` for English only). `large-v3` is the ceiling but the slowest on CPU.
 
 **Setup from agent context:**
 
@@ -169,6 +171,39 @@ When the user asks which provider to use, or when you need to suggest one:
 | Specific model needed | **openrouter** | Access to various models, but slower and pricier |
 
 For detailed provider comparison (pricing, limits, setup), read [references/providers.md](references/providers.md).
+
+## Picking a Model
+
+Each cloud provider has a small list of pickable models. The **first is the default** — if the user never mentions a model, leave it alone and say nothing. Only reach for `-m` when the user asks for cheaper, more accurate, or a specific model.
+
+```bash
+scribe "url" -p openai -m gpt-transcribe --json --quiet   # one run
+scribe config set provider_models.openai gpt-transcribe   # every run from now on
+```
+
+`-m` pins the model on whichever provider handles that run, and `--model` works the same on `scribe batch`. `scribe providers list --json` shows each provider's current model plus its alternatives — run it before you guess.
+
+**OpenAI — the one real decision:**
+
+| User wants | Use | Why |
+|---|---|---|
+| Default / anything with timestamps | `whisper-1` | The only OpenAI model that returns segment timestamps |
+| Cheaper *and* more accurate plain text | `gpt-transcribe` | $0.0045/min vs $0.006/min, roughly half Whisper's error rate |
+| Cheapest OpenAI option | `gpt-4o-mini-transcribe` | $0.003/min, lower accuracy than `gpt-transcribe` |
+
+**Hard rule — timestamps.** `gpt-transcribe`, `gpt-4o-transcribe`, and `gpt-4o-mini-transcribe` do **not** return segment timestamps. If `output_format` is `timestamped` or `diarized`, or the user passes `--diarize`, those models produce plain text with no `[mm:ss]` markers. Check `scribe config show` before recommending one; if the user wants timestamps, keep `whisper-1`.
+
+> `gpt-live-transcribe` is a realtime/streaming model on OpenAI's Realtime API. scribe transcribes files, so it is not supported — don't offer it.
+
+**Other providers, in one line each:**
+
+- **deepgram** (`nova-3`) and **elevenlabs** (`scribe_v2`) have one model each — nothing to pick.
+- **sargam**: `saaras:v3` (default, best Indic accuracy). `saaras:v2.5` only if the user explicitly wants the legacy endpoint.
+- **groq**: `whisper-large-v3-turbo` (default, cheapest/fastest) or `whisper-large-v3` for higher accuracy.
+- **openrouter**: accepts *any* audio-capable slug, not just the listed ones — a typo will fail at the API, not at scribe. Default `openai/gpt-audio-mini`.
+- **local**: model choice is separate — it's `scribe local setup --model <size>` / `scribe model pull <size>`, not `-m`.
+
+Diarization on OpenAI always routes to `gpt-4o-transcribe-diarize` internally regardless of the pinned model — that's automatic, not something to set.
 
 ## Handling Transcription Results
 

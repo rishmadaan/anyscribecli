@@ -80,7 +80,12 @@ class LocalProvider(TranscriptionProvider):
         except ImportError:
             pass
 
-        return WhisperModel(model_size, device=device, compute_type=compute_type)
+        # Load by HF repo id, not size alias — newer sizes (large-v3-turbo,
+        # distil-large-v3.5) aren't in every faster-whisper alias table, and the
+        # repo id hits the exact cache entry `scribe model pull` downloaded.
+        from anyscribecli.providers.local_models import MODEL_REPOS
+
+        return WhisperModel(MODEL_REPOS[model_size], device=device, compute_type=compute_type)
 
     def transcribe(
         self, audio_path: Path, language: str = "auto", diarize: bool = False

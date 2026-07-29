@@ -104,7 +104,7 @@ scribe download "https://www.youtube.com/watch?v=VIDEO_ID" --audio-only  # audio
 |---------|-------------|
 | `scribe onboard` | Interactive setup wizard (TUI) |
 | `scribe onboard --provider X --api-key $KEY --yes` | Headless setup for agents / CI |
-| `scribe transcribe "<url or file>"` | Transcribe a video or local file to markdown |
+| `scribe transcribe "<url or file>"` | Transcribe a video or local file to markdown (`-p` picks a provider, `-m` a specific model, e.g. `-p openai -m gpt-transcribe`) |
 | `scribe download "<url>"` | Download video or audio only |
 | `scribe batch <file>` | Batch transcribe URLs or file paths from a file |
 | `scribe rm <path-or-slug>` | Delete a transcript and update the index |

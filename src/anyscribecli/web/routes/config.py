@@ -18,7 +18,13 @@ from anyscribecli.config.settings import (
     save_env,
 )
 from anyscribecli.core.local_setup import local_ready
-from anyscribecli.providers import PROVIDER_KEY_ENV, PROVIDER_REGISTRY, list_providers
+from anyscribecli.providers import (
+    OPEN_MODEL_PROVIDERS,
+    PROVIDER_KEY_ENV,
+    PROVIDER_MODELS,
+    PROVIDER_REGISTRY,
+    list_providers,
+)
 from anyscribecli.providers.languages import PROVIDER_LANGUAGES
 from anyscribecli.providers.local_models import (
     faster_whisper_importable,
@@ -103,6 +109,10 @@ async def get_providers() -> list[dict]:
                 "set_up": set_up,
                 "key_in_env_file": key_in_env_file,
                 "key_url": PROVIDER_SIGNUP_URLS.get(name),
+                # Pickable models; first is the default. Empty for "local"
+                # (its model choice lives in local_model + the model cards).
+                "models": PROVIDER_MODELS.get(name, []),
+                "freeform_model": name in OPEN_MODEL_PROVIDERS,
             }
         )
     return result

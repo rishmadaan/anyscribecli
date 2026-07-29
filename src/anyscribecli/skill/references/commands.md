@@ -18,6 +18,7 @@ scribe transcribe "<url>"             # Explicit subcommand (also works)
 |------|-------|-------------|---------|
 | `--quality` | | Quality preset: accuracy \| balanced \| cost \| free (picks a provider) | From config (accuracy) |
 | `--provider` | `-p` | Override provider: openai, deepgram, elevenlabs, sargam, groq, openrouter, local (wins over `--quality`) | From config |
+| `--model` | `-m` | Pin the model for this run (see [providers.md](providers.md) for each provider's list) | Provider default, or `provider_models` in config |
 | `--language` | `-l` | Language code (en, es, fr, hi, hi-Latn, etc.) or "auto" | From config (auto) |
 | `--json` | `-j` | Output result as JSON | Off |
 | `--keep-media` | | Keep downloaded audio in `~/.anyscribecli/downloads/audio/` | From config |
@@ -25,6 +26,24 @@ scribe transcribe "<url>"             # Explicit subcommand (also works)
 | `--force` | `-f` | Re-transcribe even if this source was already transcribed | Off |
 | `--quiet` | `-q` | Suppress progress output | Off |
 | `--clipboard` | `-c` | Read URL from system clipboard | Off |
+
+### Model selection (`--model` / `-m`)
+
+`-m` pins the model on whichever provider ends up handling the run — the one from `-p`, from `--quality`, or from config. Precedence, highest first:
+
+1. `-m` on the command line
+2. `provider_models.<provider>` in `config.yaml`
+3. The provider's built-in default (first entry in its model list)
+
+```bash
+scribe "url" -p openai -m gpt-transcribe          # cheaper + more accurate, no timestamps
+scribe "url" -p groq -m whisper-large-v3          # higher accuracy than the turbo default
+scribe "url" -p openrouter -m google/gemini-2.5-flash
+```
+
+Unknown models are rejected before any download or API call, with the valid list in the error — **except `openrouter`**, which accepts any slug and only fails at the API. Providers with one model (`deepgram`, `elevenlabs`) accept only that model. `local` has no `-m`: use `scribe local setup --model <size>` or `scribe config set local_model <size>`.
+
+**Timestamp caveat:** `gpt-transcribe`, `gpt-4o-transcribe`, and `gpt-4o-mini-transcribe` don't return segment timestamps. With `output_format: timestamped` / `diarized` they silently produce plain text. `whisper-1` is the default precisely because it keeps timestamps.
 
 ### Duplicate detection
 
@@ -78,6 +97,9 @@ scribe ~/recordings/meeting.m4a
 
 # Override provider for one transcription
 scribe "https://youtube.com/watch?v=abc123" --provider elevenlabs
+
+# Override provider AND model for one transcription
+scribe "https://youtube.com/watch?v=abc123" -p openai -m gpt-transcribe
 
 # Force language detection
 scribe "https://youtube.com/watch?v=abc123" --language hi
@@ -145,6 +167,7 @@ https://youtube.com/watch?v=def456
 | Flag | Short | Description | Default |
 |------|-------|-------------|---------|
 | `--provider` | `-p` | Override provider | From config |
+| `--model` | `-m` | Pin the model for every URL in the batch | Provider default, or `provider_models` in config |
 | `--language` | `-l` | Override language | auto |
 | `--json` | `-j` | Output as JSON | Off |
 | `--keep-media` | | Keep audio files | From config |
@@ -174,6 +197,9 @@ Sources already in the vault are skipped (returned from cache) unless `--force` 
 ```bash
 # Cap each URL at 5 minutes; stop-on-error not set, so it moves to the next one
 scribe batch urls.txt --timeout 300
+
+# Run the whole batch on a cheaper model
+scribe batch urls.txt -p openai -m gpt-4o-mini-transcribe --json --quiet
 ```
 
 ---
@@ -340,6 +366,8 @@ scribe config path                      # Print config file location
 | Key | Values | Description |
 |-----|--------|-------------|
 | `provider` | openai, deepgram, elevenlabs, sargam, groq, openrouter, local | Default transcription provider |
+| `provider_models.<provider>` | a model id from that provider's list | Pin a model for one provider (see below) |
+| `local_model` | tiny, base, small, medium, large-v3, large-v3-turbo, distil-large-v3.5 | Default offline Whisper size (must already be cached) |
 | `language` | auto, en, es, fr, hi, ar, zh, ja, ko, ... | Default language |
 | `keep_media` | true, false | Keep audio after transcription |
 | `output_format` | clean, timestamped, diarized | Transcript format |
@@ -365,6 +393,18 @@ API key names are also accepted — they are stored in `~/.anyscribecli/.env`, n
 scribe config set deepgram_api_key YOUR_KEY
 ```
 
+### Pinning a model per provider
+
+```bash
+scribe config set provider_models.openai gpt-transcribe
+scribe config set provider_models.groq whisper-large-v3
+scribe config set provider_models.sargam saaras:v2.5
+```
+
+The key is `provider_models.<provider>` — one pin per provider, so switching providers keeps each one's chosen model. A provider with no entry uses its built-in default. Invalid models exit 1 with the valid list; `openrouter` accepts any slug. `deepgram` and `elevenlabs` have exactly one model, so pinning is a no-op. `provider_models.local` is rejected — use `local_model`.
+
+See [config.md](config.md) for the resulting `config.yaml` shape and [providers.md](providers.md) for each provider's models.
+
 ---
 
 ## scribe providers
@@ -377,6 +417,23 @@ scribe providers list --json            # Output as JSON
 scribe providers test                   # Test active provider
 scribe providers test <name>            # Test a specific provider
 ```
+
+`providers list` prints four columns: **Provider**, **Model** (the one in effect — the pin from `provider_models` if set, otherwise the provider's default), **Also available** (its other models), and **Active**.
+
+`--json` gives you the same thing per provider — use this instead of guessing model names:
+
+```json
+[
+  {
+    "name": "openai",
+    "active": true,
+    "model": "whisper-1",
+    "models": ["whisper-1", "gpt-transcribe", "gpt-4o-transcribe", "gpt-4o-mini-transcribe"]
+  }
+]
+```
+
+`model` is what a run would actually use; `models` is the full pickable list (empty for `local`, whose sizes come from `scribe model list`).
 
 ---
 
@@ -394,7 +451,7 @@ scribe local teardown --yes --json               # Reverse setup
 
 | Flag | Short | Description | Default |
 |------|-------|-------------|---------|
-| `--model` | `-m` | **Required.** `tiny`, `base`, `small`, `medium`, `large-v3`. Recommended: `base`. | *none — must specify* |
+| `--model` | `-m` | **Required.** `tiny`, `base`, `small`, `medium`, `large-v3`, `large-v3-turbo`, `distil-large-v3.5`. Recommended: `base`. | *none — must specify* |
 | `--yes` | `-y` | Skip confirmation. Required in non-TTY contexts. | Off |
 | `--json` | `-j` | NDJSON progress events on stdout. | Off |
 
@@ -417,7 +474,11 @@ Always exits 0. Reports `set_up`, `faster_whisper_installed`, `faster_whisper_ve
 
 ## scribe model
 
-Cache management for Whisper models. All subcommands accept `--json`.
+Cache management for offline Whisper models. All subcommands accept `--json`.
+
+Valid sizes: `tiny`, `base`, `small`, `medium`, `large-v3`, `large-v3-turbo`, `distil-large-v3.5`. See [providers.md](providers.md) for the size/RAM/speed table.
+
+> This is the **local** provider only. Cloud provider models are picked with `-m` / `provider_models` — nothing to download.
 
 ```bash
 scribe model list --json                      # Show every size + cache state
@@ -455,7 +516,7 @@ scribe onboard --provider local --local-model base --yes --json
 | `--yes` / `-y` | yes (to opt in) | off | Turn on headless mode. |
 | `--provider` / `-p` | yes | none | `openai`, `deepgram`, `elevenlabs`, `sargam`, `openrouter`, `local`. |
 | `--api-key` | for API providers (or env var) | none | Stored in `.env`. Prefer the env-var form. |
-| `--local-model` | yes when `--provider=local` | none | `tiny`, `base`, `small`, `medium`, `large-v3`. Recommended: `base`. |
+| `--local-model` | yes when `--provider=local` | none | `tiny`, `base`, `small`, `medium`, `large-v3`, `large-v3-turbo`, `distil-large-v3.5`. Recommended: `base`. |
 | `--workspace` | no | `~/anyscribe` | Obsidian vault path. |
 | `--language` | no | `auto` | Default language code. |
 | `--keep-media` / `--no-keep-media` | no | off | Keep downloaded audio after transcription. |

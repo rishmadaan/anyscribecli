@@ -21,6 +21,9 @@ def transcribe(
     provider: Optional[str] = typer.Option(
         None, "--provider", "-p", help="Override transcription provider."
     ),
+    model: Optional[str] = typer.Option(
+        None, "--model", "-m", help="Override the provider's model (see `scribe providers`)."
+    ),
     quality: Optional[str] = typer.Option(
         None, "--quality", help="Quality preset: accuracy | balanced | cost | free."
     ),
@@ -107,6 +110,10 @@ def transcribe(
     from anyscribecli.core.quality import apply_quality
 
     apply_quality(settings, explicit_provider=bool(provider) or diarize)
+
+    # Model pin applies to whichever provider won the resolution above.
+    if model:
+        settings.provider_models = {**settings.provider_models, settings.provider: model}
 
     try:
         result = process(url, settings, quiet=quiet, force=force)

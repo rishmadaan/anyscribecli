@@ -125,6 +125,48 @@ Recovery artifacts show up in a separate section from the activity log. Re-run
 fresh audio, or just delete the file if you've moved on — it's not referenced by
 anything else.
 
+### Timestamped or diarized output came out as plain paragraphs
+
+The pinned model doesn't return segment timestamps, so there's nothing for scribe to render `[mm:ss]` markers from. On OpenAI that's `gpt-transcribe`, `gpt-4o-transcribe`, and `gpt-4o-mini-transcribe`; `sargam` and `openrouter` never return them either.
+
+**Check what model is actually in effect:**
+```bash
+scribe providers list
+```
+
+**Fix — go back to a model that keeps timestamps:**
+```bash
+scribe config set provider_models.openai whisper-1
+```
+
+Or drop the pin for a single run: `scribe "url" -p openai -m whisper-1 --force`. Deepgram and ElevenLabs give word-level timestamps if the user wants finer granularity than Whisper's segments.
+
+> This is a model limitation, not a bug — `whisper-1` is the OpenAI default precisely because it keeps timestamps.
+
+### OpenRouter: "model not found" / 404
+
+The requested slug isn't available on OpenRouter. Most often this is the **old default `openai/gpt-4o-audio-preview`**, which OpenRouter removed — anything still pointing at it will 404. OpenRouter is the one provider scribe doesn't validate models for, so a typo'd or retired slug reaches the API before failing.
+
+**Find the pin** — it can live in three places:
+```bash
+scribe providers list                       # shows the model in effect
+scribe config show                          # provider_models.openrouter
+grep OPENROUTER_MODEL ~/.anyscribecli/.env  # legacy env var (lowest precedence)
+```
+
+**Fix — set a current slug:**
+```bash
+scribe config set provider_models.openrouter openai/gpt-audio-mini
+```
+
+Current options: `openai/gpt-audio-mini` (default), `google/gemini-2.5-flash-lite`, `google/gemini-2.5-flash`, `google/gemini-3-flash-preview`, `mistralai/voxtral-small-24b-2507`, `openai/gpt-audio`. Any other audio-capable OpenRouter slug also works — check https://openrouter.ai/models for what's live.
+
+### "Unknown model 'X' for provider 'Y'"
+
+The model isn't in that provider's list. scribe rejects it before downloading or spending anything, and the error names the valid models.
+
+**Fix:** run `scribe providers list` (or `--json`) to see each provider's current model and alternatives, then pick from that list. Note `deepgram` and `elevenlabs` have exactly one model each, and `local` has none — its sizes come from `scribe model list`, not `-m`.
+
 ### "Provider error" or API failures
 
 **Fix:**

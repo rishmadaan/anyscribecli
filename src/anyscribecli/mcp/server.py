@@ -46,6 +46,7 @@ def _load_settings():
 def transcribe(
     url: str,
     provider: Optional[str] = None,
+    model: Optional[str] = None,
     language: Optional[str] = None,
     diarize: bool = False,
     quality: Optional[str] = None,
@@ -61,6 +62,8 @@ def transcribe(
     Args:
         url: YouTube/Instagram URL or local file path. Always quote URLs.
         provider: Override provider (openai, elevenlabs, sargam, deepgram, groq, openrouter, local).
+        model: Override the provider's model (e.g. gpt-transcribe for openai,
+            whisper-large-v3 for groq). See list_providers for options.
         language: Language code (en, es, fr, hi, hi-Latn, etc.) or "auto" for detection.
         diarize: Enable speaker diarization for multi-speaker transcripts.
         quality: Quality preset (accuracy | balanced | cost | free) — auto-routes
@@ -85,6 +88,8 @@ def transcribe(
     if quality:
         settings.quality = quality
     apply_quality(settings, explicit_provider=bool(provider) or diarize)
+    if model:
+        settings.provider_models = {**settings.provider_models, settings.provider: model}
 
     try:
         result = process(url, settings, quiet=True, force=force)
@@ -442,15 +447,30 @@ def list_providers() -> str:
     """List available transcription providers.
 
     Returns:
-        JSON array of providers with name and active status.
+        JSON array of providers with name, active status, the model each will
+        use (pinned or default), and the full pickable model list.
     """
-    from anyscribecli.providers import list_providers as _list_providers
+    from anyscribecli.providers import PROVIDER_MODELS, list_providers as _list_providers
 
     settings = _load_settings()
     active = settings.provider
     providers = _list_providers()
 
-    return json.dumps([{"name": p, "active": p == active} for p in providers])
+    def _model(p: str) -> str:
+        models = PROVIDER_MODELS.get(p, [])
+        return settings.provider_models.get(p, models[0] if models else "")
+
+    return json.dumps(
+        [
+            {
+                "name": p,
+                "active": p == active,
+                "model": _model(p),
+                "models": PROVIDER_MODELS.get(p, []),
+            }
+            for p in providers
+        ]
+    )
 
 
 @mcp.tool()

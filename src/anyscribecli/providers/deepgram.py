@@ -44,7 +44,7 @@ class DeepgramProvider(TranscriptionProvider):
 
     def _build_params(self, language: str, diarize: bool) -> dict[str, str]:
         """Build query parameters for the Deepgram API."""
-        model = "nova" if language.lower() in {"hi-latn"} else "nova-3"
+        model = "nova" if language.lower() in {"hi-latn"} else (self.model or "nova-3")
         params: dict[str, str] = {
             "model": model,
             "smart_format": "true",

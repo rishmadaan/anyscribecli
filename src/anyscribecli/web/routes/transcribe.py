@@ -89,6 +89,10 @@ async def start_transcribe(req: TranscribeRequest) -> dict:
 
     apply_quality(settings, explicit_provider=bool(req.provider) or req.diarize)
 
+    # Model pin applies to whichever provider won the resolution above.
+    if req.model:
+        settings.provider_models = {**settings.provider_models, settings.provider: req.model}
+
     loop = asyncio.get_event_loop()
     job_id = await job_manager.submit(req.url, settings, loop, force=req.force)
     return {"job_id": job_id}

@@ -76,8 +76,29 @@ def config_set(
     settings = load_config()
     data = settings.to_dict()
 
-    # Handle dot-notation (e.g., instagram.browser)
+    # provider_models.<provider> — keys are providers, not fixed fields, so
+    # validate here and insert (the generic path below rejects unknown keys).
     keys = key.split(".")
+    if keys[0] == "provider_models" and len(keys) == 2:
+        from anyscribecli.providers import OPEN_MODEL_PROVIDERS, PROVIDER_MODELS
+
+        prov = keys[1]
+        known = PROVIDER_MODELS.get(prov)
+        if known is None or not known:
+            err_console.print(f"[red]No pickable models for provider: {prov}[/red]")
+            raise typer.Exit(code=1)
+        if value not in known and prov not in OPEN_MODEL_PROVIDERS:
+            err_console.print(
+                f"[red]Unknown model '{value}' for {prov}.[/red] Available: {', '.join(known)}"
+            )
+            raise typer.Exit(code=1)
+        data["provider_models"][prov] = value
+        from anyscribecli.config.settings import Settings
+
+        save_config(Settings.from_dict(data))
+        console.print(f"[green]Set[/green] {key} = {value}")
+        return
+
     target = data
     for k in keys[:-1]:
         if k not in target or not isinstance(target[k], dict):
@@ -186,26 +207,48 @@ def providers_list(
     output_json: bool = typer.Option(False, "--json", "-j", help="Output as JSON."),
 ) -> None:
     """[bold]List[/bold] available transcription providers."""
+    from anyscribecli.providers import PROVIDER_MODELS
+
     settings = load_config()
     active = settings.provider
     providers = list_providers()
 
+    def _model(p: str) -> str:
+        models = PROVIDER_MODELS.get(p, [])
+        default = models[0] if models else ""
+        return settings.provider_models.get(p, default)
+
     if output_json:
-        result = [{"name": p, "active": p == active} for p in providers]
+        result = [
+            {
+                "name": p,
+                "active": p == active,
+                "model": _model(p),
+                "models": PROVIDER_MODELS.get(p, []),
+            }
+            for p in providers
+        ]
         json.dump(result, sys.stdout, indent=2)
         sys.stdout.write("\n")
     else:
         table = Table(title="Transcription Providers")
         table.add_column("Provider", style="bold")
-        table.add_column("Status")
+        table.add_column("Model")
+        table.add_column("Also available", style="dim")
         table.add_column("Active")
 
         for p in providers:
+            current = _model(p)
+            others = ", ".join(m for m in PROVIDER_MODELS.get(p, []) if m != current)
             is_active = "[green]Active[/green]" if p == active else ""
-            table.add_row(p, "Available", is_active)
+            table.add_row(p, current, others, is_active)
 
         console.print(table)
         console.print("\n[dim]Change with: scribe config set provider <name>[/dim]")
+        console.print(
+            "[dim]Pin a model: scribe config set provider_models.<provider> <model>  "
+            "(or per-run: scribe <url> -p <provider> -m <model>)[/dim]"
+        )
 
 
 @providers_app.command("test")

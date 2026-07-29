@@ -34,6 +34,8 @@ Before starting, you need:
 - **An internet connection** (for downloading videos and calling the transcription API)
 - **An API key** for your chosen provider — OpenAI is the default. Get one at [platform.openai.com/api-keys](https://platform.openai.com/api-keys). Whisper costs about $0.006/minute — a 10-minute video costs roughly 6 cents. Or use the **local** provider for free (no API key, runs on your machine).
 
+> **Later, if you want cheaper or more accurate:** each provider offers a few models you can switch between — see [providers.md](providers.md). You don't need to think about this to get started; the defaults are good.
+
 > **New to the command line?** You'll be typing commands in your Terminal app (macOS), terminal emulator (Linux), or Command Prompt / PowerShell (Windows). Every command in this guide starts with `scribe` — just copy-paste and press Enter.
 
 ## Step 1: Install Python

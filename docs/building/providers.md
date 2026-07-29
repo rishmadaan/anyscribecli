@@ -1,6 +1,26 @@
 # Providers
 
-**Last updated:** 2026-04-18
+**Last updated:** 2026-07-29
+
+## Model Picker
+
+Every cloud provider has a pickable model list in
+`providers/__init__.py::PROVIDER_MODELS` (first entry = default; single-entry
+lists render no picker; `OPEN_MODEL_PROVIDERS` marks openrouter as freeform).
+Pin per-run with `--model/-m`, persistently via
+`settings.provider_models` (`scribe config set provider_models.<provider> <model>`),
+or in the Web UI (Transcribe + Settings). `get_provider(name, model)` validates
+and sets `provider.model`; providers read `self.model or <default>`.
+
+| Provider | Default | Also pickable | Notes |
+|----------|---------|---------------|-------|
+| openai | whisper-1 | gpt-transcribe, gpt-4o-transcribe, gpt-4o-mini-transcribe | Non-whisper models have **no segment timestamps** (json-only) — whisper-1 stays default for timestamped/diarized output; gpt-transcribe is cheaper ($0.0045/min) + more accurate for clean text |
+| deepgram | nova-3 | — | hi-Latn still auto-routes to legacy `nova` |
+| elevenlabs | scribe_v2 | — | |
+| sargam | saaras:v3 | saaras:v2.5 | v3 on `/speech-to-text` + `mode=translate`; v2.5 pins the legacy deprecated endpoint |
+| openrouter | openai/gpt-audio-mini | gemini flash family, voxtral, gpt-audio + any slug (freeform) | old default `gpt-4o-audio-preview` was removed by OpenRouter |
+| groq | whisper-large-v3-turbo | whisper-large-v3 | |
+| local | (settings.local_model) | tiny…large-v3, large-v3-turbo, distil-large-v3.5 | separate lifecycle: `scribe model pull`, HF cache |
 
 ## Language Lists
 
@@ -65,13 +85,13 @@ to the configured provider (graceful, keyless users still work).
 
 ### OpenRouter (`providers/openrouter.py`)
 - No dedicated STT endpoint — sends base64 audio to chat models
-- Default model: `openai/gpt-4o-audio-preview` (override via `OPENROUTER_MODEL` env var)
+- Default model: `openai/gpt-audio-mini` (pin any slug via the model picker; `OPENROUTER_MODEL` env var still honored, pinned model wins)
 - No timestamps returned — plain text only
 - Auto-chunked at 25MB (same `WHISPER_MAX_BYTES` threshold as OpenAI/ElevenLabs)
 - More expensive than dedicated STT APIs
 
 ### Sargam/Sarvam (`providers/sargam.py`)
-- Uses `saaras:v2.5` model (`v2` was deprecated — returns 400). `speech-to-text-translate` endpoint, so output is an **English translation**, not verbatim Hindi/Hinglish.
+- Uses `saaras:v3` on `/speech-to-text` with `mode=translate`, so output is an **English translation**, not verbatim Hindi/Hinglish (same behaviour as the legacy `/speech-to-text-translate` endpoint, which Sarvam deprecated and which a `saaras:v2.5` pin still reaches).
 - REST sync API limited to 30 seconds **exclusive** — a clip of exactly 30.0s is rejected. `SARVAM_MAX_DURATION = 28` chunks just under the boundary (raised from 30 in 0.10.1 after `v2.5` enforced the limit strictly).
 - Auto-chunks audio into 28s segments (different from the standard 18-min Whisper chunks)
 - `api-subscription-key` auth header

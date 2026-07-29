@@ -1,7 +1,7 @@
 /** Hook for tracking a transcription job via WebSocket with reconnection. */
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { JobResult, ProgressEvent } from "../api/types";
+import type { JobResult, ProgressEvent, TranscribeRequest } from "../api/types";
 import { startTranscribe, cancelJob } from "../api/client";
 
 export type JobPhase = "idle" | "running" | "completed" | "error" | "cancelled";
@@ -150,16 +150,7 @@ export function useJob() {
   }, [connectWs]);
 
   const submit = useCallback(
-    async (data: {
-      url: string;
-      provider?: string;
-      quality?: string;
-      language?: string;
-      diarize?: boolean;
-      keep_media?: boolean;
-      output_format?: string;
-      force?: boolean;
-    }) => {
+    async (data: TranscribeRequest) => {
       // Reset state
       setState({ phase: "running", events: [], result: null, error: null });
       reconnectAttemptRef.current = 0;

@@ -32,7 +32,10 @@ class OpenRouterProvider(TranscriptionProvider):
     """
 
     API_URL = "https://openrouter.ai/api/v1/chat/completions"
-    DEFAULT_MODEL = "openai/gpt-4o-audio-preview"
+    # gpt-4o-audio-preview was removed from OpenRouter (verified 2026-07-29);
+    # gpt-audio-mini is its like-for-like successor. Pin any other audio-capable
+    # slug via the model picker or OPENROUTER_MODEL.
+    DEFAULT_MODEL = "openai/gpt-audio-mini"
 
     @property
     def name(self) -> str:
@@ -63,7 +66,7 @@ class OpenRouterProvider(TranscriptionProvider):
                 "Content-Type": "application/json",
             },
             json={
-                "model": os.environ.get("OPENROUTER_MODEL", self.DEFAULT_MODEL),
+                "model": self.model or os.environ.get("OPENROUTER_MODEL", self.DEFAULT_MODEL),
                 "messages": [
                     {
                         "role": "user",

@@ -2,6 +2,7 @@
 summary: Compare transcription providers — features, languages, pricing, and when to use each.
 read_when:
   - Choosing which provider to use
+  - Choosing which model to use within a provider
   - Transcribing in a specific language
   - Comparing cost vs accuracy
   - Setting up a new provider
@@ -46,15 +47,51 @@ key set, scribe falls back to your configured provider. Each tier needs that
 provider's key (accuracy → `ELEVENLABS_API_KEY`, cost → `GROQ_API_KEY`, …);
 `free` needs none.
 
+## Choosing a model within a provider
+
+A **provider** is the company doing the transcribing. A **model** is the specific engine inside it. Each provider ships with a default model, so you can skip this section entirely and everything works.
+
+Change it for one run:
+
+```bash
+scribe "<url>" -p openai -m gpt-transcribe
+```
+
+Or make it permanent:
+
+```bash
+scribe config set provider_models.openai gpt-transcribe
+```
+
+See what you have:
+
+```bash
+scribe providers list
+```
+
+| Provider | Default model | Also available |
+|----------|---------------|----------------|
+| OpenAI | `whisper-1` | `gpt-transcribe`, `gpt-4o-transcribe`, `gpt-4o-mini-transcribe` |
+| Deepgram | `nova-3` | — only one |
+| ElevenLabs | `scribe_v2` | — only one |
+| Sarvam | `saaras:v3` | `saaras:v2.5` (older) |
+| Groq | `whisper-large-v3-turbo` | `whisper-large-v3` |
+| OpenRouter | `openai/gpt-audio-mini` | Several, plus any audio model on OpenRouter |
+| Local | — | Downloaded separately, see [Local](#local-faster-whisper) |
+
+> **The one gotcha worth knowing: timestamps.** Some models return only plain text, with no record of *when* each sentence was said. If you use `output_format: timestamped` or `diarized`, those models will hand you plain paragraphs with no `[mm:ss]` markers — no error, just no timestamps. This affects OpenAI's `gpt-transcribe`, `gpt-4o-transcribe`, and `gpt-4o-mini-transcribe`, plus Sarvam and OpenRouter generally. If timestamps matter to you, stay on `whisper-1`, Deepgram, ElevenLabs, Groq, or Local.
+
+> **In the Web UI:** a model dropdown appears on the **Transcribe** page once you explicitly pick a provider, and on the **Settings** page under your default provider.
+
 ## Quick Comparison
 
 | | OpenAI Whisper | Deepgram Nova | ElevenLabs Scribe | Sarvam AI | Groq | OpenRouter | Local |
 |---|---|---|---|---|---|---|---|
 | **Best for** | General purpose | Diarization (auto-selected) + Hinglish | Highest accuracy | Indian languages | Cheapest + fastest | Model flexibility | Offline / free |
 | **Languages** | 99 | 89 | 90+ | 23 Indian + English | 99 | Model-dependent | 99 |
-| **Timestamps** | Segment-level | Word-level | Word-level | No (REST API) | Segment-level | No | Segment-level |
+| **Timestamps** | Segment-level (`whisper-1` only) | Word-level | Word-level | No | Segment-level | No | Segment-level |
 | **Diarization** | Yes (`--diarize`) | Yes (`--diarize`) | No (via scribe) | Yes (`--diarize`) | No | No | No |
-| **Pricing** | ~$0.36/hr | ~$0.30/hr | ~$0.22–0.40/hr | ~$0.35/hr | ~$0.04/hr | Varies by model | Free |
+| **Pricing** | ~$0.18–0.36/hr (by model) | ~$0.30/hr | ~$0.22–0.40/hr | ~$0.35/hr | ~$0.04/hr | Varies by model | Free |
 | **File limit** | 25 MB (auto-chunked) | No hard limit | 25 MB (auto-chunked) | 30s (auto-chunked) | 25 MB (auto-chunked) | 25 MB (auto-chunked) | RAM only |
 | **Offline** | No | No | No | No | No | No | Yes |
 | **API key** | Required | Required | Required | Required | Required | Required | Not needed |
@@ -72,10 +109,29 @@ scribe config set provider openai
 
 - **API key env var:** `OPENAI_API_KEY`
 - **Get a key:** [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
-- **Cost:** ~$0.006 per minute ($0.36/hour)
-- **File limit:** 25 MB — scribe automatically chunks larger files into 18-minute segments
-- **Model:** `whisper-1` (standard), `gpt-4o-transcribe-diarize` (with `--diarize`)
+- **Cost:** $0.003–$0.006 per minute depending on the model (see below)
+- **File limit:** 25 MB for every model — scribe automatically chunks larger files into 18-minute segments
+- **Default model:** `whisper-1`
 - **Diarization:** Yes — use `--diarize` flag to enable speaker-labeled transcripts
+
+**Models you can pick:**
+
+| Model | Cost per minute | Timestamps? | What it's for |
+|-------|-----------------|-------------|---------------|
+| `whisper-1` (default) | $0.006 (~$0.36/hr) | **Yes** | The safe choice. The only OpenAI model that tells you *when* things were said |
+| `gpt-transcribe` | $0.0045 (~$0.27/hr) | No | OpenAI's newest and recommended transcription model. Around half the error rate of Whisper in OpenAI's own testing, and 25% cheaper |
+| `gpt-4o-transcribe` | $0.006 | No | An older model. `gpt-transcribe` is better at the same price |
+| `gpt-4o-mini-transcribe` | $0.003 (~$0.18/hr) | No | The cheapest option, at some cost to accuracy |
+
+```bash
+scribe config set provider_models.openai gpt-transcribe
+```
+
+> **`gpt-transcribe` is the upgrade most people want** — noticeably more accurate than Whisper *and* cheaper — **as long as you use the default `clean` output format.** It can't produce timestamps, so if your format is `timestamped` or `diarized`, you'll quietly get plain paragraphs instead. Check yours with `scribe config show`.
+
+> **You may have heard of `gpt-live-transcribe`.** That one is for live, streaming audio (phone calls, real-time captions). scribe works on finished files, so it isn't supported here.
+
+> **Diarization is handled for you.** When you pass `--diarize`, OpenAI runs a dedicated model (`gpt-4o-transcribe-diarize`) regardless of what you've pinned. There's nothing to configure.
 
 > **When to use:** Good default for most use cases. Best balance of cost, accuracy, and language coverage. Use `--diarize` for meetings and multi-speaker content.
 
@@ -132,11 +188,14 @@ scribe config set provider sargam
 - **API key env var:** `SARGAM_API_KEY`
 - **Get a key:** [dashboard.sarvam.ai](https://dashboard.sarvam.ai)
 - **Cost:** ~$0.35/hour; free tier: ~$12 in credits
-- **File limit:** REST API limited to 30 seconds (exclusive) — scribe automatically chunks audio into 28-second segments
-- **Model:** `saaras:v2.5`
+- **File limit:** the sync API is limited to 30 seconds (exclusive) — scribe automatically chunks audio into 28-second segments
+- **Default model:** `saaras:v3` — Sarvam's flagship model, noticeably more accurate across all 22 Indic languages than the one it replaced
+- **Older model:** `saaras:v2.5` — runs on Sarvam's older endpoint, which Sarvam has marked deprecated. Only pick it if you specifically need the old behavior: `scribe config set provider_models.sargam saaras:v2.5`
 - **Supported languages:** Hindi, Tamil, Telugu, Kannada, Malayalam, Bengali, Gujarati, Marathi, Punjabi, Odia, Assamese, Urdu, Sanskrit, and more
 
-> **Important — Sarvam *translates to English*.** scribe uses Sarvam's speech-to-text-*translate* endpoint, so the output is an **English translation**, not a verbatim Hindi/Hinglish transcript. Use it when you want Indic audio rendered as English; use Deepgram `--language hi-Latn` (see below) when you want to keep the spoken Hinglish.
+> **Upgrading from an older scribe?** Sarvam used to default to `saaras:v2.5`. New transcriptions now use `saaras:v3`. It behaves the same way — still translates to English, still chunked at 30 seconds — just more accurately. Nothing to change on your end.
+
+> **Important — Sarvam *translates to English*.** Sarvam transcribes in translate mode, so the output is an **English translation**, not a verbatim Hindi/Hinglish transcript. Use it when you want Indic audio rendered as English; use Deepgram `--language hi-Latn` (see below) when you want to keep the spoken Hinglish.
 
 > **When to use:** Getting an English version of Indian-language audio. Not the right choice if you want to preserve the original words.
 
@@ -154,14 +213,15 @@ scribe config set groq_api_key gsk-...
 - **Get a key:** [console.groq.com/keys](https://console.groq.com/keys)
 - **Cost:** ~$0.04/hour — the cheapest cloud provider
 - **File limit:** 25 MB (auto-chunked, same as OpenAI)
-- **Model:** `whisper-large-v3-turbo`
+- **Default model:** `whisper-large-v3-turbo` — the fastest and cheapest
+- **Also available:** `whisper-large-v3` — more accurate, a bit slower, and Groq allows bigger uploads for it. Worth switching to if the turbo model is dropping words: `scribe config set provider_models.groq whisper-large-v3`
 - **Diarization:** No — use the `accuracy` or `balanced` tier (or `--provider deepgram`) for speaker labels
 
 > **When to use:** the **`cost`** quality tier maps here. Great for bulk, low-cost transcription where you don't need speaker labels. Fast enough that long files fly through.
 
 ### OpenRouter
 
-Access to various AI models through a unified API. Since OpenRouter doesn't have a dedicated speech-to-text endpoint, this uses audio-capable chat models (like GPT-4o-audio-preview) with a transcription prompt.
+Access to various AI models through a unified API. Since OpenRouter doesn't have a dedicated speech-to-text endpoint, this uses audio-capable chat models with a transcription prompt.
 
 ```bash
 scribe config set provider openrouter
@@ -172,7 +232,18 @@ scribe config set provider openrouter
 - **Cost:** Varies by model (per-token pricing, generally more expensive than dedicated STT)
 - **File limit:** 25 MB (auto-chunked, same as OpenAI)
 - **No timestamps** — returns plain text only
-- **Model override:** Set `OPENROUTER_MODEL` env var to choose a model (default: `openai/gpt-4o-audio-preview`)
+- **Default model:** `openai/gpt-audio-mini`
+- **Also available:** `google/gemini-2.5-flash-lite`, `google/gemini-2.5-flash`, `google/gemini-3-flash-preview`, `mistralai/voxtral-small-24b-2507`, `openai/gpt-audio`
+
+```bash
+scribe config set provider_models.openrouter google/gemini-2.5-flash
+```
+
+> **OpenRouter takes any model name.** Unlike the other providers, scribe doesn't check your choice against a list — type any audio-capable model name from [openrouter.ai/models](https://openrouter.ai/models) and it gets passed straight through. The flip side: a typo isn't caught until OpenRouter rejects it.
+
+> **The old default is gone.** scribe used to default to `openai/gpt-4o-audio-preview`, which OpenRouter has since removed — requests to it now fail with a "model not found" error. The default is now `openai/gpt-audio-mini`. If you pinned the old one yourself (in config or via `OPENROUTER_MODEL`), change it to a current model name.
+
+> **The `OPENROUTER_MODEL` env var still works** as a default, but a model set with `--model` or `provider_models.openrouter` takes priority over it.
 
 > **When to use:** When you need a specific model that's only available on OpenRouter. Not recommended as a primary transcription provider — dedicated STT APIs are faster, cheaper, and more accurate.
 
@@ -196,7 +267,7 @@ or during the terminal wizard, answer **Yes** when `scribe onboard` asks *"Also 
 
 Setup installs `faster-whisper` into the same Python environment as scribe, downloads the Whisper model you picked, and records it as your local default. After that, local transcription is fully offline.
 
-**Recommended model:** `base` — good quality for most use cases, ~145 MB download, runs on modest CPUs. If a recording is critical (interviews, accents, lots of names), step up to `small` or `medium`.
+**Recommended model:** `base` — good quality for most use cases, ~145 MB download, runs on modest CPUs. If a recording is critical (interviews, accents, lots of names), step up to `small`, then `large-v3-turbo`.
 
 **Switching the default model:**
 
@@ -210,10 +281,10 @@ or pick from the dropdown in the Web UI's Local provider panel. (The model has t
 
 | Command | What it does |
 |---------|--------------|
-| `scribe model list` | Show all 5 sizes with cache status and disk usage |
+| `scribe model list` | Show all 7 sizes with cache status and disk usage |
 | `scribe model pull small` | Download an additional model size |
 | `scribe model rm tiny --yes` | Delete a cached model (`--yes` required — destructive) |
-| `scribe model info large-v3` | Inspect a single size |
+| `scribe model info large-v3-turbo` | Inspect a single size |
 
 Or use the Models table inside **Settings → Providers → Local** in the Web UI.
 
@@ -226,6 +297,12 @@ Or use the Models table inside **Settings → Providers → Local** in the Web U
 | `small` | ~480 MB | ~1.2 GB | ~4x realtime | Noticeably better than base |
 | `medium` | ~1.5 GB | ~2.5 GB | ~2x realtime | Near-large for many languages |
 | `large-v3` | ~3 GB | ~5 GB | ~1x realtime (CPU); fast on GPU | Highest |
+| `large-v3-turbo` | ~1.6 GB | ~3 GB | ~6x realtime | Near `large-v3`, all languages |
+| `distil-large-v3.5` | ~1.5 GB | ~2.8 GB | ~6x realtime | Near `large-v3` for **English**; weaker on other languages |
+
+> **Best quality per minute of waiting: `large-v3-turbo`.** It gets close to `large-v3` accuracy while running about six times faster on a CPU, at roughly half the download. That makes it the one to reach for when `base` or `small` isn't good enough but you don't want to wait through a real-time-speed transcription.
+
+> **`distil-large-v3.5` is English-only in practice.** It's a slimmed-down model that keeps `large-v3`-level accuracy for English but gets noticeably worse in other languages. Pick it only if everything you transcribe is English; otherwise `large-v3-turbo` is the safer choice at the same speed and size.
 
 - **GPU:** Automatically uses NVIDIA CUDA if available; falls back to CPU.
 - **Env-var override:** `ASCLI_LOCAL_MODEL=small scribe "<url>"` wins over the configured default for one invocation.
@@ -253,6 +330,28 @@ Override for a single transcription:
 ```bash
 scribe "<url>" --provider local
 ```
+
+## Switching Models
+
+Change the model a provider uses, permanently:
+
+```bash
+scribe config set provider_models.openai gpt-transcribe
+```
+
+Or just for one transcription:
+
+```bash
+scribe "<url>" -p openai -m gpt-transcribe
+```
+
+Check what's in effect:
+
+```bash
+scribe providers list
+```
+
+See [Choosing a model within a provider](#choosing-a-model-within-a-provider) for the full list and the timestamps caveat.
 
 ## Adding API Keys
 

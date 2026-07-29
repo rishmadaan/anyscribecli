@@ -133,7 +133,9 @@ def process(
         if on_progress:
             on_progress("transcribe", "started", f"Transcribing with {settings.provider}...")
 
-        provider = get_provider(settings.provider)
+        provider = get_provider(
+            settings.provider, model=settings.provider_models.get(settings.provider)
+        )
         transcript = provider.transcribe(
             download.audio_path, settings.language, diarize=settings.diarize
         )

@@ -8,6 +8,7 @@ from pydantic import BaseModel
 class TranscribeRequest(BaseModel):
     url: str
     provider: str | None = None
+    model: str | None = None
     quality: str | None = None
     language: str | None = None
     diarize: bool = False
@@ -39,6 +40,7 @@ class ConfigUpdateRequest(BaseModel):
     local_file_media: str | None = None
     workspace_path: str | None = None
     local_model: str | None = None
+    provider_models: dict[str, str] | None = None
 
 
 class LocalSetupRequest(BaseModel):

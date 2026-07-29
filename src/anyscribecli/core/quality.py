@@ -1,9 +1,10 @@
 """Quality presets — map an accuracy↔cost tier to a transcription provider.
 
 `quality` is a friendly knob that resolves to a provider. Each tier maps to a
-distinct provider whose own default model is right for that tier, so there is no
-per-provider model-override machinery. Resolution mirrors the `--diarize →
-deepgram` auto-routing in `cli/transcribe.py`.
+distinct provider whose own default model is right for that tier; a pinned
+model in `settings.provider_models` (or `--model`) rides on top of whichever
+provider wins. Resolution mirrors the `--diarize → deepgram` auto-routing in
+`cli/transcribe.py`.
 """
 
 from __future__ import annotations

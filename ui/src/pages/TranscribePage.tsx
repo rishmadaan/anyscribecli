@@ -7,6 +7,7 @@ import URLInput from "../components/URLInput";
 import ProgressTracker from "../components/ProgressTracker";
 import ResultCard from "../components/ResultCard";
 import LanguageInput from "../components/LanguageInput";
+import ModelInput, { defaultModelFor, hasModelChoice } from "../components/ModelInput";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
 // User-facing label for the diarize/diarized output format. The wire value
@@ -23,6 +24,7 @@ export default function TranscribePage() {
   // Override fields
   const [quality, setQuality] = useState("balanced");
   const [provider, setProvider] = useState(""); // "" = auto (resolved from quality)
+  const [model, setModel] = useState(""); // per-run model override; only when provider is explicit
   const [language, setLanguage] = useState("");
   const [diarize, setDiarize] = useState(false);
   const [keepMedia, setKeepMedia] = useState(false);
@@ -41,6 +43,9 @@ export default function TranscribePage() {
     });
   }, []);
 
+  // undefined while provider is "" (auto) → no model control, no model sent.
+  const selectedProvider = providers.find((p) => p.name === provider);
+
   const handleSubmit = (url: string, force = false) => {
     setLastUrl(url);
     // Send quality; only send provider when the user explicitly overrode "auto".
@@ -48,6 +53,8 @@ export default function TranscribePage() {
       url,
       quality,
       provider: provider || undefined,
+      // Model only travels with an explicit provider — on auto it's ambiguous.
+      model: provider && model ? model : undefined,
       language,
       diarize,
       keep_media: keepMedia,
@@ -91,7 +98,7 @@ export default function TranscribePage() {
                   <ChevronDown className="w-3.5 h-3.5" />
                 )}
                 <span className="font-mono">
-                  {quality}{provider ? ` · ${provider}` : ""} · {language} · {formatLabel(outputFormat)}{diarize && outputFormat !== "diarized" ? " + speakers" : ""}
+                  {quality}{provider ? ` · ${provider}` : ""}{provider && model ? ` · ${model}` : ""} · {language} · {formatLabel(outputFormat)}{diarize && outputFormat !== "diarized" ? " + speakers" : ""}
                 </span>
               </button>
 
@@ -120,7 +127,16 @@ export default function TranscribePage() {
                     <label className="text-xs text-text-muted w-32 shrink-0">Provider</label>
                     <select
                       value={provider}
-                      onChange={(e) => setProvider(e.target.value)}
+                      onChange={(e) => {
+                        const name = e.target.value;
+                        setProvider(name);
+                        setModel(
+                          defaultModelFor(
+                            providers.find((p) => p.name === name),
+                            config.provider_models
+                          )
+                        );
+                      }}
                       className="flex-1 bg-surface-raised border border-border rounded-md px-2.5 py-1.5 text-sm text-text font-mono outline-none focus:border-amber/40"
                     >
                       <option value="">auto · from quality</option>
@@ -131,6 +147,17 @@ export default function TranscribePage() {
                       ))}
                     </select>
                   </div>
+
+                  {hasModelChoice(selectedProvider) && (
+                    <div className="flex items-center gap-4">
+                      <label className="text-xs text-text-muted w-32 shrink-0">Model</label>
+                      <ModelInput
+                        provider={selectedProvider}
+                        value={model}
+                        onChange={setModel}
+                      />
+                    </div>
+                  )}
 
                   {(() => {
                     const missing = providers.filter((p) => !p.has_key).length;

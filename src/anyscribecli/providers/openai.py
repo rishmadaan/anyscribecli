@@ -24,7 +24,13 @@ class OpenAIProvider(TranscriptionProvider):
     """
 
     API_URL = "https://api.openai.com/v1/audio/transcriptions"
-    MODEL = "whisper-1"  # subclasses (e.g. Groq) override this
+    MODEL = "whisper-1"  # default; subclasses (e.g. Groq) override this
+
+    # Models that only accept response_format=json — no verbose_json, so no
+    # segment timestamps (timestamped/diarized output falls back to clean text).
+    # whisper-1 stays the default because it's the only file model with
+    # segments; gpt-transcribe is cheaper and more accurate for plain text.
+    NO_SEGMENT_MODELS = {"gpt-transcribe", "gpt-4o-transcribe", "gpt-4o-mini-transcribe"}
 
     @property
     def name(self) -> str:
@@ -41,13 +47,16 @@ class OpenAIProvider(TranscriptionProvider):
     @with_retry()
     def _transcribe_single(self, audio_path: Path, language: str, api_key: str) -> dict:
         """Transcribe a single audio file (must be <= 25MB)."""
+        model = self.model or self.MODEL
         with open(audio_path, "rb") as f:
             files = {"file": (audio_path.name, f, "audio/mpeg")}
             data: dict[str, str] = {
-                "model": self.MODEL,
+                "model": model,
                 "response_format": "verbose_json",
                 "timestamp_granularities[]": "segment",
             }
+            if model in self.NO_SEGMENT_MODELS:
+                data = {"model": model, "response_format": "json"}
             if language != "auto":
                 data["language"] = language
 
@@ -136,9 +145,12 @@ class OpenAIProvider(TranscriptionProvider):
             )
 
         text = data.get("text", "")
+        # gpt-transcribe's json format reports detected languages as a list
+        # ("languages") instead of whisper-1's single "language" string.
+        language = data.get("language") or next(iter(data.get("languages") or []), "unknown")
         return TranscriptResult(
             text=text,
-            language=data.get("language", "unknown"),
+            language=language,
             duration=data.get("duration"),
             segments=segments,
         )

@@ -15,6 +15,8 @@
 
 ```yaml
 provider: openai          # explicit provider (or let `quality` pick): openai | deepgram | elevenlabs | sargam | groq | openrouter | local
+provider_models: {}       # provider -> pinned model id; missing key = that provider's default
+local_model: base         # offline Whisper size (local provider only)
 quality: balanced         # accuracy | balanced | cost | free — picks a provider
 language: auto            # auto | ISO code (en, es, fr, hi, hi-Latn, ar, zh, ja, ko...)
 keep_media: false         # Keep audio files after transcription
@@ -30,6 +32,19 @@ instagram:
 ### Setting details
 
 **provider** — Explicit transcription service. Usually you set `quality` instead and leave this; it's the fallback when a `quality` tier's key is missing. Override per-command with `--provider`.
+
+**provider_models** — A map of provider name → pinned model id. Each provider has its own entry, so switching providers keeps whatever model you chose for each one. A provider with no entry uses its built-in default (the first in its list). Set with `scribe config set provider_models.<provider> <model>`; override for a single run with `-m`.
+
+```yaml
+provider_models:
+  openai: gpt-transcribe        # cheaper + more accurate, but no segment timestamps
+  groq: whisper-large-v3        # higher accuracy than the turbo default
+  openrouter: google/gemini-2.5-flash
+```
+
+Invalid models are rejected at set time with the valid list (exit 1); `openrouter` accepts any audio-capable slug. `provider_models.local` is rejected — the local provider's model lives in `local_model` because it has a download/cache lifecycle. See [providers.md](providers.md) for each provider's models and their tradeoffs.
+
+**local_model** — Which cached Whisper size the `local` provider loads: `tiny`, `base`, `small`, `medium`, `large-v3`, `large-v3-turbo`, `distil-large-v3.5`. Set by `scribe local setup --model <size>`; changing it with `scribe config set local_model <size>` requires the size to already be cached (`scribe model pull <size>` first).
 
 **quality** — Accuracy↔cost preset that picks a provider: `accuracy`→ElevenLabs scribe_v2, `balanced`→Deepgram nova-3, `cost`→Groq, `free`→local. Default `balanced` (Deepgram). Override per-command with `--quality`. `--provider` wins over it.
 
@@ -75,8 +90,8 @@ ELEVENLABS_API_KEY=xi-...
 OPENROUTER_API_KEY=sk-or-...
 SARGAM_API_KEY=...
 GROQ_API_KEY=gsk-...
-OPENROUTER_MODEL=openai/gpt-4o-audio-preview   # Optional override
-ASCLI_LOCAL_MODEL=base                           # Optional: tiny|base|small|medium|large-v3
+OPENROUTER_MODEL=openai/gpt-audio-mini   # Optional; `provider_models.openrouter` / -m wins over it
+ASCLI_LOCAL_MODEL=base                   # Optional: tiny|base|small|medium|large-v3|large-v3-turbo|distil-large-v3.5
 ```
 
 ## Workspace Structure
