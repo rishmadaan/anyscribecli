@@ -28,7 +28,7 @@ class DefaultToTranscribe(TyperGroup):
 
 
 app = typer.Typer(
-    name="scribe",
+    name="anyscribe",
     cls=DefaultToTranscribe,
     help="Download, transcribe, and convert video/audio to structured markdown.",
     rich_markup_mode="rich",
@@ -41,7 +41,7 @@ err_console = Console(stderr=True)
 
 def version_callback(value: bool) -> None:
     if value:
-        console.print(f"scribe v{__version__}")
+        console.print(f"anyscribe v{__version__}")
         raise typer.Exit()
 
 

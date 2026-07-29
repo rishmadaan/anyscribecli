@@ -308,3 +308,75 @@ def test_json_output_shape_reports_key_count_not_values(home):
     # No secret value string may appear anywhere in the emitted output.
     for secret in keys.values():
         assert secret not in result.stdout
+
+
+# --- 9. stale tray LaunchAgent (macOS) is repaired ------------------------
+
+from anyscribe.core import service as service_mod  # noqa: E402
+
+
+def _seed_stale_tray_plist(home: Path) -> Path:
+    """A 0.13.x tray LaunchAgent whose ProgramArguments still call `anyscribecli`."""
+    path = service_mod.plist_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        '<?xml version="1.0"?>\n<plist><dict>'
+        "<key>ProgramArguments</key><array>"
+        "<string>/usr/bin/python</string><string>-m</string>"
+        "<string>anyscribecli</string><string>tray</string>"
+        "</array></dict></plist>\n"
+    )
+    return path
+
+
+@pytest.fixture
+def darwin(monkeypatch):
+    """Run the macOS-only tray step everywhere; stub launchctl to a call recorder."""
+    monkeypatch.setattr(sys, "platform", "darwin")
+    calls: list[tuple] = []
+    monkeypatch.setattr(service_mod, "_launchctl", lambda *a: calls.append(a))
+    return calls
+
+
+def test_stale_tray_plist_is_rewritten(home, darwin):
+    path = _seed_stale_tray_plist(home)
+
+    result = runner.invoke(app, ["migrate", "--json"])
+    assert result.exit_code == 0, result.output
+
+    content = path.read_text()
+    assert "anyscribecli" not in content
+    assert "<string>anyscribe</string>" in content  # current `-m anyscribe` invocation
+    assert darwin  # launchctl invoked (unload + load), best-effort
+    data = json.loads(result.stdout)
+    assert data["data"]["tray_plist_repaired"] is True
+
+
+def test_stale_tray_plist_dry_run_touches_nothing(home, darwin):
+    path = _seed_stale_tray_plist(home)
+    before = path.read_bytes()
+
+    result = runner.invoke(app, ["migrate", "--dry-run"])
+    assert result.exit_code == 0
+    assert path.read_bytes() == before  # byte-identical
+    assert darwin == []  # no launchctl call in dry-run
+    assert "rewrite (stale" in result.output  # still reported (may wrap)
+
+
+def test_no_tray_plist_is_clean_noop(home, darwin):
+    result = runner.invoke(app, ["migrate", "--json"])
+    assert result.exit_code == 0
+    data = json.loads(result.stdout)
+    assert data["data"]["tray_plist_repaired"] is False
+    assert darwin == []
+
+
+def test_second_tray_run_is_idempotent(home, darwin):
+    _seed_stale_tray_plist(home)
+    assert runner.invoke(app, ["migrate"]).exit_code == 0
+    darwin.clear()
+    result = runner.invoke(app, ["migrate", "--json"])
+    assert result.exit_code == 0
+    data = json.loads(result.stdout)
+    assert data["data"]["tray_plist_repaired"] is False  # already anyscribe
+    assert darwin == []

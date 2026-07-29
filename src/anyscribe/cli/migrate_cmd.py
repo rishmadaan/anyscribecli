@@ -1,8 +1,8 @@
 """``anyscribe migrate`` — one-shot move from an old anyscribecli install.
 
-Every existing user runs this once. It does the whole job in five steps and
-reports honestly, including what it chose *not* to touch. ``--dry-run`` runs
-the same five steps in inspect-only mode and writes nothing at all.
+Every existing user runs this once. It does the whole job in a handful of steps
+and reports honestly, including what it chose *not* to touch. ``--dry-run`` runs
+the same steps in inspect-only mode and writes nothing at all.
 """
 
 from __future__ import annotations
@@ -71,7 +71,8 @@ def _label(p: Path) -> str:
     if p.is_dir():
         return f"{p.name}/"
     if p.name == ".env":
-        return f".env ({_env_key_count(p)} keys)"
+        n = _env_key_count(p)
+        return f".env ({n} key{'' if n == 1 else 's'})"
     return p.name
 
 
@@ -148,12 +149,47 @@ def _migrate_mcp(claude_json: Path, dry_run: bool) -> tuple[int, str | None]:
     # Temp file in the same dir + os.replace: a crash can never leave the
     # user's (large, irreplaceable) ~/.claude.json half-written.
     tmp = claude_json.with_name(claude_json.name + ".tmp")
-    tmp.write_text(json.dumps(data, indent=2) + "\n")
-    # The temp file was created with the default umask (~644); ~/.claude.json is
-    # 0600 and can hold MCP env API keys / oauth, so carry its mode across.
+    # Create the temp 0600 up front — it holds MCP env API keys / oauth, and the
+    # default umask (~644) would leave it briefly world-readable. os.open applies
+    # the mode atomically. Then copymode from the original so the final file
+    # still matches whatever mode ~/.claude.json actually had.
+    with os.fdopen(os.open(tmp, os.O_CREAT | os.O_WRONLY | os.O_TRUNC, 0o600), "w") as f:
+        f.write(json.dumps(data, indent=2) + "\n")
     shutil.copymode(claude_json, tmp)
     os.replace(tmp, claude_json)
     return changed, None
+
+
+# --- macOS tray LaunchAgent -----------------------------------------------
+
+
+def _migrate_tray_plist(dry_run: bool) -> bool:
+    """Repair a stale tray LaunchAgent that still invokes ``anyscribecli``.
+
+    A user who ran ``install-service`` on 0.13.x has a plist whose
+    ProgramArguments call ``python -m anyscribecli tray``; that module is gone
+    after the rename, so the login agent fails silently forever. Rewrite it to
+    current content and reload (best-effort — the helper is ``check=False``).
+
+    macOS-only. No-op unless the plist exists and still names ``anyscribecli``.
+    Returns True if it rewrote (or, in ``--dry-run``, would rewrite).
+    """
+    if sys.platform != "darwin":
+        return False
+    from anyscribe.core import service
+
+    path = service.plist_path()
+    try:
+        if "anyscribecli" not in path.read_text():
+            return False
+    except OSError:
+        return False  # missing or unreadable — nothing to repair
+
+    if not dry_run:
+        service._launchctl("unload", str(path))
+        path.write_text(service.render_plist())
+        service._launchctl("load", str(path))
+    return True
 
 
 # --- the command ----------------------------------------------------------
@@ -248,7 +284,16 @@ def migrate(
         lines.append(f'  {_tilde(claude_json)}  mcp "scribe" → "anyscribe"  ×{mcp_changed}')
     data["mcp_entries_updated"] = mcp_changed
 
-    # 5. Verification — report only; repairing PATH is not this tool's job.
+    # 5. Stale tray LaunchAgent (macOS) — repair an install-service plist that
+    #    still invokes the gone `anyscribecli` module.
+    tray_repaired = _migrate_tray_plist(dry_run)
+    if tray_repaired:
+        from anyscribe.core.service import plist_path
+
+        lines.append(f"  {_tilde(plist_path())}  →  rewrite (stale anyscribecli)")
+    data["tray_plist_repaired"] = tray_repaired
+
+    # 6. Verification — report only; repairing PATH is not this tool's job.
     found = {name: shutil.which(name) for name in VERIFIED_COMMANDS}
     lines.append(
         "  commands: "
@@ -263,7 +308,9 @@ def migrate(
             f"'pip install --force-reinstall anyscribe'."
         )
 
-    data["changed"] = bool(moves or stale_removed or skill_installed or mcp_changed)
+    data["changed"] = bool(
+        moves or stale_removed or skill_installed or mcp_changed or tray_repaired
+    )
     data["warnings"] = warnings
 
     if output_json:
