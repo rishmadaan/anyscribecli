@@ -49,7 +49,7 @@ Unknown models are rejected up front with the valid list. `openrouter` is the ex
 | **Best for** | General purpose | Diarization + Hinglish | Highest accuracy | Indian languages | Cheapest + fastest | Model variety | Offline / free |
 | **Languages** | 99 | 89 | 90+ | 23 Indian + English | 99 | Varies | 99 |
 | **Timestamps** | Segment-level (`whisper-1` only) | Word-level | Word-level | No | Segment-level | No | Segment-level |
-| **Diarization** | Yes (`--diarize`) | Yes (`--diarize`) | No | Yes (`--diarize`) | No | No | No |
+| **Diarization** | Yes (`--diarize`) | Yes (`--diarize`) | No | No (Sarvam Batch API only — not integrated) | No | No | No |
 | **Cost** | ~$0.18–0.36/hr (by model) | ~$0.30/hr | ~$0.22–0.40/hr | ~$0.35/hr | ~$0.04/hr | Varies | Free |
 | **File limit** | 25 MB | No hard limit | 25 MB | 30 sec | 25 MB | 25 MB | RAM only |
 | **Offline** | No | No | No | No | No | No | Yes |

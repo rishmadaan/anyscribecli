@@ -104,7 +104,9 @@ the new branch→PR→audit workflow:
   needs rotation).
 - **LOW:** `large-v3-turbo` repo id updated to canonical
   `dropbox-dash/faster-whisper-large-v3-turbo` (mobiuslabsgmbh is a 307
-  redirect); Sarvam `with_diarization` removed (never documented on either
+  redirect). Known cost: anyone who pulled turbo under the old id between
+  0.14.0 and 0.14.1 has an orphaned cache entry (invisible to
+  `scribe model list/rm`) and re-downloads ~1.6 GB — accepted, tiny window; Sarvam `with_diarization` removed (never documented on either
   sync endpoint — Batch API only); doc contradictions fixed (gpt-4o-transcribe
   price claim, SKILL.md diarize note, sargam diarization column).
 

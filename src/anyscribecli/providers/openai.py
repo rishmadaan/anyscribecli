@@ -117,9 +117,14 @@ class OpenAIProvider(TranscriptionProvider):
                     f"Or transcribe without diarization (will chunk automatically):\n"
                     f'  scribe "{audio_path.name}" -p openai'
                 )
-            return self._parse_response(
+            result = self._parse_response(
                 self._transcribe_diarize(audio_path, language, api_key), diarize=True
             )
+            # diarized_json responses carry no language field — echo the
+            # requested language rather than writing "unknown" to frontmatter.
+            if result.language == "unknown" and language != "auto":
+                result.language = language
+            return result
 
         if not needs_chunking(audio_path):
             return self._parse_response(self._transcribe_single(audio_path, language, api_key))
