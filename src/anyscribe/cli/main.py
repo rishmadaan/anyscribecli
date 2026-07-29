@@ -146,6 +146,7 @@ _debug_mode = False
 
 @app.callback()
 def main(
+    ctx: typer.Context,
     version: Optional[bool] = typer.Option(
         None,
         "--version",
@@ -177,7 +178,12 @@ def main(
                 logging.StreamHandler(),
             ],
         )
-    _auto_update_skill()
+    # `migrate` does the skill install itself, visibly, and honours --dry-run.
+    # Letting the silent auto-updater run first would remove the stale skill
+    # dir and write skill files before a `--dry-run` had reported anything —
+    # the one flag whose whole value is that it writes nothing.
+    if ctx.invoked_subcommand != "migrate":
+        _auto_update_skill()
     _check_path_windows()
 
 
@@ -189,6 +195,7 @@ from anyscribe.cli.batch import batch  # noqa: E402
 from anyscribe.cli.download import download  # noqa: E402
 from anyscribe.cli.rm import rm  # noqa: E402
 from anyscribe.cli.logs_cmd import logs  # noqa: E402
+from anyscribe.cli.migrate_cmd import migrate  # noqa: E402
 from anyscribe.cli.skill_cmd import install_skill  # noqa: E402
 from anyscribe.cli.local_cmd import local_app  # noqa: E402
 from anyscribe.cli.models_cmd import models_app  # noqa: E402
@@ -201,6 +208,7 @@ app.command()(batch)
 app.command()(download)
 app.command()(rm)
 app.command()(logs)
+app.command()(migrate)
 app.command("install-skill")(install_skill)
 app.command()(tray)
 app.command("install-service")(install_service)

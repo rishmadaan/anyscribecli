@@ -49,16 +49,20 @@ def migrate_app_home_once() -> None:
     _app_home_migrated = True
 
 
-def maybe_migrate_app_home() -> bool:
-    """Move LEGACY_APP_HOME to ~/.anyscribe/. Returns True if anything moved.
+def app_home_moves() -> list[tuple[Path, Path]]:
+    """The app-home decision table, read-only: the (src, dest) pairs to move.
 
-    Idempotent. Never overwrites: an entry already present in the new home
-    wins and its legacy twin is left on disk untouched.
+    Split out of ``maybe_migrate_app_home`` so ``anyscribe migrate --dry-run``
+    can report exactly what a real run will do. Both go through this one
+    function, so a dry-run report cannot drift from the real behaviour.
+
+    Never overwrites: an entry already present in the new home wins and its
+    legacy twin is left on disk untouched.
     """
     from anyscribe.config.paths import APP_HOME, LEGACY_APP_HOME
 
     if not LEGACY_APP_HOME.is_dir():
-        return False
+        return []
 
     # ponytail: crude mtime guard — a recent write under the legacy tmp dir
     # means another process may be mid-transcription, so leave it alone.
@@ -68,30 +72,37 @@ def maybe_migrate_app_home() -> bool:
         cutoff = time.time() - 300
         try:
             if any(p.stat().st_mtime > cutoff for p in legacy_tmp.rglob("*")):
-                return False
+                return []
         except OSError:
             # A chunk vanished between rglob and stat — that IS a live writer.
-            return False
+            return []
 
     if not APP_HOME.exists():
-        shutil.move(str(LEGACY_APP_HOME), str(APP_HOME))
-        return True
+        return [(LEGACY_APP_HOME, APP_HOME)]
 
     # New home already exists. If it holds real config, it's either already
     # migrated or a genuine new-style setup — don't touch either.
     if (APP_HOME / "config.yaml").exists() or (APP_HOME / ".env").exists():
-        return False
+        return []
 
     # Empty-ish new home, created by a post-upgrade command that ran before
     # the migration existed. Rescue every entry that doesn't collide.
-    moved = 0
-    for entry in sorted(LEGACY_APP_HOME.iterdir()):
-        dest = APP_HOME / entry.name
-        if dest.exists():
-            continue
-        shutil.move(str(entry), str(dest))
-        moved += 1
-    return moved > 0
+    return [
+        (entry, APP_HOME / entry.name)
+        for entry in sorted(LEGACY_APP_HOME.iterdir())
+        if not (APP_HOME / entry.name).exists()
+    ]
+
+
+def maybe_migrate_app_home() -> bool:
+    """Move LEGACY_APP_HOME to ~/.anyscribe/. Returns True if anything moved.
+
+    Idempotent. See ``app_home_moves`` for the decision table.
+    """
+    moves = app_home_moves()
+    for src, dest in moves:
+        shutil.move(str(src), str(dest))
+    return bool(moves)
 
 
 def maybe_migrate_workspace() -> Path | None:
