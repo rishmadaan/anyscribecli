@@ -191,7 +191,7 @@ scribe config set provider_models.openai gpt-transcribe   # every run from now o
 | Cheaper *and* more accurate plain text | `gpt-transcribe` | $0.0045/min vs $0.006/min, roughly half Whisper's error rate |
 | Cheapest OpenAI option | `gpt-4o-mini-transcribe` | $0.003/min, lower accuracy than `gpt-transcribe` |
 
-**Hard rule — timestamps.** `gpt-transcribe`, `gpt-4o-transcribe`, and `gpt-4o-mini-transcribe` do **not** return segment timestamps. If `output_format` is `timestamped` or `diarized`, or the user passes `--diarize`, those models produce plain text with no `[mm:ss]` markers. Check `scribe config show` before recommending one; if the user wants timestamps, keep `whisper-1`.
+**Hard rule — timestamps.** `gpt-transcribe`, `gpt-4o-transcribe`, and `gpt-4o-mini-transcribe` do **not** return segment timestamps. If `output_format` is `timestamped` or `diarized`, those models produce plain text with no `[mm:ss]` markers (`--diarize` itself is unaffected — it always reroutes to the dedicated diarize model). Check `scribe config show` before recommending one; if the user wants timestamps, keep `whisper-1`.
 
 > `gpt-live-transcribe` is a realtime/streaming model on OpenAI's Realtime API. scribe transcribes files, so it is not supported — don't offer it.
 

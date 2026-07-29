@@ -90,7 +90,7 @@ scribe providers list
 | **Best for** | General purpose | Diarization (auto-selected) + Hinglish | Highest accuracy | Indian languages | Cheapest + fastest | Model flexibility | Offline / free |
 | **Languages** | 99 | 89 | 90+ | 23 Indian + English | 99 | Model-dependent | 99 |
 | **Timestamps** | Segment-level (`whisper-1` only) | Word-level | Word-level | No | Segment-level | No | Segment-level |
-| **Diarization** | Yes (`--diarize`) | Yes (`--diarize`) | No (via scribe) | Yes (`--diarize`) | No | No | No |
+| **Diarization** | Yes (`--diarize`) | Yes (`--diarize`) | No (via scribe) | No | No | No | No |
 | **Pricing** | ~$0.18–0.36/hr (by model) | ~$0.30/hr | ~$0.22–0.40/hr | ~$0.35/hr | ~$0.04/hr | Varies by model | Free |
 | **File limit** | 25 MB (auto-chunked) | No hard limit | 25 MB (auto-chunked) | 30s (auto-chunked) | 25 MB (auto-chunked) | 25 MB (auto-chunked) | RAM only |
 | **Offline** | No | No | No | No | No | No | Yes |
@@ -120,7 +120,7 @@ scribe config set provider openai
 |-------|-----------------|-------------|---------------|
 | `whisper-1` (default) | $0.006 (~$0.36/hr) | **Yes** | The safe choice. The only OpenAI model that tells you *when* things were said |
 | `gpt-transcribe` | $0.0045 (~$0.27/hr) | No | OpenAI's newest and recommended transcription model. Around half the error rate of Whisper in OpenAI's own testing, and 25% cheaper |
-| `gpt-4o-transcribe` | $0.006 | No | An older model. `gpt-transcribe` is better at the same price |
+| `gpt-4o-transcribe` | $0.006 | No | An older model. `gpt-transcribe` is better and cheaper ($0.0045) |
 | `gpt-4o-mini-transcribe` | $0.003 (~$0.18/hr) | No | The cheapest option, at some cost to accuracy |
 
 ```bash

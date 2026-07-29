@@ -67,8 +67,8 @@ class SargamProvider(TranscriptionProvider):
                 data["mode"] = "translate"
             if language != "auto":
                 data["language_code"] = language
-            if diarize:
-                data["with_diarization"] = "true"
+            # Note: diarization is Batch-API-only at Sarvam; neither sync
+            # endpoint documents a with_diarization field, so none is sent.
 
             response = httpx.post(
                 self.LEGACY_API_URL if legacy else self.API_URL,

@@ -157,16 +157,33 @@ class TestOpenAI:
             OpenAIProvider().transcribe(audio)
 
     def test_diarize_routes_to_diarize_model(self, audio, monkeypatch):
+        # Real TranscriptionDiarized shape: no language field, string segment
+        # ids, a type marker — NOT the whisper-1 verbose_json shape.
         resp = {
             "text": "hi",
-            "language": "english",
             "duration": 1.0,
-            "segments": [{"id": 0, "start": 0.0, "end": 1.0, "text": "hi", "speaker": "A"}],
+            "task": "transcribe",
+            "segments": [
+                {
+                    "id": "seg_0",
+                    "type": "transcript.text.segment",
+                    "start": 0.0,
+                    "end": 1.0,
+                    "text": "hi",
+                    "speaker": "A",
+                }
+            ],
         }
         calls = stub_post(monkeypatch, FakeResponse(json_data=resp))
-        result = OpenAIProvider().transcribe(audio, diarize=True)
+        result = OpenAIProvider().transcribe(audio, language="hi", diarize=True)
         assert calls[0]["data"]["model"] == "gpt-4o-transcribe-diarize"
+        # Spec: diarized_json is the only format that carries speaker labels,
+        # and chunking_strategy is required for >30s inputs.
+        assert calls[0]["data"]["response_format"] == "diarized_json"
+        assert calls[0]["data"]["chunking_strategy"] == "auto"
         assert result.segments[0].speaker == "A"
+        # No language in the response — the requested language is echoed back.
+        assert result.language == "hi"
 
     def test_diarize_rejects_large_files(self, audio, monkeypatch):
         monkeypatch.setattr("anyscribecli.providers.openai.needs_chunking", lambda p: True)
@@ -534,13 +551,6 @@ class TestSargam:
         result = SargamProvider()._parse_response(data)
         assert result.segments[0].speaker == "0"
 
-    def test_diarize_flag_sent(self, audio, monkeypatch):
-        calls = stub_post(
-            monkeypatch, FakeResponse(json_data={"transcript": "x", "language_code": "hi-IN"})
-        )
-        SargamProvider().transcribe(audio, diarize=True)
-        assert calls[0]["data"]["with_diarization"] == "true"
-
 
 # ── model picker ─────────────────────────────────────────
 
@@ -559,7 +569,7 @@ class TestModelPicker:
     def test_gpt_transcribe_uses_plain_json(self, audio, monkeypatch):
         # No verbose_json on gpt-transcribe: json format, no granularities,
         # and the detected language comes from the new "languages" list.
-        resp = {"text": "hello there", "languages": ["en"]}
+        resp = {"text": "hello there", "languages": [{"code": "en"}]}
         calls = stub_post(monkeypatch, FakeResponse(json_data=resp))
         provider = get_provider("openai", "gpt-transcribe")
         result = provider.transcribe(audio)
@@ -596,3 +606,16 @@ class TestModelPicker:
         provider.transcribe(audio)
         (call,) = calls
         assert call["json"]["model"] == "google/gemini-2.5-flash-lite"
+
+    def test_local_pin_rejected(self):
+        # local's model choice lives in settings.local_model, not the picker —
+        # a -m pin must fail loudly instead of being silently ignored.
+        with pytest.raises(ValueError, match="does not support model selection"):
+            get_provider("local", "large-v3")
+
+    def test_sargam_never_sends_undocumented_diarization_field(self, audio, monkeypatch):
+        resp = {"transcript": "ek", "language_code": "hi-IN"}
+        calls = stub_post(monkeypatch, FakeResponse(json_data=resp))
+        SargamProvider().transcribe(audio, diarize=True)
+        (call,) = calls
+        assert "with_diarization" not in call["data"]

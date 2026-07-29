@@ -36,7 +36,7 @@ MODEL_REPOS: dict[str, str] = {
     "small": "Systran/faster-whisper-small",
     "medium": "Systran/faster-whisper-medium",
     "large-v3": "Systran/faster-whisper-large-v3",
-    "large-v3-turbo": "mobiuslabsgmbh/faster-whisper-large-v3-turbo",
+    "large-v3-turbo": "dropbox-dash/faster-whisper-large-v3-turbo",
     "distil-large-v3.5": "distil-whisper/distil-large-v3.5-ct2",
 }
 
