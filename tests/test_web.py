@@ -243,7 +243,28 @@ def test_config_payload_carries_resolved_plan(client):
     r = client.get("/api/config")
     assert r.status_code == 200
     resolved = r.json()["_resolved"]
-    assert ("provider" in resolved and "model" in resolved) or "error" in resolved
+    assert "provider" in resolved and "model" in resolved and "via" in resolved
+
+
+def test_config_payload_resolved_error_for_bogus_provider(client, monkeypatch):
+    # A hand-edited config with an unknown provider must yield {error}, not 500.
+    from anyscribecli.config.settings import Settings
+
+    monkeypatch.setattr(
+        "anyscribecli.web.routes.config.load_config",
+        lambda: Settings(provider="whisper", quality="custom"),
+    )
+    r = client.get("/api/config")
+    assert r.status_code == 200
+    assert "Unknown provider" in r.json()["_resolved"]["error"]
+
+
+def test_put_config_instagram_unknown_key_rolls_back(client):
+    client.put("/api/config", json={"instagram": {"browser": "chrome"}})
+    r = client.put("/api/config", json={"instagram": {"bogus": "x", "browser": "safari"}})
+    assert r.status_code == 422
+    r = client.get("/api/config")
+    assert r.json()["instagram"] == {"browser": "chrome"}
 
 
 def test_put_config_instagram_browser(client):
