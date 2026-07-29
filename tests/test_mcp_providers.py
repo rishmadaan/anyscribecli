@@ -4,6 +4,10 @@ from __future__ import annotations
 
 import json
 
+import pytest
+
+pytest.importorskip("mcp", reason="mcp extra not installed (pip install 'anyscribecli[mcp]')")
+
 from anyscribecli.config.settings import Settings
 from anyscribecli.mcp import server
 
