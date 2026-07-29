@@ -11,7 +11,9 @@ class TranscribeRequest(BaseModel):
     model: str | None = None
     quality: str | None = None
     language: str | None = None
-    diarize: bool = False
+    # None = not specified — the config default applies (the UI always sends
+    # its checkbox state explicitly, so this only matters for raw API clients).
+    diarize: bool | None = None
     keep_media: bool = False
     output_format: str | None = None
     force: bool = False

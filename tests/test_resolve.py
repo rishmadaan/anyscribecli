@@ -280,3 +280,16 @@ def test_unknown_provider_rejected_at_resolve():
 
     with _pytest.raises(ValueError, match="Unknown provider"):
         resolve_run(Settings(), cli_provider="nope")
+
+
+def test_diarize_keyless_balanced_tier_keeps_actionable_warning(monkeypatch):
+    # balanced -> deepgram, which CAN diarize — the note must say the key is
+    # missing, not that the tier "can't diarize" (re-verify finding D2).
+    from anyscribecli.config.settings import Settings
+    from anyscribecli.core.resolve import resolve_run
+
+    monkeypatch.delenv("DEEPGRAM_API_KEY", raising=False)
+    plan = resolve_run(Settings(provider="openai", quality="balanced"), diarize=True)
+    assert plan.provider == "openai"
+    assert any("WARNING" in n and "DEEPGRAM_API_KEY" in n for n in plan.notes)
+    assert not any("can't diarize" in n for n in plan.notes)

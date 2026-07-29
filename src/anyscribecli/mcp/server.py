@@ -156,7 +156,7 @@ def batch_transcribe(
     try:
         plan = resolve_run(settings, cli_provider=provider, cli_model=model, diarize=diarize)
     except ValueError as e:
-        return json.dumps({"total": len(urls), "succeeded": 0, "failed": 0, "error": str(e)})
+        return json.dumps({"success": False, "total": len(urls), "error": str(e)})
     settings.provider = plan.provider
 
     results = []

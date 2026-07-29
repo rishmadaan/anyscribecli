@@ -55,9 +55,16 @@ def resolve_run(
         if provider != "deepgram" and os.environ.get("DEEPGRAM_API_KEY"):
             notes.append(f"switched from {provider} to deepgram for diarization")
             provider, via = "deepgram", "diarize"
-        elif QUALITY_TIERS.get(settings.quality):
+        elif (tier := QUALITY_TIERS.get(settings.quality)) == "deepgram":
+            # Reaching here means no DEEPGRAM_API_KEY — the tier's provider is
+            # the diarize choice too, so the missing key is the real story.
             notes.append(
-                f"diarize: quality '{settings.quality}' tier skipped (its provider "
+                f"WARNING: quality '{settings.quality}' wants deepgram (also the "
+                f"diarization choice) but no DEEPGRAM_API_KEY is set — using {provider}"
+            )
+        elif tier:
+            notes.append(
+                f"diarize: quality '{settings.quality}' tier skipped ({tier} "
                 f"can't diarize) — using {provider}"
             )
     else:

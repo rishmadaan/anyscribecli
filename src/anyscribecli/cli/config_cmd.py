@@ -72,7 +72,18 @@ def config_main(
 
     load_env()
     settings = load_config()
-    plan = resolve_run(settings)
+    try:
+        plan = resolve_run(settings)
+    except ValueError as e:
+        # A hand-edited/downgraded config can hold an unknown provider — the
+        # dashboard is where users diagnose that, so it must not traceback.
+        if output_json:
+            json.dump({"error": str(e), **settings.to_dict()}, sys.stdout, indent=2)
+            sys.stdout.write("\n")
+        else:
+            err_console.print(f"[red]Error:[/red] {e}")
+            err_console.print("[dim]Fix with: scribe config set provider <name>[/dim]")
+        raise typer.Exit(code=1)
     rows = _provider_rows(settings)
 
     if output_json:

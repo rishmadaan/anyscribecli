@@ -182,3 +182,29 @@ def test_providers_list_table_marks_custom_models():
     result = runner.invoke(providers_app, ["list"])
     assert result.exit_code == 0
     assert "custom" in result.output
+
+
+def test_dashboard_survives_unknown_provider_in_config(monkeypatch, tmp_path, capsys):
+    # Hand-edited config with a bogus provider: the dashboard is where users
+    # diagnose that, so it must error cleanly, not traceback (finding D1).
+    import json as _json
+
+    import yaml as _yaml
+    from typer.testing import CliRunner
+
+    import anyscribecli.config.settings as settings_mod
+    from anyscribecli.cli.main import app
+
+    cfg = tmp_path / "config.yaml"
+    cfg.write_text(_yaml.dump({"provider": "whisper", "quality": "custom"}))
+    monkeypatch.setattr(settings_mod, "CONFIG_FILE", cfg)
+
+    runner = CliRunner()
+    result = runner.invoke(app, ["config"])
+    assert result.exit_code == 1
+    assert "Unknown provider" in result.output
+
+    result = runner.invoke(app, ["config", "--json"])
+    assert result.exit_code == 1
+    payload = _json.loads(result.stdout)
+    assert "Unknown provider" in payload["error"]

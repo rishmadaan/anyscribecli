@@ -77,8 +77,9 @@ async def start_transcribe(req: TranscribeRequest) -> dict:
         settings.language = req.language
     if req.output_format:
         settings.output_format = req.output_format
-    settings.diarize = req.diarize
-    if req.diarize and settings.output_format == "clean":
+    if req.diarize is not None:
+        settings.diarize = req.diarize
+    if settings.diarize and settings.output_format == "clean":
         settings.output_format = "diarized"
     settings.keep_media = req.keep_media
 
@@ -86,7 +87,7 @@ async def start_transcribe(req: TranscribeRequest) -> dict:
 
     try:
         plan = resolve_run(
-            settings, cli_provider=req.provider, cli_model=req.model, diarize=req.diarize
+            settings, cli_provider=req.provider, cli_model=req.model, diarize=settings.diarize
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
