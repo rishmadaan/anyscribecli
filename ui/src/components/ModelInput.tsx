@@ -1,5 +1,6 @@
 import { useId, useState } from "react";
 import type { Provider } from "../api/types";
+import { hasModelChoice } from "../api/models";
 
 interface ModelInputProps {
   provider?: Provider;
@@ -11,20 +12,6 @@ interface ModelInputProps {
 
 const INPUT_CLS =
   "flex-1 bg-surface-raised border border-border rounded-md px-2.5 py-1.5 text-sm text-text font-mono outline-none focus:border-amber/40";
-
-/** Default model for a provider: the pinned one, else the provider's first. */
-export function defaultModelFor(
-  provider: Provider | undefined,
-  pinned: Record<string, string> | undefined
-): string {
-  if (!provider) return "";
-  return (pinned ?? {})[provider.name] ?? provider.models?.[0] ?? "";
-}
-
-/** True when the provider offers a real choice worth rendering a control for. */
-export function hasModelChoice(provider: Provider | undefined): boolean {
-  return !!provider && (provider.freeform_model || (provider.models?.length ?? 0) > 1);
-}
 
 /**
  * Model picker for one provider. Renders nothing unless there's a choice:

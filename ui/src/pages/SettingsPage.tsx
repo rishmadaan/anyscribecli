@@ -21,7 +21,8 @@ import type {
   LocalStatusResponse,
 } from "../api/types";
 import LanguageInput from "../components/LanguageInput";
-import ModelInput, { defaultModelFor, hasModelChoice } from "../components/ModelInput";
+import ModelInput from "../components/ModelInput";
+import { defaultModelFor, hasModelChoice } from "../api/models";
 import LocalSetupModal from "../components/LocalSetupModal";
 import {
   Check,

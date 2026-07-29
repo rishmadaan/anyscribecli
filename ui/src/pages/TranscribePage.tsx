@@ -7,7 +7,8 @@ import URLInput from "../components/URLInput";
 import ProgressTracker from "../components/ProgressTracker";
 import ResultCard from "../components/ResultCard";
 import LanguageInput from "../components/LanguageInput";
-import ModelInput, { defaultModelFor, hasModelChoice } from "../components/ModelInput";
+import ModelInput from "../components/ModelInput";
+import { defaultModelFor, hasModelChoice } from "../api/models";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
 // User-facing label for the diarize/diarized output format. The wire value
