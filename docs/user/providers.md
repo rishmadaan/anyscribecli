@@ -120,7 +120,7 @@ scribe config set provider openai
 |-------|-----------------|-------------|---------------|
 | `whisper-1` (default) | $0.006 (~$0.36/hr) | **Yes** | The safe choice. The only OpenAI model that tells you *when* things were said |
 | `gpt-transcribe` | $0.0045 (~$0.27/hr) | No | OpenAI's newest and recommended transcription model. Around half the error rate of Whisper in OpenAI's own testing, and 25% cheaper |
-| `gpt-4o-transcribe` | $0.006 | No | An older model. `gpt-transcribe` is better at the same price |
+| `gpt-4o-transcribe` | $0.006 | No | An older model. `gpt-transcribe` is better and cheaper ($0.0045) |
 | `gpt-4o-mini-transcribe` | $0.003 (~$0.18/hr) | No | The cheapest option, at some cost to accuracy |
 
 ```bash

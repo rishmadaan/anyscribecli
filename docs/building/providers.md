@@ -45,7 +45,7 @@ Language Lists".
 | deepgram | Deepgram Nova-3 | Active | Diarization, Hinglish, hi-Latn | `DEEPGRAM_API_KEY` | Yes |
 | elevenlabs | ElevenLabs Scribe v2 | Active | Highest accuracy, word timestamps, 90+ langs | `ELEVENLABS_API_KEY` | No |
 | openrouter | OpenRouter chat API | Active | Model flexibility (audio-via-chat) | `OPENROUTER_API_KEY` | No |
-| sargam | Sarvam AI REST API | Active | Indic languages (Hindi, Tamil, etc.) | `SARGAM_API_KEY` | Yes |
+| sargam | Sarvam AI REST API | Active | Indic languages (Hindi, Tamil, etc.) | `SARGAM_API_KEY` | No (Batch API only, not integrated) |
 | groq | Groq whisper-large-v3-turbo | Active | Cheapest + fastest cloud | `GROQ_API_KEY` | No |
 | local | faster-whisper | Active | Offline, free, CPU/GPU | None | No |
 

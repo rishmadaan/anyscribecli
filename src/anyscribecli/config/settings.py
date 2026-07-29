@@ -63,6 +63,10 @@ class Settings:
         (username/password) — the yt-dlp migration reads browser cookies instead.
         """
         data = dict(data)  # don't mutate the caller's dict
+        # A hand-edited bare `provider_models:` line parses to None; anything
+        # non-dict would crash `.get()` lookups downstream. Coerce to {}.
+        pm = data.get("provider_models")
+        data["provider_models"] = pm if isinstance(pm, dict) else {}
         ig_data = data.pop("instagram", {}) or {}
         known_ig = {f.name for f in fields(InstagramSettings)}
         ig = InstagramSettings(**{k: v for k, v in ig_data.items() if k in known_ig})

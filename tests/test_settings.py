@@ -144,3 +144,15 @@ def test_forget_env_var_drops_key_not_inherited():
         with patch.dict(os.environ, {"XY_KEY": "session-only"}):
             forget_env_var("XY_KEY")
             assert "XY_KEY" not in os.environ
+
+
+def test_provider_models_null_yaml_coerced_to_empty_dict():
+    # A hand-edited bare `provider_models:` line parses to None — must not
+    # crash `.get()` lookups in the orchestrator.
+    from anyscribecli.config.settings import Settings
+
+    for bad in (None, "hello", 7, ["x"]):
+        s = Settings.from_dict({"provider_models": bad})
+        assert s.provider_models == {}
+    s = Settings.from_dict({"provider_models": {"openai": "gpt-transcribe"}})
+    assert s.provider_models == {"openai": "gpt-transcribe"}

@@ -82,6 +82,35 @@ auto-routes to `gpt-4o-transcribe-diarize`, untouched.
   accept/reject, `/api/providers` + `/api/config` via TestClient, Vite build
   green.
 
+## Addendum (same day): independent audit → 0.14.1
+
+Rish asked for an adversarial post-release audit; it confirmed release
+integrity (tag/wheel/PyPI/skill all consistent; OpenRouter + Sarvam claims
+verified against primary sources) but found real defects, fixed in 0.14.1 via
+the new branch→PR→audit workflow:
+
+- **HIGH:** `gpt-transcribe` reports `languages` as a list of *objects*
+  (`[{"code": "fr"}]`), not strings — the parser wrote a raw dict into vault
+  frontmatter, and the covering test had stubbed a shape OpenAI never returns.
+  Both fixed.
+- **MED:** a hand-edited bare `provider_models:` YAML line (→ `None`) crashed
+  every transcription; `from_dict` now coerces non-dict values to `{}`.
+- **MED:** `-m` on `local` was silently swallowed; `get_provider` now rejects
+  pins for providers without a pickable list.
+- **MED:** the OpenAI diarize call sent `verbose_json`, but the spec allows
+  only `json`/`text`/`diarized_json` for `gpt-4o-transcribe-diarize` (speaker
+  labels need `diarized_json`; `chunking_strategy` required >30s). Fixed
+  per spec — **not yet live-tested** (Rish's stored OpenAI key returns 401 and
+  needs rotation).
+- **LOW:** `large-v3-turbo` repo id updated to canonical
+  `dropbox-dash/faster-whisper-large-v3-turbo` (mobiuslabsgmbh is a 307
+  redirect); Sarvam `with_diarization` removed (never documented on either
+  sync endpoint — Batch API only); doc contradictions fixed (gpt-4o-transcribe
+  price claim, SKILL.md diarize note, sargam diarization column).
+
+Process change (Rish, 2026-07-29): all future feature work goes branch → PR →
+independent audit → merge, never straight to main.
+
 ## Sources
 
 OpenAI model pages + API changelog (developers.openai.com, 2026-07-28 entries),

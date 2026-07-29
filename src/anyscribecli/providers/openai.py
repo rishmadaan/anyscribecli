@@ -77,9 +77,13 @@ class OpenAIProvider(TranscriptionProvider):
         """Transcribe with speaker diarization using gpt-4o-transcribe-diarize."""
         with open(audio_path, "rb") as f:
             files = {"file": (audio_path.name, f, "audio/mpeg")}
+            # Spec: this model supports json/text/diarized_json only —
+            # diarized_json is required for speaker labels, and
+            # chunking_strategy is required for audio longer than 30s.
             data: dict[str, str] = {
                 "model": "gpt-4o-transcribe-diarize",
-                "response_format": "verbose_json",
+                "response_format": "diarized_json",
+                "chunking_strategy": "auto",
             }
             if language != "auto":
                 data["language"] = language
@@ -145,9 +149,14 @@ class OpenAIProvider(TranscriptionProvider):
             )
 
         text = data.get("text", "")
-        # gpt-transcribe's json format reports detected languages as a list
-        # ("languages") instead of whisper-1's single "language" string.
-        language = data.get("language") or next(iter(data.get("languages") or []), "unknown")
+        # gpt-transcribe's json format reports detected languages as a list of
+        # objects ("languages": [{"code": "fr"}]) instead of whisper-1's single
+        # "language" string. Tolerate bare strings too.
+        language = data.get("language")
+        if not language:
+            first = next(iter(data.get("languages") or []), None)
+            language = first.get("code") if isinstance(first, dict) else first
+        language = language or "unknown"
         return TranscriptResult(
             text=text,
             language=language,

@@ -69,7 +69,7 @@ Default provider. Reliable, well-documented, good across most languages. Support
 |---|---|---|---|
 | `whisper-1` **(default)** | $0.006/min (~$0.36/hr) | **Yes** | The only OpenAI model that returns timestamps — that's why it's still the default |
 | `gpt-transcribe` | $0.0045/min (~$0.27/hr) | No | OpenAI's newest and recommended file-transcription model (released 2026-07-28). Roughly half Whisper's error rate in OpenAI's benchmarks, and 25% cheaper |
-| `gpt-4o-transcribe` | $0.006/min | No | Older 4o-family model; `gpt-transcribe` beats it at the same price |
+| `gpt-4o-transcribe` | $0.006/min | No | Older 4o-family model; `gpt-transcribe` beats it at a lower price ($0.0045) |
 | `gpt-4o-mini-transcribe` | $0.003/min | No | Cheapest OpenAI option, lowest accuracy of the three |
 
 **When to recommend:** Default choice. Best cost/accuracy/language balance. Use `--diarize` for multi-speaker content.

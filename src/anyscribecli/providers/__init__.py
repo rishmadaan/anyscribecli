@@ -73,10 +73,18 @@ def get_provider(name: str, model: str | None = None) -> TranscriptionProvider:
     provider = provider_class()
     if model:
         known = PROVIDER_MODELS.get(name, [])
-        if known and model not in known and name not in OPEN_MODEL_PROVIDERS:
-            raise ValueError(
-                f"Unknown model '{model}' for provider '{name}'. Available: {', '.join(known)}"
-            )
+        if name not in OPEN_MODEL_PROVIDERS:
+            if not known:
+                hint = (
+                    " Local model choice uses `scribe local setup --model` / settings.local_model."
+                    if name == "local"
+                    else ""
+                )
+                raise ValueError(f"Provider '{name}' does not support model selection.{hint}")
+            if model not in known:
+                raise ValueError(
+                    f"Unknown model '{model}' for provider '{name}'. Available: {', '.join(known)}"
+                )
         provider.model = model
     return provider
 
