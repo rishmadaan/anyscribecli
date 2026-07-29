@@ -19,6 +19,7 @@ import type {
   Provider,
   ProviderTestResult,
   LocalStatusResponse,
+  ResolvedRun,
 } from "../api/types";
 import LanguageInput from "../components/LanguageInput";
 import ModelInput from "../components/ModelInput";
@@ -309,6 +310,10 @@ export default function SettingsPage() {
           Configure Defaults
         </h2>
         <div className="space-y-4">
+          {/* Lead with the answer: what the next run actually uses. Re-rendered
+              from every PUT response, so it live-updates as knobs change. */}
+          <NextRun resolved={config._resolved} />
+
           {/* One knob picks the provider: a tier, or "custom" to pick by hand.
               Captions show what each tier resolves to right now. */}
           <div>
@@ -342,50 +347,57 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          {config.quality === "custom" && (
-            <div className="rounded-lg border border-border-subtle bg-surface px-4 py-3 space-y-3">
-              <SettingRow label="Provider">
-                <select
-                  value={config.provider}
-                  onChange={(e) => handleSave({ provider: e.target.value })}
+          {/* Always visible — a selected tier must never hide the manual
+              provider/model controls, it just explains that it outranks them. */}
+          <div className="rounded-lg border border-border-subtle bg-surface px-4 py-3 space-y-3">
+            <SettingRow label="Provider">
+              <select
+                value={config.provider}
+                onChange={(e) => handleSave({ provider: e.target.value })}
+                disabled={saving}
+                className="bg-surface-raised border border-border rounded-md px-2.5 py-1.5 text-sm text-text font-mono outline-none focus:border-amber/40 w-48"
+              >
+                {providers.map((p) => (
+                  <option key={p.name} value={p.name}>
+                    {p.name}
+                    {p.has_key ? "" : " · needs key"}
+                  </option>
+                ))}
+              </select>
+            </SettingRow>
+
+            {config.quality !== "custom" && (
+              <p className="text-xs text-text-muted -mt-1">
+                Active tier decides the provider — picking one here switches to
+                custom so your choice sticks.
+              </p>
+            )}
+
+            <SettingRow label="Model">
+              {config.provider === "local" ? (
+                <span className="text-xs font-mono text-text-muted">
+                  {config.local_model} · change it on the local card below
+                </span>
+              ) : (
+                <ModelInput
+                  provider={selectedProvider}
+                  value={currentDefaultModel}
+                  onChange={(v) => handlePin(config.provider, v)}
                   disabled={saving}
                   className="bg-surface-raised border border-border rounded-md px-2.5 py-1.5 text-sm text-text font-mono outline-none focus:border-amber/40 w-48"
-                >
-                  {providers.map((p) => (
-                    <option key={p.name} value={p.name}>
-                      {p.name}
-                      {p.has_key ? "" : " · needs key"}
-                    </option>
-                  ))}
-                </select>
-              </SettingRow>
-
-              <SettingRow label="Model">
-                {config.provider === "local" ? (
-                  <span className="text-xs font-mono text-text-muted">
-                    {config.local_model} · change it on the local card below
-                  </span>
-                ) : (
-                  <ModelInput
-                    provider={selectedProvider}
-                    value={currentDefaultModel}
-                    onChange={(v) => handlePin(config.provider, v)}
-                    disabled={saving}
-                    className="bg-surface-raised border border-border rounded-md px-2.5 py-1.5 text-sm text-text font-mono outline-none focus:border-amber/40 w-48"
-                  />
-                )}
-              </SettingRow>
-
-              {selectedProvider?.freeform_model && (
-                <ExtraModels
-                  provider={config.provider}
-                  models={extraModelsFor(config, config.provider)}
-                  disabled={saving}
-                  onChange={(list) => handleExtras(config.provider, list)}
                 />
               )}
-            </div>
-          )}
+            </SettingRow>
+
+            {selectedProvider?.freeform_model && (
+              <ExtraModels
+                provider={config.provider}
+                models={extraModelsFor(config, config.provider)}
+                disabled={saving}
+                onChange={(list) => handleExtras(config.provider, list)}
+              />
+            )}
+          </div>
 
           <SettingRow label="Default language">
             <LanguageInput
@@ -427,12 +439,65 @@ export default function SettingsPage() {
               onChange={(v) => handleSave({ diarize: v })}
             />
           </SettingRow>
+        </div>
+      </section>
+
+      {/* Downloads & media */}
+      <section className="mb-10">
+        <h2 className="text-xs font-mono text-text-muted uppercase tracking-wider mb-4">
+          Downloads &amp; media
+        </h2>
+        <div className="rounded-lg border border-border-subtle bg-surface px-4 py-3 space-y-3">
+          <SettingRow label="After transcribing a URL">
+            <select
+              value={config.prompt_download}
+              onChange={(e) => handleSave({ prompt_download: e.target.value })}
+              disabled={saving}
+              className="bg-surface-raised border border-border rounded-md px-2.5 py-1.5 text-sm text-text font-mono outline-none focus:border-amber/40 w-56"
+            >
+              <option value="never">Just transcribe</option>
+              <option value="always">Also download the video</option>
+              <option value="ask">Ask each time</option>
+            </select>
+          </SettingRow>
+
+          <SettingRow label="When transcribing a local file">
+            <select
+              value={config.local_file_media}
+              onChange={(e) => handleSave({ local_file_media: e.target.value })}
+              disabled={saving}
+              className="bg-surface-raised border border-border rounded-md px-2.5 py-1.5 text-sm text-text font-mono outline-none focus:border-amber/40 w-56"
+            >
+              <option value="skip">Leave the file where it is</option>
+              <option value="copy">Copy it into the workspace</option>
+              <option value="move">Move it into the workspace</option>
+              <option value="ask">Ask each time</option>
+            </select>
+          </SettingRow>
 
           <SettingRow label="Keep media">
             <Toggle
               value={config.keep_media}
               onChange={(v) => handleSave({ keep_media: v })}
             />
+          </SettingRow>
+
+          <SettingRow label="Instagram cookies from browser">
+            <select
+              value={config.instagram?.browser ?? ""}
+              onChange={(e) => handleSave({ instagram: { browser: e.target.value } })}
+              disabled={saving}
+              className="w-48 bg-surface-raised border border-border rounded-md px-2.5 py-1.5 text-sm text-text font-mono outline-none focus:border-amber/40"
+            >
+              <option value="">none (public posts only)</option>
+              {["firefox", "chrome", "safari", "brave", "edge", "chromium", "vivaldi", "opera"].map(
+                (b) => (
+                  <option key={b} value={b}>
+                    {b}
+                  </option>
+                )
+              )}
+            </select>
           </SettingRow>
         </div>
       </section>
@@ -1121,6 +1186,49 @@ function LocalProviderCard({
 }
 
 // ── Helpers ──────────────────────────────────────────
+
+/** What the next run resolves to, straight from the backend's own ladder. */
+function NextRun({ resolved }: { resolved?: ResolvedRun }) {
+  if (!resolved) return null;
+
+  return (
+    <div className="rounded-lg border border-border-subtle bg-surface px-4 py-3">
+      <p className="text-xs font-mono text-text-muted uppercase tracking-wider mb-1.5">
+        Next run
+      </p>
+      {resolved.error ? (
+        <>
+          <p className="text-base font-mono text-red">{resolved.error}</p>
+          <p className="text-xs text-text-muted mt-1">fix the provider below</p>
+        </>
+      ) : (
+        <>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-base font-mono text-text">
+              {resolved.provider}
+              {resolved.model ? ` · ${resolved.model}` : ""}
+            </span>
+            {resolved.via && (
+              <span className="rounded border border-border px-1.5 py-0.5 text-[10px] font-mono text-text-muted">
+                via {resolved.via}
+              </span>
+            )}
+          </div>
+          {(resolved.notes ?? []).map((note) => (
+            <p
+              key={note}
+              className={`text-xs font-mono mt-1 ${
+                note.startsWith("WARNING:") ? "text-amber" : "text-text-muted"
+              }`}
+            >
+              {note}
+            </p>
+          ))}
+        </>
+      )}
+    </div>
+  );
+}
 
 /** One row of the "what runs by default" picker: a tier, or "custom". */
 function QualityChoice({

@@ -237,3 +237,19 @@ class TestSPARouting:
     def test_static_assets_served(self, client):
         r = client.get("/favicon.svg")
         assert r.status_code == 200
+
+
+def test_config_payload_carries_resolved_plan(client):
+    r = client.get("/api/config")
+    assert r.status_code == 200
+    resolved = r.json()["_resolved"]
+    assert ("provider" in resolved and "model" in resolved) or "error" in resolved
+
+
+def test_put_config_instagram_browser(client):
+    r = client.put("/api/config", json={"instagram": {"browser": "firefox"}})
+    assert r.status_code == 200
+    assert r.json()["instagram"]["browser"] == "firefox"
+    r = client.put("/api/config", json={"instagram": {"browser": ""}})
+    assert r.status_code == 200
+    assert r.json()["instagram"]["browser"] == ""

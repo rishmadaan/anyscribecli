@@ -35,6 +35,8 @@ instagram:
 **provider** — The transcription service used when `quality` is `custom`. It is also the fallback when a `quality` tier's key is missing. Override per-command with `--provider`.
 
 > **The invariant:** setting `provider` anywhere — `scribe config set provider`, the Web UI Settings page, MCP `set_config` — writes `quality: custom` in the same save, so the choice sticks. Never set `quality: custom` as a separate step.
+
+> **Web UI parity:** every config key (including `prompt_download`, `local_file_media`, `keep_media`, `instagram.browser`) is editable at `scribe ui` → Settings; the page leads with a "Next run" banner mirroring `scribe config`. When a user asks "where do I change X in the UI", the answer is always Settings — nothing is terminal-only.
 >
 > To see which one is winning: `scribe config --json` → `resolved.via` is `config`, `quality: <tier>`, `flag`, or `diarize`.
 
