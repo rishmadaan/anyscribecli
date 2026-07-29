@@ -33,6 +33,9 @@ jobs:
       - name: Build package
         run: python -m build
 
+      - name: Rehearse migration (fake HOME, throwaway venv)
+        run: bash scripts/rehearse-migration.sh
+
   frontend:
     runs-on: ubuntu-latest
     steps:
