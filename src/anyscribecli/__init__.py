@@ -1,3 +1,3 @@
 """anyscribecli — download, transcribe, and convert video/audio to structured markdown."""
 
-__version__ = "0.14.1"
+__version__ = "0.15.0"
