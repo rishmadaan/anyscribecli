@@ -240,7 +240,7 @@ const STEPS: Step[] = ["welcome", "provider", "api_key", "offline_opt_in", "work
 function stepTitle(step: Step): string {
   switch (step) {
     case "welcome":
-      return "Welcome to scribe";
+      return "Welcome to anyscribe";
     case "provider":
       return "Pick a transcription provider";
     case "api_key":
@@ -260,7 +260,7 @@ function StepWelcome({ onNext }: { onNext: () => void }) {
   return (
     <>
       <p className="text-sm text-text-muted mb-6">
-        scribe turns videos and audio into clean markdown transcripts in your
+        anyscribe turns videos and audio into clean markdown transcripts in your
         Obsidian vault. Let's get you set up in a minute.
       </p>
       <div className="rounded-lg border border-border-subtle bg-surface-raised px-4 py-3 mb-6">
@@ -362,7 +362,7 @@ function StepApiKey({
     <>
       <p className="text-sm text-text-muted mb-4">
         Paste your {provider?.label || providerName} API key. It's stored
-        locally in <code className="text-xs font-mono text-text">~/.anyscribecli/.env</code> and
+        locally in <code className="text-xs font-mono text-text">~/.anyscribe/.env</code> and
         never shared.
       </p>
       <div className="mb-4">
@@ -742,7 +742,7 @@ function StepWorkspace({
   return (
     <>
       <p className="text-sm text-text-muted mb-4">
-        scribe writes transcripts into an Obsidian-compatible vault. Default
+        anyscribe writes transcripts into an Obsidian-compatible vault. Default
         is fine for most users.
       </p>
       <div className="mb-4">
