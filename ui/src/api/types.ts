@@ -12,8 +12,10 @@ export interface Config {
   workspace_path: string;
   local_model: string;
   provider_models: Record<string, string>;
+  extra_models: Record<string, string[]>;
   instagram: { browser: string };
   _resolved_workspace?: string;
+  _quality_tiers?: Record<string, string>; // tier -> provider it resolves to
 }
 
 export interface Provider {
@@ -195,7 +197,16 @@ export interface JobResult {
   language: string;
   word_count: number;
   provider: string;
+  model?: string;
   cached?: boolean;
+}
+
+/** POST /api/transcribe — the resolved plan for this run. */
+export interface TranscribeAccepted {
+  job_id: string;
+  provider: string;
+  model: string | null;
+  notes: string[];
 }
 
 export interface WorkspaceInfo {

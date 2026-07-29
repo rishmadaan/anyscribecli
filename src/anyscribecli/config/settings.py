@@ -36,7 +36,9 @@ class InstagramSettings:
 @dataclass
 class Settings:
     provider: str = "openai"
-    quality: str = "balanced"  # accuracy | balanced | cost | free (resolves to a provider)
+    # accuracy | balanced | cost | free (each resolves to a provider), or
+    # "custom" — the sentinel meaning "respect `provider` as set".
+    quality: str = "balanced"
     language: str = "auto"
     keep_media: bool = False
     output_format: str = "clean"  # clean | timestamped | diarized
@@ -48,6 +50,10 @@ class Settings:
     # provider name -> pinned model id (see providers.PROVIDER_MODELS).
     # Missing key = that provider's default model.
     provider_models: dict[str, str] = field(default_factory=dict)
+    # provider name -> extra model ids the user added, merged into the pickers
+    # by providers.get_models. Only meaningful for open-model providers
+    # (currently openrouter).
+    extra_models: dict[str, list[str]] = field(default_factory=dict)
     instagram: InstagramSettings = field(default_factory=InstagramSettings)
 
     def to_dict(self) -> dict:
@@ -67,6 +73,14 @@ class Settings:
         # non-dict would crash `.get()` lookups downstream. Coerce to {}.
         pm = data.get("provider_models")
         data["provider_models"] = pm if isinstance(pm, dict) else {}
+        # Same for extra_models, one level deeper: each value must be a list of
+        # model ids — anything else is dropped rather than crashing a picker.
+        em = data.get("extra_models")
+        data["extra_models"] = (
+            {k: [str(m) for m in v] for k, v in em.items() if isinstance(v, list)}
+            if isinstance(em, dict)
+            else {}
+        )
         ig_data = data.pop("instagram", {}) or {}
         known_ig = {f.name for f in fields(InstagramSettings)}
         ig = InstagramSettings(**{k: v for k, v in ig_data.items() if k in known_ig})
@@ -75,12 +89,21 @@ class Settings:
 
 
 def load_config() -> Settings:
-    """Load settings from config.yaml. Returns defaults if file doesn't exist."""
+    """Load settings from config.yaml. Returns defaults if file doesn't exist.
+
+    Config migrations run here, on the freshly-parsed state — before any
+    caller mutates the object with per-run overrides and before resolution
+    reads it. See migrate.maybe_migrate_sargam_model for why.
+    """
     if not CONFIG_FILE.exists():
         return Settings()
     with open(CONFIG_FILE) as f:
         data = yaml.safe_load(f) or {}
-    return Settings.from_dict(data)
+    settings = Settings.from_dict(data)
+    from anyscribecli.core.migrate import maybe_migrate_sargam_model
+
+    maybe_migrate_sargam_model(settings)
+    return settings
 
 
 def save_config(settings: Settings) -> None:

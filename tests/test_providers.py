@@ -13,7 +13,7 @@ import httpx
 import pytest
 
 from anyscribecli.core.errors import AuthenticationError, RateLimitError
-from anyscribecli.providers import PROVIDER_REGISTRY, get_provider
+from anyscribecli.providers import PROVIDER_REGISTRY, get_models, get_provider
 from anyscribecli.providers.base import TranscriptionProvider, TranscriptResult
 from anyscribecli.providers.deepgram import DeepgramProvider
 from anyscribecli.providers.elevenlabs import ElevenLabsProvider
@@ -132,7 +132,7 @@ WHISPER_RESPONSE = {
 class TestOpenAI:
     def test_happy_path_maps_verbose_json(self, audio, monkeypatch):
         calls = stub_post(monkeypatch, FakeResponse(json_data=WHISPER_RESPONSE))
-        result = OpenAIProvider().transcribe(audio, language="en")
+        result = get_provider("openai", "whisper-1").transcribe(audio, language="en")
         assert isinstance(result, TranscriptResult)
         assert result.text == "hello world from whisper"
         assert result.language == "english"
@@ -452,11 +452,13 @@ class TestOpenRouter:
         assert "The audio is in hi." in calls[0]["json"]["messages"][0]["content"][0]["text"]
         assert result.language == "hi"
 
-    def test_model_env_override(self, audio, monkeypatch):
+    def test_model_env_var_is_ignored(self, audio, monkeypatch):
+        # OPENROUTER_MODEL support was removed — the model picker
+        # (provider_models / extra_models) is the only way to change it.
         monkeypatch.setenv("OPENROUTER_MODEL", "google/gemini-flash")
         calls = stub_post(monkeypatch, FakeResponse(json_data=CHAT_RESPONSE))
         OpenRouterProvider().transcribe(audio)
-        assert calls[0]["json"]["model"] == "google/gemini-flash"
+        assert calls[0]["json"]["model"] == OpenRouterProvider.DEFAULT_MODEL
 
 
 # ── sargam (Sarvam) ─────────────────────────────────────
@@ -581,31 +583,44 @@ class TestModelPicker:
         assert result.language == "en"
         assert result.segments == []
 
-    def test_whisper1_default_keeps_verbose_json(self, audio, monkeypatch):
+    def test_whisper1_pin_keeps_verbose_json(self, audio, monkeypatch):
         resp = {"text": "hi", "language": "en", "duration": 1.0, "segments": []}
         calls = stub_post(monkeypatch, FakeResponse(json_data=resp))
-        OpenAIProvider().transcribe(audio)
+        get_provider("openai", "whisper-1").transcribe(audio)
         (call,) = calls
         assert call["data"]["model"] == "whisper-1"
         assert call["data"]["response_format"] == "verbose_json"
 
-    def test_sargam_v25_pin_uses_legacy_endpoint(self, audio, monkeypatch):
-        resp = {"transcript": "ek do", "language_code": "hi-IN"}
-        calls = stub_post(monkeypatch, FakeResponse(json_data=resp))
-        provider = get_provider("sargam", "saaras:v2.5")
-        provider.transcribe(audio, language="hi-IN")
-        (call,) = calls
-        assert call["url"] == SargamProvider.LEGACY_API_URL
-        assert call["data"]["model"] == "saaras:v2.5"
-        assert "mode" not in call["data"]
+    def test_unpinned_openai_uses_gpt_transcribe(self, audio, monkeypatch):
+        # Catalog default and the provider's own default must agree.
+        calls = stub_post(monkeypatch, FakeResponse(json_data={"text": "hi"}))
+        OpenAIProvider().transcribe(audio)
+        assert calls[0]["data"]["model"] == get_models("openai")[0] == "gpt-transcribe"
 
-    def test_openrouter_model_pin_beats_env(self, audio, monkeypatch):
+    def test_sargam_v25_pin_rejected(self):
+        # saaras:v2.5 and its /speech-to-text-translate endpoint are retired.
+        with pytest.raises(ValueError, match="Unknown model"):
+            get_provider("sargam", "saaras:v2.5")
+
+    def test_openrouter_model_pin_used(self, audio, monkeypatch):
         monkeypatch.setenv("OPENROUTER_MODEL", "env/model")
         calls = stub_post(monkeypatch, FakeResponse(json_data=CHAT_RESPONSE))
         provider = get_provider("openrouter", "google/gemini-2.5-flash-lite")
         provider.transcribe(audio)
         (call,) = calls
         assert call["json"]["model"] == "google/gemini-2.5-flash-lite"
+
+    def test_get_models_merges_extras(self):
+        assert get_models("openai")[0] == "gpt-transcribe"
+        assert get_models("openrouter", {"openrouter": ["vendor/x"]})[-1] == "vendor/x"
+        # No extras for this provider, unknown provider, dupes: all safe.
+        assert get_models("deepgram", {"openrouter": ["vendor/x"]}) == ["nova-3", "nova-2"]
+        assert get_models("nope") == []
+        assert (
+            get_models("openrouter", {"openrouter": ["vendor/x", "vendor/x"]}).count("vendor/x")
+            == 1
+        )
+        assert get_models("openai", {"openai": ["whisper-1"]}) == get_models("openai")
 
     def test_local_pin_rejected(self):
         # local's model choice lives in settings.local_model, not the picker —

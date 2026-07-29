@@ -2,45 +2,83 @@
 
 scribe supports 7 providers. Each has different strengths.
 
-## Quality presets (prefer this over picking a provider)
+## Quality presets — the provider knob
 
-Most users should set `quality` instead of a provider — it picks the provider.
-Recommend `--quality` first; only name a provider when the user wants a specific one.
+`quality` and `provider` are one setting with two positions. A tier picks the
+provider; `custom` means "use `provider` as written".
 
-| `--quality` | Picks | Best for |
+| `quality` | Picks | Best for |
 |-------------|-------|----------|
 | `balanced` (default) | Deepgram `nova-3` | Strong accuracy + speaker labels |
 | `accuracy` | ElevenLabs `scribe_v2` | Highest accuracy, primarily-English |
 | `cost` | Groq `whisper-large-v3-turbo` | Cheapest + fastest (~$0.04/hr) |
 | `free` | Local faster-whisper | Offline, $0 |
+| `custom` | whatever `provider` says | The user chose a provider |
 
-`--provider` overrides the tier. If the tier's provider has no key, scribe falls back to the configured provider.
+Recommend a tier first; only name a provider when the user wants a specific one.
+**Setting a provider anywhere (CLI, Web UI, MCP `set_config`) writes
+`quality=custom` in the same save** — don't set it yourself.
+
+`--provider` on a run overrides everything for that run only.
+
+**Keyless tier:** scribe warns and falls back to the configured provider rather
+than failing — `WARNING: quality 'balanced' wants deepgram but no
+DEEPGRAM_API_KEY is set — using openai instead`. Relay that note plus the fix.
+
+**Never infer the effective provider from `provider` alone.** `scribe config --json`
+returns a `resolved` block — `{provider, model, via, notes}` — where `via` is one
+of `config`, `quality: <tier>`, `flag`, `diarize`.
 
 ## Picking a model within a provider
 
 Every cloud provider has a small list of pickable models. **The first is the default** — most users never touch this. Three ways to change it:
 
 ```bash
-scribe "url" -p openai -m gpt-transcribe             # this run only
-scribe config set provider_models.openai gpt-transcribe   # persistent, per provider
-scribe providers list --json                          # what's in effect + alternatives
+scribe "url" -p openai -m whisper-1                # this run only
+scribe config set provider_models.openai whisper-1 # persistent, per provider
+scribe config --json                               # what's in effect + alternatives
 ```
 
 Precedence: `-m` > `provider_models.<provider>` in config > provider default.
 
 | Provider | Default | Also available |
 |---|---|---|
-| `openai` | `whisper-1` | `gpt-transcribe`, `gpt-4o-transcribe`, `gpt-4o-mini-transcribe` |
-| `deepgram` | `nova-3` | — (single model) |
+| `openai` | `gpt-transcribe` | `whisper-1`, `gpt-4o-transcribe`, `gpt-4o-mini-transcribe` |
+| `deepgram` | `nova-3` | `nova-2` |
 | `elevenlabs` | `scribe_v2` | — (single model) |
-| `sargam` | `saaras:v3` | `saaras:v2.5` (legacy) |
+| `sargam` | `saaras:v3` | — (single model) |
 | `groq` | `whisper-large-v3-turbo` | `whisper-large-v3` |
 | `openrouter` | `openai/gpt-audio-mini` | 5 listed below, **plus any audio-capable OpenRouter slug** |
 | `local` | — | Sizes are downloaded, not picked with `-m`. See the local section. |
 
 Unknown models are rejected up front with the valid list. `openrouter` is the exception — any slug passes through and only fails at the API.
 
-> **Timestamps warning.** Only `whisper-1` (of the OpenAI models), `deepgram`, `elevenlabs`, `groq`, and `local` return segment timestamps. `gpt-transcribe`, `gpt-4o-transcribe`, `gpt-4o-mini-transcribe`, `sargam`, and `openrouter` return plain text — with `output_format: timestamped` or `diarized` you get paragraphs and no `[mm:ss]` markers. Check `scribe config show` before pinning one.
+### Adding models (openrouter only)
+
+```bash
+scribe config set extra_models.openrouter "qwen/qwen3-omni-flash,openai/gpt-audio"
+scribe config set extra_models.openrouter ""     # clears
+```
+
+Added slugs merge into every picker (CLI dashboard, `providers list` where they
+show `(custom)`, the Web UI dropdown, the MCP provider list).
+
+**`extra_models` is rejected for every other provider, deliberately.** Their
+lists are curated per scribe release because scribe needs code that parses each
+model's response shape. If a user asks "how do I add a model to Deepgram?", the
+answer is `scribe update` — not a config key. Don't hunt for a workaround.
+
+### Timestamps — what to tell users
+
+`gpt-transcribe`, `gpt-4o-transcribe`, `gpt-4o-mini-transcribe`, `sargam`, and
+`openrouter` return plain text with no `[mm:ss]` markers. `whisper-1`,
+`deepgram`, `elevenlabs`, `groq`, and `local` return segment timestamps.
+
+For OpenAI this is handled automatically: with `output_format: timestamped` or
+`diarized`, scribe swaps in `whisper-1` and emits
+`switched to whisper-1 — gpt-transcribe can't produce timestamps`.
+**A per-run `-m` turns the swap off** (explicit beats automatic); a config pin
+does not. So don't pass `-m gpt-transcribe` for a user who wants timestamps.
 
 ## Quick Comparison
 
@@ -48,7 +86,7 @@ Unknown models are rejected up front with the valid list. `openrouter` is the ex
 |---|---|---|---|---|---|---|---|
 | **Best for** | General purpose | Diarization + Hinglish | Highest accuracy | Indian languages | Cheapest + fastest | Model variety | Offline / free |
 | **Languages** | 99 | 89 | 90+ | 23 Indian + English | 99 | Varies | 99 |
-| **Timestamps** | Segment-level (`whisper-1` only) | Word-level | Word-level | No | Segment-level | No | Segment-level |
+| **Timestamps** | Segment-level (`whisper-1`; swapped in automatically) | Word-level | Word-level | No | Segment-level | No | Segment-level |
 | **Diarization** | Yes (`--diarize`) | Yes (`--diarize`) | No | No (Sarvam Batch API only — not integrated) | No | No | No |
 | **Cost** | ~$0.18–0.36/hr (by model) | ~$0.30/hr | ~$0.22–0.40/hr | ~$0.35/hr | ~$0.04/hr | Varies | Free |
 | **File limit** | 25 MB | No hard limit | 25 MB | 30 sec | 25 MB | 25 MB | RAM only |
@@ -60,21 +98,23 @@ Unknown models are rejected up front with the valid list. `openrouter` is the ex
 
 Default provider. Reliable, well-documented, good across most languages. Supports diarization. Four pickable models — this is the only provider where the model choice really matters.
 
-- **Default model:** `whisper-1`
+- **Default model:** `gpt-transcribe` (auto-swapped to `whisper-1` when the output format needs timestamps)
 - **Auto-chunking:** Files >25 MB split into 18-min segments (all models share the 25 MB limit). Diarize mode uses server-side chunking.
 - **Diarization:** Yes — `--diarize` routes to `gpt-4o-transcribe-diarize` automatically, whatever model is pinned. Not part of the picker.
 - **Get key:** https://platform.openai.com/api-keys
 
 | Model | Cost | Segment timestamps | Notes |
 |---|---|---|---|
-| `whisper-1` **(default)** | $0.006/min (~$0.36/hr) | **Yes** | The only OpenAI model that returns timestamps — that's why it's still the default |
-| `gpt-transcribe` | $0.0045/min (~$0.27/hr) | No | OpenAI's newest and recommended file-transcription model (released 2026-07-28). Roughly half Whisper's error rate in OpenAI's benchmarks, and 25% cheaper |
+| `gpt-transcribe` **(default)** | $0.0045/min (~$0.27/hr) | No | OpenAI's newest and recommended file-transcription model (released 2026-07-28). Roughly half Whisper's error rate in OpenAI's benchmarks, and 25% cheaper |
+| `whisper-1` | $0.006/min (~$0.36/hr) | **Yes** | The OpenAI model that returns timestamps. scribe swaps to it automatically when the output format needs them |
 | `gpt-4o-transcribe` | $0.006/min | No | Older 4o-family model; `gpt-transcribe` beats it at a lower price ($0.0045) |
 | `gpt-4o-mini-transcribe` | $0.003/min | No | Cheapest OpenAI option, lowest accuracy of the three |
 
 **When to recommend:** Default choice. Best cost/accuracy/language balance. Use `--diarize` for multi-speaker content.
 
-**When to recommend `gpt-transcribe`:** the user wants `clean` output (the default format) and asks for better accuracy, lower cost, or both. Do **not** suggest it if their `output_format` is `timestamped` or `diarized`, or if they want `[mm:ss]` markers — it can't produce them (`verbose_json` is unsupported), and the output silently falls back to plain text.
+**Model advice:** leave it on `gpt-transcribe` — cheaper and more accurate, and the timestamp case handles itself. Only pin `whisper-1` if the user wants every run on Whisper regardless of format. Never pass `-m gpt-transcribe` to a user whose format is `timestamped`/`diarized`: an explicit `-m` suppresses the automatic swap and they'll get plain paragraphs.
+
+> Upgrade note: the default used to be `whisper-1`. Unpinned OpenAI runs now use `gpt-transcribe`.
 
 > OpenAI also shipped `gpt-live-transcribe`. It's a realtime/streaming Realtime-API model; scribe transcribes files, so it isn't supported and isn't in the picker.
 
@@ -82,7 +122,8 @@ Default provider. Reliable, well-documented, good across most languages. Support
 
 Fast, accurate transcription with native speaker diarization and Hindi Latin script support.
 
-- **Model:** nova-3 (auto-falls back to nova for hi-Latn, which isn't supported on nova-3 yet)
+- **Default model:** `nova-3` (auto-falls back to `nova` for hi-Latn, which isn't supported on nova-3 yet)
+- **Also available:** `nova-2`, the previous generation. Only pin it to match transcripts made before nova-3.
 - **Cost:** ~$0.005/min ($0.30/hr). $200 free credit on signup, no credit card needed.
 - **No file size limit** — processes files of any length in a single request
 - **Diarization:** Native — automatically detects the number of speakers from audio. No need to specify a speaker count.
@@ -112,12 +153,12 @@ Premium accuracy with word-level timestamps and speaker diarization.
 
 Specialized for Indian languages. Dramatically better than Whisper for Hindi, Tamil, Telugu, and 19 other Indian languages.
 
-- **Default model:** `saaras:v3` — Sarvam's Feb-2026 flagship, on `/speech-to-text` with `mode=translate`. Notably better accuracy across the 22 Indic languages than v2.5.
-- **Legacy model:** `saaras:v2.5` — the older `/speech-to-text-translate` endpoint, which Sarvam has marked deprecated. Pin it only if the user explicitly wants the old endpoint: `scribe config set provider_models.sargam saaras:v2.5`
+- **Model:** `saaras:v3` — Sarvam's Feb-2026 flagship, on `/speech-to-text` with `mode=translate`. The only model scribe offers.
+- **Retired:** `saaras:v2.5` and its deprecated endpoint are gone. `scribe config set provider_models.sargam saaras:v2.5` is now rejected, and an existing pin is dropped automatically on the next run (`Sarvam saaras:v2.5 is retired — using saaras:v3`). If a user asks for it, explain it no longer exists upstream.
 - **Cost:** ~$0.35/hr; free tier ~$12 in credits
 - **Supported:** Hindi, Tamil, Telugu, Kannada, Malayalam, Bengali, Gujarati, Marathi, Punjabi, Odia, Assamese, Urdu, Sanskrit, and more
 - **Chunking:** sync API limited to 30 seconds — scribe auto-chunks into 30-sec segments (unchanged on v3)
-- **Behavior:** both models translate to English; v3 is the same behavior, better accuracy
+- **Behavior:** translates to English (this is `mode=translate`, not a verbatim transcript)
 - **Get key:** https://dashboard.sarvam.ai
 
 **When to recommend:** Any content in Indian languages. Handles code-mixed audio (e.g., Hindi-English) well. Not suited for non-Indian languages. Leave the model on `saaras:v3`.
@@ -143,12 +184,13 @@ Routes to various AI models via a unified API. Uses audio-capable chat models wi
 - **Default model:** `openai/gpt-audio-mini`
 - **Listed models:** `openai/gpt-audio-mini`, `google/gemini-2.5-flash-lite`, `google/gemini-2.5-flash`, `google/gemini-3-flash-preview`, `mistralai/voxtral-small-24b-2507`, `openai/gpt-audio`
 - **Any slug works:** OpenRouter is the one provider where `-m` isn't validated — pass any audio-capable slug and scribe forwards it. A wrong slug fails at the API (404), not at scribe.
-- **Env var:** `OPENROUTER_MODEL` still works as a default, but `-m` and `provider_models.openrouter` both win over it
+- **Keep slugs in the picker:** `scribe config set extra_models.openrouter "<slug>,<slug>"` (empty value clears). Openrouter-only.
+- **Removed:** the `OPENROUTER_MODEL` env var is no longer read (0.15.0). Migrate to `provider_models.openrouter` and delete the `.env` line.
 - **Cost:** Per-token pricing, generally more expensive than dedicated STT
 - **No timestamps** — returns plain text only
 - **Get key:** https://openrouter.ai/keys
 
-> **The old default is gone.** `openai/gpt-4o-audio-preview` was removed from OpenRouter — requests to it now 404. If a user has it pinned (config or `OPENROUTER_MODEL`), clear the pin or set a current slug.
+> **The old default is gone.** `openai/gpt-4o-audio-preview` was removed from OpenRouter — requests to it now 404. If a user has it pinned, clear the pin or set a current slug.
 
 **When to recommend:** Only when user needs a specific model available through OpenRouter. Not recommended as primary — dedicated STT APIs are faster, cheaper, more accurate.
 

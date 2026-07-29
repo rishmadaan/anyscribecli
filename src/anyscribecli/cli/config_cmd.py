@@ -13,11 +13,16 @@ from rich.console import Console
 from rich.table import Table
 
 from anyscribecli.config.paths import CONFIG_FILE
-from anyscribecli.config.settings import load_config, save_config, load_env, save_env
-from anyscribecli.providers import PROVIDER_KEY_ENV, list_providers, get_provider
-
-# "openai_api_key" -> "OPENAI_API_KEY", for `scribe config set <x>_api_key`
-_API_KEY_MAP = {f"{name}_api_key": env for name, env in PROVIDER_KEY_ENV.items() if env}
+from anyscribecli.config.settings import Settings, load_config, load_env
+from anyscribecli.core.config_set import API_KEY_MAP, set_value
+from anyscribecli.core.quality import QUALITY_TIERS, has_key
+from anyscribecli.providers import (
+    PROVIDER_KEY_ENV,
+    PROVIDER_MODELS,
+    get_models,
+    get_provider,
+    list_providers,
+)
 
 console = Console()
 err_console = Console(stderr=True)
@@ -26,10 +31,128 @@ err_console = Console(stderr=True)
 
 config_app = typer.Typer(
     name="config",
-    help="View and change scribe settings.",
     rich_markup_mode="rich",
-    no_args_is_help=True,
+    invoke_without_command=True,
 )
+
+
+def _provider_rows(settings: Settings) -> list[dict]:
+    """One row per provider: what it would run, whether it can, how it's reached."""
+    tier_of = {prov: word for word, prov in QUALITY_TIERS.items()}
+    rows = []
+    for name in list_providers():
+        models = get_models(name, settings.extra_models)
+        pinned = settings.provider_models.get(name)
+        rows.append(
+            {
+                "name": name,
+                "default_model": pinned or (models[0] if models else None),
+                "models": models,
+                "has_key": has_key(name),
+                "tier": tier_of.get(name),
+                "pinned": bool(pinned),
+                "custom_models": settings.extra_models.get(name, []),
+            }
+        )
+    return rows
+
+
+@config_app.callback(invoke_without_command=True)
+def config_main(
+    ctx: typer.Context,
+    output_json: bool = typer.Option(False, "--json", "-j", help="Output as JSON."),
+) -> None:
+    """[bold]View and change[/bold] scribe settings. No subcommand shows the defaults dashboard."""
+    if ctx.invoked_subcommand is not None:
+        return
+
+    # resolve_run pulls httpx in through the provider modules — keep it off the
+    # import path of every other `scribe` command.
+    from anyscribecli.core.resolve import resolve_run
+
+    load_env()
+    settings = load_config()
+    try:
+        plan = resolve_run(settings)
+    except ValueError as e:
+        # A hand-edited/downgraded config can hold an unknown provider — the
+        # dashboard is where users diagnose that, so it must not traceback.
+        if output_json:
+            json.dump({"error": str(e), **settings.to_dict()}, sys.stdout, indent=2)
+            sys.stdout.write("\n")
+        else:
+            err_console.print(f"[red]Error:[/red] {e}")
+            err_console.print("[dim]Fix with: scribe config set provider <name>[/dim]")
+        raise typer.Exit(code=1)
+    rows = _provider_rows(settings)
+
+    if output_json:
+        data = settings.to_dict()
+        data["resolved"] = {
+            "provider": plan.provider,
+            "model": plan.model,
+            "via": plan.via,
+            "notes": plan.notes,
+        }
+        data["providers"] = rows
+        json.dump(data, sys.stdout, indent=2)
+        sys.stdout.write("\n")
+        return
+
+    model = plan.model or (settings.local_model if plan.provider == "local" else "default")
+    console.print(f"Next run: [bold]{plan.provider}[/bold] · {model} [dim]({plan.via})[/dim]")
+    for note in plan.notes:
+        console.print(f"  [dim]{note}[/dim]")
+
+    table = Table(box=None, pad_edge=False)
+    table.add_column("Provider", style="bold")
+    table.add_column("Default model")
+    table.add_column("Alternatives", style="dim")
+    table.add_column("Key")
+    table.add_column("Notes", style="dim")
+
+    for row in rows:
+        name = row["name"]
+        others = [m for m in row["models"] if m != row["default_model"]]
+        alts = ", ".join(others) if len(others) <= 2 else f"{len(others)} more"
+        if PROVIDER_KEY_ENV[name] is None:
+            key = "[dim]—[/dim]"
+        else:
+            key = "[green]✓[/green]" if row["has_key"] else "[yellow]missing[/yellow]"
+        notes = [row["tier"]] if row["tier"] else []
+        if row["pinned"]:
+            notes.append("pinned")
+        if row["custom_models"]:
+            notes.append(f"{len(row['custom_models'])} custom")
+        if name == "local":
+            notes.append(f"local_model: {settings.local_model}")
+        table.add_row(
+            f"→ {name}" if name == plan.provider else f"  {name}",
+            row["default_model"] or "—",
+            alts,
+            key,
+            ", ".join(notes),
+        )
+
+    console.print()
+    console.print(table)
+    console.print()
+    missing = [r["name"] for r in rows if not r["has_key"]]
+    if missing:
+        console.print(
+            f"[dim]Missing keys:    {', '.join(missing)}  "
+            f"(scribe config set <provider>_api_key <key>)[/dim]"
+        )
+    console.print(
+        "[dim]Change provider: scribe config set provider <name>  "
+        "(also sets quality = custom, so it sticks)[/dim]"
+    )
+    console.print(
+        "[dim]Pin a model:     scribe config set provider_models.<provider> <model>[/dim]"
+    )
+    console.print(
+        "[dim]Or pick a tier:  scribe config set quality accuracy|balanced|cost|free|custom[/dim]"
+    )
 
 
 @config_app.command("show")
@@ -65,87 +188,19 @@ def config_set(
 
     Use dot-notation for nested keys: `scribe config set instagram.browser firefox`
     """
-    # Handle API keys — store in .env, not config.yaml
-    key_lower = key.lower().replace("-", "_")
-    if key_lower in _API_KEY_MAP:
-        env_var = _API_KEY_MAP[key_lower]
-        save_env({env_var: value})
-        console.print(f"[green]Saved[/green] {env_var} to ~/.anyscribecli/.env")
-        return
-
-    settings = load_config()
-    data = settings.to_dict()
-
-    # provider_models.<provider> — keys are providers, not fixed fields, so
-    # validate here and insert (the generic path below rejects unknown keys).
-    keys = key.split(".")
-    if keys[0] == "provider_models" and len(keys) == 2:
-        from anyscribecli.providers import OPEN_MODEL_PROVIDERS, PROVIDER_MODELS
-
-        prov = keys[1]
-        known = PROVIDER_MODELS.get(prov)
-        if known is None or not known:
-            err_console.print(f"[red]No pickable models for provider: {prov}[/red]")
-            raise typer.Exit(code=1)
-        if value not in known and prov not in OPEN_MODEL_PROVIDERS:
-            err_console.print(
-                f"[red]Unknown model '{value}' for {prov}.[/red] Available: {', '.join(known)}"
-            )
-            raise typer.Exit(code=1)
-        data["provider_models"][prov] = value
-        from anyscribecli.config.settings import Settings
-
-        save_config(Settings.from_dict(data))
-        console.print(f"[green]Set[/green] {key} = {value}")
-        return
-
-    target = data
-    for k in keys[:-1]:
-        if k not in target or not isinstance(target[k], dict):
-            err_console.print(f"[red]Invalid key: {key}[/red]")
-            raise typer.Exit(code=1)
-        target = target[k]
-
-    final_key = keys[-1]
-    if final_key not in target:
-        err_console.print(f"[red]Unknown key: {key}[/red]")
-        err_console.print(f"Available: {', '.join(_flat_keys(settings.to_dict()))}")
+    outcome = set_value(key, value)
+    if not outcome.ok:
+        err_console.print(f"[red]{outcome.error}[/red]")
+        if outcome.choices:
+            err_console.print(f"Available: {', '.join(outcome.choices)}")
         raise typer.Exit(code=1)
-
-    # Type coercion
-    old_value = target[final_key]
-    if isinstance(old_value, bool):
-        value_typed = value.lower() in ("true", "1", "yes")
-    elif isinstance(old_value, int):
-        value_typed = int(value)
-    else:
-        value_typed = value
-
-    target[final_key] = value_typed
-
-    from anyscribecli.config.settings import Settings
-
-    new_settings = Settings.from_dict(data)
-    save_config(new_settings)
-    console.print(f"[green]Set[/green] {key} = {value_typed}")
+    console.print(f"[green]{outcome.message}[/green]")
 
 
 @config_app.command("path")
 def config_path() -> None:
     """[bold]Print[/bold] the config file location."""
     console.print(str(CONFIG_FILE))
-
-
-def _flat_keys(d: dict, prefix: str = "") -> list[str]:
-    """Flatten a dict into dot-notation keys."""
-    keys = []
-    for k, v in d.items():
-        full = f"{prefix}{k}" if not prefix else f"{prefix}.{k}"
-        if isinstance(v, dict):
-            keys.extend(_flat_keys(v, full))
-        else:
-            keys.append(full)
-    return keys
 
 
 def _flat_items(d: dict, prefix: str = "") -> list[tuple[str, str, str]]:
@@ -167,11 +222,32 @@ def config_list_keys(
     """[bold]List[/bold] all settable configuration keys with types and current values."""
     load_env()
     settings = load_config()
-    items = _flat_items(settings.to_dict())
+    data = settings.to_dict()
+    # Rendered explicitly below so every pinnable provider has a row even when
+    # nothing is pinned — an empty dict flattens to nothing.
+    data.pop("provider_models")
+    data.pop("extra_models")
+    items = _flat_items(data)
+    for name in list_providers():
+        if PROVIDER_MODELS.get(name):
+            items.append(
+                (
+                    f"provider_models.{name}",
+                    "str",
+                    settings.provider_models.get(name) or "(default)",
+                )
+            )
+    items.append(
+        (
+            "extra_models.openrouter",
+            "list",
+            ", ".join(settings.extra_models.get("openrouter") or []) or "(none)",
+        )
+    )
 
     # Add API key entries
     api_keys = []
-    for key_name, env_var in _API_KEY_MAP.items():
+    for key_name, env_var in API_KEY_MAP.items():
         val = os.environ.get(env_var, "")
         masked = f"{val[:4]}...{val[-4:]}" if len(val) > 8 else ("(set)" if val else "(not set)")
         api_keys.append((key_name, "secret", masked))
@@ -207,26 +283,20 @@ def providers_list(
     output_json: bool = typer.Option(False, "--json", "-j", help="Output as JSON."),
 ) -> None:
     """[bold]List[/bold] available transcription providers."""
-    from anyscribecli.providers import PROVIDER_MODELS
-
     settings = load_config()
     active = settings.provider
-    providers = list_providers()
-
-    def _model(p: str) -> str:
-        models = PROVIDER_MODELS.get(p, [])
-        default = models[0] if models else ""
-        return settings.provider_models.get(p, default)
+    rows = _provider_rows(settings)
 
     if output_json:
         result = [
             {
-                "name": p,
-                "active": p == active,
-                "model": _model(p),
-                "models": PROVIDER_MODELS.get(p, []),
+                "name": r["name"],
+                "active": r["name"] == active,
+                "model": r["default_model"] or "",
+                "models": r["models"],
+                "custom_models": r["custom_models"],
             }
-            for p in providers
+            for r in rows
         ]
         json.dump(result, sys.stdout, indent=2)
         sys.stdout.write("\n")
@@ -237,11 +307,15 @@ def providers_list(
         table.add_column("Also available", style="dim")
         table.add_column("Active")
 
-        for p in providers:
-            current = _model(p)
-            others = ", ".join(m for m in PROVIDER_MODELS.get(p, []) if m != current)
-            is_active = "[green]Active[/green]" if p == active else ""
-            table.add_row(p, current, others, is_active)
+        for r in rows:
+            current = r["default_model"] or ""
+            others = ", ".join(
+                f"{m} (custom)" if m in r["custom_models"] else m
+                for m in r["models"]
+                if m != current
+            )
+            is_active = "[green]Active[/green]" if r["name"] == active else ""
+            table.add_row(r["name"], current, others, is_active)
 
         console.print(table)
         console.print("\n[dim]Change with: scribe config set provider <name>[/dim]")

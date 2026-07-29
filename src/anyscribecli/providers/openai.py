@@ -24,12 +24,11 @@ class OpenAIProvider(TranscriptionProvider):
     """
 
     API_URL = "https://api.openai.com/v1/audio/transcriptions"
-    MODEL = "whisper-1"  # default; subclasses (e.g. Groq) override this
+    MODEL = "gpt-transcribe"  # default; subclasses (e.g. Groq) override this
 
     # Models that only accept response_format=json — no verbose_json, so no
-    # segment timestamps (timestamped/diarized output falls back to clean text).
-    # whisper-1 stays the default because it's the only file model with
-    # segments; gpt-transcribe is cheaper and more accurate for plain text.
+    # segment timestamps. whisper-1 is the only file model with segments, so
+    # `core/resolve.py` routes timestamped/diarized runs back to it.
     NO_SEGMENT_MODELS = {"gpt-transcribe", "gpt-4o-transcribe", "gpt-4o-mini-transcribe"}
 
     @property

@@ -26,7 +26,7 @@ def test_no_timeout_flag_skips_executor(tmp_path, monkeypatch):
 
     calls = []
 
-    def fake_process(url, settings, quiet=False, force=False):
+    def fake_process(url, settings, quiet=False, force=False, model=None):
         calls.append(url)
         from anyscribecli.core.orchestrator import ProcessResult
 
@@ -55,7 +55,7 @@ def test_timeout_marks_slow_url_failed_and_continues(tmp_path, monkeypatch):
     """A URL whose processing sleeps past --timeout is marked failed; batch continues."""
     import anyscribecli.core.orchestrator as orchestrator
 
-    def fake_process(url, settings, quiet=False, force=False):
+    def fake_process(url, settings, quiet=False, force=False, model=None):
         from anyscribecli.core.orchestrator import ProcessResult
 
         if "slow" in url:

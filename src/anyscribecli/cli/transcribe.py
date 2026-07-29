@@ -3,17 +3,29 @@
 from __future__ import annotations
 
 import json
-import os
 import sys
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 import typer
 from rich.console import Console
 
 from anyscribecli.config.settings import load_config, load_env
 
+if TYPE_CHECKING:
+    from anyscribecli.core.resolve import RunPlan
+
 console = Console()
 err_console = Console(stderr=True)
+
+
+def print_plan(plan: RunPlan, quiet: bool = False) -> None:
+    """Show the resolved provider/model and any auto-switches before transcribing."""
+    if quiet:
+        return
+    model = f" · {plan.model}" if plan.model else ""
+    err_console.print(f"[dim]→ {plan.provider}{model} ({plan.via})[/dim]")
+    for note in plan.notes:
+        err_console.print(f"[dim]  {note}[/dim]")
 
 
 def transcribe(
@@ -56,6 +68,7 @@ def transcribe(
     and you'll be prompted to paste it.[/dim]
     """
     from anyscribecli.core.orchestrator import process
+    from anyscribecli.core.resolve import resolve_run
 
     # Resolve the URL from argument, clipboard, or interactive prompt
     if clipboard:
@@ -82,8 +95,6 @@ def transcribe(
     settings = load_config()
 
     # Apply per-run overrides
-    if provider:
-        settings.provider = provider
     if quality:
         settings.quality = quality
     if language:
@@ -94,29 +105,12 @@ def transcribe(
         settings.diarize = True
         if settings.output_format == "clean":
             settings.output_format = "diarized"
-        # Auto-switch to Deepgram for diarization — it handles large files
-        # natively and produces consistent speaker labels without chunking.
-        # Only if user didn't explicitly pick a provider.
-        if not provider and settings.provider != "deepgram":
-            if os.environ.get("DEEPGRAM_API_KEY"):
-                if not quiet:
-                    err_console.print(
-                        f"  [dim]Switching from {settings.provider} → deepgram for diarization[/dim]"
-                    )
-                settings.provider = "deepgram"
-
-    # Resolve the quality tier to a provider — skipped if the user pinned a
-    # provider or enabled diarization (both already chose the provider above).
-    from anyscribecli.core.quality import apply_quality
-
-    apply_quality(settings, explicit_provider=bool(provider) or diarize)
-
-    # Model pin applies to whichever provider won the resolution above.
-    if model:
-        settings.provider_models = {**settings.provider_models, settings.provider: model}
 
     try:
-        result = process(url, settings, quiet=quiet, force=force)
+        plan = resolve_run(settings, cli_provider=provider, cli_model=model, diarize=diarize)
+        settings.provider = plan.provider
+        print_plan(plan, quiet=quiet)
+        result = process(url, settings, quiet=quiet, force=force, model=plan.model)
     except Exception as e:
         from anyscribecli.cli.main import _debug_mode
         from anyscribecli.core.errors import ScribeAPIError
@@ -145,6 +139,9 @@ def transcribe(
                     "language": result.language,
                     "word_count": result.word_count,
                     "provider": result.provider,
+                    "model": plan.model,
+                    "via": plan.via,
+                    "notes": plan.notes,
                     "cached": result.cached,
                 },
                 "error": None,

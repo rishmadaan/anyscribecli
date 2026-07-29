@@ -41,6 +41,33 @@ class TestConfig:
         assert "language" in data
         assert "_resolved_workspace" in data
 
+    def test_get_config_exposes_quality_tiers(self, client):
+        # The tier -> provider map the UI captions each quality choice with.
+        tiers = client.get("/api/config").json()["_quality_tiers"]
+        assert tiers["balanced"] == "deepgram"
+        assert set(tiers) == {"accuracy", "balanced", "cost", "free"}
+
+    def test_put_config_returns_same_payload_shape_as_get(self, client, tmp_path, monkeypatch):
+        monkeypatch.setattr("anyscribecli.config.settings.CONFIG_FILE", tmp_path / "config.yaml")
+        r = client.put("/api/config", json={"keep_media": True})
+        assert r.status_code == 200
+        assert set(r.json()) == set(client.get("/api/config").json())
+
+    def test_put_config_rejects_invalid_model_pin(self, client, tmp_path, monkeypatch):
+        # Invalid entries are refused outright — nothing is persisted.
+        monkeypatch.setattr("anyscribecli.config.settings.CONFIG_FILE", tmp_path / "config.yaml")
+        r = client.put("/api/config", json={"provider_models": {"deepgram": "nova-9"}})
+        assert r.status_code == 422
+        assert r.json()["success"] is False
+        assert not (tmp_path / "config.yaml").exists()
+
+    def test_put_config_provider_sets_quality_custom(self, client, tmp_path, monkeypatch):
+        monkeypatch.setattr("anyscribecli.config.settings.CONFIG_FILE", tmp_path / "config.yaml")
+        r = client.put("/api/config", json={"provider": "groq"})
+        assert r.status_code == 200
+        assert r.json()["provider"] == "groq"
+        assert r.json()["quality"] == "custom"
+
     def test_get_providers(self, client):
         r = client.get("/api/providers")
         assert r.status_code == 200
@@ -53,6 +80,15 @@ class TestConfig:
             assert "description" in p
             assert "has_key" in p
             assert "key_in_env_file" in p
+
+    def test_get_providers_merges_user_added_models(self, client, tmp_path, monkeypatch):
+        monkeypatch.setattr("anyscribecli.config.settings.CONFIG_FILE", tmp_path / "config.yaml")
+        client.put("/api/config", json={"extra_models": {"openrouter": ["acme/whisper-xl"]}})
+        openrouter = next(
+            p for p in client.get("/api/providers").json() if p["name"] == "openrouter"
+        )
+        assert openrouter["models"][-1] == "acme/whisper-xl"
+        assert openrouter["models"][0] == "openai/gpt-audio-mini"  # catalog default still first
 
     def test_get_keys_status(self, client):
         r = client.get("/api/keys/status")

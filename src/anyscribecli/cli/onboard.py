@@ -25,6 +25,7 @@ from anyscribecli.config.settings import Settings, save_config, save_env, load_c
 from anyscribecli.core.deps import check_and_install
 from anyscribecli.core.local_setup import run_setup as run_local_setup
 from anyscribecli.downloaders.instagram import SUPPORTED_BROWSERS
+from anyscribecli.providers import get_models
 from anyscribecli.providers.local_models import (
     MODEL_SIZES,
     MODEL_SPECS,
@@ -45,6 +46,8 @@ def _run_headless(
     keep_media: Optional[bool],
     output_format: Optional[str],
     local_model: Optional[str],
+    quality: Optional[str],
+    model: Optional[str],
     instagram_browser: Optional[str],
     force: bool,
     output_json: bool,
@@ -108,6 +111,8 @@ def _run_headless(
             keep_media=keep_media,
             output_format=output_format,
             local_model=local_model,
+            quality=quality,
+            model=model,
             instagram_browser=instagram_browser,
         )
     except OnboardValidationError as e:
@@ -140,7 +145,8 @@ def _run_headless(
         sys.stdout.write("\n")
     else:
         console.print(
-            f"[green]Onboarded.[/green] Provider: [bold]{result['provider']}[/bold], "
+            f"[green]Onboarded.[/green] Provider: [bold]{result['provider']}[/bold] "
+            f"(quality: {result.get('quality')}, model: {result.get('model') or 'n/a'}), "
             f"workspace: [cyan]{result['workspace']}[/cyan]."
         )
         if result["local_enabled"]:
@@ -282,6 +288,43 @@ def _offer_local_setup(settings: Settings, make_primary: bool) -> None:
         )
 
 
+def _pick_model(provider: str, settings: Settings) -> None:
+    """Offer the provider's model list. Picking the default clears the pin, so
+    the config keeps following the catalog when we change its first entry.
+    """
+    models = get_models(provider, settings.extra_models)
+    if len(models) < 2:
+        return
+
+    console.print(
+        Panel(
+            f"Pick the default model for [bold]{provider}[/bold].\n"
+            "[dim]Change later with [bold]scribe config set provider_models."
+            f"{provider} <model>[/bold][/dim]",
+            title="Model",
+            border_style="blue",
+        )
+    )
+    console.print("  Use [bold]↑↓ arrow keys[/bold] to navigate, [bold]Enter[/bold] to select:\n")
+    options = [
+        f"[cyan]{m}[/cyan]" + (" [dim](recommended)[/dim]" if m == models[0] else "")
+        for m in models
+    ]
+    current = settings.provider_models.get(provider) or models[0]
+    selected = bselect(
+        options,
+        cursor_index=models.index(current) if current in models else 0,
+        cursor="❯ ",
+        cursor_style="cyan",
+    )
+    chosen = models[0] if selected is None else models[options.index(selected)]
+    if chosen == models[0]:
+        settings.provider_models.pop(provider, None)
+    else:
+        settings.provider_models[provider] = chosen
+    console.print(f"\n  [green]Selected:[/green] {chosen}\n")
+
+
 LANGUAGE_OPTIONS = [
     "[cyan]auto[/cyan] — auto-detect language from audio",
     "[cyan]en[/cyan] — English",
@@ -346,6 +389,17 @@ def onboard(
         help="Whisper model size (required when --provider=local). "
         "Choices: tiny, base, small, medium, large-v3.",
     ),
+    quality: Optional[str] = typer.Option(
+        None,
+        "--quality",
+        help="Quality tier: accuracy | balanced | cost | free | custom. "
+        "Defaults to custom so --provider sticks.",
+    ),
+    model: Optional[str] = typer.Option(
+        None,
+        "--model",
+        help="Pin a model for the chosen provider (see `scribe providers list`).",
+    ),
     instagram_browser: Optional[str] = typer.Option(
         None,
         "--instagram-browser",
@@ -375,6 +429,8 @@ def onboard(
             keep_media=keep_media,
             output_format=output_format,
             local_model=local_model,
+            quality=quality,
+            model=model,
             instagram_browser=instagram_browser,
             force=force,
             output_json=output_json,
@@ -390,6 +446,8 @@ def onboard(
         "--language": language,
         "--output-format": output_format,
         "--local-model": local_model,
+        "--quality": quality,
+        "--model": model,
         "--instagram-browser": instagram_browser,
     }
     set_without_yes = [f for f, v in headless_only_flags.items() if v is not None]
@@ -482,9 +540,15 @@ def onboard(
         else:
             provider = PROVIDER_NAMES[PROVIDER_OPTIONS.index(selected)]
         settings.provider = provider
+        # Same invariant as core.config_set.set_value("provider", ...) — an
+        # explicit pick only sticks if the quality tier stops overriding it.
+        settings.quality = "custom"
         console.print(f"\n  [green]Selected:[/green] {provider}\n")
 
     provider = settings.provider
+
+    # Step 3b: model for that provider (skipped when there's nothing to pick).
+    _pick_model(provider, settings)
 
     # Step 4: API key for selected provider
     env_keys: dict[str, str] = {}
@@ -793,6 +857,12 @@ def onboard(
 
     # Summary
     configured_keys = ", ".join(env_keys.keys()) if env_keys else "none"
+    catalog = get_models(settings.provider, settings.extra_models)
+    effective_model = (
+        settings.provider_models.get(settings.provider)
+        or (catalog[0] if catalog else None)
+        or (settings.local_model if settings.provider == "local" else "n/a")
+    )
     ig_status = (
         f"cookies from {settings.instagram.browser}"
         if settings.instagram.browser
@@ -806,6 +876,8 @@ def onboard(
             f"  API Keys:    [cyan]{ENV_FILE}[/cyan]\n"
             f"  Workspace:   [cyan]{workspace}[/cyan]\n\n"
             f"  Provider:    {settings.provider}\n"
+            f"  Quality:     {settings.quality}\n"
+            f"  Model:       {effective_model}\n"
             f"  API keys:    {configured_keys}\n"
             f"  Instagram:   {ig_status}\n"
             f"  Language:    {settings.language}\n"

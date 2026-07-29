@@ -11,7 +11,9 @@ class TranscribeRequest(BaseModel):
     model: str | None = None
     quality: str | None = None
     language: str | None = None
-    diarize: bool = False
+    # None = not specified — the config default applies (the UI always sends
+    # its checkbox state explicitly, so this only matters for raw API clients).
+    diarize: bool | None = None
     keep_media: bool = False
     output_format: str | None = None
     force: bool = False
@@ -41,6 +43,7 @@ class ConfigUpdateRequest(BaseModel):
     workspace_path: str | None = None
     local_model: str | None = None
     provider_models: dict[str, str] | None = None
+    extra_models: dict[str, list[str]] | None = None
 
 
 class LocalSetupRequest(BaseModel):

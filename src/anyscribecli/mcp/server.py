@@ -74,11 +74,9 @@ def transcribe(
         JSON with success status, file path, title, duration, word count, provider, cached.
     """
     from anyscribecli.core.orchestrator import process
-    from anyscribecli.core.quality import apply_quality
+    from anyscribecli.core.resolve import resolve_run
 
     settings = _load_settings()
-    if provider:
-        settings.provider = provider
     if language:
         settings.language = language
     if diarize:
@@ -87,12 +85,11 @@ def transcribe(
             settings.output_format = "diarized"
     if quality:
         settings.quality = quality
-    apply_quality(settings, explicit_provider=bool(provider) or diarize)
-    if model:
-        settings.provider_models = {**settings.provider_models, settings.provider: model}
 
     try:
-        result = process(url, settings, quiet=True, force=force)
+        plan = resolve_run(settings, cli_provider=provider, cli_model=model, diarize=diarize)
+        settings.provider = plan.provider
+        result = process(url, settings, quiet=True, force=force, model=plan.model)
         return json.dumps(
             {
                 "success": True,
@@ -103,6 +100,8 @@ def transcribe(
                 "language": result.language,
                 "word_count": result.word_count,
                 "provider": result.provider,
+                "model": plan.model,
+                "notes": plan.notes,
                 "cached": result.cached,
             }
         )
@@ -114,6 +113,7 @@ def transcribe(
 def batch_transcribe(
     urls: list[str],
     provider: Optional[str] = None,
+    model: Optional[str] = None,
     language: Optional[str] = None,
     diarize: bool = False,
     stop_on_error: bool = False,
@@ -129,6 +129,7 @@ def batch_transcribe(
     Args:
         urls: List of YouTube/Instagram URLs or local file paths.
         provider: Override provider for all transcriptions.
+        model: Override the provider's model for all transcriptions.
         language: Override language for all transcriptions.
         diarize: Enable speaker diarization for multi-speaker transcripts.
         stop_on_error: Stop processing at first failure.
@@ -140,11 +141,9 @@ def batch_transcribe(
         JSON with total, succeeded, failed counts, and per-URL results.
     """
     from anyscribecli.core.orchestrator import process
-    from anyscribecli.core.quality import apply_quality
+    from anyscribecli.core.resolve import resolve_run
 
     settings = _load_settings()
-    if provider:
-        settings.provider = provider
     if language:
         settings.language = language
     if diarize:
@@ -153,7 +152,12 @@ def batch_transcribe(
             settings.output_format = "diarized"
     if quality:
         settings.quality = quality
-    apply_quality(settings, explicit_provider=bool(provider) or diarize)
+
+    try:
+        plan = resolve_run(settings, cli_provider=provider, cli_model=model, diarize=diarize)
+    except ValueError as e:
+        return json.dumps({"success": False, "total": len(urls), "error": str(e)})
+    settings.provider = plan.provider
 
     results = []
     succeeded = 0
@@ -161,7 +165,7 @@ def batch_transcribe(
 
     for url in urls:
         try:
-            result = process(url, settings, quiet=True, force=force)
+            result = process(url, settings, quiet=True, force=force, model=plan.model)
             succeeded += 1
             results.append(
                 {
@@ -193,6 +197,9 @@ def batch_transcribe(
             "total": len(urls),
             "succeeded": succeeded,
             "failed": failed,
+            "provider": plan.provider,
+            "model": plan.model,
+            "notes": plan.notes,
             "results": results,
         }
     )
@@ -388,55 +395,26 @@ def get_config() -> str:
 def set_config(key: str, value: str) -> str:
     """Change a scribe configuration setting.
 
-    Use dot-notation for nested keys (e.g., "instagram.browser").
+    Handles every settable key, including API keys (e.g. "openai_api_key",
+    written to .env), model pins ("provider_models.<provider>"), user-added
+    OpenRouter slugs ("extra_models.openrouter", comma-separated; empty clears)
+    and dot-notation nested keys ("instagram.browser").
+
+    Setting "provider" also sets quality="custom" so the choice sticks.
 
     Args:
-        key: Setting key (provider, language, keep_media, workspace_path, etc.).
+        key: Setting key (provider, quality, language, keep_media, ...).
         value: New value. Booleans accept true/false/yes/no.
 
     Returns:
-        JSON with success status and the updated key/value.
+        JSON: {success, key, value, message} or {success: false, error, choices}.
     """
-    from anyscribecli.config.settings import Settings, load_config, save_config
+    from anyscribecli.core.config_set import set_value
 
-    settings = load_config()
-    data = settings.to_dict()
-
-    keys = key.split(".")
-    target = data
-    for k in keys[:-1]:
-        if k not in target or not isinstance(target[k], dict):
-            return json.dumps({"success": False, "error": f"Invalid key: {key}"})
-        target = target[k]
-
-    final_key = keys[-1]
-    if final_key not in target:
-        available = list(data.keys())
-        return json.dumps(
-            {
-                "success": False,
-                "error": f"Unknown key: {key}",
-                "available_keys": available,
-            }
-        )
-
-    # Type coercion
-    old_value = target[final_key]
-    if isinstance(old_value, bool):
-        typed_value = value.lower() in ("true", "1", "yes")
-    elif isinstance(old_value, int):
-        try:
-            typed_value = int(value)
-        except ValueError:
-            return json.dumps({"success": False, "error": f"Expected integer for {key}"})
-    else:
-        typed_value = value
-
-    target[final_key] = typed_value
-    new_settings = Settings.from_dict(data)
-    save_config(new_settings)
-
-    return json.dumps({"success": True, "key": key, "value": typed_value})
+    outcome = set_value(key, value)
+    if not outcome.ok:
+        return json.dumps({"success": False, "error": outcome.error, "choices": outcome.choices})
+    return json.dumps({"success": True, "key": key, "value": value, "message": outcome.message})
 
 
 # ── Providers ────────────────────────────────────────────────
@@ -450,27 +428,21 @@ def list_providers() -> str:
         JSON array of providers with name, active status, the model each will
         use (pinned or default), and the full pickable model list.
     """
-    from anyscribecli.providers import PROVIDER_MODELS, list_providers as _list_providers
+    from anyscribecli.providers import get_models, list_providers as _list_providers
 
     settings = _load_settings()
     active = settings.provider
-    providers = _list_providers()
 
-    def _model(p: str) -> str:
-        models = PROVIDER_MODELS.get(p, [])
-        return settings.provider_models.get(p, models[0] if models else "")
+    def _entry(p: str) -> dict:
+        models = get_models(p, settings.extra_models)
+        return {
+            "name": p,
+            "active": p == active,
+            "model": settings.provider_models.get(p, models[0] if models else ""),
+            "models": models,
+        }
 
-    return json.dumps(
-        [
-            {
-                "name": p,
-                "active": p == active,
-                "model": _model(p),
-                "models": PROVIDER_MODELS.get(p, []),
-            }
-            for p in providers
-        ]
-    )
+    return json.dumps([_entry(p) for p in _list_providers()])
 
 
 @mcp.tool()
