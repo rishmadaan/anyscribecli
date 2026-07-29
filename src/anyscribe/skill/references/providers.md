@@ -1,6 +1,6 @@
 # Transcription Providers
 
-scribe supports 7 providers. Each has different strengths.
+anyscribe supports 7 providers. Each has different strengths.
 
 ## Quality presets (prefer this over picking a provider)
 
@@ -14,7 +14,7 @@ Recommend `--quality` first; only name a provider when the user wants a specific
 | `cost` | Groq `whisper-large-v3-turbo` | Cheapest + fastest (~$0.04/hr) |
 | `free` | Local faster-whisper | Offline, $0 |
 
-`--provider` overrides the tier. If the tier's provider has no key, scribe falls back to the configured provider.
+`--provider` overrides the tier. If the tier's provider has no key, anyscribe falls back to the configured provider.
 
 ## Quick Comparison
 
@@ -52,14 +52,14 @@ Fast, accurate transcription with native speaker diarization and Hindi Latin scr
 - **Diarization:** Native — automatically detects the number of speakers from audio. No need to specify a speaker count.
 - **Hindi Latin:** Use `--language hi-Latn` for romanized Hindi (Hinglish) output — this is the recommended default for any Hindi multi-speaker content
 - **Get key:** https://console.deepgram.com/
-- **Quick setup:** `scribe config set deepgram_api_key YOUR_KEY`
+- **Quick setup:** `anyscribe config set deepgram_api_key YOUR_KEY`
 
 **Language guide for diarization:**
 - Mostly English (with some Hindi words) → no language flag needed, auto-detect works
 - Mostly Hindi / Hinglish → `--language hi-Latn` for romanized Latin script
 - Pure Hindi (Devanagari) → `--language hi`
 
-**When to recommend:** Best for multi-speaker transcripts (meetings, interviews, podcasts). Handles long recordings (3+ hours) without chunking. Ideal for Hinglish content with `--language hi-Latn`. This is the provider scribe auto-selects when `--diarize` is used.
+**When to recommend:** Best for multi-speaker transcripts (meetings, interviews, podcasts). Handles long recordings (3+ hours) without chunking. Ideal for Hinglish content with `--language hi-Latn`. This is the provider anyscribe auto-selects when `--diarize` is used.
 
 ## ElevenLabs Scribe (provider: `elevenlabs`)
 
@@ -79,7 +79,7 @@ Specialized for Indian languages. Dramatically better than Whisper for Hindi, Ta
 - **Model:** saaras:v2
 - **Cost:** ~$0.35/hr; free tier ~$12 in credits
 - **Supported:** Hindi, Tamil, Telugu, Kannada, Malayalam, Bengali, Gujarati, Marathi, Punjabi, Odia, Assamese, Urdu, Sanskrit, and more
-- **Chunking:** REST API limited to 30 seconds — scribe auto-chunks into 30-sec segments
+- **Chunking:** REST API limited to 30 seconds — anyscribe auto-chunks into 30-sec segments
 - **Get key:** https://dashboard.sarvam.ai
 
 **When to recommend:** Any content in Indian languages. Handles code-mixed audio (e.g., Hindi-English) well. Not suited for non-Indian languages.
@@ -93,7 +93,7 @@ Cheapest and fastest cloud option. Runs Whisper `large-v3-turbo` on Groq acceler
 - **Chunking:** 25 MB auto-chunked (same as OpenAI)
 - **Diarization:** No — use the `accuracy`/`balanced` tier or `--provider deepgram`
 - **Get key:** https://console.groq.com/keys
-- **Quick setup:** `scribe config set groq_api_key gsk-...`
+- **Quick setup:** `anyscribe config set groq_api_key gsk-...`
 
 **When to recommend:** The `cost` quality tier maps here. Bulk/low-cost transcription where speaker labels aren't needed.
 
@@ -121,13 +121,13 @@ Runs entirely on-device. No API key, no internet, no cost. **Opt-in** — nothin
 ### Setup — one command, one action
 
 ```bash
-scribe local setup --model base --yes --json
+anyscribe local setup --model base --yes --json
 ```
 
 `--model` is **required**. The CLI never picks a model silently. In a non-TTY (agent) context, `--yes` is also required. Setup:
 
 1. Detects the install method (pipx / venv-pip / system pip).
-2. Installs `faster-whisper` into the same Python env as scribe.
+2. Installs `faster-whisper` into the same Python env as anyscribe.
 3. Downloads the chosen Whisper model from HuggingFace.
 4. Persists `local_model` in `config.yaml`.
 
@@ -149,16 +149,16 @@ Idempotent — re-running with an already-set-up model just updates the default.
 
 | Task | Command |
 |------|---------|
-| See what's cached | `scribe model list --json` |
-| Add another size | `scribe model pull <size> --json` |
-| Delete a cached size | `scribe model rm <size> --yes --json` |
-| Inspect a size | `scribe model info <size> --json` |
-| Switch default model | `scribe config set local_model <size>` (must already be cached) |
+| See what's cached | `anyscribe model list --json` |
+| Add another size | `anyscribe model pull <size> --json` |
+| Delete a cached size | `anyscribe model rm <size> --yes --json` |
+| Inspect a size | `anyscribe model info <size> --json` |
+| Switch default model | `anyscribe config set local_model <size>` (must already be cached) |
 
 ### Teardown
 
 ```bash
-scribe local teardown --yes --json
+anyscribe local teardown --yes --json
 ```
 
 Uninstalls faster-whisper, deletes every cached model, resets `settings.provider` to `openai` if it was `local`.
@@ -169,20 +169,20 @@ Uninstalls faster-whisper, deletes every cached model, resets `settings.provider
 
 **Change default:**
 ```bash
-scribe config set provider elevenlabs
+anyscribe config set provider elevenlabs
 ```
 
 **Override for one transcription:**
 ```bash
-scribe transcribe "url" --provider local
+anyscribe transcribe "url" --provider local
 ```
 
 **Add/update API keys:**
 ```bash
-scribe config set deepgram_api_key YOUR_KEY     # Quick — stored in .env
-scribe onboard --force                           # Interactive — re-enter keys
+anyscribe config set deepgram_api_key YOUR_KEY     # Quick — stored in .env
+anyscribe onboard --force                           # Interactive — re-enter keys
 ```
 
-Or edit `~/.anyscribecli/.env` directly (never display this file to the user).
+Or edit `~/.anyscribe/.env` directly (never display this file to the user).
 
-**Diarization auto-routing:** When `--diarize` is used without `-p`, scribe auto-switches to Deepgram if configured. Deepgram handles large files natively with consistent speaker labels.
+**Diarization auto-routing:** When `--diarize` is used without `-p`, anyscribe auto-switches to Deepgram if configured. Deepgram handles large files natively with consistent speaker labels.

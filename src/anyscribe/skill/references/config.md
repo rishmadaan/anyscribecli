@@ -5,11 +5,11 @@
 | File | Path | Purpose |
 |------|------|---------|
 | Workspace | `~/anyscribe/` | Obsidian vault — configurable via `workspace_path` |
-| Config | `~/.anyscribecli/config.yaml` | Settings (no secrets) |
-| Secrets | `~/.anyscribecli/.env` | API keys, passwords — **never display** |
-| Downloads | `~/.anyscribecli/downloads/` | Downloaded audio/video files |
-| Logs | `~/.anyscribecli/logs/` | Processing logs |
-| Temp | `~/.anyscribecli/tmp/` | Temporary downloads (auto-cleaned) |
+| Config | `~/.anyscribe/config.yaml` | Settings (no secrets) |
+| Secrets | `~/.anyscribe/.env` | API keys, passwords — **never display** |
+| Downloads | `~/.anyscribe/downloads/` | Downloaded audio/video files |
+| Logs | `~/.anyscribe/logs/` | Processing logs |
+| Temp | `~/.anyscribe/tmp/` | Temporary downloads (auto-cleaned) |
 
 ## config.yaml Settings
 
@@ -35,13 +35,13 @@ instagram:
 
 **language** — Default audio language. `auto` lets the provider detect it. Set explicitly if detection is wrong. Override per-command with `--language`.
 
-**keep_media** — When true, saves downloaded audio to `~/.anyscribecli/downloads/audio/<platform>/`. A 10-min video at 64kbps mono is ~5 MB.
+**keep_media** — When true, saves downloaded audio to `~/.anyscribe/downloads/audio/<platform>/`. A 10-min video at 64kbps mono is ~5 MB.
 
-**workspace_path** — Where transcripts are stored. Empty string (default) means `~/anyscribe/`. Set a custom path to use an existing Obsidian vault or preferred location. Check resolved path with `scribe config show`.
+**workspace_path** — Where transcripts are stored. Empty string (default) means `~/anyscribe/`. Set a custom path to use an existing Obsidian vault or preferred location. Check resolved path with `anyscribe config show`.
 
 **output_format** — `clean` outputs paragraphs only. `timestamped` adds `[mm:ss]` markers per segment. `diarized` groups consecutive speaker turns into blocks with timestamps.
 
-**diarize** — When true, enables speaker diarization (identifying who said what). Supported by OpenAI, Deepgram, and Sarvam providers. Can also be enabled per-run with `--diarize` flag. When diarization is active and no provider is explicitly specified, scribe auto-switches to Deepgram if configured.
+**diarize** — When true, enables speaker diarization (identifying who said what). Supported by OpenAI, Deepgram, and Sarvam providers. Can also be enabled per-run with `--diarize` flag. When diarization is active and no provider is explicitly specified, anyscribe auto-switches to Deepgram if configured.
 
 **prompt_download** — After each transcription: `never` (just transcribe), `ask` (prompt to download video/audio), `always` (auto-download video too).
 
@@ -59,7 +59,7 @@ Supported values: `firefox`, `chrome`, `safari`, `brave`, `edge`, `chromium`,
 Example:
 
 ```bash
-scribe config set instagram.browser firefox
+anyscribe config set instagram.browser firefox
 ```
 
 > **Pre-0.8.3 users:** the older `instagram.username` field and the
@@ -98,7 +98,7 @@ ASCLI_LOCAL_MODEL=base                           # Optional: tiny|base|small|med
 
 **Organization:** Files grouped by platform. Slugs are lowercase, hyphenated, max 60 chars. Duplicate slugs get `-2`, `-3`, etc.
 
-**Downloads are separate:** Audio/video files live in `~/.anyscribecli/downloads/`, not in the workspace. The vault stays lightweight — pure markdown. Use `scribe config show` to see the resolved workspace path.
+**Downloads are separate:** Audio/video files live in `~/.anyscribe/downloads/`, not in the workspace. The vault stays lightweight — pure markdown. Use `anyscribe config show` to see the resolved workspace path.
 
 ## Transcript File Format
 
@@ -138,7 +138,7 @@ The transcript text goes here...
 
 ## Viewing in Obsidian
 
-Open Obsidian → "Open folder as vault" → `~/anyscribe/` (or the custom workspace path from `scribe config show`).
+Open Obsidian → "Open folder as vault" → `~/anyscribe/` (or the custom workspace path from `anyscribe config show`).
 
 The default workspace is in the home directory — visible in Finder and file pickers without navigating to hidden folders.
 

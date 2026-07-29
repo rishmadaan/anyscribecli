@@ -65,7 +65,7 @@ Download from [python.org/downloads](https://www.python.org/downloads/) and run 
 ## Step 2: Install scribe
 
 ```bash
-pip install anyscribecli
+pip install anyscribe
 ```
 
 Verify it worked:
@@ -77,14 +77,14 @@ scribe --version
 
 **Windows:**
 ```bash
-python -m anyscribecli --version
+python -m anyscribe --version
 ```
 
 You should see `scribe v0.8.3` (or a newer version).
 
-> **Why `python -m` on Windows?** pip installs `scribe.exe` to a Scripts directory that's usually not on PATH. `python -m anyscribecli` always works because it uses the same Python you installed with. On first run, it will print the exact PowerShell command to add `scribe` to your PATH permanently — after that, you can use `scribe` directly.
+> **Why `python -m` on Windows?** pip installs `scribe.exe` to a Scripts directory that's usually not on PATH. `python -m anyscribe` always works because it uses the same Python you installed with. On first run, it will print the exact PowerShell command to add `scribe` to your PATH permanently — after that, you can use `scribe` directly.
 
-> **Other install methods:** You can also use the [install script](https://raw.githubusercontent.com/rishmadaan/anyscribecli/main/install.sh) which checks and installs all dependencies for you, or [clone the repo](https://github.com/rishmadaan/anyscribecli) for development.
+> **Other install methods:** You can also use the [install script](https://raw.githubusercontent.com/rishmadaan/anyscribe/main/install.sh) which checks and installs all dependencies for you, or [clone the repo](https://github.com/rishmadaan/anyscribe) for development.
 
 ## Step 3: Run the setup wizard
 
@@ -104,18 +104,18 @@ Close the tab when you're finished; to stop the server, hit Ctrl+C in the termin
 
 ```bash
 scribe onboard                       # macOS / Linux
-python -m anyscribecli onboard      # Windows (first time — prints PATH fix)
+python -m anyscribe onboard      # Windows (first time — prints PATH fix)
 ```
 
 The wizard uses arrow-key selectors — navigate with **↑↓** and press **Enter** to select:
 
 1. **Check your system** — makes sure `yt-dlp` and `ffmpeg` are installed. Offers to install missing ones.
 2. **Choose your provider** — 5 options: OpenAI (default), OpenRouter, ElevenLabs, Sarvam AI, Local.
-3. **Enter your API key** — stored locally at `~/.anyscribecli/.env`. Never sent anywhere except your provider.
+3. **Enter your API key** — stored locally at `~/.anyscribe/.env`. Never sent anywhere except your provider.
 4. **Add more provider keys** (optional) — configure multiple providers now or later.
 5. **Configure Instagram** (optional) — choose which browser to read Instagram cookies from. Needed only for rate-limited or private reels.
 6. **Choose language** — auto-detect (default) or pick a specific language.
-7. **Keep audio files** — whether to save the transcription audio to `~/.anyscribecli/downloads/audio/`.
+7. **Keep audio files** — whether to save the transcription audio to `~/.anyscribe/downloads/audio/`.
 8. **Local file handling** — what to do with original files when transcribing local audio/video (skip/copy/move/ask).
 9. **Post-transcription downloads** — whether scribe should offer to download the full video after each transcription (never/ask/always).
 10. **Choose workspace location** — where to store transcripts (default: `~/anyscribe/`).
@@ -215,7 +215,7 @@ This opens a local web dashboard in your browser where you can paste URLs, watch
 
 > **Same tool, different surface.** The web UI uses the exact same transcription pipeline as the CLI. Your transcripts end up in the same Obsidian vault.
 
-> **Want it always running?** `pip install "anyscribecli[tray]"` then `scribe tray` puts a menu-bar icon over the web server — click to open, no terminal needed. Add `scribe install-service` (macOS) to have it start automatically at login. See [Commands → scribe tray](commands.md#scribe-tray) for details.
+> **Want it always running?** `pip install "anyscribe[tray]"` then `scribe tray` puts a menu-bar icon over the web server — click to open, no terminal needed. Add `scribe install-service` (macOS) to have it start automatically at login. See [Commands → scribe tray](commands.md#scribe-tray) for details.
 
 ## What to do next
 
@@ -230,7 +230,7 @@ This opens a local web dashboard in your browser where you can paste URLs, watch
 - **Check health** — `scribe doctor` verifies everything is working
 - **Update** — `scribe update` pulls the latest version
 - **Claude Code** — skill auto-installs when Claude Code is detected. Run `scribe install-skill --force` to reinstall manually
-- **MCP server** — `pip install anyscribecli[mcp]` for Claude Desktop, Cursor, and other AI harnesses
+- **MCP server** — `pip install anyscribe[mcp]` for Claude Desktop, Cursor, and other AI harnesses
 - **View all commands** — `scribe --help`
 
 ## Instagram (optional)
@@ -250,16 +250,16 @@ Supported browsers: `firefox`, `chrome`, `safari`, `brave`, `edge`, `chromium`,
 > encryption can make extraction flakier.
 
 > **Note for upgraders:** If you onboarded with scribe < 0.8.3, you may have
-> an `INSTAGRAM_PASSWORD` in your `~/.anyscribecli/.env`. It's no longer used
+> an `INSTAGRAM_PASSWORD` in your `~/.anyscribe/.env`. It's no longer used
 > and can be removed.
 
 ## Troubleshooting
 
 **"command not found: scribe"** or **"scribe is not recognized"**
-You can always use `python -m anyscribecli` as a drop-in replacement for `scribe`:
+You can always use `python -m anyscribe` as a drop-in replacement for `scribe`:
 ```bash
-python -m anyscribecli onboard           # works exactly like: scribe onboard
-python -m anyscribecli transcribe "..."  # works exactly like: scribe transcribe "..."
+python -m anyscribe onboard           # works exactly like: scribe onboard
+python -m anyscribe transcribe "..."  # works exactly like: scribe transcribe "..."
 ```
 
 To make the `scribe` shortcut work, add your Python Scripts directory to PATH:

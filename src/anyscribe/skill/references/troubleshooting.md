@@ -1,17 +1,17 @@
-# Troubleshooting scribe
+# Troubleshooting anyscribe
 
 ## Diagnostic First Step
 
 Always start with:
 ```bash
-scribe doctor
+anyscribe doctor
 ```
 This checks dependencies, config, installation, and updates. Include output in any bug report.
 
 If the issue is about a specific past run (did it actually transcribe, what
 happened to a failed job), also check:
 ```bash
-scribe logs
+anyscribe logs
 ```
 It shows recent daily-log activity plus any **recovery artifacts** — audio saved
 from a failed transcription so it doesn't need re-downloading. See "Recovery
@@ -19,18 +19,35 @@ artifacts left after a failed run" below.
 
 ## Common Errors
 
-### "command not found: scribe"
+### "command not found: anyscribe"
 
-scribe is not on PATH.
+anyscribe is not on PATH.
 
 **Fix:**
 ```bash
-python3 -m pip show anyscribecli    # Verify it's installed
+python3 -m pip show anyscribe    # Verify it's installed
 ```
 
 If installed but not found, the Python scripts directory isn't on PATH:
 - macOS/Linux: Add `~/.local/bin` to PATH
-- Or reinstall: `pip install anyscribecli`
+- Or reinstall: `pip install anyscribe`
+
+### "I upgraded and my keys are gone"
+
+The tool used to store config and API keys in `~/.anyscribecli/`; it now uses
+`~/.anyscribe/`. On a normal transcription the move happens automatically, but if
+the first command after upgrading was something that created an empty
+`~/.anyscribe/` (e.g. `anyscribe ui` or `anyscribe config`) the old keys can be
+left behind in the legacy folder.
+
+**Fix:** run the one-shot migration — it moves config, keys, sessions, and
+downloads across (never overwriting anything already in the new folder) and
+reports exactly what it did:
+```bash
+anyscribe migrate --dry-run    # preview — writes nothing
+anyscribe migrate              # do it
+```
+It is safe to run more than once; a second run reports there is nothing to do.
 
 ### "No matches found" when pasting a URL
 
@@ -38,19 +55,19 @@ The shell is interpreting `?` as a glob character (common in zsh).
 
 **Fix:** Wrap the URL in double quotes:
 ```bash
-scribe transcribe "https://www.youtube.com/watch?v=VIDEO_ID"
+anyscribe transcribe "https://www.youtube.com/watch?v=VIDEO_ID"
 ```
 
-Or run `scribe transcribe` with no URL and paste at the interactive prompt (no quoting needed).
+Or run `anyscribe transcribe` with no URL and paste at the interactive prompt (no quoting needed).
 
 ### "OPENAI_API_KEY not set" (or other API key errors)
 
-The required API key is missing from `~/.anyscribecli/.env`.
+The required API key is missing from `~/.anyscribe/.env`.
 
 **Fix:**
 ```bash
-scribe config set openai_api_key sk-proj-...    # Quick — set key directly
-scribe onboard --force                           # Or re-run setup wizard
+anyscribe config set openai_api_key sk-proj-...    # Quick — set key directly
+anyscribe onboard --force                           # Or re-run setup wizard
 ```
 
 ### "yt-dlp download failed: Video unavailable"
@@ -58,7 +75,7 @@ scribe onboard --force                           # Or re-run setup wizard
 The video is private, age-restricted, geo-blocked, or deleted.
 
 **Fix:**
-1. Try a different video to confirm scribe works
+1. Try a different video to confirm anyscribe works
 2. Update yt-dlp: `pip install --upgrade yt-dlp`
 3. If age-restricted: yt-dlp may need browser cookies (advanced)
 
@@ -68,13 +85,13 @@ The reel is gated behind login. Configure cookies from a browser logged into
 Instagram:
 
 ```bash
-scribe config set instagram.browser firefox
+anyscribe config set instagram.browser firefox
 ```
 
 Then retry. If you've already configured a browser and still see this:
 1. Open Instagram in that browser and confirm you're logged in.
 2. Visit the reel URL in that same browser to confirm you can view it.
-3. If it loads in the browser but not via scribe, your cookie store may be
+3. If it loads in the browser but not via anyscribe, your cookie store may be
    locked by the running browser — quit the browser and retry.
 
 ### Instagram: "private account"
@@ -94,43 +111,43 @@ Auto-detection guessed incorrectly.
 
 **Fix:** Force the correct language:
 ```bash
-scribe transcribe "url" --language en    # or es, fr, hi, etc.
+anyscribe transcribe "url" --language en    # or es, fr, hi, etc.
 ```
 
-Or set a default: `scribe config set language hi`
+Or set a default: `anyscribe config set language hi`
 
 ### "Already transcribed" — nothing got re-transcribed
 
-Not an error. scribe found an existing transcript whose frontmatter `source:` matches this URL/path, so it returned that file instead of re-transcribing (no download, no API cost). Human output prints `Already transcribed: <path> — use --force to re-transcribe.`; JSON output has `"cached": true`; batch marks the row `CACHED`.
+Not an error. anyscribe found an existing transcript whose frontmatter `source:` matches this URL/path, so it returned that file instead of re-transcribing (no download, no API cost). Human output prints `Already transcribed: <path> — use --force to re-transcribe.`; JSON output has `"cached": true`; batch marks the row `CACHED`.
 
 **If you actually want a fresh transcription** (changed provider, source was updated):
 ```bash
-scribe "url" --force
+anyscribe "url" --force
 ```
 
-**If you want the old one gone entirely:** delete it first with `scribe rm <path-or-slug>`, then transcribe again.
+**If you want the old one gone entirely:** delete it first with `anyscribe rm <path-or-slug>`, then transcribe again.
 
 ### Recovery artifacts left after a failed run
 
-If a transcription fails after the audio was already downloaded, scribe saves
+If a transcription fails after the audio was already downloaded, anyscribe saves
 that audio to a recovery directory instead of throwing it away. Check for these
 with:
 
 ```bash
-scribe logs
+anyscribe logs
 ```
 
 Recovery artifacts show up in a separate section from the activity log. Re-run
-`scribe "url"` (or `--force` if it partially wrote a transcript) to retry using
+`anyscribe "url"` (or `--force` if it partially wrote a transcript) to retry using
 fresh audio, or just delete the file if you've moved on — it's not referenced by
 anything else.
 
 ### "Provider error" or API failures
 
 **Fix:**
-1. Test the provider: `scribe providers test`
+1. Test the provider: `anyscribe providers test`
 2. Check API key is valid and has credits
-3. Try a different provider: `scribe transcribe "url" --provider openai`
+3. Try a different provider: `anyscribe transcribe "url" --provider openai`
 
 ### Large video taking very long
 
@@ -142,16 +159,16 @@ Videos >30 min are auto-chunked. Each chunk transcribes separately. This is norm
 
 **Fix:**
 ```bash
-scribe doctor    # Check what's wrong
+anyscribe doctor    # Check what's wrong
 ```
 
 Nuclear option (loses config — transcripts are separate at `~/anyscribe/`):
 ```bash
-rm -rf ~/.anyscribecli
-scribe onboard
+rm -rf ~/.anyscribe
+anyscribe onboard
 ```
 
-Back up `~/anyscribe/` first if transcripts matter (or check `scribe config show` for custom workspace path).
+Back up `~/anyscribe/` first if transcripts matter (or check `anyscribe config show` for custom workspace path).
 
 ### faster-whisper not found (local provider)
 
@@ -164,48 +181,48 @@ First run downloads the model from Hugging Face (~150 MB for base). Needs intern
 
 ### "The tray companion needs extra packages" / tray won't start
 
-`scribe tray` needs the optional `[tray]` extra (pystray, Pillow, and pyobjc on macOS) — the base install doesn't pull it in so `pip install anyscribecli` stays lightweight.
+`anyscribe tray` needs the optional `[tray]` extra (pystray, Pillow, and pyobjc on macOS) — the base install doesn't pull it in so `pip install anyscribe` stays lightweight.
 
 **Fix:**
 ```bash
-pip install -U "anyscribecli[tray]"
-scribe tray
+pip install -U "anyscribe[tray]"
+anyscribe tray
 ```
 
 ### Tray runs but no icon in the menu bar
 
-If the server responds at `http://127.0.0.1:8457` but you can't find the waveform icon, check whether a menu-bar manager (Hidden Bar, Bartender, Ice, Dozer) is running. macOS inserts new status items at the LEFT of the strip, which these apps hide by default — expand the manager (chevron icon) and drag the scribe waveform to the always-visible side. Also make sure scribe is v0.13.2+ (`scribe update`): 0.13.1 had a bug where the icon never appeared at all.
+If the server responds at `http://127.0.0.1:8457` but you can't find the waveform icon, check whether a menu-bar manager (Hidden Bar, Bartender, Ice, Dozer) is running. macOS inserts new status items at the LEFT of the strip, which these apps hide by default — expand the manager (chevron icon) and drag the anyscribe waveform to the always-visible side. Also make sure anyscribe is v0.13.2+ (`anyscribe update`): 0.13.1 had a bug where the icon never appeared at all.
 
-### "A scribe tray is already running"
+### "A anyscribe tray is already running"
 
-A tray is already active — its pidfile (`~/.anyscribecli/tray.pid`) still points at a live process. This is by design: `scribe tray` refuses to start a second instance instead of colliding.
+A tray is already active — its pidfile (`~/.anyscribe/tray.pid`) still points at a live process. This is by design: `anyscribe tray` refuses to start a second instance instead of colliding.
 
 **Fix:** Use the existing tray (check the menu bar), or quit it first (menu → Quit, or Ctrl+C in its terminal), then relaunch.
 
-### "port already in use" when starting the tray or `scribe ui`
+### "port already in use" when starting the tray or `anyscribe ui`
 
-If a `scribe ui` server is already listening on that port, `scribe tray` **attaches** to it rather than erroring — that's expected behavior, not a bug. If a *different, unrelated* process holds the port, pick another one:
+If a `anyscribe ui` server is already listening on that port, `anyscribe tray` **attaches** to it rather than erroring — that's expected behavior, not a bug. If a *different, unrelated* process holds the port, pick another one:
 
 ```bash
-scribe tray --port 9000
+anyscribe tray --port 9000
 ```
 
 ### Fully removing the tray / menu-bar auto-start
 
 1. Quit the tray if it's running (menu → Quit).
-2. Remove login auto-start (macOS): `scribe uninstall-service --yes`
+2. Remove login auto-start (macOS): `anyscribe uninstall-service --yes`
 3. Optionally uninstall the extra: `pip uninstall pystray Pillow`
 
-`uninstall-service` only removes the login LaunchAgent — it doesn't stop an already-running tray or uninstall scribe itself.
+`uninstall-service` only removes the login LaunchAgent — it doesn't stop an already-running tray or uninstall anyscribe itself.
 
 ### Permission denied errors
 
 **Fix:** Check file ownership:
 ```bash
-ls -la ~/.anyscribecli/
+ls -la ~/.anyscribe/
 ```
 
 If owned by root (from sudo install), fix:
 ```bash
-sudo chown -R $(whoami) ~/.anyscribecli/
+sudo chown -R $(whoami) ~/.anyscribe/
 ```

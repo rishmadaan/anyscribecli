@@ -267,7 +267,7 @@ scribe config set sargam_api_key YOUR_KEY
 scribe config set groq_api_key gsk-...
 ```
 
-These are stored in `~/.anyscribecli/.env` automatically.
+These are stored in `~/.anyscribe/.env` automatically.
 
 Or use the onboarding wizard:
 
@@ -275,7 +275,7 @@ Or use the onboarding wizard:
 scribe onboard --force
 ```
 
-Or edit `~/.anyscribecli/.env` directly.
+Or edit `~/.anyscribe/.env` directly.
 
 Test that a provider works:
 

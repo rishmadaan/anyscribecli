@@ -4,7 +4,7 @@
 
 ## Overview
 
-anyscribecli has three entry surfaces but one shared core. The CLI, the Web UI,
+anyscribe has three entry surfaces but one shared core. The CLI, the Web UI,
 and the Claude Code skill (via MCP) all funnel into the same orchestrator, which
 runs a fixed pipeline:
 
@@ -50,7 +50,7 @@ runs a fixed pipeline:
                   └────────────────────────────────────────────────┘
 ```
 
-Downloaded media lands *outside* the vault (in `~/.anyscribecli/downloads/`) so
+Downloaded media lands *outside* the vault (in `~/.anyscribe/downloads/`) so
 the Obsidian vault at `~/anyscribe/` stays pure markdown.
 
 ## Layers
@@ -59,11 +59,11 @@ the Obsidian vault at `~/anyscribe/` stays pure markdown.
 - Typer app with `rich_markup_mode="rich"`, custom `DefaultToTranscribe(TyperGroup)` class for bare-URL routing
 - Primary command: `scribe` (alias: `ascli` for backward compat)
 - Commands: `onboard`, `transcribe`, `download`, `batch`, `rm`, `logs`, `config`, `providers`, `local`, `model`, `ui`, `tray`, `install-service`, `uninstall-service`, `update`, `doctor`, `install-skill`
-- **Tray supervision model** (`cli/tray_cmd.py` + `core/tray.py`): `scribe tray` is a `pystray` menu-bar icon that supervises `scribe ui` as a subprocess — attaches to an already-running server instead of colliding (TCP connect-probe), guards against double-launch with a pidfile at `~/.anyscribecli/tray.pid`, and tears down via a `signal.pthread_sigmask` + `signal.sigwait` watcher thread rather than a plain `signal.signal` handler (pystray's macOS Cocoa event loop can block Python bytecode from running, so a normal handler can miss SIGTERM/SIGINT). `core/service.py` registers a macOS launchd LaunchAgent (`scribe install-service`) that runs `{python} -m anyscribecli tray` at login.
+- **Tray supervision model** (`cli/tray_cmd.py` + `core/tray.py`): `scribe tray` is a `pystray` menu-bar icon that supervises `scribe ui` as a subprocess — attaches to an already-running server instead of colliding (TCP connect-probe), guards against double-launch with a pidfile at `~/.anyscribe/tray.pid`, and tears down via a `signal.pthread_sigmask` + `signal.sigwait` watcher thread rather than a plain `signal.signal` handler (pystray's macOS Cocoa event loop can block Python bytecode from running, so a normal handler can miss SIGTERM/SIGINT). `core/service.py` registers a macOS launchd LaunchAgent (`scribe install-service`) that runs `{python} -m anyscribe tray` at login.
 - Bare URL: `scribe "url"` auto-routes to transcribe (first arg not a known subcommand → prepend `transcribe`)
 - `--json` and `--quiet` available on main commands (transcribe, download, batch, config show, providers list)
 - `--json` for AI agent and scripting integration
-- `__main__.py` enables `python -m anyscribecli` as alternative entry point (Windows PATH fallback)
+- `__main__.py` enables `python -m anyscribe` as alternative entry point (Windows PATH fallback)
 - On Windows, app callback checks if `scribe` is on PATH; if not, prints the exact PowerShell command to fix it (one-time, uses `.path_warned` marker)
 
 ### MCP Layer (`mcp/`)
@@ -73,7 +73,7 @@ the Obsidian vault at `~/anyscribe/` stays pure markdown.
 - 3 resources: scribe://config, scribe://providers, scribe://workspace
 - Calls core modules directly (orchestrator, settings, providers) — not CLI commands
 - All tools return JSON, consistent error format
-- Optional dependency: `pip install anyscribecli[mcp]` (adds `mcp>=1.0`)
+- Optional dependency: `pip install anyscribe[mcp]` (adds `mcp>=1.0`)
 
 ### Web UI Layer (`web/` + `ui/`)
 - FastAPI backend serving a built React SPA at `127.0.0.1:8457`
@@ -153,7 +153,7 @@ the Obsidian vault at `~/anyscribe/` stays pure markdown.
 - **Tray as a supervisor, not a rewrite**: `scribe tray` spawns/attaches to the existing `scribe ui` server rather than embedding a webview or rewriting the UI as a native app — the browser stays the UI surface, the tray only adds discoverability and process supervision.
 - **AI-first skill management**: Claude Code skill auto-installs and auto-updates on every CLI invocation. `.version` marker pattern borrowed from gitstow — one file read + string compare, never blocks CLI
 - **MCP server**: Thin wrapper around core modules. Both CLI and MCP use same orchestrator/providers/settings — only output format differs (Rich console vs JSON)
-- **Web UI as core dependency**: FastAPI/uvicorn ship with `pip install anyscribecli` (not optional). One app, one install. Same pattern as gitstow. React SPA builds to `web/static/`, committed to repo — end users don't need Node.js
+- **Web UI as core dependency**: FastAPI/uvicorn ship with `pip install anyscribe` (not optional). One app, one install. Same pattern as gitstow. React SPA builds to `web/static/`, committed to repo — end users don't need Node.js
 - **Progress callback over async rewrite**: `on_progress` callback on `process()` avoids rewriting all providers/downloaders as async. ThreadPoolExecutor bridges sync→async cleanly
 - **WebSocket over polling**: Real-time transcription progress (download→transcribe→write→index) needs instant feedback, not 30s HTMX polls. Event replay on late-connecting clients prevents missed events
 
@@ -187,7 +187,7 @@ Hard-coded constants and where they live:
 | Chunk length / overlap | 18 min / 5 s | `core/audio.py:20,23` | Stays under 25 MB at 64 kbps |
 | Sarvam chunk | 30 s (`SARVAM_MAX_DURATION`) | `providers/sargam.py:27` | Sarvam sync REST cap |
 | Provider model IDs | `whisper-1`, `gpt-4o-transcribe-diarize`, `nova-3`/`nova`, `scribe_v2`, `saaras:v2`, `whisper-large-v3-turbo` (groq) | each `providers/*.py` | Pinned per provider (the `quality` tier picks the provider, not the model) |
-| App home | `~/.anyscribecli` | `config/paths.py:6` | Fixed root for config + state |
+| App home | `~/.anyscribe` | `config/paths.py:6` | Fixed root for config + state |
 | Web bind host | `127.0.0.1` (port is configurable via `--port`) | `web/app.py:63` | Localhost-only by design; server has no auth |
 | Registries | provider & downloader plugin tables | `providers/__init__.py`, `downloaders/registry.py` | Code-level extension points |
 

@@ -1,15 +1,15 @@
-# scribe Command Reference
+# anyscribe Command Reference
 
-## scribe (default: transcribe)
+## anyscribe (default: transcribe)
 
 Transcribe a URL or local audio/video file to markdown. A bare URL routes to transcribe automatically — no subcommand needed.
 
 ```bash
-scribe "<url>"                         # YouTube/Instagram URL (always quote)
-scribe /path/to/file.mp3              # Local audio/video file
-scribe transcribe                     # Interactive prompt (no quoting needed)
-scribe --clipboard                    # Read URL from clipboard
-scribe transcribe "<url>"             # Explicit subcommand (also works)
+anyscribe "<url>"                         # YouTube/Instagram URL (always quote)
+anyscribe /path/to/file.mp3              # Local audio/video file
+anyscribe transcribe                     # Interactive prompt (no quoting needed)
+anyscribe --clipboard                    # Read URL from clipboard
+anyscribe transcribe "<url>"             # Explicit subcommand (also works)
 ```
 
 ### Flags
@@ -20,7 +20,7 @@ scribe transcribe "<url>"             # Explicit subcommand (also works)
 | `--provider` | `-p` | Override provider: openai, deepgram, elevenlabs, sargam, groq, openrouter, local (wins over `--quality`) | From config |
 | `--language` | `-l` | Language code (en, es, fr, hi, hi-Latn, etc.) or "auto" | From config (auto) |
 | `--json` | `-j` | Output result as JSON | Off |
-| `--keep-media` | | Keep downloaded audio in `~/.anyscribecli/downloads/audio/` | From config |
+| `--keep-media` | | Keep downloaded audio in `~/.anyscribe/downloads/audio/` | From config |
 | `--diarize` | `-d` | Enable speaker diarization (auto-routes to Deepgram if configured) | Off |
 | `--force` | `-f` | Re-transcribe even if this source was already transcribed | Off |
 | `--quiet` | `-q` | Suppress progress output | Off |
@@ -28,7 +28,7 @@ scribe transcribe "<url>"             # Explicit subcommand (also works)
 
 ### Duplicate detection
 
-Before transcribing, scribe scans the vault for a transcript whose frontmatter `source:` matches the URL/path. If found, it returns that existing file instead of re-transcribing — no download, no API cost. JSON output carries `"cached": true`; human output prints `Already transcribed: <path> — use --force to re-transcribe.` Pass `--force` / `-f` to override and transcribe fresh.
+Before transcribing, anyscribe scans the vault for a transcript whose frontmatter `source:` matches the URL/path. If found, it returns that existing file instead of re-transcribing — no download, no API cost. JSON output carries `"cached": true`; human output prints `Already transcribed: <path> — use --force to re-transcribe.` Pass `--force` / `-f` to override and transcribe fresh.
 
 ### Supported local file types
 
@@ -64,45 +64,45 @@ On error:
 
 ```bash
 # YouTube video (bare URL — transcribes directly)
-scribe "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+anyscribe "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
 
 # YouTube short
-scribe "https://www.youtube.com/shorts/abc123"
+anyscribe "https://www.youtube.com/shorts/abc123"
 
 # Instagram reel
-scribe "https://www.instagram.com/reel/C17LiBLyIOe/"
+anyscribe "https://www.instagram.com/reel/C17LiBLyIOe/"
 
 # Local file
-scribe /path/to/podcast.mp3
-scribe ~/recordings/meeting.m4a
+anyscribe /path/to/podcast.mp3
+anyscribe ~/recordings/meeting.m4a
 
 # Override provider for one transcription
-scribe "https://youtube.com/watch?v=abc123" --provider elevenlabs
+anyscribe "https://youtube.com/watch?v=abc123" --provider elevenlabs
 
 # Force language detection
-scribe "https://youtube.com/watch?v=abc123" --language hi
+anyscribe "https://youtube.com/watch?v=abc123" --language hi
 
 # Machine-readable output for scripting
-scribe "https://youtube.com/watch?v=abc123" --json --quiet
+anyscribe "https://youtube.com/watch?v=abc123" --json --quiet
 
 # Re-transcribe a source already in the vault (skip the cache shortcut)
-scribe "https://youtube.com/watch?v=abc123" --force
+anyscribe "https://youtube.com/watch?v=abc123" --force
 
 # From clipboard
-scribe --clipboard
+anyscribe --clipboard
 ```
 
 ---
 
-## scribe download
+## anyscribe download
 
 Download video or audio without transcribing.
 
 ```bash
-scribe download "<url>"                 # Download video
-scribe download "<url>" --audio-only    # Download audio only
-scribe download                         # Interactive prompt
-scribe download --clipboard             # From clipboard
+anyscribe download "<url>"                 # Download video
+anyscribe download "<url>" --audio-only    # Download audio only
+anyscribe download                         # Interactive prompt
+anyscribe download --clipboard             # From clipboard
 ```
 
 ### Flags
@@ -116,17 +116,17 @@ scribe download --clipboard             # From clipboard
 
 ### Output locations
 
-- Video: `~/.anyscribecli/downloads/video/<platform>/`
-- Audio: `~/.anyscribecli/downloads/audio/<platform>/`
+- Video: `~/.anyscribe/downloads/video/<platform>/`
+- Audio: `~/.anyscribe/downloads/audio/<platform>/`
 
 ---
 
-## scribe batch
+## anyscribe batch
 
 Transcribe multiple URLs or files from a list.
 
 ```bash
-scribe batch urls.txt
+anyscribe batch urls.txt
 ```
 
 ### Input file format
@@ -173,19 +173,19 @@ Sources already in the vault are skipped (returned from cache) unless `--force` 
 
 ```bash
 # Cap each URL at 5 minutes; stop-on-error not set, so it moves to the next one
-scribe batch urls.txt --timeout 300
+anyscribe batch urls.txt --timeout 300
 ```
 
 ---
 
-## scribe rm
+## anyscribe rm
 
 Delete a transcript from the workspace and resync the master `_index.md`.
 
 ```bash
-scribe rm "sources/youtube/my-video.md"    # by path
-scribe rm my-video                          # by slug (filename without .md)
-scribe rm my-video --yes --json             # skip prompt, machine output
+anyscribe rm "sources/youtube/my-video.md"    # by path
+anyscribe rm my-video                          # by slug (filename without .md)
+anyscribe rm my-video --yes --json             # skip prompt, machine output
 ```
 
 Accepts a full file path or a bare slug. If a slug matches more than one transcript, `rm` prints the matches and exits — pass a full path to disambiguate. Daily logs under `daily/` are left untouched as history; only the transcript file and its master-index row are removed.
@@ -207,14 +207,14 @@ Exits 1 (with `error` set) when no transcript matches, the slug is ambiguous, or
 
 ---
 
-## scribe logs
+## anyscribe logs
 
 View recent transcription activity and any recovery artifacts left behind by failed runs.
 
 ```bash
-scribe logs                     # last 20 entries, newest first
-scribe logs --limit 50          # more entries
-scribe logs --json              # machine-readable
+anyscribe logs                     # last 20 entries, newest first
+anyscribe logs --limit 50          # more entries
+anyscribe logs --json              # machine-readable
 ```
 
 Reads the workspace's `daily/*.md` logs — there's no separate log store, so this is
@@ -252,22 +252,22 @@ Empty state (human output): `No activity logged yet.`
 
 ```bash
 # Quick check on what was transcribed today
-scribe logs --limit 5
+anyscribe logs --limit 5
 
 # Machine-readable for a status dashboard
-scribe logs --json --limit 100
+anyscribe logs --json --limit 100
 ```
 
 ---
 
-## scribe ui
+## anyscribe ui
 
 Launch a local web dashboard in the browser. Visual interface for transcribing, browsing history, and managing settings.
 
 ```bash
-scribe ui                  # opens browser at http://127.0.0.1:8457
-scribe ui --port 9000      # custom port
-scribe ui --no-open        # don't auto-open browser
+anyscribe ui                  # opens browser at http://127.0.0.1:8457
+anyscribe ui --port 9000      # custom port
+anyscribe ui --no-open        # don't auto-open browser
 ```
 
 ### Flags
@@ -281,19 +281,19 @@ Local only (127.0.0.1). Stop with Ctrl+C.
 
 ---
 
-## scribe tray
+## anyscribe tray
 
-Menu-bar/tray icon that supervises `scribe ui` as a subprocess — click to open instead of running a command. **Needs the `[tray]` extra**: `pip install -U "anyscribecli[tray]"` (pystray, Pillow, pyobjc on macOS). Without it, the command prints an install hint and exits 1 instead of crashing.
+Menu-bar/tray icon that supervises `anyscribe ui` as a subprocess — click to open instead of running a command. **Needs the `[tray]` extra**: `pip install -U "anyscribe[tray]"` (pystray, Pillow, pyobjc on macOS). Without it, the command prints an install hint and exits 1 instead of crashing.
 
 ```bash
-scribe tray                # start the tray, default port 8457
-scribe tray --port 9000    # supervise a server on a different port
+anyscribe tray                # start the tray, default port 8457
+anyscribe tray --port 9000    # supervise a server on a different port
 ```
 
 Menu: Open UI, Status (running/stopped), Restart server, Check for updates… (opens the GitHub releases page), Quit.
 
-- If a server is already listening on the port, `scribe tray` attaches to it instead of starting a second one.
-- If a tray is already running (pidfile at `~/.anyscribecli/tray.pid`), a second `scribe tray` refuses to start rather than colliding.
+- If a server is already listening on the port, `anyscribe tray` attaches to it instead of starting a second one.
+- If a tray is already running (pidfile at `~/.anyscribe/tray.pid`), a second `anyscribe tray` refuses to start rather than colliding.
 - Quit / SIGTERM / SIGINT all run the same teardown: stop the server *if the tray started it*, remove the pidfile.
 
 ### Flags
@@ -304,13 +304,13 @@ Menu: Open UI, Status (running/stopped), Restart server, Check for updates… (o
 
 ---
 
-## scribe install-service / scribe uninstall-service
+## anyscribe install-service / anyscribe uninstall-service
 
-Auto-start `scribe tray` at login. **macOS only for now** — other platforms get a clean "not supported yet" error, not a crash.
+Auto-start `anyscribe tray` at login. **macOS only for now** — other platforms get a clean "not supported yet" error, not a crash.
 
 ```bash
-scribe install-service --yes --json     # writes + loads ~/Library/LaunchAgents/com.anyscribe.tray.plist
-scribe uninstall-service --yes --json   # unloads + deletes it
+anyscribe install-service --yes --json     # writes + loads ~/Library/LaunchAgents/com.anyscribe.tray.plist
+anyscribe uninstall-service --yes --json   # unloads + deletes it
 ```
 
 ### Flags
@@ -320,19 +320,19 @@ scribe uninstall-service --yes --json   # unloads + deletes it
 | `--yes` | `-y` | Skip confirmation prompt. Required in non-TTY (agent) contexts. |
 | `--json` | `-j` | Output result as JSON: `{"success": true, "data": {...}, "error": null}` |
 
-`install-service` returns `{"plist": "<path>"}`; `uninstall-service` returns `{"removed": true|false}`. This only toggles login auto-start — it doesn't stop a tray that's currently running (quit that from its menu) and doesn't uninstall scribe itself.
+`install-service` returns `{"plist": "<path>"}`; `uninstall-service` returns `{"removed": true|false}`. This only toggles login auto-start — it doesn't stop a tray that's currently running (quit that from its menu) and doesn't uninstall anyscribe itself.
 
 ---
 
-## scribe config
+## anyscribe config
 
 View and change settings.
 
 ```bash
-scribe config show                      # Display all settings
-scribe config show --json               # Output as JSON
-scribe config set <key> <value>         # Change a setting
-scribe config path                      # Print config file location
+anyscribe config show                      # Display all settings
+anyscribe config show --json               # Output as JSON
+anyscribe config set <key> <value>         # Change a setting
+anyscribe config path                      # Print config file location
 ```
 
 ### Settable keys
@@ -353,44 +353,44 @@ scribe config path                      # Print config file location
 | `groq_api_key` | string | Groq API key (stored in .env) |
 | `openrouter_api_key` | string | OpenRouter API key (stored in .env) |
 
-Use dot-notation for nested keys: `scribe config set instagram.browser firefox`
+Use dot-notation for nested keys: `anyscribe config set instagram.browser firefox`
 
 ```bash
 # Configure browser for IG cookies (only if needed for private/rate-limited reels)
-scribe config set instagram.browser firefox
+anyscribe config set instagram.browser firefox
 ```
 
-API key names are also accepted — they are stored in `~/.anyscribecli/.env`, not config.yaml:
+API key names are also accepted — they are stored in `~/.anyscribe/.env`, not config.yaml:
 ```bash
-scribe config set deepgram_api_key YOUR_KEY
+anyscribe config set deepgram_api_key YOUR_KEY
 ```
 
 ---
 
-## scribe providers
+## anyscribe providers
 
 Manage transcription providers.
 
 ```bash
-scribe providers list                   # Show available providers
-scribe providers list --json            # Output as JSON
-scribe providers test                   # Test active provider
-scribe providers test <name>            # Test a specific provider
+anyscribe providers list                   # Show available providers
+anyscribe providers list --json            # Output as JSON
+anyscribe providers test                   # Test active provider
+anyscribe providers test <name>            # Test a specific provider
 ```
 
 ---
 
-## scribe local
+## anyscribe local
 
 Lifecycle for offline transcription — installs / uninstalls faster-whisper and the first Whisper model. All three subcommands accept `--json`.
 
 ```bash
-scribe local setup --model base --yes --json     # Install + download + persist
-scribe local status --json                       # Report readiness, cached sizes
-scribe local teardown --yes --json               # Reverse setup
+anyscribe local setup --model base --yes --json     # Install + download + persist
+anyscribe local status --json                       # Report readiness, cached sizes
+anyscribe local teardown --yes --json               # Reverse setup
 ```
 
-### scribe local setup
+### anyscribe local setup
 
 | Flag | Short | Description | Default |
 |------|-------|-------------|---------|
@@ -405,47 +405,47 @@ scribe local teardown --yes --json               # Reverse setup
 - `1` — install/download failure. JSON stderr carries the exact command that failed and its stderr.
 - `2` — usage error (missing `--model`, unknown size, non-TTY without `--yes`).
 
-### scribe local status
+### anyscribe local status
 
 Always exits 0. Reports `set_up`, `faster_whisper_installed`, `faster_whisper_version`, `ffmpeg_ok`, `default_model`, `models` (cache state per size), `total_disk_bytes`, `install_method`.
 
-### scribe local teardown
+### anyscribe local teardown
 
 `--yes` is required. Uninstalls faster-whisper, deletes every cached model, resets `settings.provider` to `openai` if it was `local`.
 
 ---
 
-## scribe model
+## anyscribe model
 
 Cache management for Whisper models. All subcommands accept `--json`.
 
 ```bash
-scribe model list --json                      # Show every size + cache state
-scribe model pull <size> --json               # Download (idempotent)
-scribe model rm <size> --yes --json           # Delete cached weights
-scribe model reinstall <size> --yes --json    # Delete + re-download (corrupted weights)
-scribe model info <size> --json               # Inspect a single size
+anyscribe model list --json                      # Show every size + cache state
+anyscribe model pull <size> --json               # Download (idempotent)
+anyscribe model rm <size> --yes --json           # Delete cached weights
+anyscribe model reinstall <size> --yes --json    # Delete + re-download (corrupted weights)
+anyscribe model info <size> --json               # Inspect a single size
 ```
 
-**Not set up?** `pull`/`rm` exit 2 with `{error: "local transcription not set up", hint: "run scribe local setup ..."}`. `list` still works (shows everything as `cached: false`).
+**Not set up?** `pull`/`rm` exit 2 with `{error: "local transcription not set up", hint: "run anyscribe local setup ..."}`. `list` still works (shows everything as `cached: false`).
 
 **Size-already-cached semantics:** `pull` returns `{status: "already_present"}` with exit 0. `rm` on a non-cached size returns `{status: "not_present"}` with exit 0.
 
 ---
 
-## scribe onboard
+## anyscribe onboard
 
 Configures providers, API keys, and preferences. Two modes:
 
 ```bash
 # Interactive TUI — for humans typing in a terminal.
-scribe onboard
-scribe onboard --force                  # Re-run over existing config
-scribe onboard --skip-deps              # Skip dependency check
+anyscribe onboard
+anyscribe onboard --force                  # Re-run over existing config
+anyscribe onboard --skip-deps              # Skip dependency check
 
 # Headless — for agents / CI / scripts.
-scribe onboard --provider openai --api-key "$OPENAI_API_KEY" --yes --json
-scribe onboard --provider local --local-model base --yes --json
+anyscribe onboard --provider openai --api-key "$OPENAI_API_KEY" --yes --json
+anyscribe onboard --provider local --local-model base --yes --json
 ```
 
 **Agent rule:** always use the headless form. The interactive TUI uses arrow-key selectors and blocks on stdin — it cannot be driven programmatically.
@@ -468,44 +468,70 @@ scribe onboard --provider local --local-model base --yes --json
 
 ---
 
-## scribe doctor
+## anyscribe doctor
 
 Run diagnostic checks. Reports on dependencies, config, installation, and updates.
 
 ```bash
-scribe doctor
+anyscribe doctor
 ```
 
 Output includes everything needed for debugging. Suggest this when users report issues.
 
 ---
 
-## scribe update
+## anyscribe update
 
-Update scribe to the latest version.
+Update anyscribe to the latest version.
 
 ```bash
-scribe update                           # Update to latest
-scribe update --check                   # Check without installing
-scribe update --force                   # Force update (stashes local changes)
+anyscribe update                           # Update to latest
+anyscribe update --check                   # Check without installing
+anyscribe update --force                   # Force update (stashes local changes)
 ```
 
 ---
 
-## scribe --version
+## anyscribe migrate
+
+One-shot upgrade helper for machines that used the old `anyscribecli` package.
+It moves config, API keys, sessions, and downloads from `~/.anyscribecli/` to
+`~/.anyscribe/` (never overwriting anything already in the new folder),
+refreshes the bundled Claude Code skill, re-keys the MCP server registration to
+`anyscribe`, and verifies the `anyscribe`, `scribe`, and `ascli` commands all
+resolve. It reports the number of keys moved, never the key values, so its
+output is safe to paste into an issue. Idempotent — a second run reports there
+is nothing to do.
 
 ```bash
-scribe --version
-# Output: scribe v0.13.0
+anyscribe migrate --dry-run                # preview everything; writes nothing
+anyscribe migrate                          # perform the migration
+anyscribe migrate --json                   # machine-readable report
+```
+
+### Flags
+
+| Flag | Short | Description | Default |
+|---|---|---|---|
+| `--dry-run` | | Show exactly what would change and write nothing (not even the backup) | Off |
+| `--json` | `-j` | Output the report as JSON | Off |
+
+---
+
+## anyscribe --version
+
+```bash
+anyscribe --version
+# Output: anyscribe v0.13.0
 ```
 
 ---
 
-## scribe --help
+## anyscribe --help
 
 ```bash
-scribe --help                           # All commands
-scribe transcribe --help                # Command-specific help
+anyscribe --help                           # All commands
+anyscribe transcribe --help                # Command-specific help
 ```
 
 ---
@@ -513,7 +539,7 @@ scribe transcribe --help                # Command-specific help
 ## Shell Completion
 
 ```bash
-scribe --install-completion             # Install tab completion for your shell
+anyscribe --install-completion             # Install tab completion for your shell
 ```
 
 Restart your shell after installing.

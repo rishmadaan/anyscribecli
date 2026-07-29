@@ -1,35 +1,35 @@
 ---
-name: scribe
+name: anyscribe
 description: >
-  Use scribe (anyscribecli) to transcribe video/audio from YouTube, Instagram,
+  Use anyscribe to transcribe video/audio from YouTube, Instagram,
   or local files into markdown. Activate when the user wants to transcribe a URL
-  or file, download media, configure transcription providers, manage their scribe
-  setup, batch-process multiple URLs, or troubleshoot scribe issues.
-allowed-tools: Bash(scribe *), Read
+  or file, download media, configure transcription providers, manage their anyscribe
+  setup, batch-process multiple URLs, or troubleshoot anyscribe issues.
+allowed-tools: Bash(anyscribe *), Bash(scribe *), Read
 ---
 
-# scribe — Transcription CLI Operator Guide
+# anyscribe — Transcription CLI Operator Guide
 
-You are an expert operator of `scribe` (anyscribecli), a CLI tool that transcribes video/audio into structured markdown files in an Obsidian vault.
+You are an expert operator of `anyscribe`, a CLI tool that transcribes video/audio into structured markdown files in an Obsidian vault. `scribe` is a shorter, permanent alias for the same command — use whichever you like; every example here uses `anyscribe`.
 
 ## Before Running Any Command
 
-**Pre-flight check** — on first use in a session, verify scribe is available:
+**Pre-flight check** — on first use in a session, verify anyscribe is available:
 
 ```bash
-scribe --version
+anyscribe --version
 ```
 
-If not installed: suggest `pip install anyscribecli`. If installed but not configured (no `~/.anyscribecli/config.yaml`): guide the user through `scribe onboard`.
+If not installed: suggest `pip install anyscribe`. If installed but not configured (no `~/.anyscribe/config.yaml`): guide the user through `anyscribe onboard`.
 
-**Windows note:** If `scribe` is not on PATH (common on Windows), use `python -m anyscribecli` instead of `scribe` for all commands. Example: `python -m anyscribecli "url" --json --quiet`.
+**Windows note:** If `anyscribe` is not on PATH (common on Windows), use `python -m anyscribe` instead of `anyscribe` for all commands. Example: `python -m anyscribe "url" --json --quiet`.
 
 ## Core Principle: Use --json for Machine Output
 
-When YOU run scribe commands, always use `--json --quiet` flags so you can parse structured output. Show the user a clean summary, not raw JSON.
+When YOU run anyscribe commands, always use `--json --quiet` flags so you can parse structured output. Show the user a clean summary, not raw JSON.
 
 ```bash
-scribe "URL" --json --quiet
+anyscribe "URL" --json --quiet
 ```
 
 Parse the JSON result and present it conversationally:
@@ -42,70 +42,70 @@ When the USER wants to run commands themselves, show them the human-readable for
 
 | User wants to... | Command |
 |---|---|
-| Transcribe a URL or local file | `scribe "url"` or `scribe /path/to/file` |
-| Pick accuracy vs cost | `scribe "url" --quality accuracy\|balanced\|cost\|free` (default `balanced` → Deepgram; picks the provider) |
-| Transcribe with speaker diarization | `scribe "url" --diarize` (auto-routes to Deepgram if configured) |
-| Hindi / Hinglish with speakers | `scribe "url" --diarize --language hi-Latn` — **always use this combo for Hindi content with multiple speakers** |
-| Re-transcribe a source already in the vault | `scribe "url" --force` (skips the "already transcribed" shortcut) |
-| Transcribe multiple URLs | `scribe batch urls.txt` |
-| Delete / remove a transcript | `scribe rm <path-or-slug>` |
-| Download video/audio only | `scribe download "url"` or `scribe download "url" --audio-only` |
-| See recent activity / what did I transcribe recently | `scribe logs` |
-| Change settings | `scribe config set <key> <value>` |
-| See current config | `scribe config show` |
-| Switch provider | `scribe config set provider <name>` |
-| Test a provider | `scribe providers test <name>` |
-| List providers | `scribe providers list` |
-| Set up offline transcription | `scribe local setup --model base --yes` *(see rule below)* |
-| Check offline-transcription state | `scribe local status --json` |
-| Download another Whisper model | `scribe model pull <size> --json` |
-| List downloaded Whisper models | `scribe model list --json` |
-| Delete a cached Whisper model | `scribe model rm <size> --yes --json` |
-| Remove offline transcription | `scribe local teardown --yes --json` |
-| Initial setup (interactive, for a human) | `scribe onboard` (or `--force` to re-run) |
-| Initial setup (headless, agent or script) | `scribe onboard --provider X --api-key $KEY --yes --json` *(see rule below)* |
-| Use the web UI | `scribe ui` (opens browser dashboard at 127.0.0.1:8457) |
-| Keep scribe available in the menu bar / always running | `scribe tray` (needs `pip install "anyscribecli[tray]"` first) |
-| Auto-start the menu bar at login (macOS) | `scribe install-service` |
-| Remove menu-bar auto-start | `scribe uninstall-service` |
-| Diagnose problems | `scribe doctor` |
-| Update scribe | `scribe update` |
-| Check for updates | `scribe update --check` |
+| Transcribe a URL or local file | `anyscribe "url"` or `anyscribe /path/to/file` |
+| Pick accuracy vs cost | `anyscribe "url" --quality accuracy\|balanced\|cost\|free` (default `balanced` → Deepgram; picks the provider) |
+| Transcribe with speaker diarization | `anyscribe "url" --diarize` (auto-routes to Deepgram if configured) |
+| Hindi / Hinglish with speakers | `anyscribe "url" --diarize --language hi-Latn` — **always use this combo for Hindi content with multiple speakers** |
+| Re-transcribe a source already in the vault | `anyscribe "url" --force` (skips the "already transcribed" shortcut) |
+| Transcribe multiple URLs | `anyscribe batch urls.txt` |
+| Delete / remove a transcript | `anyscribe rm <path-or-slug>` |
+| Download video/audio only | `anyscribe download "url"` or `anyscribe download "url" --audio-only` |
+| See recent activity / what did I transcribe recently | `anyscribe logs` |
+| Change settings | `anyscribe config set <key> <value>` |
+| See current config | `anyscribe config show` |
+| Switch provider | `anyscribe config set provider <name>` |
+| Test a provider | `anyscribe providers test <name>` |
+| List providers | `anyscribe providers list` |
+| Set up offline transcription | `anyscribe local setup --model base --yes` *(see rule below)* |
+| Check offline-transcription state | `anyscribe local status --json` |
+| Download another Whisper model | `anyscribe model pull <size> --json` |
+| List downloaded Whisper models | `anyscribe model list --json` |
+| Delete a cached Whisper model | `anyscribe model rm <size> --yes --json` |
+| Remove offline transcription | `anyscribe local teardown --yes --json` |
+| Initial setup (interactive, for a human) | `anyscribe onboard` (or `--force` to re-run) |
+| Initial setup (headless, agent or script) | `anyscribe onboard --provider X --api-key $KEY --yes --json` *(see rule below)* |
+| Use the web UI | `anyscribe ui` (opens browser dashboard at 127.0.0.1:8457) |
+| Keep anyscribe available in the menu bar / always running | `anyscribe tray` (needs `pip install "anyscribe[tray]"` first) |
+| Auto-start the menu bar at login (macOS) | `anyscribe install-service` |
+| Remove menu-bar auto-start | `anyscribe uninstall-service` |
+| Diagnose problems | `anyscribe doctor` |
+| Update anyscribe | `anyscribe update` |
+| Check for updates | `anyscribe update --check` |
 
 For complete command syntax and all flags, read [references/commands.md](references/commands.md).
 
 ## Onboarding (First-Run Setup) — Agent Rules
 
-scribe has three equivalent setup paths: an interactive CLI wizard (`scribe onboard`), a Web UI wizard (first-run modal on `scribe ui`), and a headless flag-driven path (`scribe onboard --yes`). **You must use the headless path.** The interactive wizards need a TTY / browser — they'll either hang or produce no output in an agent context.
+anyscribe has three equivalent setup paths: an interactive CLI wizard (`anyscribe onboard`), a Web UI wizard (first-run modal on `anyscribe ui`), and a headless flag-driven path (`anyscribe onboard --yes`). **You must use the headless path.** The interactive wizards need a TTY / browser — they'll either hang or produce no output in an agent context.
 
-**Rule: do not run `scribe onboard` without `--yes` in agent contexts.** If the user asks you to "set up scribe," use:
+**Rule: do not run `anyscribe onboard` without `--yes` in agent contexts.** If the user asks you to "set up anyscribe," use:
 
 ```bash
-scribe onboard --provider <name> --api-key "$KEY_ENV_VAR" --yes --json
+anyscribe onboard --provider <name> --api-key "$KEY_ENV_VAR" --yes --json
 ```
 
 For local/offline transcription as primary provider:
 
 ```bash
-scribe onboard --provider local --local-model base --yes --json
+anyscribe onboard --provider local --local-model base --yes --json
 ```
 
 **Prefer env vars over `--api-key` on argv** — argv leaks into shell history. Reference the env var by name (`"$OPENAI_API_KEY"`) in examples you give the user.
 
 **Don't guess missing flags.** If the user hasn't told you which provider or model to use, ask them — don't default to one silently. The recommended model for `--provider local` is `base` per [`references/providers.md`](references/providers.md); other defaults (workspace, language, output format) are sane and the user can adjust them in Settings later.
 
-**Already configured?** `scribe onboard --yes` without `--force` exits 2 when `~/.anyscribecli/config.yaml` exists. If the user wants to reconfigure, pass `--force`.
+**Already configured?** `anyscribe onboard --yes` without `--force` exits 2 when `~/.anyscribe/config.yaml` exists. If the user wants to reconfigure, pass `--force`.
 
 ## Local (Offline) Transcription Workflow
 
 The `local` provider runs Whisper on the user's own machine via `faster-whisper` — no API, no network. It's **opt-in** and requires a one-time setup that installs `faster-whisper` and downloads a Whisper model.
 
-**Critical rule — you must pass `--model` explicitly.** `scribe local setup` refuses to pick a model silently; it exits 2 with a hint if `--model` is omitted. When the user hasn't specified a size, default to the recommended model: **`base`**. It's a ~145 MB download, runs on modest CPUs, and produces good results for most content. Only escalate to `small`/`medium`/`large-v3` if the user mentions quality is insufficient, tricky accents, or critical recordings.
+**Critical rule — you must pass `--model` explicitly.** `anyscribe local setup` refuses to pick a model silently; it exits 2 with a hint if `--model` is omitted. When the user hasn't specified a size, default to the recommended model: **`base`**. It's a ~145 MB download, runs on modest CPUs, and produces good results for most content. Only escalate to `small`/`medium`/`large-v3` if the user mentions quality is insufficient, tricky accents, or critical recordings.
 
 **Setup from agent context:**
 
 ```bash
-scribe local setup --model base --yes --json
+anyscribe local setup --model base --yes --json
 ```
 
 `--yes` is required in non-TTY (agent) contexts; the command refuses to run without it. Stream the NDJSON events to show progress; watch for `{"status": "failed", ...}` — the error payload carries the exact pip/pipx command that failed and the captured stderr, which you can show to the user so they can resolve it (permission errors, PEP 668, etc.).
@@ -122,14 +122,14 @@ For detailed flag coverage see [references/commands.md](references/commands.md) 
 
 ## URL Handling — Critical
 
-**Always wrap URLs in double quotes** when passing to scribe. Shells interpret `?` and `&` as special characters:
+**Always wrap URLs in double quotes** when passing to anyscribe. Shells interpret `?` and `&` as special characters:
 
 ```bash
 # Correct
-scribe "https://www.youtube.com/watch?v=abc123"
+anyscribe "https://www.youtube.com/watch?v=abc123"
 
 # Wrong — shell breaks the URL
-scribe https://www.youtube.com/watch?v=abc123
+anyscribe https://www.youtube.com/watch?v=abc123
 ```
 
 ## Supported Sources
@@ -146,7 +146,7 @@ For Instagram reels — public reels usually work with no setup.
 For private reels or rate-limited cases, configure cookies from a browser:
 
 ```bash
-scribe config set instagram.browser firefox
+anyscribe config set instagram.browser firefox
 ```
 
 Supported values: `firefox`, `chrome`, `safari`, `brave`, `edge`, `chromium`, `vivaldi`, `opera`.
@@ -176,16 +176,16 @@ After a successful transcription:
 1. Tell the user the file path
 2. Offer to read the transcript: `Read the file at the output path`
 3. Mention the word count and duration
-4. If they use Obsidian, remind them to check their workspace location with `scribe config show`
+4. If they use Obsidian, remind them to check their workspace location with `anyscribe config show`
 
 ## Duplicate Detection ("Already transcribed")
 
-scribe scans the vault before transcribing. If a source URL or file path was already
+anyscribe scans the vault before transcribing. If a source URL or file path was already
 transcribed (matched against each transcript's frontmatter `source:`), it returns the
 **existing** file instead of re-transcribing — no download, no API cost.
 
 In `--json` output this shows up as `"cached": true`; in human output as
-`Already transcribed: <path> — use --force to re-transcribe.` In `scribe batch`
+`Already transcribed: <path> — use --force to re-transcribe.` In `anyscribe batch`
 the row is marked `CACHED`.
 
 **When the user hits this:** tell them it's already transcribed and where the file is.
@@ -193,18 +193,18 @@ Only pass `--force` / `-f` if they explicitly want a fresh re-transcription (e.g
 changed provider or the source was updated):
 
 ```bash
-scribe "url" --force --json --quiet
+anyscribe "url" --force --json --quiet
 ```
 
-`--force` works on both `scribe` (transcribe) and `scribe batch`.
+`--force` works on both `anyscribe` (transcribe) and `anyscribe batch`.
 
 ## Deleting a Transcript
 
-When the user wants to remove or delete a transcript, use `scribe rm`:
+When the user wants to remove or delete a transcript, use `anyscribe rm`:
 
 ```bash
-scribe rm "sources/youtube/my-video.md" --yes --json   # by path
-scribe rm my-video --yes --json                          # by slug (filename, no .md)
+anyscribe rm "sources/youtube/my-video.md" --yes --json   # by path
+anyscribe rm my-video --yes --json                          # by slug (filename, no .md)
 ```
 
 - Accepts a full path or a bare slug. If a slug matches more than one file, `rm` lists the
@@ -215,16 +215,16 @@ scribe rm my-video --yes --json                          # by slug (filename, no
 
 ## Batch Transcription
 
-For multiple URLs, create a temporary file and use `scribe batch`:
+For multiple URLs, create a temporary file and use `anyscribe batch`:
 
 ```bash
 # Write URLs to a temp file (one per line)
-cat > /tmp/scribe-urls.txt << 'EOF'
+cat > /tmp/anyscribe-urls.txt << 'EOF'
 https://youtube.com/watch?v=abc123
 https://youtube.com/watch?v=def456
 EOF
 
-scribe batch /tmp/scribe-urls.txt --json --quiet
+anyscribe batch /tmp/anyscribe-urls.txt --json --quiet
 ```
 
 Pass `--timeout <seconds>` to cap how long each URL is allowed to run; a timed-out
@@ -232,54 +232,54 @@ URL is marked failed (`"timed out after Ns"`) and the batch continues to the nex
 URL (combine with `--stop-on-error` to halt instead):
 
 ```bash
-scribe batch /tmp/scribe-urls.txt --timeout 300 --json --quiet
+anyscribe batch /tmp/anyscribe-urls.txt --timeout 300 --json --quiet
 ```
 
 ## Viewing Recent Activity
 
 When the user asks what they transcribed recently, or wants to check on failed
-runs, use `scribe logs`:
+runs, use `anyscribe logs`:
 
 ```bash
-scribe logs                 # last 20 entries, human-readable
-scribe logs --limit 50 --json   # more entries, machine output
+anyscribe logs                 # last 20 entries, human-readable
+anyscribe logs --limit 50 --json   # more entries, machine output
 ```
 
 It reads the workspace's `daily/*.md` logs (newest first) — there's no separate
 logging system, so nothing here can drift from what's actually in the vault. It
 also lists any **recovery artifacts**: audio saved from a failed transcription so
-it doesn't need to be re-downloaded. Point the user at `scribe "url"` (or
+it doesn't need to be re-downloaded. Point the user at `anyscribe "url"` (or
 `--force`) to retry, or tell them it's safe to delete if they've moved on.
 
 ## Troubleshooting
 
 When something goes wrong:
 
-1. **First:** Run `scribe doctor` to get system diagnostics
+1. **First:** Run `anyscribe doctor` to get system diagnostics
 2. **Check** the error message — most are self-explanatory
 3. **Common fixes:** Read [references/troubleshooting.md](references/troubleshooting.md)
 
 ## Safety Rules
 
-1. **Never read or display `~/.anyscribecli/.env`** — it contains API keys and passwords
-2. **Use `scribe config show`** to display settings (it masks sensitive values)
+1. **Never read or display `~/.anyscribe/.env`** — it contains API keys and passwords
+2. **Use `anyscribe config show`** to display settings (it masks sensitive values)
 3. **Never hardcode API keys** in commands or output
-4. **Don't run `scribe onboard`** without telling the user first — it's interactive and takes control of the terminal
-5. **Warn before `scribe update`** — it modifies the installed package
+4. **Don't run `anyscribe onboard`** without telling the user first — it's interactive and takes control of the terminal
+5. **Warn before `anyscribe update`** — it modifies the installed package
 
 ## Configuration
 
-App config lives at `~/.anyscribecli/`. Transcripts default to `~/anyscribe/` (configurable). For details on all settings, file locations, and workspace structure, read [references/config.md](references/config.md).
+App config lives at `~/.anyscribe/`. Transcripts default to `~/anyscribe/` (configurable). For details on all settings, file locations, and workspace structure, read [references/config.md](references/config.md).
 
 Quick config changes:
 ```bash
-scribe config set provider elevenlabs    # Switch provider
-scribe config set language hi            # Set default language
-scribe config set keep_media true        # Keep audio files
-scribe config set deepgram_api_key KEY   # Set API key (stored in .env)
+anyscribe config set provider elevenlabs    # Switch provider
+anyscribe config set language hi            # Set default language
+anyscribe config set keep_media true        # Keep audio files
+anyscribe config set deepgram_api_key KEY   # Set API key (stored in .env)
 ```
 
-## What scribe Outputs
+## What anyscribe Outputs
 
 Each transcription creates a markdown file with YAML frontmatter (title, source URL, duration, language, word count, reading time, tags) followed by the transcript text. Files are organized by source platform:
 

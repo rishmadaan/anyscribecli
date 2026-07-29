@@ -1,13 +1,13 @@
-# anyscribecli — AI Developer Instructions
+# anyscribe — AI Developer Instructions
 
 ## What This Is
 
-A Python CLI tool (`scribe`) that downloads video/audio from YouTube/Instagram, transcribes it via API, and outputs structured markdown into an Obsidian vault at `~/anyscribe/` (configurable via `workspace_path` in config). The PyPI package is `anyscribecli`; the CLI command is `scribe` (with `ascli` as a backward-compatible alias).
+A Python CLI tool (`anyscribe`) that downloads video/audio from YouTube/Instagram, transcribes it via API, and outputs structured markdown into an Obsidian vault at `~/anyscribe/` (configurable via `workspace_path` in config). The PyPI package is `anyscribe`; the CLI command is `anyscribe`, with `scribe` and `ascli` kept as permanent aliases (never deprecated).
 
 ## Architecture
 
 ```
-src/anyscribecli/
+src/anyscribe/
 ├── cli/           # Typer commands (main.py, onboard.py, transcribe.py, download.py, batch.py, config_cmd.py, local_cmd.py, models_cmd.py, skill_cmd.py)
 ├── config/        # Paths + settings (paths.py, settings.py)
 ├── downloaders/   # Platform downloaders (base.py, youtube.py, instagram.py, registry.py)
@@ -24,7 +24,7 @@ Web flow: `Browser (React SPA) <-> FastAPI REST + WebSocket <-> orchestrator (sa
 
 ## Claude Code Skill — Primary Usage Path
 
-The Claude Code skill (`src/anyscribecli/skill/`) is the **primary way users interact with anyscribe**. Most users invoke scribe through Claude Code rather than typing CLI commands directly. This means:
+The Claude Code skill (`src/anyscribe/skill/`) is the **primary way users interact with anyscribe**. Most users invoke scribe through Claude Code rather than typing CLI commands directly. This means:
 
 - **The skill files are first-class artifacts**, not an afterthought. Treat them with the same rigor as the CLI source code.
 - **Keep the skill in sync with every CLI change.** If you add/change a command, flag, provider, or behavior, update the corresponding skill files in the same commit:
@@ -39,16 +39,16 @@ The Claude Code skill (`src/anyscribecli/skill/`) is the **primary way users int
 
 - **Providers** implement `TranscriptionProvider` ABC from `providers/base.py` (7 active: openai, deepgram, elevenlabs, openrouter, sargam, groq, local). The `quality` preset (accuracy/balanced/cost/free) resolves to a provider via `core/quality.py`.
 - **Downloaders** implement `AbstractDownloader` ABC from `downloaders/base.py` (youtube, instagram)
-- **Config** at `~/.anyscribecli/config.yaml` — secrets in `.env` (API keys, Instagram password)
+- **Config** at `~/.anyscribe/config.yaml` — secrets in `.env` (API keys, Instagram password)
 - **All paths** use `pathlib.Path` via `config/paths.py` — no hardcoded separators
 - **CLI output** human-readable by default, `--json` flag for machine/agent consumption
 - **Interactive prompts** use `beaupy` (arrow-key selectors) for onboarding, `typer.prompt` for text input
 - **URL input** three methods: quoted argument (primary), interactive prompt (fallback), clipboard
 - **Workspace** at `~/anyscribe/` (configurable) — pure markdown Obsidian vault, resolved via `get_workspace_dir()` in `config/paths.py`
-- **Downloads outside vault** — audio in `~/.anyscribecli/downloads/audio/`, video in `downloads/video/`
+- **Downloads outside vault** — audio in `~/.anyscribe/downloads/audio/`, video in `downloads/video/`
 - **Audio params** optimized for Whisper: 16kHz, mono, 64kbps mp3
 - **Chunking** — 18-min segments for Whisper (25MB limit), 30s segments for Sarvam (REST API limit)
-- **Web UI** — `scribe ui` launches FastAPI + built React SPA at `127.0.0.1:8457`. REST API for config/history, WebSocket for real-time transcription progress. Frontend source in `ui/`, builds to `src/anyscribecli/web/static/`. Server stashed on `app.state` for graceful `/shutdown`. Orchestrator accepts optional `on_progress` callback — web layer bridges sync→async via ThreadPoolExecutor + asyncio.Queue
+- **Web UI** — `scribe ui` launches FastAPI + built React SPA at `127.0.0.1:8457`. REST API for config/history, WebSocket for real-time transcription progress. Frontend source in `ui/`, builds to `src/anyscribe/web/static/`. Server stashed on `app.state` for graceful `/shutdown`. Orchestrator accepts optional `on_progress` callback — web layer bridges sync→async via ThreadPoolExecutor + asyncio.Queue
 - **Three-surface onboarding parity** — `scribe onboard` (interactive TUI), `scribe onboard --yes --provider X ...` (headless for agents), and the Web UI first-run wizard all call `core/onboard_headless.py::run_headless_onboard()`. Each surface is a thin flow controller; the backend state transitions are identical. Rule documented in `docs/building/architecture.md` → "CLI ↔ Web UI: shared backend, asymmetric surfaces"
 - **Local transcription is opt-in** — setup installs `faster-whisper` via pip subprocess on demand (`core/local_setup.py`), then downloads a Whisper model via `huggingface_hub`. CLI: `scribe local setup --model <size>`. Web UI: "Set up local transcription" button on the Local provider card. `scribe model {list, pull, rm, reinstall, info}` for day-to-day cache management. The `--model` flag is **always required** on `scribe local setup` — no silent defaults, even in a TTY
 
@@ -105,7 +105,7 @@ For end users — assume a **semi-technical audience who may be new to CLI tools
 
 ## Adding a New Provider
 
-1. Create `src/anyscribecli/providers/<name>.py` implementing `TranscriptionProvider`
+1. Create `src/anyscribe/providers/<name>.py` implementing `TranscriptionProvider`
 2. Register it in `providers/__init__.py` PROVIDER_REGISTRY
 3. Add any new env vars to the onboarding wizard
 4. Update `docs/building/providers.md`
@@ -113,7 +113,7 @@ For end users — assume a **semi-technical audience who may be new to CLI tools
 
 ## Adding a New Downloader
 
-1. Create `src/anyscribecli/downloaders/<name>.py` implementing `AbstractDownloader`
+1. Create `src/anyscribe/downloaders/<name>.py` implementing `AbstractDownloader`
 2. Register it in `downloaders/registry.py` DOWNLOADERS list
 3. Update URL detection regex in `registry.py`
 4. Update `docs/building/downloaders.md`
@@ -121,7 +121,7 @@ For end users — assume a **semi-technical audience who may be new to CLI tools
 ## Updating Provider Language Lists
 
 The static lists shown in the web UI's language picker live in
-`src/anyscribecli/providers/languages.py`. They are exposed via
+`src/anyscribe/providers/languages.py`. They are exposed via
 `GET /api/providers/{name}/languages` and rendered as a `<datalist>`
 on the Transcribe and Settings pages.
 
@@ -162,7 +162,7 @@ addition (e.g. a Web UI control) takes the next patch. (Rish, 2026-07-14: chose
 `0.13.3` over a proposed `0.14.0` for the web-UI "Remove key" feature; consistent
 with the patch-heavy history in `BACKLOG.md`.)
 
-Version lives in TWO places that must match: `src/anyscribecli/__init__.py` and `pyproject.toml`.
+Version lives in TWO places that must match: `src/anyscribe/__init__.py` and `pyproject.toml`.
 
 ```bash
 # One-command release (bumps both files, commits, tags, pushes → triggers PyPI publish):
@@ -173,7 +173,7 @@ Version lives in TWO places that must match: `src/anyscribecli/__init__.py` and 
 
 **Every time a git tag is created (any version bump), you MUST also update:**
 
-1. `src/anyscribecli/__init__.py` — `__version__` matches the tag
+1. `src/anyscribe/__init__.py` — `__version__` matches the tag
 2. `pyproject.toml` — `version` field matches the tag
 3. `BACKLOG.md` — version table updated, release section added/updated
 4. `docs/building/_index.md` — new row if there's a building journal entry
@@ -193,7 +193,7 @@ ruff format src/          # format
 
 ## Do Not
 
-- Import from project root — use `from anyscribecli.x.y import z`
+- Import from project root — use `from anyscribe.x.y import z`
 - Hardcode paths — use `config/paths.py`
 - Skip documentation — every significant change gets a building doc entry
 - Add features beyond what was asked — lean first, expand later

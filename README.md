@@ -1,10 +1,10 @@
-# anyscribecli
+# anyscribe
 
 **Let your AI agent transcribe anything.** Turns YouTube videos, Instagram reels, and local audio/video files into structured, searchable markdown, browsable in Obsidian.
 
 Built agent-first, with three ways to reach it, in priority order:
 
-- **With your AI agent** (primary) — anyscribe ships as a Claude Code skill that installs itself during onboarding, plus an MCP server (`pip install "anyscribecli[mcp]"`, ten tools) for Claude Desktop, Cursor, and any MCP host. Every command also takes `--json` and `--yes` for agents, CI, and scripts.
+- **With your AI agent** (primary) — anyscribe ships as a Claude Code skill that installs itself during onboarding, plus an MCP server (`pip install "anyscribe[mcp]"`, ten tools) for Claude Desktop, Cursor, and any MCP host. Every command also takes `--json` and `--yes` for agents, CI, and scripts.
 - **The web UI** (`scribe ui`) — a clean local dashboard at `127.0.0.1:8457` for when you want to see it: paste a URL, watch progress live, browse history, change settings, first-run wizard included.
 - **The CLI** (`scribe "<url>"`, `scribe onboard`) — one command with arrow-key prompts, for when you want your hands on it.
 
@@ -22,8 +22,8 @@ Shared backend, shared state: a transcription started from any surface is visibl
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![PyPI](https://img.shields.io/pypi/v/anyscribecli.svg)](https://pypi.org/project/anyscribecli/)
-[![Platforms: macOS, Linux, Windows](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-informational.svg)](https://pypi.org/project/anyscribecli/)
+[![PyPI](https://img.shields.io/pypi/v/anyscribe.svg)](https://pypi.org/project/anyscribe/)
+[![Platforms: macOS, Linux, Windows](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-informational.svg)](https://pypi.org/project/anyscribe/)
 
 ---
 
@@ -52,18 +52,24 @@ URL or local file → Download/convert audio → Transcribe → Formatted Markdo
 
 **macOS / Linux** (one command — installs Python, ffmpeg, and scribe):
 ```bash
-curl -fsSL https://raw.githubusercontent.com/rishmadaan/anyscribecli/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/rishmadaan/anyscribe/main/install.sh | bash
 ```
 
 **Windows** (PowerShell — installs Python, ffmpeg, and scribe):
 ```powershell
-irm https://raw.githubusercontent.com/rishmadaan/anyscribecli/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/rishmadaan/anyscribe/main/install.ps1 | iex
 ```
 
 **Or install manually:**
 ```bash
-pip install anyscribecli
+pip install anyscribe
 ```
+
+> **Upgrading from `anyscribecli`?** The package, command, and app folder were
+> renamed (the `scribe` and `ascli` commands still work as permanent aliases).
+> After `pip install --upgrade anyscribe`, run `anyscribe migrate` once — it
+> moves your config and API keys from `~/.anyscribecli/` to `~/.anyscribe/`
+> without overwriting anything. Add `--dry-run` to preview first.
 
 ### Get started
 
@@ -73,7 +79,7 @@ scribe ui    # opens web dashboard — guides you through setup
 
 On first launch the web UI opens a full-screen **onboarding wizard** — pick a provider, paste the API key (with a live Test button), optionally enable offline transcription, confirm your workspace, done.
 
-> **Windows:** If `scribe` isn't recognized, use `python -m anyscribecli ui`
+> **Windows:** If `scribe` isn't recognized, use `python -m anyscribe ui`
 >
 > **Alternative paths** (same end state):
 > - `scribe onboard` — interactive terminal wizard.
@@ -115,7 +121,7 @@ scribe download "https://www.youtube.com/watch?v=VIDEO_ID" --audio-only  # audio
 | `scribe local status` / `scribe local teardown` | Report / remove offline transcription |
 | `scribe model list / pull / rm / reinstall / info` | Manage cached Whisper model weights |
 | `scribe ui` | Launch the web UI in your browser |
-| `scribe tray` | Menu-bar icon that supervises the web server (needs `pip install "anyscribecli[tray]"`) |
+| `scribe tray` | Menu-bar icon that supervises the web server (needs `pip install "anyscribe[tray]"`) |
 | `scribe install-service` / `scribe uninstall-service` | Auto-start the tray at login (macOS) |
 | `scribe install-skill` | Install Claude Code skill |
 | `scribe update` | Update to the latest version |
@@ -191,7 +197,7 @@ scribe transcribe "https://youtube.com/watch?v=abc123" --json
 Want `scribe ui` always running instead of launching it by hand? Install the tray extra and click the icon:
 
 ```bash
-pip install "anyscribecli[tray]"
+pip install "anyscribe[tray]"
 scribe tray                    # menu-bar icon: Open UI, Status, Restart, Check for updates, Quit
 scribe install-service         # optional: auto-start the tray at login (macOS)
 ```
@@ -218,7 +224,7 @@ The onboarding wizard checks for these and offers to install them:
 │   └── local/<slug>.md
 └── daily/YYYY-MM-DD.md
 
-~/.anyscribecli/                          # App internals (hidden)
+~/.anyscribe/                          # App internals (hidden)
 ├── config.yaml                           # Settings (no secrets)
 ├── .env                                  # API keys + passwords
 ├── downloads/                            # Downloads (separate from vault)
@@ -246,7 +252,7 @@ See [Provider Guide](docs/user/providers.md) for detailed comparison, pricing, a
 ## Configuration
 
 ```yaml
-# ~/.anyscribecli/config.yaml
+# ~/.anyscribe/config.yaml
 provider: openai          # Transcription provider
 language: auto             # Language (auto-detect or ISO code)
 keep_media: false          # Keep audio files after transcription
@@ -257,7 +263,7 @@ local_file_media: skip     # skip | copy | move | ask — what to do with local 
 workspace_path: ""         # empty = ~/anyscribe (default), or set a custom path
 ```
 
-API keys and passwords live in `~/.anyscribecli/.env` (separate from config, never committed). You can set API keys directly:
+API keys and passwords live in `~/.anyscribe/.env` (separate from config, never committed). You can set API keys directly:
 
 ```bash
 scribe config set deepgram_api_key YOUR_KEY
@@ -278,7 +284,7 @@ scribe ships with a [Claude Code skill](https://code.claude.com/docs/en/skills) 
 scribe install-skill
 ```
 
-Or run `scribe onboard` — it auto-detects Claude Code and offers to install the skill. Once installed, Claude can use `/scribe` or auto-activate when you ask it to transcribe something.
+Or run `scribe onboard` — it auto-detects Claude Code and offers to install the skill. Once installed, Claude can use `/anyscribe` or auto-activate when you ask it to transcribe something.
 
 ## Documentation
 
@@ -295,8 +301,8 @@ Or run `scribe onboard` — it auto-detects Claude Code and offers to install th
 ## Development
 
 ```bash
-git clone https://github.com/rishmadaan/anyscribecli.git
-cd anyscribecli
+git clone https://github.com/rishmadaan/anyscribe.git
+cd anyscribe
 pip install -e ".[dev]"
 
 ruff check src/          # lint

@@ -59,12 +59,13 @@ The `0.x` prefix means pre-stable — breaking changes are allowed between minor
 | 0.13.1 | Real tray icon (nano-banana waveform, macOS template image); landing hero CTA above the fold + em-dash copy pass. **Regression:** custom pystray setup dropped `icon.visible = True`, so the tray icon never appeared | Released 2026-07-04 |
 | 0.13.2 | Fix invisible tray icon (setup callback now sets `icon.visible = True` before marking template). Ships the agent-first landing/README repositioning + Vercel deploy config | Released 2026-07-04 |
 | 0.13.3 | Web UI: remove a saved provider API key (Settings → Providers, two-step confirm, gated on `.env`-persisted keys). `.env` writes hardened over 6 Codex review passes — delegated to python-dotenv `set_key`/`unset_key`/`dotenv_values`, retain shell-inherited keys on delete, and create the secrets file `0600` (P1 fix) | Released 2026-07-14 |
-| 0.13.4 | Canonical `PROVIDER_KEY_ENV` map (fixes groq drift in preflight + MCP key checks); shared `_transcribe_chunked` provider chunk loop (fixes original-file deletion for >25MB but ≤18min files); dead-code sweep (`get_languages`, `_queue_position`, `valid_model_sizes`, `local.py` aliases, `GET /api/version`, `model pull --yes`; stale `instagram.username` examples fixed in CLI + MCP); dropped `websockets` dep (`uvicorn[standard]` bundles it) | **Current** |
+| 0.13.4 | Canonical `PROVIDER_KEY_ENV` map (fixes groq drift in preflight + MCP key checks); shared `_transcribe_chunked` provider chunk loop (fixes original-file deletion for >25MB but ≤18min files); dead-code sweep (`get_languages`, `_queue_position`, `valid_model_sizes`, `local.py` aliases, `GET /api/version`, `model pull --yes`; stale `instagram.username` examples fixed in CLI + MCP); dropped `websockets` dep (`uvicorn[standard]` bundles it) | Released 2026-07-16 |
+| 0.14.0 | **Rename `anyscribecli` → `anyscribe`** — new PyPI package, `anyscribe` primary command (`scribe`/`ascli` kept as permanent aliases), `~/.anyscribecli/` → `~/.anyscribe/` config dir with automatic + one-shot `anyscribe migrate`. Old `anyscribecli` PyPI project ships a final shim release that re-declares `scribe`/`ascli`/`scribe-mcp` so upgrades don't lose the console scripts | In progress (rename branch) |
 | 1.0.0 | Stable: broader test coverage and release hardening | Future |
 
 ### How to bump versions
 
-Version lives in TWO places (must match): `src/anyscribecli/__init__.py` and `pyproject.toml`.
+Version lives in TWO places (must match): `src/anyscribe/__init__.py` and `pyproject.toml`.
 
 ```bash
 # One-command release (bumps both files, commits, tags, pushes → triggers PyPI publish):
@@ -409,9 +410,35 @@ Accepted tradeoffs:
 
 ---
 
+## v0.14.0 — Rename to anyscribe
+
+**Status:** in progress (branch `rename/anyscribe`)
+
+Identity change (a milestone, hence the minor bump). Five identities renamed
+independently: PyPI distribution, Python import package (`src/anyscribecli/` →
+`src/anyscribe/`), GitHub repo, command (`anyscribe` primary; `scribe` and
+`ascli` kept as **permanent** aliases, never deprecated), and the config dir
+(`~/.anyscribecli/` → `~/.anyscribe/`).
+
+- [x] Import package + all five console scripts (`anyscribe`, `scribe`, `ascli`,
+      `anyscribe-mcp`, `scribe-mcp`) resolve to the new module
+- [x] Config dir auto-migrates at every app-home read choke point; empty-target
+      case handled so keys are never stranded
+- [x] `anyscribe migrate` — one-shot mover (config/keys/sessions/downloads),
+      skill refresh, MCP re-key, command verification; `--dry-run` writes nothing
+- [x] Skill + docs + landing lead with `anyscribe`
+- [ ] Final `anyscribecli` shim release re-declaring `scribe`/`ascli`/`scribe-mcp`
+      (pip uninstalls the old package *after* installing the new one, which would
+      otherwise delete the shared console scripts — proven with a repro)
+
+Full plan and hazard analysis: `docs/building/plans/rename-to-anyscribe.md`.
+Decision record: `docs/building/journal/2026-07-21-rename-to-anyscribe.md`.
+
+---
+
 ## v1.0.0 — Stable Release
 
-- [x] PyPI published (`pip install anyscribecli`) — live since v0.3.1
+- [x] PyPI published (`pip install anyscribe`) — live since v0.3.1
 - [x] GitHub Releases with release notes for each tag — publish workflow auto-creates a release on every tag push (`gh release create --generate-notes`); all 39 historical tags backfilled with BACKLOG descriptions (v0.13.0)
 - [ ] Full test coverage
 - [ ] Stable config format (breaking changes require v2.0.0)
