@@ -14,15 +14,17 @@ from __future__ import annotations
 
 import json
 import re
+import sys
 from pathlib import Path
 
 import pytest
 from typer.main import get_command
 from typer.testing import CliRunner
 
+from anyscribe.cli import main as main_mod
+from anyscribe.cli.main import app
 from anyscribe.config import paths
 from anyscribe.core import migrate as migrate_core
-from anyscribe.cli.main import app
 
 runner = CliRunner()
 
@@ -220,15 +222,41 @@ def test_nested_mcp_servers_all_rekeyed(home):
     assert (home / ".claude.json.bak").exists()
 
 
+# --- 6b. ~/.claude.json mode is preserved across the temp-file swap --------
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="POSIX file-mode bits")
+def test_claude_json_mode_preserved_after_real_migrate(home):
+    """A real migrate that rewrites an MCP entry must keep ~/.claude.json 0600.
+
+    The file can hold MCP env API keys / oauth; the temp-file + os.replace swap
+    would otherwise stamp it with the umask default (~644, world-readable).
+    """
+    _seed_legacy(home, {"OPENAI_API_KEY": "sk-fake"})
+    claude_json = home / ".claude.json"
+    claude_json.write_text(json.dumps({"mcpServers": {"scribe": {"command": "scribe-mcp"}}}))
+    claude_json.chmod(0o600)
+
+    result = runner.invoke(app, ["migrate"])
+    assert result.exit_code == 0, result.output
+    # The entry was actually rewritten (non-dry-run, real change)...
+    written = json.loads(claude_json.read_text())
+    assert written["mcpServers"]["anyscribe"]["command"] == "anyscribe-mcp"
+    # ...and the destination kept its original 0600 mode.
+    assert (claude_json.stat().st_mode & 0o777) == 0o600
+
+
 # --- 7. cross-check: migrate.py's advice resolves to a real command -------
 
 
 def test_migrate_py_error_command_is_a_registered_command():
-    """The command migrate.py tells the user to run must actually exist.
+    """The command migrate.py tells the user to run must actually exist, and
+    main.py's dry-run/skill gate must key off that same command name.
 
     Not a tautology: the token is read out of core/migrate.py's error line
     (``run 'anyscribe migrate'``), NOT hardcoded here. Rename the command in
-    main.py without fixing that message, or vice-versa, and this fails.
+    main.py without fixing that message, or drift main.py's gate away from it,
+    and this fails.
     """
     source = Path(migrate_core.__file__).read_text()
     m = re.search(r"run '([^']+)'", source)
@@ -237,6 +265,17 @@ def test_migrate_py_error_command_is_a_registered_command():
 
     registered = get_command(app).commands
     assert token in registered, f"{token!r} advised by migrate.py is not a registered command"
+
+    # main.py gates _auto_update_skill()/_check_path_windows() off the migrate
+    # command name so --dry-run writes nothing. Read that literal out of the
+    # source (not hardcoded) and assert it matches — a rename of one side alone
+    # silently regresses the "writes nothing" guarantee otherwise.
+    main_source = Path(main_mod.__file__).read_text()
+    gate = re.search(r'invoked_subcommand\s*!=\s*"([^"]+)"', main_source)
+    assert gate, "no `invoked_subcommand != \"...\"` gate found in main.py"
+    assert gate.group(1) == token, (
+        f"main.py dry-run gate targets {gate.group(1)!r} but migrate.py advises {token!r}"
+    )
 
 
 # --- 8. --json output shape -----------------------------------------------

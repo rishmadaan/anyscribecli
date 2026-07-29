@@ -184,7 +184,7 @@ def main(
     # the one flag whose whole value is that it writes nothing.
     if ctx.invoked_subcommand != "migrate":
         _auto_update_skill()
-    _check_path_windows()
+        _check_path_windows()
 
 
 # Register commands

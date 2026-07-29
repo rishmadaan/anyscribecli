@@ -95,14 +95,15 @@ def _iter_mcp_servers(node: Any) -> Iterator[dict]:
             yield from _iter_mcp_servers(v)
 
 
-def _retarget(s: str, legacy_pkg: str) -> str:
-    s = s.replace(legacy_pkg, "anyscribe")
-    if "anyscribe-mcp" not in s:
-        s = s.replace("scribe-mcp", "anyscribe-mcp")
-    return s
+def _retarget(s: str) -> str:
+    # The only token that changes on rename is the console-script basename;
+    # the venv dir it lives in keeps its name. Guard against double-apply.
+    if "anyscribe-mcp" in s:
+        return s
+    return s.replace("scribe-mcp", "anyscribe-mcp")
 
 
-def _rekey_scribe_mcp(data: Any, legacy_pkg: str) -> int:
+def _rekey_scribe_mcp(data: Any) -> int:
     """Re-key `scribe` MCP entries to `anyscribe` in place. Returns count changed.
 
     Skips any block that already has an `anyscribe` key — never clobber.
@@ -113,22 +114,23 @@ def _rekey_scribe_mcp(data: Any, legacy_pkg: str) -> int:
         entry = servers.get("scribe")
         if not isinstance(entry, dict) or "anyscribe" in servers:
             continue
-        args = entry.get("args") or []
-        blob = " ".join([str(entry.get("command", ""))] + [str(a) for a in args])
-        if "scribe-mcp" not in blob and legacy_pkg not in blob:
+        args = entry.get("args")
+        arglist = args if isinstance(args, list) else []
+        blob = " ".join([str(entry.get("command", ""))] + [str(a) for a in arglist])
+        if "scribe-mcp" not in blob:
             continue
-        new = dict(entry)
+        new = dict(entry)  # carries `args` only if the original had it
         if isinstance(entry.get("command"), str):
-            new["command"] = _retarget(entry["command"], legacy_pkg)
+            new["command"] = _retarget(entry["command"])
         if isinstance(args, list):
-            new["args"] = [_retarget(a, legacy_pkg) if isinstance(a, str) else a for a in args]
+            new["args"] = [_retarget(a) if isinstance(a, str) else a for a in args]
         servers["anyscribe"] = new
         del servers["scribe"]
         changed += 1
     return changed
 
 
-def _migrate_mcp(claude_json: Path, legacy_pkg: str, dry_run: bool) -> tuple[int, str | None]:
+def _migrate_mcp(claude_json: Path, dry_run: bool) -> tuple[int, str | None]:
     """Step 4. Returns (entries changed, warning). Never raises, never truncates."""
     if not claude_json.is_file():
         return 0, None  # No Claude Code MCP config — nothing to migrate.
@@ -137,7 +139,7 @@ def _migrate_mcp(claude_json: Path, legacy_pkg: str, dry_run: bool) -> tuple[int
     except (OSError, ValueError) as e:
         return 0, f"{_tilde(claude_json)} could not be read as JSON ({e}) — skipped, not touched."
 
-    changed = _rekey_scribe_mcp(data, legacy_pkg)
+    changed = _rekey_scribe_mcp(data)
     if not changed or dry_run:
         return changed, None
 
@@ -147,6 +149,9 @@ def _migrate_mcp(claude_json: Path, legacy_pkg: str, dry_run: bool) -> tuple[int
     # user's (large, irreplaceable) ~/.claude.json half-written.
     tmp = claude_json.with_name(claude_json.name + ".tmp")
     tmp.write_text(json.dumps(data, indent=2) + "\n")
+    # The temp file was created with the default umask (~644); ~/.claude.json is
+    # 0600 and can hold MCP env API keys / oauth, so carry its mode across.
+    shutil.copymode(claude_json, tmp)
     os.replace(tmp, claude_json)
     return changed, None
 
@@ -175,9 +180,6 @@ def migrate(
         LEGACY_APP_HOME,
     )
     from anyscribe.core.migrate import app_home_moves, maybe_migrate_app_home
-
-    # Constraint: the old package name lives in exactly one constant.
-    legacy_pkg = LEGACY_APP_HOME.name.lstrip(".")
 
     lines: list[str] = []
     warnings: list[str] = []
@@ -239,7 +241,7 @@ def migrate(
 
     # 4. MCP registration in ~/.claude.json.
     claude_json = CLAUDE_HOME.with_name(CLAUDE_HOME.name + ".json")
-    mcp_changed, mcp_warning = _migrate_mcp(claude_json, legacy_pkg, dry_run)
+    mcp_changed, mcp_warning = _migrate_mcp(claude_json, dry_run)
     if mcp_warning:
         warnings.append(mcp_warning)
     if mcp_changed:
