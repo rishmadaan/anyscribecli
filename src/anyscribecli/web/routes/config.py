@@ -64,11 +64,28 @@ PROVIDER_SIGNUP_URLS: dict[str, str] = {
 
 def _config_payload() -> dict:
     """Config as the UI wants it: settings plus read-only context (leading _)."""
-    data = load_config().to_dict()
+    load_env()
+    settings = load_config()
+    data = settings.to_dict()
     data["_resolved_workspace"] = str(get_workspace_dir())
     # Tier -> provider, so the UI can caption each quality choice with what it
     # actually resolves to instead of hardcoding a second copy of the map.
     data["_quality_tiers"] = QUALITY_TIERS
+    # What the next run will actually use — the Settings page leads with this,
+    # mirroring the CLI dashboard. Guarded: a hand-edited config with a bogus
+    # provider must not take the whole settings page down.
+    from anyscribecli.core.resolve import resolve_run
+
+    try:
+        plan = resolve_run(settings)
+        data["_resolved"] = {
+            "provider": plan.provider,
+            "model": plan.model,
+            "via": plan.via,
+            "notes": plan.notes,
+        }
+    except ValueError as e:
+        data["_resolved"] = {"error": str(e)}
     return data
 
 
@@ -88,7 +105,14 @@ async def update_config(req: ConfigUpdateRequest):
     for field_name, value in req.model_dump(exclude_unset=True).items():
         if value is None:
             continue
-        outcome = set_value(field_name, value)
+        if field_name == "instagram" and isinstance(value, dict):
+            # Nested block -> dotted keys, the shape set_value speaks.
+            outcomes = [set_value(f"instagram.{k}", v) for k, v in value.items()]
+            outcome = next((o for o in outcomes if not o.ok), None)
+            if outcome is None:
+                continue
+        else:
+            outcome = set_value(field_name, value)
         if not outcome.ok:
             if snapshot is not None:
                 CONFIG_FILE.write_bytes(snapshot)

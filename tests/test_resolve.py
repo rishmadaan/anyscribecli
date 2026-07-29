@@ -293,3 +293,12 @@ def test_diarize_keyless_balanced_tier_keeps_actionable_warning(monkeypatch):
     assert plan.provider == "openai"
     assert any("WARNING" in n and "DEEPGRAM_API_KEY" in n for n in plan.notes)
     assert not any("can't diarize" in n for n in plan.notes)
+
+
+def test_unknown_quality_gets_warning_note():
+    from anyscribecli.config.settings import Settings
+    from anyscribecli.core.resolve import resolve_run
+
+    plan = resolve_run(Settings(provider="openai", quality="nonsense"))
+    assert plan.provider == "openai"
+    assert any("unknown quality" in n for n in plan.notes)

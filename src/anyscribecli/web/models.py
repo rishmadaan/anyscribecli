@@ -44,6 +44,9 @@ class ConfigUpdateRequest(BaseModel):
     local_model: str | None = None
     provider_models: dict[str, str] | None = None
     extra_models: dict[str, list[str]] | None = None
+    # Nested Instagram settings ({"browser": "firefox"}); fanned out to
+    # dotted set_value keys ("instagram.browser") in the PUT handler.
+    instagram: dict[str, str] | None = None
 
 
 class LocalSetupRequest(BaseModel):

@@ -53,6 +53,13 @@ instagram:                 # Instagram settings
 
 > **Adding and removing keys:** Set a key with `scribe config set openai_api_key sk-…`, or in the Web UI under **Settings → Providers** (expand a provider to paste one). To **remove** a saved key, open that provider in the Web UI and click **Remove key → Remove?** — it's deleted from `.env`. You can also just delete the line from `~/.anyscribecli/.env` by hand. A key you set through your shell environment (e.g. `export OPENAI_API_KEY=…` in your shell profile) isn't stored in `.env`, so the Web UI can't remove it — unset it in your shell.
 
+> **Everything here is also editable in the Web UI** (`scribe ui` → Settings) —
+> the page opens with a "Next run" banner showing exactly what your next
+> transcription will use and why, the provider and model controls are always
+> visible (a tier just pre-selects them), and a "Downloads & media" section
+> covers download prompting, local-file handling, kept media, and the
+> Instagram cookie browser. Nothing needs the terminal.
+
 ### Settings Explained
 
 #### One knob picks the provider

@@ -76,6 +76,13 @@ def resolve_run(
                 f"WARNING: quality '{settings.quality}' wants {tier} but no "
                 f"{PROVIDER_KEY_ENV[tier]} is set — using {provider} instead"
             )
+        elif settings.quality != "custom":
+            # A hand-edited unknown tier would otherwise be silently ignored —
+            # and the Next-run banner would show a confident plan built on it.
+            notes.append(
+                f"WARNING: unknown quality '{settings.quality}' — using {provider} "
+                f"(valid: accuracy, balanced, cost, free, custom)"
+            )
 
     if provider not in PROVIDER_REGISTRY:
         available = ", ".join(sorted(PROVIDER_REGISTRY))

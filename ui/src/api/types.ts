@@ -1,5 +1,15 @@
 /** TypeScript interfaces matching the Python Pydantic models. */
 
+/** GET/PUT /api/config `_resolved` — what the next run will actually use.
+ *  Either the resolved plan, or `error` when the config can't resolve. */
+export interface ResolvedRun {
+  provider?: string;
+  model?: string | null;
+  via?: string; // "flag" | "diarize" | "quality: <tier>" | "config"
+  notes?: string[]; // a note starting with "WARNING:" renders amber
+  error?: string;
+}
+
 export interface Config {
   provider: string;
   quality: string;
@@ -16,6 +26,7 @@ export interface Config {
   instagram: { browser: string };
   _resolved_workspace?: string;
   _quality_tiers?: Record<string, string>; // tier -> provider it resolves to
+  _resolved?: ResolvedRun;
 }
 
 export interface Provider {
