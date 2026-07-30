@@ -75,3 +75,24 @@ def test_save_delegates_to_headless(client):
     assert r.status_code == 200
     run.assert_called_once()
     assert r.json()["status"] == "onboarded"
+
+
+def test_save_passes_quality_and_model_through(client):
+    """The wizard inherits the provider->quality=custom invariant by going
+    through run_headless_onboard; these two fields must not be dropped."""
+    with patch(
+        "anyscribe.web.routes.onboarding.run_headless_onboard",
+        return_value={"status": "onboarded", "provider": "openai"},
+    ) as run:
+        r = client.post(
+            "/api/onboarding/save",
+            json={
+                "provider": "openai",
+                "api_key": "sk-test",
+                "quality": "custom",
+                "model": "whisper-1",
+            },
+        )
+    assert r.status_code == 200
+    assert run.call_args.kwargs["quality"] == "custom"
+    assert run.call_args.kwargs["model"] == "whisper-1"

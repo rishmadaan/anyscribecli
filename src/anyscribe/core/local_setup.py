@@ -322,8 +322,14 @@ def run_teardown(on_progress: ProgressFn | None = None) -> dict[str, Any]:
 
     settings = load_config()
     provider_changed = False
-    if settings.provider == "local":
-        settings.provider = "openai"
+    if settings.provider == "local" or settings.quality == "free":
+        # quality: free resolves to local, so leaving the tier in place would
+        # keep routing every run to the provider we just uninstalled. Flip both
+        # halves of the knob (provider + quality=custom, same invariant as
+        # config_set) so the reset actually takes effect.
+        if settings.provider == "local":
+            settings.provider = "openai"
+        settings.quality = "custom"
         provider_changed = True
         save_config(settings)
 

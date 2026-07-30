@@ -1,7 +1,7 @@
 ---
 summary: All configuration options, file locations, and how to change settings.
 read_when:
-  - You want to change your default provider or language
+  - You want to change your default provider, model, or language
   - You need to find where config files are stored
   - You want to understand what each setting does
 ---
@@ -35,9 +35,12 @@ This is your main settings file. The onboarding wizard creates it, but you can a
 ```yaml
 # ~/.anyscribe/config.yaml
 
-provider: openai          # Explicit provider (or let `quality` pick one)
-quality: balanced          # accuracy | balanced | cost | free — picks a provider
+provider: openai          # Explicit provider (used when quality is `custom`)
+provider_models: {}        # Which model each provider should use (empty = defaults)
+extra_models: {}           # Your own OpenRouter model names, added to the picker
+quality: balanced          # accuracy | balanced | cost | free | custom — picks the provider
 language: auto             # Language for transcription
+local_model: base          # Offline Whisper size (local provider only)
 keep_media: false          # Whether to save audio files
 output_format: clean       # How to format transcripts
 diarize: false             # Enable speaker diarization by default
@@ -52,11 +55,46 @@ instagram:                 # Instagram settings
 
 > **Adding and removing keys:** Set a key with `scribe config set openai_api_key sk-…`, or in the Web UI under **Settings → Providers** (expand a provider to paste one). To **remove** a saved key, open that provider in the Web UI and click **Remove key → Remove?** — it's deleted from `.env`. You can also just delete the line from `~/.anyscribe/.env` by hand. A key you set through your shell environment (e.g. `export OPENAI_API_KEY=…` in your shell profile) isn't stored in `.env`, so the Web UI can't remove it — unset it in your shell.
 
+> **Everything here is also editable in the Web UI** (`scribe ui` → Settings) —
+> the page opens with a "Next run" banner showing exactly what your next
+> transcription will use and why, the provider and model controls are always
+> visible (a tier just pre-selects them), and a "Downloads & media" section
+> covers download prompting, local-file handling, kept media, and the
+> Instagram cookie browser. Nothing needs the terminal.
+
 ### Settings Explained
+
+#### One knob picks the provider
+
+`quality` and `provider` are not two competing settings — they are one knob with
+two positions. `quality` is either a **tier** (`accuracy`, `balanced`, `cost`,
+`free`), in which case the tier picks the provider, or it is `custom`, in which
+case your `provider` line is used as-is.
+
+```bash
+scribe config set quality accuracy      # tier picks the provider (ElevenLabs)
+scribe config set provider deepgram     # also sets quality = custom, so it sticks
+```
+
+> **Setting a provider always writes `quality: custom` in the same save.** That's
+> deliberate: without it, the next run would go back to the tier's provider and
+> your choice would silently vanish. This happens wherever you set a provider —
+> `scribe config set provider`, the Web UI Settings page, the MCP `set_config`
+> tool.
+
+To see which one is winning right now, run [`scribe config`](commands.md#scribe-config)
+with no subcommand:
+
+```
+Next run: deepgram · nova-3 (quality: balanced)
+```
+
+The `(...)` at the end names the reason: `config` (your `provider` line),
+`quality: <tier>`, `flag` (a `--provider` you passed), or `diarize`.
 
 #### provider
 
-Which API to use for transcription. Default: `openai`.
+Which API to use for transcription when `quality` is `custom`. Default: `openai`.
 
 | Value | Service | What you need |
 |-------|---------|---------------|
@@ -68,12 +106,85 @@ Which API to use for transcription. Default: `openai`.
 | `groq` | Groq (fast, cheap Whisper large-v3-turbo) | `GROQ_API_KEY` |
 | `local` | faster-whisper (offline, free) | None needed |
 
-> **Tip:** Most people should use the `quality` setting (below) instead of
-> picking a provider directly — it chooses the right provider for you.
+> **Tip:** If you don't have a strong opinion, leave `quality` on a tier (below)
+> and don't touch `provider` at all — the tier chooses for you.
 
 > **Why multiple providers?** Different services handle different languages better. OpenAI Whisper is a good default, ElevenLabs has high accuracy across 90+ languages, Sarvam excels at Indian languages, and the local provider is free and works offline.
 
 > **Local provider** requires `pip install faster-whisper`. Models download automatically on first use. Works on CPU (slower) or GPU (fast with CUDA).
+
+#### provider_models
+
+Which **model** each provider should use. A provider is the service (OpenAI, Groq...); a model is the specific engine inside it. Every provider has a sensible default, so this setting starts empty and most people never touch it.
+
+Set one with `scribe config set`:
+
+```bash
+scribe config set provider_models.openai gpt-transcribe
+scribe config set provider_models.groq whisper-large-v3
+```
+
+Which produces:
+
+```yaml
+provider_models:
+  openai: gpt-transcribe
+  groq: whisper-large-v3
+```
+
+Each provider gets its own line, so switching providers keeps each one's chosen model. Any provider not listed uses its default.
+
+**To see the options,** run `scribe config` (no subcommand) or `scribe providers list` — both show every provider, the model it would use, and the alternatives.
+
+**To go back to the default,** delete that line from `config.yaml`.
+
+**For one run only,** skip config entirely and use the `--model` flag: `scribe "url" -p openai -m gpt-transcribe`. That wins over whatever is in `provider_models`.
+
+If you set a model a provider doesn't have, scribe refuses and prints the valid list. (OpenRouter is the exception — it takes any audio-capable model name, so scribe passes yours straight through. See `extra_models` below to keep your own names in the picker.)
+
+> **Timestamps are handled for you.** OpenAI's default model, `gpt-transcribe`,
+> is cheaper and more accurate than `whisper-1` — but it can't tell you *when*
+> something was said. If your `output_format` is `timestamped` or `diarized`,
+> scribe quietly switches that run to `whisper-1` and prints a note saying so:
+>
+> ```
+> → openai · whisper-1 (config)
+>     switched to whisper-1 — gpt-transcribe can't produce timestamps
+> ```
+>
+> The switch only happens when scribe picked the model. If **you** passed
+> `-m gpt-transcribe` for that run, scribe respects it and you get plain
+> paragraphs — you asked for that model explicitly.
+
+> **The `local` provider isn't set here.** Its models are files on your machine, so they live in `local_model` (below).
+
+#### extra_models
+
+Your own model names for **OpenRouter**, merged into every model picker
+(the `scribe config` dashboard, `scribe providers list`, the Web UI dropdown).
+
+```bash
+scribe config set extra_models.openrouter "qwen/qwen3-omni-flash,openai/gpt-audio"
+scribe config set extra_models.openrouter ""      # empty value clears the list
+```
+
+```yaml
+extra_models:
+  openrouter:
+    - qwen/qwen3-omni-flash
+    - openai/gpt-audio
+```
+
+They show up alongside the built-in suggestions, marked `(custom)` so you can
+tell yours apart. In the Web UI, the OpenRouter model box is a free-text field
+with the same merged list as suggestions.
+
+> **Only OpenRouter accepts this.** `scribe config set extra_models.deepgram …`
+> is rejected on purpose. OpenRouter is a router — it will forward any model name
+> and the model does the rest. Every other provider needs code that knows how to
+> read *that specific model's* response, so their lists are curated and shipped
+> with scribe releases. **If a provider added a model you want, that's a scribe
+> update, not a config change** — run `scribe update`.
 
 #### quality
 
@@ -87,17 +198,31 @@ scribe; you rarely need to touch `provider` directly.
 | `accuracy` | ElevenLabs `scribe_v2` | Highest accuracy, primarily-English |
 | `cost` | Groq `whisper-large-v3-turbo` | Cheapest + fastest cloud (~$0.04/hr) |
 | `free` | Local faster-whisper | Offline, $0 (needs `scribe local setup`) |
+| `custom` | Whatever `provider` says | You picked a provider yourself |
 
 Change it with `scribe config set quality cost`, per-run with
 `scribe transcribe <url> --quality cost`, or from the picker in the Web UI.
 
 > **How it works:** the tier picks a provider. If you pass `--provider` (or pick
-> one in the Web UI), that wins. If the tier's provider has no API key set,
-> scribe falls back to your configured `provider` so it still runs.
+> one in the Web UI), that wins for that run. `custom` isn't a tier — it's the
+> "hands off, use my `provider`" setting, and scribe writes it for you whenever
+> you set a provider.
 
 > **Need a key:** each tier needs that provider's key in `.env` —
 > `accuracy` needs `ELEVENLABS_API_KEY`, `cost` needs `GROQ_API_KEY`, etc.
 > `free` needs no key.
+>
+> **If the tier's key is missing, scribe says so and keeps going** with your
+> configured `provider` instead of failing:
+>
+> ```
+> → openai · gpt-transcribe (config)
+>     WARNING: quality 'balanced' wants deepgram but no DEEPGRAM_API_KEY is set — using openai instead
+> ```
+>
+> Either add the key (`scribe config set deepgram_api_key …`) or pick a tier you
+> have a key for. The warning appears on every surface — CLI runs, `scribe config`,
+> the Web UI, and MCP results.
 
 #### language
 
@@ -181,6 +306,10 @@ Which Whisper model the `local` provider uses when transcribing. Default: `base`
 | `small` | ~480 MB | ~1.2 GB | noticeably better |
 | `medium` | ~1.5 GB | ~2.5 GB | near-large for many languages |
 | `large-v3` | ~3 GB | ~5 GB | highest |
+| `large-v3-turbo` | ~1.6 GB | ~3 GB | near `large-v3`, ~6x faster on CPU |
+| `distil-large-v3.5` | ~1.5 GB | ~2.8 GB | near `large-v3` for English; weaker on other languages |
+
+> **Want better quality without the wait?** `large-v3-turbo` is the sweet spot — close to `large-v3` accuracy at roughly six times the speed on a CPU, and half the download. Pick `distil-large-v3.5` only if everything you transcribe is in English.
 
 Change it with `scribe config set local_model small` or from the default-model dropdown inside the Local provider panel in the Web UI. You can only select a model that's been cached — pull others with `scribe model pull <size>`. A one-off override is available via `ASCLI_LOCAL_MODEL=medium scribe "<url>"`.
 
@@ -225,6 +354,11 @@ DEEPGRAM_API_KEY=...
 ```
 
 > **Important:** This file contains secrets. It's excluded from git by default. Never share it or commit it to a repository.
+
+> **`OPENROUTER_MODEL` no longer does anything.** Older versions read that line to
+> choose an OpenRouter model. Since 0.15.0 the model lives with every other model
+> choice — run `scribe config set provider_models.openrouter <slug>` and delete the
+> `OPENROUTER_MODEL` line from `.env`.
 
 > **Pre-0.8.3 upgrade note:** Older versions of scribe stored `INSTAGRAM_PASSWORD` in this file. It's no longer used — you can safely remove the `INSTAGRAM_PASSWORD` line when convenient. Instagram downloads now use browser cookies instead (see `instagram.browser` below).
 
@@ -330,16 +464,15 @@ reliable, and changing them means editing scribe's source and reinstalling.
    ┌──────────────────────────┐         ┌──────────────────────────────┐
    │ config.yaml settings     │         │ audio quality (16kHz/mono)   │
    │ .env API keys + secrets  │         │ how big files get split up   │
-   │ --flags on commands      │         │ which model each provider uses│
-   │ the Web UI settings page │         │ where app files live         │
-   └──────────────────────────┘         │ Web UI is localhost-only     │
-   change anytime, no restart           └──────────────────────────────┘
-                                         changing these needs a code edit
+   │ --flags on commands      │         │ where app files live         │
+   │ the Web UI settings page │         │ Web UI is localhost-only     │
+   └──────────────────────────┘         └──────────────────────────────┘
+   change anytime, no restart            changing these needs a code edit
 ```
 
-**You can change anytime** (this whole page): your provider, language, output
-format, diarization, whether media is kept, your workspace location, the local
-model, and all your API keys.
+**You can change anytime** (this whole page): your provider, the model that
+provider uses, language, output format, diarization, whether media is kept, your
+workspace location, the local model, and all your API keys.
 
 **Fixed in the code** (and why):
 
@@ -347,7 +480,7 @@ model, and all your API keys.
 |--------------|---------------|------------------------|
 | Audio quality | 16 kHz, mono, 64 kbps mp3 | Tuned for the best transcription accuracy per megabyte. Higher quality wouldn't improve the text. |
 | File-splitting limits | Split if over 25 MB or 30 min, into 18-min pieces | Driven by the transcription APIs' own upload and timeout limits, not your preference. |
-| The model each provider uses | e.g. OpenAI uses `whisper-1`, ElevenLabs uses `scribe_v2` | Pinned per provider so results stay consistent. Picking a *provider* (or `quality` tier) is your choice; picking the exact model within a provider isn't. |
+| The list of models you can pick from | e.g. OpenAI offers `gpt-transcribe`, `whisper-1`, `gpt-4o-transcribe`, `gpt-4o-mini-transcribe` | Each provider's list is curated to models scribe knows how to read. You choose freely *within* the list via `provider_models` or `--model`; new entries arrive with scribe releases (`anyscribe update`). **OpenRouter is the exception** — it forwards any model name, so you can add your own with `extra_models.openrouter`. |
 | App folder location | `~/.anyscribe` | The fixed home for config, logs, and downloads. Your transcripts' location (`workspace_path`) *is* configurable. |
 | Web UI address | `127.0.0.1` (your machine only) | The Web UI has no password, so it only listens to your own computer. The port is changeable with `scribe ui --port 9000`. |
 

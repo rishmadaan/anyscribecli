@@ -88,11 +88,13 @@ def test_local_teardown_calls_run_teardown(client):
 # ── /api/models/local ─────────────────────────────────
 
 
-def test_list_local_models_always_returns_five(client):
+def test_list_local_models_returns_all_sizes(client):
+    from anyscribe.providers.local_models import MODEL_SIZES
+
     r = client.get("/api/models/local")
     assert r.status_code == 200
     body = r.json()
-    assert len(body["models"]) == 5
+    assert len(body["models"]) == len(MODEL_SIZES)
 
 
 def test_pull_unknown_size_returns_400(client):

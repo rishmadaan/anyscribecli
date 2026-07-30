@@ -7,14 +7,38 @@ import URLInput from "../components/URLInput";
 import ProgressTracker from "../components/ProgressTracker";
 import ResultCard from "../components/ResultCard";
 import LanguageInput from "../components/LanguageInput";
+import ModelInput from "../components/ModelInput";
+import { defaultModelFor } from "../api/models";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
 // User-facing label for the diarize/diarized output format. The wire value
 // stays "diarized" so the API contract doesn't change.
 const formatLabel = (fmt: string) => (fmt === "diarized" ? "with-speaker-labels" : fmt);
 
+/** What actually runs, plus any swap the backend made (keyless tier, whisper-1). */
+function PlanNotes({
+  plan,
+}: {
+  plan: { provider: string; model: string | null; notes: string[] } | null;
+}) {
+  if (!plan) return null;
+  return (
+    <div className="mt-4 self-start text-xs font-mono space-y-0.5">
+      <p className="text-text-muted">
+        {plan.provider}
+        {plan.model ? ` · ${plan.model}` : ""}
+      </p>
+      {plan.notes.map((n) => (
+        <p key={n} className={n.startsWith("WARNING") ? "text-amber" : "text-text-muted/70"}>
+          {n}
+        </p>
+      ))}
+    </div>
+  );
+}
+
 export default function TranscribePage() {
-  const { phase, events, result, error, submit, cancel, reset } = useJob();
+  const { phase, events, result, error, plan, submit, cancel, reset } = useJob();
   const [config, setConfig] = useState<Config | null>(null);
   const [providers, setProviders] = useState<Provider[]>([]);
   const [showOptions, setShowOptions] = useState(false);
@@ -23,6 +47,7 @@ export default function TranscribePage() {
   // Override fields
   const [quality, setQuality] = useState("balanced");
   const [provider, setProvider] = useState(""); // "" = auto (resolved from quality)
+  const [model, setModel] = useState(""); // per-run model override; only when provider is explicit
   const [language, setLanguage] = useState("");
   const [diarize, setDiarize] = useState(false);
   const [keepMedia, setKeepMedia] = useState(false);
@@ -41,6 +66,9 @@ export default function TranscribePage() {
     });
   }, []);
 
+  // undefined while provider is "" (auto) → no model control, no model sent.
+  const selectedProvider = providers.find((p) => p.name === provider);
+
   const handleSubmit = (url: string, force = false) => {
     setLastUrl(url);
     // Send quality; only send provider when the user explicitly overrode "auto".
@@ -48,6 +76,8 @@ export default function TranscribePage() {
       url,
       quality,
       provider: provider || undefined,
+      // Model only travels with an explicit provider — on auto it's ambiguous.
+      model: provider && model ? model : undefined,
       language,
       diarize,
       keep_media: keepMedia,
@@ -91,7 +121,7 @@ export default function TranscribePage() {
                   <ChevronDown className="w-3.5 h-3.5" />
                 )}
                 <span className="font-mono">
-                  {quality}{provider ? ` · ${provider}` : ""} · {language} · {formatLabel(outputFormat)}{diarize && outputFormat !== "diarized" ? " + speakers" : ""}
+                  {quality}{provider ? ` · ${provider}` : ""}{provider && model ? ` · ${model}` : ""} · {language} · {formatLabel(outputFormat)}{diarize && outputFormat !== "diarized" ? " + speakers" : ""}
                 </span>
               </button>
 
@@ -120,7 +150,16 @@ export default function TranscribePage() {
                     <label className="text-xs text-text-muted w-32 shrink-0">Provider</label>
                     <select
                       value={provider}
-                      onChange={(e) => setProvider(e.target.value)}
+                      onChange={(e) => {
+                        const name = e.target.value;
+                        setProvider(name);
+                        setModel(
+                          defaultModelFor(
+                            providers.find((p) => p.name === name),
+                            config.provider_models
+                          )
+                        );
+                      }}
                       className="flex-1 bg-surface-raised border border-border rounded-md px-2.5 py-1.5 text-sm text-text font-mono outline-none focus:border-amber/40"
                     >
                       <option value="">auto · from quality</option>
@@ -131,6 +170,17 @@ export default function TranscribePage() {
                       ))}
                     </select>
                   </div>
+
+                  {provider && provider !== "local" && (
+                    <div className="flex items-center gap-4">
+                      <label className="text-xs text-text-muted w-32 shrink-0">Model</label>
+                      <ModelInput
+                        provider={selectedProvider}
+                        value={model}
+                        onChange={setModel}
+                      />
+                    </div>
+                  )}
 
                   {(() => {
                     const missing = providers.filter((p) => !p.has_key).length;
@@ -220,6 +270,7 @@ export default function TranscribePage() {
       {phase === "running" && (
         <div className="w-full max-w-2xl flex flex-col items-center">
           <ProgressTracker events={events} title={downloadedTitle} />
+          <PlanNotes plan={plan} />
           <button
             onClick={cancel}
             className="
@@ -278,7 +329,10 @@ export default function TranscribePage() {
       )}
 
       {phase === "completed" && result && !result.cached && (
-        <ResultCard result={result} onReset={reset} />
+        <div className="w-full max-w-2xl flex flex-col items-center">
+          <ResultCard result={result} onReset={reset} />
+          <PlanNotes plan={plan} />
+        </div>
       )}
 
       {phase === "cancelled" && (

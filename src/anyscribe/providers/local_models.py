@@ -15,7 +15,15 @@ from __future__ import annotations
 import threading
 from typing import Any, Callable
 
-MODEL_SIZES: list[str] = ["tiny", "base", "small", "medium", "large-v3"]
+MODEL_SIZES: list[str] = [
+    "tiny",
+    "base",
+    "small",
+    "medium",
+    "large-v3",
+    "large-v3-turbo",
+    "distil-large-v3.5",
+]
 
 RECOMMENDED_MODEL: str = "base"
 
@@ -28,6 +36,8 @@ MODEL_REPOS: dict[str, str] = {
     "small": "Systran/faster-whisper-small",
     "medium": "Systran/faster-whisper-medium",
     "large-v3": "Systran/faster-whisper-large-v3",
+    "large-v3-turbo": "dropbox-dash/faster-whisper-large-v3-turbo",
+    "distil-large-v3.5": "distil-whisper/distil-large-v3.5-ct2",
 }
 
 # Approximate figures used by the UI (CLI + Web) to help the user pick a size.
@@ -63,6 +73,18 @@ MODEL_SPECS: dict[str, dict[str, Any]] = {
         "ram_mb": 5000,
         "relative_speed": "~1x realtime (CPU); fast on GPU",
         "quality": "highest",
+    },
+    "large-v3-turbo": {
+        "download_mb": 1600,
+        "ram_mb": 3000,
+        "relative_speed": "~6x realtime (CPU)",
+        "quality": "near large-v3, much faster",
+    },
+    "distil-large-v3.5": {
+        "download_mb": 1500,
+        "ram_mb": 2800,
+        "relative_speed": "~6x realtime (CPU)",
+        "quality": "near large-v3 for English; weaker multilingual",
     },
 }
 

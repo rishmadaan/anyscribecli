@@ -55,7 +55,7 @@ def env(tmp_path, monkeypatch):
 
     downloader = FakeDownloader()
     monkeypatch.setattr(orchestrator, "get_downloader", lambda url: downloader)
-    monkeypatch.setattr(orchestrator, "get_provider", lambda name: FakeProvider())
+    monkeypatch.setattr(orchestrator, "get_provider", lambda name, model=None: FakeProvider())
     return ws, downloader
 
 

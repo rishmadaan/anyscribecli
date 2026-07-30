@@ -34,6 +34,8 @@ Before starting, you need:
 - **An internet connection** (for downloading videos and calling the transcription API)
 - **An API key** for your chosen provider — OpenAI is the default. Get one at [platform.openai.com/api-keys](https://platform.openai.com/api-keys). Whisper costs about $0.006/minute — a 10-minute video costs roughly 6 cents. Or use the **local** provider for free (no API key, runs on your machine).
 
+> **Later, if you want cheaper or more accurate:** each provider offers a few models you can switch between — see [providers.md](providers.md). You don't need to think about this to get started; the defaults are good.
+
 > **New to the command line?** You'll be typing commands in your Terminal app (macOS), terminal emulator (Linux), or Command Prompt / PowerShell (Windows). Every command in this guide starts with `scribe` — just copy-paste and press Enter.
 
 ## Step 1: Install Python
@@ -110,16 +112,17 @@ python -m anyscribe onboard      # Windows (first time — prints PATH fix)
 The wizard uses arrow-key selectors — navigate with **↑↓** and press **Enter** to select:
 
 1. **Check your system** — makes sure `yt-dlp` and `ffmpeg` are installed. Offers to install missing ones.
-2. **Choose your provider** — 5 options: OpenAI (default), OpenRouter, ElevenLabs, Sarvam AI, Local.
-3. **Enter your API key** — stored locally at `~/.anyscribe/.env`. Never sent anywhere except your provider.
-4. **Add more provider keys** (optional) — configure multiple providers now or later.
-5. **Configure Instagram** (optional) — choose which browser to read Instagram cookies from. Needed only for rate-limited or private reels.
-6. **Choose language** — auto-detect (default) or pick a specific language.
-7. **Keep audio files** — whether to save the transcription audio to `~/.anyscribe/downloads/audio/`.
-8. **Local file handling** — what to do with original files when transcribing local audio/video (skip/copy/move/ask).
-9. **Post-transcription downloads** — whether scribe should offer to download the full video after each transcription (never/ask/always).
-10. **Choose workspace location** — where to store transcripts (default: `~/anyscribe/`).
-11. **Create workspace** — sets up your Obsidian vault at the chosen location.
+2. **Choose your provider** — 7 options: OpenAI (default), Deepgram, ElevenLabs, Sarvam AI, Groq, OpenRouter, Local.
+3. **Choose that provider's model** — only if it offers more than one. The first is the recommended default; press Enter to take it.
+4. **Enter your API key** — stored locally at `~/.anyscribe/.env`. Never sent anywhere except your provider.
+5. **Add more provider keys** (optional) — configure multiple providers now or later.
+6. **Configure Instagram** (optional) — choose which browser to read Instagram cookies from. Needed only for rate-limited or private reels.
+7. **Choose language** — auto-detect (default) or pick a specific language.
+8. **Keep audio files** — whether to save the transcription audio to `~/.anyscribe/downloads/audio/`.
+9. **Local file handling** — what to do with original files when transcribing local audio/video (skip/copy/move/ask).
+10. **Post-transcription downloads** — whether scribe should offer to download the full video after each transcription (never/ask/always).
+11. **Choose workspace location** — where to store transcripts (default: `~/anyscribe/`).
+12. **Create workspace** — sets up your Obsidian vault at the chosen location.
 
 > **Re-run anytime:** `scribe onboard --force` to change settings — it shows your current config and lets you choose which parts to update. `scribe onboard --skip-deps` to skip the dependency check. Or use the Web UI: Settings → **Run setup wizard**.
 
@@ -224,8 +227,9 @@ This opens a local web dashboard in your browser where you can paste URLs, watch
 - **Speaker diarization** — `scribe "url" --diarize` identifies who said what (auto-detects number of speakers). Set up Deepgram first: `scribe config set deepgram_api_key YOUR_KEY` ($200 free credit at [console.deepgram.com](https://console.deepgram.com/))
 - **Download video** — `scribe download "url"` to save video without transcribing
 - **Batch process** — `scribe batch urls.txt` to transcribe a list of URLs
+- **See what will run** — `scribe config` shows the provider + model of your next transcription and every alternative
 - **Add a provider key** — `scribe config set deepgram_api_key YOUR_KEY`
-- **Switch providers** — `scribe config set provider elevenlabs`
+- **Switch providers** — `scribe config set provider elevenlabs` (or let a tier choose: `scribe config set quality accuracy`)
 - **Try JSON output** — `scribe "url" --json` for scripting
 - **Check health** — `scribe doctor` verifies everything is working
 - **Update** — `scribe update` pulls the latest version

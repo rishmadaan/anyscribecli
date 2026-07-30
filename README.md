@@ -110,12 +110,13 @@ scribe download "https://www.youtube.com/watch?v=VIDEO_ID" --audio-only  # audio
 |---------|-------------|
 | `scribe onboard` | Interactive setup wizard (TUI) |
 | `scribe onboard --provider X --api-key $KEY --yes` | Headless setup for agents / CI |
-| `scribe transcribe "<url or file>"` | Transcribe a video or local file to markdown |
+| `scribe transcribe "<url or file>"` | Transcribe a video or local file to markdown (`-p` picks a provider, `-m` a specific model, e.g. `-p openai -m whisper-1`) |
 | `scribe download "<url>"` | Download video or audio only |
 | `scribe batch <file>` | Batch transcribe URLs or file paths from a file |
 | `scribe rm <path-or-slug>` | Delete a transcript and update the index |
 | `scribe logs` | View recent transcription activity + recovery artifacts |
-| `scribe config show/set/path` | View and change settings |
+| `scribe config` | Defaults dashboard — the provider + model your next run uses, and every alternative |
+| `scribe config show/set/path/list-keys` | View and change settings |
 | `scribe providers list/test` | Manage transcription providers |
 | `scribe local setup --model <size>` | Install faster-whisper + download a Whisper model |
 | `scribe local status` / `scribe local teardown` | Report / remove offline transcription |
@@ -253,7 +254,10 @@ See [Provider Guide](docs/user/providers.md) for detailed comparison, pricing, a
 
 ```yaml
 # ~/.anyscribe/config.yaml
-provider: openai          # Transcription provider
+provider: openai          # Transcription provider (used when quality is `custom`)
+quality: balanced          # accuracy | balanced | cost | free | custom — picks the provider
+provider_models: {}        # provider -> pinned model id (empty = each provider's default)
+extra_models: {}           # openrouter -> your own model slugs, merged into the pickers
 language: auto             # Language (auto-detect or ISO code)
 keep_media: false          # Keep audio files after transcription
 output_format: clean       # clean | timestamped | diarized
@@ -270,7 +274,11 @@ scribe config set deepgram_api_key YOUR_KEY
 scribe config set openai_api_key YOUR_KEY
 ```
 
+> **One knob picks the provider.** `quality` is either a tier (which chooses the provider) or `custom` (which uses your `provider` line). Setting a provider anywhere writes `quality: custom` in the same save, so your choice sticks. Run `scribe config` to see what wins.
+
 > **Diarization auto-routing:** When you use `--diarize` without specifying a provider, scribe automatically switches to Deepgram (if configured) for best speaker detection. Override with `-p openai` if needed.
+
+> **Timestamps on OpenAI are automatic.** The default model `gpt-transcribe` is cheaper and more accurate but can't emit `[mm:ss]` markers, so scribe switches that run to `whisper-1` when your output format is `timestamped` or `diarized` — unless you named a model yourself with `-m`.
 
 > **Web UI labels:** The CLI's `--diarize` flag is shown as `Multi-speaker` in the web UI, and the `diarized` output format is labelled `with-speaker-labels`. Wire values are unchanged — the rename is display-only so the UI reads in plain English.
 

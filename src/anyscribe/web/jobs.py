@@ -92,18 +92,28 @@ class JobManager:
             pass
 
     async def submit(
-        self, url: str, settings: Any, loop: asyncio.AbstractEventLoop, force: bool = False
+        self,
+        url: str,
+        settings: Any,
+        loop: asyncio.AbstractEventLoop,
+        force: bool = False,
+        model: str | None = None,
     ) -> str:
         """Submit a new transcription job. Returns job_id immediately."""
         self._cleanup_stale()
         job_id = uuid.uuid4().hex[:8]
         job = Job(id=job_id, url=url)
         self._jobs[job_id] = job
-        loop.run_in_executor(self._executor, self._run_job, job, settings, loop, force)
+        loop.run_in_executor(self._executor, self._run_job, job, settings, loop, force, model)
         return job_id
 
     def _run_job(
-        self, job: Job, settings: Any, loop: asyncio.AbstractEventLoop, force: bool = False
+        self,
+        job: Job,
+        settings: Any,
+        loop: asyncio.AbstractEventLoop,
+        force: bool = False,
+        model: str | None = None,
     ) -> None:
         """Run process() synchronously in a thread, pushing events to subscribers."""
         from anyscribe.config.settings import load_env
@@ -147,6 +157,7 @@ class JobManager:
                 quiet=True,
                 on_progress=on_progress,
                 force=force,
+                model=model,
             )
             job.status = JobStatus.COMPLETED
             job.completed_at = time.time()
@@ -158,6 +169,7 @@ class JobManager:
                 "language": result.language,
                 "word_count": result.word_count,
                 "provider": result.provider,
+                "model": model,
                 "cached": result.cached,
             }
             # Send completion event

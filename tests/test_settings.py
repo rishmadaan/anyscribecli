@@ -144,3 +144,82 @@ def test_forget_env_var_drops_key_not_inherited():
         with patch.dict(os.environ, {"XY_KEY": "session-only"}):
             forget_env_var("XY_KEY")
             assert "XY_KEY" not in os.environ
+
+
+def test_provider_models_null_yaml_coerced_to_empty_dict():
+    # A hand-edited bare `provider_models:` line parses to None — must not
+    # crash `.get()` lookups in the orchestrator.
+    from anyscribe.config.settings import Settings
+
+    for bad in (None, "hello", 7, ["x"]):
+        s = Settings.from_dict({"provider_models": bad})
+        assert s.provider_models == {}
+    s = Settings.from_dict({"provider_models": {"openai": "gpt-transcribe"}})
+    assert s.provider_models == {"openai": "gpt-transcribe"}
+
+
+def test_extra_models_coerced_to_dict_of_lists():
+    from anyscribe.config.settings import Settings
+
+    assert Settings().extra_models == {}
+    for bad in (None, "hello", 7, ["x"]):
+        assert Settings.from_dict({"extra_models": bad}).extra_models == {}
+    # Non-list values are dropped; list entries are stringified.
+    s = Settings.from_dict({"extra_models": {"openrouter": ["a/b", 7], "openai": "nope"}})
+    assert s.extra_models == {"openrouter": ["a/b", "7"]}
+
+
+def test_sargam_v25_pin_migrated_away(tmp_path):
+    from anyscribe.core.migrate import maybe_migrate_sargam_model
+
+    cfg = tmp_path / "config.yaml"
+    with patch("anyscribe.config.settings.CONFIG_FILE", cfg):
+        s = Settings(provider_models={"sargam": "saaras:v2.5", "openai": "whisper-1"})
+        assert maybe_migrate_sargam_model(s) is True
+        # Pin dropped (v3 is the default), unrelated pins untouched, config saved.
+        assert s.provider_models == {"openai": "whisper-1"}
+        assert "saaras" not in cfg.read_text()
+        # Second run is a no-op and must not rewrite the file.
+        assert maybe_migrate_sargam_model(s) is False
+        assert maybe_migrate_sargam_model(Settings()) is False
+
+
+def test_extra_models_round_trips_through_yaml(tmp_path):
+    import yaml
+    from anyscribe.config.settings import Settings
+
+    s = Settings(extra_models={"openrouter": ["vendor/x"]})
+    assert Settings.from_dict(yaml.safe_load(yaml.dump(s.to_dict()))).extra_models == {
+        "openrouter": ["vendor/x"]
+    }
+
+
+def test_load_config_migrates_stale_sargam_pin_before_callers_see_it(tmp_path, monkeypatch, capsys):
+    # The migration must run at load on fresh state (audit: running it inside
+    # process() persisted per-run flag mutations and the first run still
+    # failed on the stale pin).
+    import yaml as _yaml
+
+    import anyscribe.config.settings as settings_mod
+
+    cfg = tmp_path / "config.yaml"
+    cfg.write_text(
+        _yaml.dump(
+            {
+                "provider": "sargam",
+                "quality": "balanced",
+                "provider_models": {"sargam": "saaras:v2.5"},
+            }
+        )
+    )
+    monkeypatch.setattr(settings_mod, "CONFIG_FILE", cfg)
+    loaded = settings_mod.load_config()
+    assert "sargam" not in loaded.provider_models  # callers never see the pin
+    on_disk = _yaml.safe_load(cfg.read_text())
+    assert on_disk["provider_models"] == {}
+    assert on_disk["quality"] == "balanced"  # nothing else rewritten
+    assert "saaras:v2.5 is retired" in capsys.readouterr().err
+    # Idempotent: second load makes no further writes
+    before = cfg.read_text()
+    settings_mod.load_config()
+    assert cfg.read_text() == before

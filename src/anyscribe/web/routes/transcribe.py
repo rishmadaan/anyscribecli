@@ -71,27 +71,36 @@ async def start_transcribe(req: TranscribeRequest) -> dict:
     settings = load_config()
 
     # Apply overrides from request
-    if req.provider:
-        settings.provider = req.provider
     if req.quality:
         settings.quality = req.quality
     if req.language:
         settings.language = req.language
     if req.output_format:
         settings.output_format = req.output_format
-    settings.diarize = req.diarize
-    if req.diarize and settings.output_format == "clean":
+    if req.diarize is not None:
+        settings.diarize = req.diarize
+    if settings.diarize and settings.output_format == "clean":
         settings.output_format = "diarized"
     settings.keep_media = req.keep_media
 
-    # Resolve the quality tier to a provider (skipped if provider pinned or diarizing).
-    from anyscribe.core.quality import apply_quality
+    from anyscribe.core.resolve import resolve_run
 
-    apply_quality(settings, explicit_provider=bool(req.provider) or req.diarize)
+    try:
+        plan = resolve_run(
+            settings, cli_provider=req.provider, cli_model=req.model, diarize=settings.diarize
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    settings.provider = plan.provider
 
     loop = asyncio.get_event_loop()
-    job_id = await job_manager.submit(req.url, settings, loop, force=req.force)
-    return {"job_id": job_id}
+    job_id = await job_manager.submit(req.url, settings, loop, force=req.force, model=plan.model)
+    return {
+        "job_id": job_id,
+        "provider": plan.provider,
+        "model": plan.model,
+        "notes": plan.notes,
+    }
 
 
 @router.get("/jobs/{job_id}")

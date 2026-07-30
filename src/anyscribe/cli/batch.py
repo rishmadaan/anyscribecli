@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import os
 import sys
 from pathlib import Path
 
@@ -21,6 +20,7 @@ err_console = Console(stderr=True)
 def batch(
     file: Path = typer.Argument(..., help="File containing URLs or file paths (one per line)."),
     provider: str | None = typer.Option(None, "--provider", "-p", help="Override provider."),
+    model: str | None = typer.Option(None, "--model", "-m", help="Override the provider's model."),
     quality: str | None = typer.Option(
         None, "--quality", help="Quality preset: accuracy | balanced | cost | free."
     ),
@@ -84,8 +84,6 @@ def batch(
 
     load_env()
     settings = load_config()
-    if provider:
-        settings.provider = provider
     if quality:
         settings.quality = quality
     if language:
@@ -96,18 +94,17 @@ def batch(
         settings.diarize = True
         if settings.output_format == "clean":
             settings.output_format = "diarized"
-        if not provider and settings.provider != "deepgram":
-            if os.environ.get("DEEPGRAM_API_KEY"):
-                if not quiet:
-                    err_console.print(
-                        f"  [dim]Switching from {settings.provider} → deepgram for diarization[/dim]"
-                    )
-                settings.provider = "deepgram"
 
-    # Resolve the quality tier to a provider (skipped if provider pinned or diarizing).
-    from anyscribe.core.quality import apply_quality
+    from anyscribe.cli.transcribe import print_plan
+    from anyscribe.core.resolve import resolve_run
 
-    apply_quality(settings, explicit_provider=bool(provider) or diarize)
+    try:
+        plan = resolve_run(settings, cli_provider=provider, cli_model=model, diarize=diarize)
+    except ValueError as e:
+        err_console.print(f"[red]Error:[/red] {e}")
+        raise typer.Exit(code=1)
+    settings.provider = plan.provider
+    print_plan(plan, quiet=quiet)
 
     results: list[dict] = []
     succeeded = 0
@@ -117,7 +114,15 @@ def batch(
         # No progress display
         for url in urls:
             succeeded, failed = _process_url(
-                url, settings, results, succeeded, failed, quiet=True, force=force, timeout=timeout
+                url,
+                settings,
+                results,
+                succeeded,
+                failed,
+                quiet=True,
+                force=force,
+                timeout=timeout,
+                model=plan.model,
             )
             _save_batch_state(state_file, url, results[-1].get("success", False))
             if failed and stop_on_error:
@@ -144,6 +149,7 @@ def batch(
                     quiet=True,
                     force=force,
                     timeout=timeout,
+                    model=plan.model,
                 )
                 _save_batch_state(state_file, url, results[-1].get("success", False))
                 progress.advance(task)
@@ -164,6 +170,10 @@ def batch(
                     "total": len(urls),
                     "succeeded": succeeded,
                     "failed": failed,
+                    "provider": plan.provider,
+                    "model": plan.model,
+                    "via": plan.via,
+                    "notes": plan.notes,
                     "results": results,
                 },
                 "error": None,
@@ -226,13 +236,14 @@ def _process_url(
     quiet: bool,
     force: bool = False,
     timeout: float | None = None,
+    model: str | None = None,
 ) -> tuple[int, int]:
     """Process a single URL, append to results. Returns (succeeded, failed)."""
     from anyscribe.core.orchestrator import process
 
     try:
         if timeout is None:
-            result = process(url, settings, quiet=quiet, force=force)
+            result = process(url, settings, quiet=quiet, force=force, model=model)
         else:
             # ponytail: Python can't kill a running thread, so a timed-out worker
             # keeps transcribing in the background even though we've moved on and
@@ -244,7 +255,9 @@ def _process_url(
             from concurrent.futures import TimeoutError as FutureTimeoutError
 
             with ThreadPoolExecutor(max_workers=1) as executor:
-                future = executor.submit(process, url, settings, quiet=quiet, force=force)
+                future = executor.submit(
+                    process, url, settings, quiet=quiet, force=force, model=model
+                )
                 try:
                     result = future.result(timeout=timeout)
                 except FutureTimeoutError:

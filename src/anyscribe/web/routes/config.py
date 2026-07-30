@@ -6,6 +6,7 @@ import os
 
 import httpx
 from fastapi import APIRouter, Body
+from fastapi.responses import JSONResponse
 
 from anyscribe.config.paths import get_workspace_dir
 from anyscribe.config.settings import (
@@ -14,11 +15,18 @@ from anyscribe.config.settings import (
     forget_env_var,
     load_config,
     load_env,
-    save_config,
     save_env,
 )
+from anyscribe.core.config_set import set_value
 from anyscribe.core.local_setup import local_ready
-from anyscribe.providers import PROVIDER_KEY_ENV, PROVIDER_REGISTRY, list_providers
+from anyscribe.core.quality import QUALITY_TIERS
+from anyscribe.providers import (
+    OPEN_MODEL_PROVIDERS,
+    PROVIDER_KEY_ENV,
+    PROVIDER_REGISTRY,
+    get_models,
+    list_providers,
+)
 from anyscribe.providers.languages import PROVIDER_LANGUAGES
 from anyscribe.providers.local_models import (
     faster_whisper_importable,
@@ -54,29 +62,73 @@ PROVIDER_SIGNUP_URLS: dict[str, str] = {
 }
 
 
-@router.get("/config")
-async def get_config() -> dict:
+def _config_payload() -> dict:
+    """Config as the UI wants it: settings plus read-only context (leading _)."""
+    load_env()
     settings = load_config()
     data = settings.to_dict()
     data["_resolved_workspace"] = str(get_workspace_dir())
+    # Tier -> provider, so the UI can caption each quality choice with what it
+    # actually resolves to instead of hardcoding a second copy of the map.
+    data["_quality_tiers"] = QUALITY_TIERS
+    # What the next run will actually use — the Settings page leads with this,
+    # mirroring the CLI dashboard. Guarded: a hand-edited config with a bogus
+    # provider must not take the whole settings page down.
+    from anyscribe.core.resolve import resolve_run
+
+    try:
+        plan = resolve_run(settings)
+        data["_resolved"] = {
+            "provider": plan.provider,
+            "model": plan.model,
+            "via": plan.via,
+            "notes": plan.notes,
+        }
+    except ValueError as e:
+        data["_resolved"] = {"error": str(e)}
     return data
 
 
+@router.get("/config")
+async def get_config() -> dict:
+    return _config_payload()
+
+
 @router.put("/config")
-async def update_config(req: ConfigUpdateRequest) -> dict:
-    settings = load_config()
+async def update_config(req: ConfigUpdateRequest):
+    from anyscribe.config.paths import CONFIG_FILE
+
+    # set_value persists per field; snapshot config.yaml so a mixed
+    # valid+invalid payload rolls back instead of half-committing (a 422
+    # must mean "nothing was saved").
+    snapshot = CONFIG_FILE.read_bytes() if CONFIG_FILE.exists() else None
     for field_name, value in req.model_dump(exclude_unset=True).items():
-        if hasattr(settings, field_name):
-            setattr(settings, field_name, value)
-    save_config(settings)
-    updated = settings.to_dict()
-    updated["_resolved_workspace"] = str(get_workspace_dir())
-    return updated
+        if value is None:
+            continue
+        if field_name == "instagram" and isinstance(value, dict):
+            # Nested block -> dotted keys, the shape set_value speaks.
+            outcomes = [set_value(f"instagram.{k}", v) for k, v in value.items()]
+            outcome = next((o for o in outcomes if not o.ok), None)
+            if outcome is None:
+                continue
+        else:
+            outcome = set_value(field_name, value)
+        if not outcome.ok:
+            if snapshot is not None:
+                CONFIG_FILE.write_bytes(snapshot)
+            elif CONFIG_FILE.exists():
+                CONFIG_FILE.unlink()
+            return JSONResponse(
+                status_code=422,
+                content={"success": False, "error": outcome.error, "choices": outcome.choices},
+            )
+    return _config_payload()
 
 
 @router.get("/providers")
 async def get_providers() -> list[dict]:
     load_env()
+    extra_models = load_config().extra_models
     result = []
     local_is_ready = local_ready()
     persisted = env_file_keys()  # keys actually saved in .env (vs inherited env)
@@ -103,6 +155,11 @@ async def get_providers() -> list[dict]:
                 "set_up": set_up,
                 "key_in_env_file": key_in_env_file,
                 "key_url": PROVIDER_SIGNUP_URLS.get(name),
+                # Pickable models (catalog + user-added slugs); first is the
+                # default. Empty for "local" (its model choice lives in
+                # local_model + the model cards).
+                "models": get_models(name, extra_models),
+                "freeform_model": name in OPEN_MODEL_PROVIDERS,
             }
         )
     return result

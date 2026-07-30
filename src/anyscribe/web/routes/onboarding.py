@@ -38,6 +38,8 @@ class OnboardingSaveRequest(BaseModel):
     keep_media: Optional[bool] = None
     output_format: Optional[str] = None
     local_model: Optional[str] = None
+    quality: Optional[str] = None
+    model: Optional[str] = None
     extra_api_keys: Optional[dict[str, str]] = None
     instagram_browser: Optional[str] = None
 
@@ -102,6 +104,8 @@ async def save_onboarding(req: OnboardingSaveRequest) -> dict[str, Any]:
             keep_media=req.keep_media,
             output_format=req.output_format,
             local_model=req.local_model,
+            quality=req.quality,
+            model=req.model,
             extra_api_keys=req.extra_api_keys,
             instagram_browser=req.instagram_browser,
         )

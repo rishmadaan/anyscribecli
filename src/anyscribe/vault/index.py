@@ -143,6 +143,10 @@ def find_transcript(target: str, workspace: Path | None = None) -> list[Path]:
     p = Path(target).expanduser()
     if p.is_file():
         return [p]
+    if p.is_absolute():
+        # A nonexistent absolute path can't be a slug, and rglob refuses
+        # absolute patterns (NotImplementedError) — nothing to find.
+        return []
     sources = ws / "sources"
     if not sources.is_dir():
         return []

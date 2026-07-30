@@ -8,9 +8,12 @@ from pydantic import BaseModel
 class TranscribeRequest(BaseModel):
     url: str
     provider: str | None = None
+    model: str | None = None
     quality: str | None = None
     language: str | None = None
-    diarize: bool = False
+    # None = not specified — the config default applies (the UI always sends
+    # its checkbox state explicitly, so this only matters for raw API clients).
+    diarize: bool | None = None
     keep_media: bool = False
     output_format: str | None = None
     force: bool = False
@@ -39,6 +42,11 @@ class ConfigUpdateRequest(BaseModel):
     local_file_media: str | None = None
     workspace_path: str | None = None
     local_model: str | None = None
+    provider_models: dict[str, str] | None = None
+    extra_models: dict[str, list[str]] | None = None
+    # Nested Instagram settings ({"browser": "firefox"}); fanned out to
+    # dotted set_value keys ("instagram.browser") in the PUT handler.
+    instagram: dict[str, str] | None = None
 
 
 class LocalSetupRequest(BaseModel):

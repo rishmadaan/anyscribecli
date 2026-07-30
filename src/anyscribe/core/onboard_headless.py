@@ -34,7 +34,8 @@ from anyscribe.config.settings import (
     save_config,
     save_env,
 )
-from anyscribe.providers import PROVIDER_KEY_ENV
+from anyscribe.core.config_set import ENUMS
+from anyscribe.providers import OPEN_MODEL_PROVIDERS, PROVIDER_KEY_ENV, get_models
 
 API_PROVIDERS = {name for name, env in PROVIDER_KEY_ENV.items() if env}
 ALL_PROVIDERS = API_PROVIDERS | {"local"}
@@ -67,6 +68,8 @@ def _validate(
     api_key: str | None,
     local_model: str | None,
     instagram_browser: str | None,
+    quality: str | None = None,
+    model: str | None = None,
 ) -> None:
     """Raise OnboardValidationError if required fields for the chosen provider
     aren't present in either argv or the environment.
@@ -92,6 +95,24 @@ def _validate(
                     "error": f"unsupported instagram browser '{instagram_browser}'",
                     "choices": list(SUPPORTED_BROWSERS),
                     "hint": "Pass an empty string or 'none' to skip cookie configuration.",
+                }
+            )
+
+    if quality is not None and quality not in ENUMS["quality"]:
+        raise OnboardValidationError(
+            {"error": f"unknown quality '{quality}'", "choices": ENUMS["quality"]}
+        )
+
+    if model:
+        known = get_models(provider, load_config().extra_models)
+        if provider not in OPEN_MODEL_PROVIDERS and model not in known:
+            raise OnboardValidationError(
+                {
+                    "error": f"unknown model '{model}' for provider '{provider}'",
+                    "choices": known,
+                    "hint": "use --local-model for the local provider"
+                    if provider == "local"
+                    else f"pick one of: {', '.join(known)}",
                 }
             )
 
@@ -135,6 +156,8 @@ def run_headless_onboard(
     keep_media: bool | None = None,
     output_format: str | None = None,
     local_model: str | None = None,
+    quality: str | None = None,
+    model: str | None = None,
     extra_api_keys: dict[str, str] | None = None,
     instagram_browser: str | None = None,
     install_skill: bool = True,
@@ -148,12 +171,12 @@ def run_headless_onboard(
 
     Returns
     -------
-    ``{status, provider, workspace, local_enabled, api_keys_set, skill_installed,
-       local_setup?: {...}}``. ``status`` is ``"onboarded"`` on success; if
+    ``{status, provider, quality, model, workspace, local_enabled, api_keys_set,
+       skill_installed, local_setup?: {...}}``. ``status`` is ``"onboarded"`` on success; if
     local setup was requested and failed, status is ``"partial"`` and the
     ``local_setup`` payload carries the failure detail.
     """
-    _validate(provider, api_key, local_model, instagram_browser)
+    _validate(provider, api_key, local_model, instagram_browser, quality, model)
     _emit(on_progress, {"event": "validated", "provider": provider})
 
     # Load existing env so save_env merges rather than replaces. ensure_app_dirs
@@ -165,6 +188,11 @@ def run_headless_onboard(
     # was passed.
     settings = load_config()
     settings.provider = provider
+    # Same invariant as core.config_set.set_value("provider", ...): an explicit
+    # provider choice only sticks if the quality tier stops overriding it.
+    settings.quality = quality or "custom"
+    if model:
+        settings.provider_models[provider] = model
     if language is not None:
         settings.language = language
     if keep_media is not None:
@@ -239,9 +267,12 @@ def run_headless_onboard(
         if local_setup_result.get("status") == "failed":
             status = "partial"
 
+    catalog = get_models(provider, settings.extra_models)
     return {
         "status": status,
         "provider": provider,
+        "quality": settings.quality,
+        "model": settings.provider_models.get(provider) or (catalog[0] if catalog else None),
         "workspace": str(vault_path),
         "local_enabled": provider == "local"
         and (local_setup_result or {}).get("status") != "failed",

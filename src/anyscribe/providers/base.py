@@ -37,6 +37,9 @@ class TranscriptResult:
 class TranscriptionProvider(ABC):
     """Base class for transcription API providers."""
 
+    # Pinned model id set by get_provider(); None = provider's own default.
+    model: str | None = None
+
     @property
     @abstractmethod
     def name(self) -> str:

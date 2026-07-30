@@ -19,8 +19,11 @@ import type {
   Provider,
   ProviderTestResult,
   LocalStatusResponse,
+  ResolvedRun,
 } from "../api/types";
 import LanguageInput from "../components/LanguageInput";
+import ModelInput from "../components/ModelInput";
+import { defaultModelFor, extraModelsFor, tierSummary } from "../api/models";
 import LocalSetupModal from "../components/LocalSetupModal";
 import {
   Check,
@@ -34,6 +37,7 @@ import {
   Trash2,
   RefreshCw,
   PlayCircle,
+  X,
 } from "lucide-react";
 
 const MB = 1024 * 1024;
@@ -232,6 +236,29 @@ export default function SettingsPage() {
 
   const selectedProvider = providers.find((p) => p.name === config.provider);
   const providerMissingKey = selectedProvider && !selectedProvider.has_key;
+  const currentDefaultModel =
+    config.provider === "local"
+      ? config.local_model
+      : defaultModelFor(selectedProvider, config.provider_models);
+
+  // Language codes differ per provider, so the picker follows whichever
+  // provider the current quality knob actually resolves to.
+  const activeTier = tierSummary(config.quality, config, providers);
+  const effectiveProvider =
+    activeTier.provider && activeTier.hasKey ? activeTier.provider : config.provider;
+
+  const handlePin = (provider: string, model: string) =>
+    handleSave({
+      provider_models: { ...(config.provider_models ?? {}), [provider]: model },
+    });
+
+  const handleExtras = async (provider: string, models: string[]) => {
+    await handleSave({
+      extra_models: { ...(config.extra_models ?? {}), [provider]: models },
+    });
+    // The merged model lists on /api/providers changed — refresh the pickers.
+    setProviders(await getProviders());
+  };
 
   return (
     <div className="px-8 py-10 max-w-3xl">
@@ -283,26 +310,47 @@ export default function SettingsPage() {
           Configure Defaults
         </h2>
         <div className="space-y-4">
-          <SettingRow label="Default quality">
-            <div className="flex rounded-md border border-border overflow-hidden">
-              {["accuracy", "balanced", "cost", "free"].map((q) => (
-                <button
-                  key={q}
-                  onClick={() => handleSave({ quality: q })}
-                  className={`px-3 py-1.5 text-xs font-mono transition-colors cursor-pointer ${
-                    config.quality === q
-                      ? "bg-amber/15 text-amber border-r border-border"
-                      : "bg-surface-raised text-text-muted hover:text-text border-r border-border"
-                  }`}
-                >
-                  {q}
-                </button>
-              ))}
-            </div>
-          </SettingRow>
+          {/* Lead with the answer: what the next run actually uses. Re-rendered
+              from every PUT response, so it live-updates as knobs change. */}
+          <NextRun resolved={config._resolved} />
 
-          <SettingRow label="Provider (fallback)">
-            <div className="flex items-center gap-2">
+          {/* One knob picks the provider: a tier, or "custom" to pick by hand.
+              Captions show what each tier resolves to right now. */}
+          <div>
+            <label className="text-sm text-text-secondary">What runs by default</label>
+            <div className="mt-2 rounded-lg border border-border-subtle overflow-hidden">
+              {["accuracy", "balanced", "cost", "free"].map((tier) => {
+                const s = tierSummary(tier, config, providers);
+                return (
+                  <QualityChoice
+                    key={tier}
+                    name={tier}
+                    caption={s.provider + (s.model ? ` · ${s.model}` : "")}
+                    warn={s.hasKey ? null : s.provider === "local" ? "not set up" : "needs API key"}
+                    selected={config.quality === tier}
+                    disabled={saving}
+                    onSelect={() => handleSave({ quality: tier })}
+                  />
+                );
+              })}
+              <QualityChoice
+                name="custom"
+                caption={
+                  config.provider +
+                  (currentDefaultModel ? ` · ${currentDefaultModel}` : "")
+                }
+                warn={providerMissingKey ? (config.provider === "local" ? "not set up" : "needs API key") : null}
+                selected={config.quality === "custom"}
+                disabled={saving}
+                onSelect={() => handleSave({ quality: "custom" })}
+              />
+            </div>
+          </div>
+
+          {/* Always visible — a selected tier must never hide the manual
+              provider/model controls, it just explains that it outranks them. */}
+          <div className="rounded-lg border border-border-subtle bg-surface px-4 py-3 space-y-3">
+            <SettingRow label="Provider">
               <select
                 value={config.provider}
                 onChange={(e) => handleSave({ provider: e.target.value })}
@@ -312,21 +360,48 @@ export default function SettingsPage() {
                 {providers.map((p) => (
                   <option key={p.name} value={p.name}>
                     {p.name}
+                    {p.has_key ? "" : " · needs key"}
                   </option>
                 ))}
               </select>
-              {providerMissingKey && (
-                <span className="text-xs text-red flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3" />
-                  {config.provider === "local" ? "not set up" : "no key"}
+            </SettingRow>
+
+            {config.quality !== "custom" && (
+              <p className="text-xs text-text-muted -mt-1">
+                Active tier decides the provider — picking one here switches to
+                custom so your choice sticks.
+              </p>
+            )}
+
+            <SettingRow label="Model">
+              {config.provider === "local" ? (
+                <span className="text-xs font-mono text-text-muted">
+                  {config.local_model} · change it on the local card below
                 </span>
+              ) : (
+                <ModelInput
+                  provider={selectedProvider}
+                  value={currentDefaultModel}
+                  onChange={(v) => handlePin(config.provider, v)}
+                  disabled={saving}
+                  className="bg-surface-raised border border-border rounded-md px-2.5 py-1.5 text-sm text-text font-mono outline-none focus:border-amber/40 w-48"
+                />
               )}
-            </div>
-          </SettingRow>
+            </SettingRow>
+
+            {selectedProvider?.freeform_model && (
+              <ExtraModels
+                provider={config.provider}
+                models={extraModelsFor(config, config.provider)}
+                disabled={saving}
+                onChange={(list) => handleExtras(config.provider, list)}
+              />
+            )}
+          </div>
 
           <SettingRow label="Default language">
             <LanguageInput
-              provider={config.provider}
+              provider={effectiveProvider}
               value={config.language}
               onChange={(v) => setConfig({ ...config, language: v })}
               onBlur={(v) => {
@@ -358,11 +433,71 @@ export default function SettingsPage() {
             </div>
           </SettingRow>
 
+          <SettingRow label="Multi-speaker by default">
+            <Toggle
+              value={config.diarize}
+              onChange={(v) => handleSave({ diarize: v })}
+            />
+          </SettingRow>
+        </div>
+      </section>
+
+      {/* Downloads & media */}
+      <section className="mb-10">
+        <h2 className="text-xs font-mono text-text-muted uppercase tracking-wider mb-4">
+          Downloads &amp; media
+        </h2>
+        <div className="rounded-lg border border-border-subtle bg-surface px-4 py-3 space-y-3">
+          <SettingRow label="After transcribing a URL">
+            <select
+              value={config.prompt_download}
+              onChange={(e) => handleSave({ prompt_download: e.target.value })}
+              disabled={saving}
+              className="bg-surface-raised border border-border rounded-md px-2.5 py-1.5 text-sm text-text font-mono outline-none focus:border-amber/40 w-56"
+            >
+              <option value="never">Just transcribe</option>
+              <option value="always">Also download the video</option>
+              <option value="ask">Ask each time</option>
+            </select>
+          </SettingRow>
+
+          <SettingRow label="When transcribing a local file">
+            <select
+              value={config.local_file_media}
+              onChange={(e) => handleSave({ local_file_media: e.target.value })}
+              disabled={saving}
+              className="bg-surface-raised border border-border rounded-md px-2.5 py-1.5 text-sm text-text font-mono outline-none focus:border-amber/40 w-56"
+            >
+              <option value="skip">Leave the file where it is</option>
+              <option value="copy">Copy it into the workspace</option>
+              <option value="move">Move it into the workspace</option>
+              <option value="ask">Ask each time</option>
+            </select>
+          </SettingRow>
+
           <SettingRow label="Keep media">
             <Toggle
               value={config.keep_media}
               onChange={(v) => handleSave({ keep_media: v })}
             />
+          </SettingRow>
+
+          <SettingRow label="Instagram cookies from browser">
+            <select
+              value={config.instagram?.browser ?? ""}
+              onChange={(e) => handleSave({ instagram: { browser: e.target.value } })}
+              disabled={saving}
+              className="w-48 bg-surface-raised border border-border rounded-md px-2.5 py-1.5 text-sm text-text font-mono outline-none focus:border-amber/40"
+            >
+              <option value="">none (public posts only)</option>
+              {["firefox", "chrome", "safari", "brave", "edge", "chromium", "vivaldi", "opera"].map(
+                (b) => (
+                  <option key={b} value={b}>
+                    {b}
+                  </option>
+                )
+              )}
+            </select>
           </SettingRow>
         </div>
       </section>
@@ -486,6 +621,29 @@ export default function SettingsPage() {
 
                 {isExpanded && (
                   <div className="px-4 pb-3 pt-0 border-t border-border-subtle">
+                    {(p.models.length > 1 || p.freeform_model) && (
+                      <div className="mt-3 space-y-2">
+                        <div className="flex items-center gap-2">
+                          <label className="text-xs font-mono text-text-muted w-24 shrink-0">
+                            Default model
+                          </label>
+                          <ModelInput
+                            provider={p}
+                            value={defaultModelFor(p, config.provider_models)}
+                            onChange={(v) => handlePin(p.name, v)}
+                            disabled={saving}
+                          />
+                        </div>
+                        {p.freeform_model && (
+                          <ExtraModels
+                            provider={p.name}
+                            models={extraModelsFor(config, p.name)}
+                            disabled={saving}
+                            onChange={(list) => handleExtras(p.name, list)}
+                          />
+                        )}
+                      </div>
+                    )}
                     <div className="flex items-center gap-2 mt-3">
                       <input
                         type="password"
@@ -617,8 +775,20 @@ export default function SettingsPage() {
         </h2>
         <div className="rounded-lg border border-border-subtle bg-surface px-4 py-3">
           <p className="text-xs text-text-muted mb-1">Path</p>
-          <p className="text-sm font-mono text-text">
-            {config._resolved_workspace || config.workspace_path || "~/anyscribe"}
+          <input
+            type="text"
+            defaultValue={config.workspace_path}
+            key={config.workspace_path}
+            onBlur={(e) => {
+              const v = e.target.value.trim();
+              if (v && v !== config.workspace_path) handleSave({ workspace_path: v });
+            }}
+            placeholder="~/anyscribe"
+            spellCheck={false}
+            className="w-full bg-surface-raised border border-border rounded-md px-2.5 py-1.5 text-sm text-text font-mono outline-none focus:border-amber/40"
+          />
+          <p className="text-xs text-text-muted mt-1.5 font-mono">
+            {config._resolved_workspace}
           </p>
         </div>
       </section>
@@ -1016,6 +1186,171 @@ function LocalProviderCard({
 }
 
 // ── Helpers ──────────────────────────────────────────
+
+/** What the next run resolves to, straight from the backend's own ladder. */
+function NextRun({ resolved }: { resolved?: ResolvedRun }) {
+  if (!resolved) return null;
+
+  return (
+    <div className="rounded-lg border border-border-subtle bg-surface px-4 py-3">
+      <p className="text-xs font-mono text-text-muted uppercase tracking-wider mb-1.5">
+        Next run
+      </p>
+      {resolved.error ? (
+        <>
+          <p className="text-base font-mono text-red">{resolved.error}</p>
+          <p className="text-xs text-text-muted mt-1">fix the provider below</p>
+        </>
+      ) : (
+        <>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-base font-mono text-text">
+              {resolved.provider}
+              {resolved.model ? ` · ${resolved.model}` : ""}
+            </span>
+            {resolved.via && (
+              <span className="rounded border border-border px-1.5 py-0.5 text-[10px] font-mono text-text-muted">
+                via {resolved.via}
+              </span>
+            )}
+          </div>
+          {(resolved.notes ?? []).map((note) => (
+            <p
+              key={note}
+              className={`text-xs font-mono mt-1 ${
+                note.startsWith("WARNING:") ? "text-amber" : "text-text-muted"
+              }`}
+            >
+              {note}
+            </p>
+          ))}
+        </>
+      )}
+    </div>
+  );
+}
+
+/** One row of the "what runs by default" picker: a tier, or "custom". */
+function QualityChoice({
+  name,
+  caption,
+  warn,
+  selected,
+  disabled,
+  onSelect,
+}: {
+  name: string;
+  caption: string;
+  warn: string | null;
+  selected: boolean;
+  disabled: boolean;
+  onSelect: () => void;
+}) {
+  return (
+    <button
+      onClick={onSelect}
+      disabled={disabled}
+      aria-pressed={selected}
+      className={`w-full flex items-center gap-3 px-3 py-2 text-left border-b border-border-subtle last:border-b-0 transition-colors cursor-pointer disabled:opacity-50 ${
+        selected ? "bg-amber/10" : "bg-surface hover:bg-surface-raised"
+      }`}
+    >
+      <span
+        className={`text-xs font-mono w-20 shrink-0 ${
+          selected ? "text-amber" : "text-text"
+        }`}
+      >
+        {name}
+      </span>
+      <span
+        className={`text-xs font-mono flex-1 truncate ${
+          warn ? "text-text-muted/60" : "text-text-muted"
+        }`}
+      >
+        {caption}
+      </span>
+      {warn && (
+        <span className="text-[11px] font-mono text-amber flex items-center gap-1 shrink-0">
+          <AlertCircle className="w-3 h-3" />
+          {warn}
+        </span>
+      )}
+      {selected && <Check className="w-3.5 h-3.5 text-amber shrink-0" />}
+    </button>
+  );
+}
+
+/** User-added model slugs for an open-model provider (openrouter). */
+function ExtraModels({
+  provider,
+  models,
+  disabled,
+  onChange,
+}: {
+  provider: string;
+  models: string[];
+  disabled: boolean;
+  onChange: (models: string[]) => void;
+}) {
+  const [draft, setDraft] = useState("");
+  const add = () => {
+    const slug = draft.trim();
+    if (!slug || models.includes(slug)) return setDraft("");
+    onChange([...models, slug]);
+    setDraft("");
+  };
+
+  return (
+    <div className="flex items-start gap-2">
+      <label className="text-xs font-mono text-text-muted w-24 shrink-0 pt-1.5">
+        Custom models
+      </label>
+      <div className="flex-1 min-w-0">
+        {models.length > 0 && (
+          <div className="flex flex-wrap gap-1 mb-2">
+            {models.map((m) => (
+              <span
+                key={m}
+                className="flex items-center gap-1 rounded-md border border-border bg-surface-raised px-1.5 py-0.5 text-[11px] font-mono text-text-muted"
+              >
+                {m}
+                <span className="text-[9px] text-amber">custom</span>
+                <button
+                  onClick={() => onChange(models.filter((x) => x !== m))}
+                  disabled={disabled}
+                  title={`Remove ${m}`}
+                  className="text-text-muted hover:text-red transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") add();
+            }}
+            placeholder={`e.g. vendor/model-slug for ${provider}`}
+            spellCheck={false}
+            className="flex-1 bg-surface-raised border border-border rounded-md px-2.5 py-1 text-xs text-text font-mono outline-none focus:border-amber/40"
+          />
+          <button
+            onClick={add}
+            disabled={disabled || !draft.trim()}
+            className="rounded-md border border-border px-2 py-1 text-xs font-mono text-text-muted hover:text-text hover:bg-surface-raised transition-colors cursor-pointer disabled:opacity-50"
+          >
+            + Add model
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function SettingRow({
   label,

@@ -1,5 +1,15 @@
 /** TypeScript interfaces matching the Python Pydantic models. */
 
+/** GET/PUT /api/config `_resolved` — what the next run will actually use.
+ *  Either the resolved plan, or `error` when the config can't resolve. */
+export interface ResolvedRun {
+  provider?: string;
+  model?: string | null;
+  via?: string; // "flag" | "diarize" | "quality: <tier>" | "config"
+  notes?: string[]; // a note starting with "WARNING:" renders amber
+  error?: string;
+}
+
 export interface Config {
   provider: string;
   quality: string;
@@ -11,8 +21,12 @@ export interface Config {
   local_file_media: string;
   workspace_path: string;
   local_model: string;
+  provider_models: Record<string, string>;
+  extra_models: Record<string, string[]>;
   instagram: { browser: string };
   _resolved_workspace?: string;
+  _quality_tiers?: Record<string, string>; // tier -> provider it resolves to
+  _resolved?: ResolvedRun;
 }
 
 export interface Provider {
@@ -22,6 +36,8 @@ export interface Provider {
   set_up: boolean;
   key_in_env_file?: boolean; // key is saved in .env (removable), not just inherited
   key_url?: string;
+  models: string[]; // pickable model ids; first is the provider default
+  freeform_model: boolean; // any slug is valid (openrouter) → text input, not select
 }
 
 export interface ModelSpec {
@@ -146,6 +162,7 @@ export interface ProviderLanguagesResponse {
 export interface TranscribeRequest {
   url: string;
   provider?: string;
+  model?: string;
   quality?: string;
   language?: string;
   diarize?: boolean;
@@ -191,7 +208,16 @@ export interface JobResult {
   language: string;
   word_count: number;
   provider: string;
+  model?: string;
   cached?: boolean;
+}
+
+/** POST /api/transcribe — the resolved plan for this run. */
+export interface TranscribeAccepted {
+  job_id: string;
+  provider: string;
+  model: string | null;
+  notes: string[];
 }
 
 export interface WorkspaceInfo {

@@ -13,7 +13,7 @@ import httpx
 import pytest
 
 from anyscribe.core.errors import AuthenticationError, RateLimitError
-from anyscribe.providers import PROVIDER_REGISTRY, get_provider
+from anyscribe.providers import PROVIDER_REGISTRY, get_models, get_provider
 from anyscribe.providers.base import TranscriptionProvider, TranscriptResult
 from anyscribe.providers.deepgram import DeepgramProvider
 from anyscribe.providers.elevenlabs import ElevenLabsProvider
@@ -132,7 +132,7 @@ WHISPER_RESPONSE = {
 class TestOpenAI:
     def test_happy_path_maps_verbose_json(self, audio, monkeypatch):
         calls = stub_post(monkeypatch, FakeResponse(json_data=WHISPER_RESPONSE))
-        result = OpenAIProvider().transcribe(audio, language="en")
+        result = get_provider("openai", "whisper-1").transcribe(audio, language="en")
         assert isinstance(result, TranscriptResult)
         assert result.text == "hello world from whisper"
         assert result.language == "english"
@@ -157,16 +157,33 @@ class TestOpenAI:
             OpenAIProvider().transcribe(audio)
 
     def test_diarize_routes_to_diarize_model(self, audio, monkeypatch):
+        # Real TranscriptionDiarized shape: no language field, string segment
+        # ids, a type marker — NOT the whisper-1 verbose_json shape.
         resp = {
             "text": "hi",
-            "language": "english",
             "duration": 1.0,
-            "segments": [{"id": 0, "start": 0.0, "end": 1.0, "text": "hi", "speaker": "A"}],
+            "task": "transcribe",
+            "segments": [
+                {
+                    "id": "seg_0",
+                    "type": "transcript.text.segment",
+                    "start": 0.0,
+                    "end": 1.0,
+                    "text": "hi",
+                    "speaker": "A",
+                }
+            ],
         }
         calls = stub_post(monkeypatch, FakeResponse(json_data=resp))
-        result = OpenAIProvider().transcribe(audio, diarize=True)
+        result = OpenAIProvider().transcribe(audio, language="hi", diarize=True)
         assert calls[0]["data"]["model"] == "gpt-4o-transcribe-diarize"
+        # Spec: diarized_json is the only format that carries speaker labels,
+        # and chunking_strategy is required for >30s inputs.
+        assert calls[0]["data"]["response_format"] == "diarized_json"
+        assert calls[0]["data"]["chunking_strategy"] == "auto"
         assert result.segments[0].speaker == "A"
+        # No language in the response — the requested language is echoed back.
+        assert result.language == "hi"
 
     def test_diarize_rejects_large_files(self, audio, monkeypatch):
         monkeypatch.setattr("anyscribe.providers.openai.needs_chunking", lambda p: True)
@@ -421,7 +438,7 @@ class TestOpenRouter:
         assert call["url"] == OpenRouterProvider.API_URL
         assert call["headers"]["Authorization"] == "Bearer key-openrouter"
         body = call["json"]
-        assert body["model"] == "openai/gpt-4o-audio-preview"
+        assert body["model"] == "openai/gpt-audio-mini"
         message = body["messages"][0]
         assert message["role"] == "user"
         text_part, audio_part = message["content"]
@@ -435,11 +452,13 @@ class TestOpenRouter:
         assert "The audio is in hi." in calls[0]["json"]["messages"][0]["content"][0]["text"]
         assert result.language == "hi"
 
-    def test_model_env_override(self, audio, monkeypatch):
+    def test_model_env_var_is_ignored(self, audio, monkeypatch):
+        # OPENROUTER_MODEL support was removed — the model picker
+        # (provider_models / extra_models) is the only way to change it.
         monkeypatch.setenv("OPENROUTER_MODEL", "google/gemini-flash")
         calls = stub_post(monkeypatch, FakeResponse(json_data=CHAT_RESPONSE))
         OpenRouterProvider().transcribe(audio)
-        assert calls[0]["json"]["model"] == "google/gemini-flash"
+        assert calls[0]["json"]["model"] == OpenRouterProvider.DEFAULT_MODEL
 
 
 # ── sargam (Sarvam) ─────────────────────────────────────
@@ -466,7 +485,8 @@ class TestSargam:
         assert result.word_count == 3
         (call,) = calls
         assert call["url"] == SargamProvider.API_URL
-        assert call["data"]["model"] == "saaras:v2.5"
+        assert call["data"]["model"] == "saaras:v3"
+        assert call["data"]["mode"] == "translate"
         assert call["data"]["language_code"] == "hi-IN"
         assert call["headers"]["api-subscription-key"] == "key-sargam"
         assert audio.exists()  # original file is never deleted
@@ -533,9 +553,84 @@ class TestSargam:
         result = SargamProvider()._parse_response(data)
         assert result.segments[0].speaker == "0"
 
-    def test_diarize_flag_sent(self, audio, monkeypatch):
-        calls = stub_post(
-            monkeypatch, FakeResponse(json_data={"transcript": "x", "language_code": "hi-IN"})
+
+# ── model picker ─────────────────────────────────────────
+
+
+class TestModelPicker:
+    def test_get_provider_pins_model(self):
+        assert get_provider("openai", "gpt-transcribe").model == "gpt-transcribe"
+
+    def test_get_provider_rejects_unknown_model(self):
+        with pytest.raises(ValueError, match="Unknown model"):
+            get_provider("openai", "not-a-model")
+
+    def test_openrouter_accepts_any_slug(self):
+        assert get_provider("openrouter", "vendor/custom").model == "vendor/custom"
+
+    def test_gpt_transcribe_uses_plain_json(self, audio, monkeypatch):
+        # No verbose_json on gpt-transcribe: json format, no granularities,
+        # and the detected language comes from the new "languages" list.
+        resp = {"text": "hello there", "languages": [{"code": "en"}]}
+        calls = stub_post(monkeypatch, FakeResponse(json_data=resp))
+        provider = get_provider("openai", "gpt-transcribe")
+        result = provider.transcribe(audio)
+        (call,) = calls
+        assert call["data"]["model"] == "gpt-transcribe"
+        assert call["data"]["response_format"] == "json"
+        assert "timestamp_granularities[]" not in call["data"]
+        assert result.text == "hello there"
+        assert result.language == "en"
+        assert result.segments == []
+
+    def test_whisper1_pin_keeps_verbose_json(self, audio, monkeypatch):
+        resp = {"text": "hi", "language": "en", "duration": 1.0, "segments": []}
+        calls = stub_post(monkeypatch, FakeResponse(json_data=resp))
+        get_provider("openai", "whisper-1").transcribe(audio)
+        (call,) = calls
+        assert call["data"]["model"] == "whisper-1"
+        assert call["data"]["response_format"] == "verbose_json"
+
+    def test_unpinned_openai_uses_gpt_transcribe(self, audio, monkeypatch):
+        # Catalog default and the provider's own default must agree.
+        calls = stub_post(monkeypatch, FakeResponse(json_data={"text": "hi"}))
+        OpenAIProvider().transcribe(audio)
+        assert calls[0]["data"]["model"] == get_models("openai")[0] == "gpt-transcribe"
+
+    def test_sargam_v25_pin_rejected(self):
+        # saaras:v2.5 and its /speech-to-text-translate endpoint are retired.
+        with pytest.raises(ValueError, match="Unknown model"):
+            get_provider("sargam", "saaras:v2.5")
+
+    def test_openrouter_model_pin_used(self, audio, monkeypatch):
+        monkeypatch.setenv("OPENROUTER_MODEL", "env/model")
+        calls = stub_post(monkeypatch, FakeResponse(json_data=CHAT_RESPONSE))
+        provider = get_provider("openrouter", "google/gemini-2.5-flash-lite")
+        provider.transcribe(audio)
+        (call,) = calls
+        assert call["json"]["model"] == "google/gemini-2.5-flash-lite"
+
+    def test_get_models_merges_extras(self):
+        assert get_models("openai")[0] == "gpt-transcribe"
+        assert get_models("openrouter", {"openrouter": ["vendor/x"]})[-1] == "vendor/x"
+        # No extras for this provider, unknown provider, dupes: all safe.
+        assert get_models("deepgram", {"openrouter": ["vendor/x"]}) == ["nova-3", "nova-2"]
+        assert get_models("nope") == []
+        assert (
+            get_models("openrouter", {"openrouter": ["vendor/x", "vendor/x"]}).count("vendor/x")
+            == 1
         )
+        assert get_models("openai", {"openai": ["whisper-1"]}) == get_models("openai")
+
+    def test_local_pin_rejected(self):
+        # local's model choice lives in settings.local_model, not the picker —
+        # a -m pin must fail loudly instead of being silently ignored.
+        with pytest.raises(ValueError, match="does not support model selection"):
+            get_provider("local", "large-v3")
+
+    def test_sargam_never_sends_undocumented_diarization_field(self, audio, monkeypatch):
+        resp = {"transcript": "ek", "language_code": "hi-IN"}
+        calls = stub_post(monkeypatch, FakeResponse(json_data=resp))
         SargamProvider().transcribe(audio, diarize=True)
-        assert calls[0]["data"]["with_diarization"] == "true"
+        (call,) = calls
+        assert "with_diarization" not in call["data"]

@@ -18,6 +18,7 @@ anyscribe transcribe "<url>"             # Explicit subcommand (also works)
 |------|-------|-------------|---------|
 | `--quality` | | Quality preset: accuracy \| balanced \| cost \| free (picks a provider) | From config (accuracy) |
 | `--provider` | `-p` | Override provider: openai, deepgram, elevenlabs, sargam, groq, openrouter, local (wins over `--quality`) | From config |
+| `--model` | `-m` | Pin the model for this run (see [providers.md](providers.md) for each provider's list) | Provider default, or `provider_models` in config |
 | `--language` | `-l` | Language code (en, es, fr, hi, hi-Latn, etc.) or "auto" | From config (auto) |
 | `--json` | `-j` | Output result as JSON | Off |
 | `--keep-media` | | Keep downloaded audio in `~/.anyscribe/downloads/audio/` | From config |
@@ -25,6 +26,36 @@ anyscribe transcribe "<url>"             # Explicit subcommand (also works)
 | `--force` | `-f` | Re-transcribe even if this source was already transcribed | Off |
 | `--quiet` | `-q` | Suppress progress output | Off |
 | `--clipboard` | `-c` | Read URL from system clipboard | Off |
+
+### Model selection (`--model` / `-m`)
+
+`-m` pins the model on whichever provider ends up handling the run — the one from `-p`, from `--quality`, or from config. Precedence, highest first:
+
+1. `-m` on the command line
+2. `provider_models.<provider>` in `config.yaml`
+3. The provider's built-in default (first entry in its model list)
+
+```bash
+scribe "url" -p openai -m whisper-1               # force Whisper (default is gpt-transcribe)
+scribe "url" -p groq -m whisper-large-v3          # higher accuracy than the turbo default
+scribe "url" -p openrouter -m google/gemini-2.5-flash
+```
+
+Unknown models are rejected before any download or API call, with the valid list in the error — **except `openrouter`**, which accepts any slug (including anything in `extra_models.openrouter`) and only fails at the API. Providers with one model (`elevenlabs`, `sargam`) accept only that model. `local` has no `-m`: use `scribe local setup --model <size>` or `scribe config set local_model <size>`.
+
+**Timestamp caveat — and why you usually do nothing.** `gpt-transcribe` (the OpenAI default), `gpt-4o-transcribe`, and `gpt-4o-mini-transcribe` don't return segment timestamps. When `output_format` is `timestamped` / `diarized`, scribe switches the run to `whisper-1` itself and emits `switched to whisper-1 — gpt-transcribe can't produce timestamps`. **Passing `-m` suppresses that switch** — an explicit per-run model always wins — so don't pass `-m gpt-transcribe` for a user who wants timestamps. A config pin does not suppress it.
+
+### The plan line
+
+Every run prints `→ <provider> · <model> (<via>)` to **stderr**, with one indented line per note:
+
+```
+→ openai · whisper-1 (config)
+    WARNING: quality 'balanced' wants deepgram but no DEEPGRAM_API_KEY is set — using openai instead
+    switched to whisper-1 — gpt-transcribe can't produce timestamps
+```
+
+`via` ∈ `flag` | `diarize` | `quality: <tier>` | `config`. It's stderr, so it never contaminates `--json` stdout; `--quiet` suppresses it. Surface the notes to the user — they are the only place fallbacks and auto-switches are announced.
 
 ### Duplicate detection
 
@@ -46,9 +77,14 @@ Before transcribing, anyscribe scans the vault for a transcript whose frontmatte
   "language": "en",
   "word_count": 1500,
   "provider": "openai",
+  "model": "gpt-transcribe",
+  "via": "config",
+  "notes": [],
   "cached": false
 }
 ```
+
+`model` is the model that actually ran — read it rather than assuming the pin, since scribe may have switched it (timestamps) or the provider may have come from a tier. `via` says which rung picked the provider (`flag` | `diarize` | `quality: <tier>` | `config`), and `notes` carries every swap or warning in machine-readable form (keyless-tier fallback, whisper-1 timestamp switch, diarize routing) — surface any `WARNING:` note to the user even in `--quiet` runs. Batch `--json` carries the same two fields at the top level.
 
 When the source was already in the vault, the same shape comes back with `"cached": true` and the existing file's path.
 
@@ -78,6 +114,9 @@ anyscribe ~/recordings/meeting.m4a
 
 # Override provider for one transcription
 anyscribe "https://youtube.com/watch?v=abc123" --provider elevenlabs
+
+# Override provider AND model for one transcription
+scribe "https://youtube.com/watch?v=abc123" -p openai -m gpt-transcribe
 
 # Force language detection
 anyscribe "https://youtube.com/watch?v=abc123" --language hi
@@ -145,6 +184,7 @@ https://youtube.com/watch?v=def456
 | Flag | Short | Description | Default |
 |------|-------|-------------|---------|
 | `--provider` | `-p` | Override provider | From config |
+| `--model` | `-m` | Pin the model for every URL in the batch | Provider default, or `provider_models` in config |
 | `--language` | `-l` | Override language | auto |
 | `--json` | `-j` | Output as JSON | Off |
 | `--keep-media` | | Keep audio files | From config |
@@ -174,6 +214,9 @@ Sources already in the vault are skipped (returned from cache) unless `--force` 
 ```bash
 # Cap each URL at 5 minutes; stop-on-error not set, so it moves to the next one
 anyscribe batch urls.txt --timeout 300
+
+# Run the whole batch on a cheaper model
+anyscribe batch urls.txt -p openai -m gpt-4o-mini-transcribe --json --quiet
 ```
 
 ---
@@ -329,17 +372,60 @@ anyscribe uninstall-service --yes --json   # unloads + deletes it
 View and change settings.
 
 ```bash
+anyscribe config                           # Defaults dashboard — what the next run uses
+anyscribe config --json                    # Same, machine-readable (settings + resolved + providers)
 anyscribe config show                      # Display all settings
 anyscribe config show --json               # Output as JSON
 anyscribe config set <key> <value>         # Change a setting
+anyscribe config list-keys --json          # Every settable key + current value
 anyscribe config path                      # Print config file location
 ```
+
+### `scribe config` (no subcommand) — the discovery call
+
+**This is the one command to run when you need to know what scribe will do.** Human output:
+
+```
+Next run: deepgram · nova-3 (quality: balanced)
+
+Provider      Default model           Alternatives      Key      Notes
+→ deepgram    nova-3                  nova-2            ✓        balanced
+  elevenlabs  scribe_v2                                 missing  accuracy
+  groq        whisper-large-v3-turbo  whisper-large-v3  missing  cost
+  local       —                                         —        free, local_model: base
+  openai      gpt-transcribe          3 more            missing
+  openrouter  openai/gpt-audio-mini   5 more            missing
+  sargam      saaras:v3                                 missing
+
+Missing keys:    elevenlabs, groq, openai, openrouter, sargam  (scribe config set <provider>_api_key <key>)
+Change provider: scribe config set provider <name>  (also sets quality = custom, so it sticks)
+Pin a model:     scribe config set provider_models.<provider> <model>
+Or pick a tier:  scribe config set quality accuracy|balanced|cost|free|custom
+```
+
+`--json` returns every setting plus:
+
+```json
+{
+  "resolved": {"provider": "deepgram", "model": "nova-3", "via": "quality: balanced", "notes": []},
+  "providers": [
+    {"name": "deepgram", "default_model": "nova-3", "models": ["nova-3", "nova-2"],
+     "has_key": true, "tier": "balanced", "pinned": false, "custom_models": []}
+  ]
+}
+```
+
+`resolved` answers "what runs next and why"; `providers` answers "what can I change it to". `→` in the table marks `resolved.provider`, which is **not** always `provider` in the settings — a quality tier can override it. `scribe config show --json` is the raw settings file only (plus `_resolved_workspace`); prefer `scribe config --json` for anything decision-shaped.
 
 ### Settable keys
 
 | Key | Values | Description |
 |-----|--------|-------------|
-| `provider` | openai, deepgram, elevenlabs, sargam, groq, openrouter, local | Default transcription provider |
+| `provider` | openai, deepgram, elevenlabs, sargam, groq, openrouter, local | Provider used when `quality` is `custom`. **Setting it also writes `quality=custom`** |
+| `quality` | accuracy, balanced, cost, free, custom | Tier that picks the provider, or `custom` to use `provider` |
+| `provider_models.<provider>` | a model id from that provider's list | Pin a model for one provider (see below) |
+| `extra_models.openrouter` | comma-separated slugs (empty clears) | Add your own OpenRouter models to the pickers. Openrouter only |
+| `local_model` | tiny, base, small, medium, large-v3, large-v3-turbo, distil-large-v3.5 | Default offline Whisper size (must already be cached) |
 | `language` | auto, en, es, fr, hi, ar, zh, ja, ko, ... | Default language |
 | `keep_media` | true, false | Keep audio after transcription |
 | `output_format` | clean, timestamped, diarized | Transcript format |
@@ -365,6 +451,27 @@ API key names are also accepted — they are stored in `~/.anyscribe/.env`, not 
 anyscribe config set deepgram_api_key YOUR_KEY
 ```
 
+### Pinning a model per provider
+
+```bash
+scribe config set provider_models.openai whisper-1
+scribe config set provider_models.groq whisper-large-v3
+scribe config set provider_models.deepgram nova-2
+```
+
+The key is `provider_models.<provider>` — one pin per provider, so switching providers keeps each one's chosen model. A provider with no entry uses its built-in default. Invalid models exit 1 with the valid list; `openrouter` accepts any slug. `elevenlabs` and `sargam` have exactly one model, so pinning is a no-op. `provider_models.local` is rejected — use `local_model`.
+
+### Adding models (openrouter only)
+
+```bash
+scribe config set extra_models.openrouter "qwen/qwen3-omni-flash,openai/gpt-audio"
+scribe config set extra_models.openrouter ""     # empty value removes the entry
+```
+
+Comma-separated or a JSON list (MCP/web). Added slugs merge into every picker and are marked `(custom)` in `providers list`. `extra_models.<anything else>` exits 1: *custom models are only supported for openrouter (curated lists elsewhere)*. Don't work around it — new models for the other providers arrive via `scribe update`.
+
+See [config.md](config.md) for the resulting `config.yaml` shape and [providers.md](providers.md) for each provider's models.
+
 ---
 
 ## anyscribe providers
@@ -377,6 +484,26 @@ anyscribe providers list --json            # Output as JSON
 anyscribe providers test                   # Test active provider
 anyscribe providers test <name>            # Test a specific provider
 ```
+
+`providers list` prints four columns: **Provider**, **Model** (the one in effect — the pin from `provider_models` if set, otherwise the provider's default), **Also available** (its other models, with user-added slugs suffixed ` (custom)`), and **Active**.
+
+`--json` gives you the same thing per provider — use this instead of guessing model names:
+
+```json
+[
+  {
+    "name": "openai",
+    "active": true,
+    "model": "gpt-transcribe",
+    "models": ["gpt-transcribe", "whisper-1", "gpt-4o-transcribe", "gpt-4o-mini-transcribe"],
+    "custom_models": []
+  }
+]
+```
+
+`model` is that provider's effective model; `models` is the full pickable list including `extra_models` (empty for `local`, whose sizes come from `scribe model list`); `custom_models` is just the user-added slugs.
+
+> **`active` is the `provider` setting, not necessarily what runs** — a quality tier can override it. For the effective provider, use `scribe config --json` → `resolved`.
 
 ---
 
@@ -394,7 +521,7 @@ anyscribe local teardown --yes --json               # Reverse setup
 
 | Flag | Short | Description | Default |
 |------|-------|-------------|---------|
-| `--model` | `-m` | **Required.** `tiny`, `base`, `small`, `medium`, `large-v3`. Recommended: `base`. | *none — must specify* |
+| `--model` | `-m` | **Required.** `tiny`, `base`, `small`, `medium`, `large-v3`, `large-v3-turbo`, `distil-large-v3.5`. Recommended: `base`. | *none — must specify* |
 | `--yes` | `-y` | Skip confirmation. Required in non-TTY contexts. | Off |
 | `--json` | `-j` | NDJSON progress events on stdout. | Off |
 
@@ -417,7 +544,11 @@ Always exits 0. Reports `set_up`, `faster_whisper_installed`, `faster_whisper_ve
 
 ## anyscribe model
 
-Cache management for Whisper models. All subcommands accept `--json`.
+Cache management for offline Whisper models. All subcommands accept `--json`.
+
+Valid sizes: `tiny`, `base`, `small`, `medium`, `large-v3`, `large-v3-turbo`, `distil-large-v3.5`. See [providers.md](providers.md) for the size/RAM/speed table.
+
+> This is the **local** provider only. Cloud provider models are picked with `-m` / `provider_models` — nothing to download.
 
 ```bash
 anyscribe model list --json                      # Show every size + cache state
@@ -446,6 +577,8 @@ anyscribe onboard --skip-deps              # Skip dependency check
 # Headless — for agents / CI / scripts.
 anyscribe onboard --provider openai --api-key "$OPENAI_API_KEY" --yes --json
 anyscribe onboard --provider local --local-model base --yes --json
+anyscribe onboard --provider openai --model whisper-1 --yes --json   # pin a model at setup
+anyscribe onboard --provider deepgram --quality balanced --yes --json # set a tier instead
 ```
 
 **Agent rule:** always use the headless form. The interactive TUI uses arrow-key selectors and blocks on stdin — it cannot be driven programmatically.
@@ -453,9 +586,11 @@ anyscribe onboard --provider local --local-model base --yes --json
 | Flag | Required with `--yes` | Default | Description |
 |------|-----------------------|---------|-------------|
 | `--yes` / `-y` | yes (to opt in) | off | Turn on headless mode. |
-| `--provider` / `-p` | yes | none | `openai`, `deepgram`, `elevenlabs`, `sargam`, `openrouter`, `local`. |
+| `--provider` / `-p` | yes | none | `openai`, `deepgram`, `elevenlabs`, `sargam`, `groq`, `openrouter`, `local`. |
 | `--api-key` | for API providers (or env var) | none | Stored in `.env`. Prefer the env-var form. |
-| `--local-model` | yes when `--provider=local` | none | `tiny`, `base`, `small`, `medium`, `large-v3`. Recommended: `base`. |
+| `--local-model` | yes when `--provider=local` | none | `tiny`, `base`, `small`, `medium`, `large-v3`, `large-v3-turbo`, `distil-large-v3.5`. Recommended: `base`. |
+| `--model` / `-m` | no | provider default | Pin `--provider`'s model (writes `provider_models.<provider>`). Exit 2 with the valid list if the provider doesn't offer it. Not for `local`. |
+| `--quality` | no | `custom` | `accuracy`, `balanced`, `cost`, `free`, `custom`. **Omitting it writes `custom`**, so `--provider` is what runs. Only pass it if the user asked for a tier. |
 | `--workspace` | no | `~/anyscribe` | Obsidian vault path. |
 | `--language` | no | `auto` | Default language code. |
 | `--keep-media` / `--no-keep-media` | no | off | Keep downloaded audio after transcription. |
@@ -464,7 +599,9 @@ anyscribe onboard --provider local --local-model base --yes --json
 | `--force` / `-f` | no | off | Re-run over existing config. |
 | `--json` / `-j` | no | off | Emit the result as a single JSON object on stdout. |
 
-**Exit codes:** 0 success · 1 setup failure (e.g., local install failed — stderr carries pip command + captured stderr) · 2 usage error (missing `--provider`, unknown provider, already configured without `--force`, etc.).
+**Result JSON:** `{"status", "provider", "quality", "model", "workspace", "local_enabled", "api_keys_set", "skill_installed"}`. Read `model` back rather than assuming — it reports the effective model, pinned or default.
+
+**Exit codes:** 0 success · 1 setup failure (e.g., local install failed — stderr carries pip command + captured stderr) · 2 usage error (missing `--provider`, unknown provider, unknown `--model`/`--quality`, already configured without `--force`, etc.). Exit-2 stderr is structured JSON with `error` and `choices`.
 
 ---
 

@@ -1,7 +1,7 @@
 /** Hook for tracking a transcription job via WebSocket with reconnection. */
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { JobResult, ProgressEvent } from "../api/types";
+import type { JobResult, ProgressEvent, TranscribeRequest } from "../api/types";
 import { startTranscribe, cancelJob } from "../api/client";
 
 export type JobPhase = "idle" | "running" | "completed" | "error" | "cancelled";
@@ -14,15 +14,20 @@ interface JobState {
   events: ProgressEvent[];
   result: JobResult | null;
   error: string | null;
+  /** Resolved plan for this run: "openai · gpt-transcribe" + any swap notes. */
+  plan: { provider: string; model: string | null; notes: string[] } | null;
 }
 
+const IDLE: JobState = {
+  phase: "idle",
+  events: [],
+  result: null,
+  error: null,
+  plan: null,
+};
+
 export function useJob() {
-  const [state, setState] = useState<JobState>({
-    phase: "idle",
-    events: [],
-    result: null,
-    error: null,
-  });
+  const [state, setState] = useState<JobState>(IDLE);
   const wsRef = useRef<WebSocket | null>(null);
   const jobIdRef = useRef<string | null>(null);
   const reconnectAttemptRef = useRef(0);
@@ -150,30 +155,21 @@ export function useJob() {
   }, [connectWs]);
 
   const submit = useCallback(
-    async (data: {
-      url: string;
-      provider?: string;
-      quality?: string;
-      language?: string;
-      diarize?: boolean;
-      keep_media?: boolean;
-      output_format?: string;
-      force?: boolean;
-    }) => {
+    async (data: TranscribeRequest) => {
       // Reset state
-      setState({ phase: "running", events: [], result: null, error: null });
+      setState({ ...IDLE, phase: "running" });
       reconnectAttemptRef.current = 0;
       stopPolling();
 
       try {
-        const { job_id } = await startTranscribe(data);
+        const { job_id, provider, model, notes } = await startTranscribe(data);
         jobIdRef.current = job_id;
+        setState((prev) => ({ ...prev, plan: { provider, model, notes } }));
         connectWs(job_id);
       } catch (err) {
         setState({
+          ...IDLE,
           phase: "error",
-          events: [],
-          result: null,
           error: err instanceof Error ? err.message : String(err),
         });
       }
@@ -192,7 +188,7 @@ export function useJob() {
     jobIdRef.current = null;
     reconnectAttemptRef.current = 0;
     stopPolling();
-    setState({ phase: "idle", events: [], result: null, error: null });
+    setState(IDLE);
   }, [stopPolling]);
 
   return { ...state, submit, cancel, reset };

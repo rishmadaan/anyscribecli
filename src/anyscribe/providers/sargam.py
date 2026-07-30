@@ -36,7 +36,12 @@ class SargamProvider(TranscriptionProvider):
     Note: REST API limited to 30-second clips — audio is auto-chunked.
     """
 
-    API_URL = "https://api.sarvam.ai/speech-to-text-translate"
+    # saaras:v3 lives on /speech-to-text with a mode param; mode=translate
+    # preserves the historical translate-to-English behaviour. The old
+    # /speech-to-text-translate endpoint (saaras:v2.5) is deprecated upstream
+    # and no longer reachable from here — see core/migrate.py for the pin fix.
+    API_URL = "https://api.sarvam.ai/speech-to-text"
+    DEFAULT_MODEL = "saaras:v3"
 
     @property
     def name(self) -> str:
@@ -56,12 +61,13 @@ class SargamProvider(TranscriptionProvider):
         with open(audio_path, "rb") as f:
             files = {"file": (audio_path.name, f, "audio/mpeg")}
             data: dict[str, str] = {
-                "model": "saaras:v2.5",
+                "model": self.model or self.DEFAULT_MODEL,
+                "mode": "translate",
             }
             if language != "auto":
                 data["language_code"] = language
-            if diarize:
-                data["with_diarization"] = "true"
+            # Note: diarization is Batch-API-only at Sarvam; neither sync
+            # endpoint documents a with_diarization field, so none is sent.
 
             response = httpx.post(
                 self.API_URL,

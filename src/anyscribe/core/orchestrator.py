@@ -43,6 +43,7 @@ def process(
     quiet: bool = False,
     on_progress: OnProgress = None,
     force: bool = False,
+    model: str | None = None,
 ) -> ProcessResult:
     """Full pipeline: download -> transcribe -> write -> index.
 
@@ -53,6 +54,8 @@ def process(
         on_progress: Optional callback for progress events (used by web UI).
             Signature: (step, status, message, **kwargs) -> None
         force: Re-transcribe even if the source already exists in the workspace.
+        model: Effective model from `core/resolve.py`; falls back to the
+            configured pin when a caller resolves nothing.
 
     Returns:
         ProcessResult with metadata about the written file.
@@ -133,7 +136,9 @@ def process(
         if on_progress:
             on_progress("transcribe", "started", f"Transcribing with {settings.provider}...")
 
-        provider = get_provider(settings.provider)
+        provider = get_provider(
+            settings.provider, model=model or settings.provider_models.get(settings.provider)
+        )
         transcript = provider.transcribe(
             download.audio_path, settings.language, diarize=settings.diarize
         )
