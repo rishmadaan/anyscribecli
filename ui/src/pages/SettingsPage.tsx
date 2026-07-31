@@ -87,10 +87,13 @@ export default function SettingsPage() {
   }, []);
 
   const handleAutostart = async (v: boolean) => {
+    setError(null);
     try {
       setAutostartState(await setAutostart(v));
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(
+        e instanceof Error ? e.message : "Failed to change open-at-login"
+      );
     }
   };
 
@@ -323,19 +326,24 @@ export default function SettingsPage() {
         </div>
       )}
 
-      {/* Open at login — macOS only; renders nothing anywhere else. */}
+      {/* Startup — macOS only; renders nothing anywhere else. */}
       {autostart?.supported && (
-        <div className="rounded-lg border border-border-subtle bg-surface px-4 py-3 mb-10">
-          <SettingRow label="Open at login (menu-bar app)">
-            <Toggle
-              value={autostart.enabled}
-              onChange={(v) => void handleAutostart(v)}
-            />
-          </SettingRow>
-          <p className="text-xs text-text-muted mt-1">
-            Starts the anyscribe menu-bar icon when you log in.
-          </p>
-        </div>
+        <section className="mb-10">
+          <h2 className="text-xs font-mono text-text-muted uppercase tracking-wider mb-4">
+            Startup
+          </h2>
+          <div className="rounded-lg border border-border-subtle bg-surface px-4 py-3">
+            <SettingRow label="Open at login (menu-bar app)">
+              <Toggle
+                value={autostart.enabled}
+                onChange={(v) => void handleAutostart(v)}
+              />
+            </SettingRow>
+            <p className="text-xs text-text-muted mt-1">
+              Starts the anyscribe menu-bar icon when you log in.
+            </p>
+          </div>
+        </section>
       )}
 
       {/* Configure Defaults */}

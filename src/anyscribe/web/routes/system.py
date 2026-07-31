@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sys
+from importlib.util import find_spec
 
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
@@ -36,6 +37,13 @@ async def set_autostart(req: AutostartRequest) -> dict:
     if sys.platform != "darwin":
         raise HTTPException(status_code=400, detail="Autostart is only supported on macOS")
     if req.enabled:
+        # A LaunchAgent without pystray installs fine and then fails at login,
+        # silently. Refuse up front instead.
+        if find_spec("pystray") is None:
+            raise HTTPException(
+                status_code=400,
+                detail='The menu-bar tray isn\'t installed. Run: pip install "anyscribe[tray]" first.',
+            )
         service.install_service()
     else:
         service.uninstall_service()
