@@ -59,7 +59,7 @@ if ! command -v "$PYTHON" >/dev/null 2>&1; then
     PYTHON=python
 fi
 
-INIT_FILE="src/anyscribecli/__init__.py"
+INIT_FILE="src/anyscribe/__init__.py"
 TOML_FILE="pyproject.toml"
 
 OLD_VERSION=$("$PYTHON" -c "import tomllib; print(tomllib.load(open('$TOML_FILE','rb'))['project']['version'])")
@@ -109,4 +109,4 @@ git push && git push --tags
 echo ""
 echo "Released v$VERSION"
 echo "  GitHub Actions will publish to PyPI automatically."
-echo "  Track it: https://github.com/rishmadaan/anyscribecli/actions"
+echo "  Track it: https://github.com/rishmadaan/anyscribe/actions"

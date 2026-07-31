@@ -6,10 +6,10 @@ import json
 
 import pytest
 
-pytest.importorskip("mcp", reason="mcp extra not installed (pip install 'anyscribecli[mcp]')")
+pytest.importorskip("mcp", reason="mcp extra not installed (pip install 'anyscribe[mcp]')")
 
-from anyscribecli.config.settings import Settings
-from anyscribecli.mcp import server
+from anyscribe.config.settings import Settings
+from anyscribe.mcp import server
 
 
 def test_list_providers_merges_user_added_models(monkeypatch):

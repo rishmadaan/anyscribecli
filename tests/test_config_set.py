@@ -6,15 +6,15 @@ import os
 
 import pytest
 
-from anyscribecli.config.settings import load_config
-from anyscribecli.core.config_set import set_value
+from anyscribe.config.settings import load_config
+from anyscribe.core.config_set import set_value
 
 
 @pytest.fixture(autouse=True)
 def isolated_config(tmp_path, monkeypatch):
     """Point config.yaml and .env at tmp_path for every test in this module."""
-    monkeypatch.setattr("anyscribecli.config.settings.CONFIG_FILE", tmp_path / "config.yaml")
-    monkeypatch.setattr("anyscribecli.config.settings.ENV_FILE", tmp_path / ".env")
+    monkeypatch.setattr("anyscribe.config.settings.CONFIG_FILE", tmp_path / "config.yaml")
+    monkeypatch.setattr("anyscribe.config.settings.ENV_FILE", tmp_path / ".env")
     saved = dict(os.environ)
     yield tmp_path
     # set_value writes API keys into the live env — restore it for other modules.

@@ -1403,7 +1403,7 @@
       <a href="#agent">use it</a>
       <a href="#providers" class="sm-hide">engines</a>
       <a href="#install">install</a>
-      <a class="gh-pill" href="https://github.com/rishmadaan/anyscribecli" target="_blank" rel="noopener">
+      <a class="gh-pill" href="https://github.com/rishmadaan/anyscribe" target="_blank" rel="noopener">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56v-1.95c-3.2.7-3.87-1.37-3.87-1.37-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.71 1.26 3.37.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.29 1.19-3.09-.12-.3-.52-1.48.11-3.08 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.79 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.6.23 2.78.11 3.08.74.8 1.19 1.83 1.19 3.09 0 4.43-2.7 5.41-5.26 5.69.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"/></svg>
         GitHub
       </a>
@@ -1440,19 +1440,19 @@
         <span class="platform">● one line</span>
       </div>
       <div class="install-cmd">
-        <span class="p">$</span><span id="hero-cmd">curl -fsSL https://raw.githubusercontent.com/rishmadaan/anyscribecli/main/install.sh | bash</span>
+        <span class="p">$</span><span id="hero-cmd">curl -fsSL https://raw.githubusercontent.com/rishmadaan/anyscribe/main/install.sh | bash</span>
         <button class="copy" data-copy="hero-cmd">copy</button>
       </div>
       <div class="install-alt">
         <span>or</span>
-        <kbd>pip install anyscribecli</kbd>
+        <kbd>pip install anyscribe</kbd>
         <span>·</span>
         <span>windows:</span>
         <kbd>irm https://…/install.ps1 | iex</kbd>
       </div>
       <div class="hero-actions">
         <a class="btn-ghost" href="#install">Full setup guide ↓</a>
-        <a class="btn-ghost" href="https://github.com/rishmadaan/anyscribecli" target="_blank" rel="noopener">View on GitHub</a>
+        <a class="btn-ghost" href="https://github.com/rishmadaan/anyscribe" target="_blank" rel="noopener">View on GitHub</a>
       </div>
     </div>
 
@@ -1528,7 +1528,7 @@
       <div class="af">
         <span class="af-eyebrow">MCP server</span>
         <p>Ten tools over the Model Context Protocol: transcribe, batch, download, browse history, read and set config, list and test providers, run diagnostics.</p>
-        <code class="af-cmd"><span class="p">$</span>pip install "anyscribecli[mcp]"</code>
+        <code class="af-cmd"><span class="p">$</span>pip install "anyscribe[mcp]"</code>
       </div>
       <div class="af">
         <span class="af-eyebrow">JSON on every command</span>
@@ -1657,7 +1657,7 @@
         <span class="fn">01</span>
         <h3 class="ft">Your AI agent can <span class="it">drive it</span></h3>
         <p class="fd">
-          <code>--json</code> on every primary command for clean machine output. A Claude Code skill that installs itself when Claude is detected. An MCP server (<code>pip install anyscribecli[mcp]</code>) with ten tools that plugs into Claude Desktop, Cursor, and anything else speaking MCP.
+          <code>--json</code> on every primary command for clean machine output. A Claude Code skill that installs itself when Claude is detected. An MCP server (<code>pip install anyscribe[mcp]</code>) with ten tools that plugs into Claude Desktop, Cursor, and anything else speaking MCP.
         </p>
       </div>
 
@@ -1697,7 +1697,7 @@
         <span class="fn">06</span>
         <h3 class="ft">Local &amp; private <span class="it">by default</span></h3>
         <p class="fd">
-          Audio never leaves your machine unless you've picked a cloud engine. The Local option is fully offline, no API key, free forever. Config and API keys live in <code>~/.anyscribecli/</code> and nowhere else. No analytics, no tracking, no cookies.
+          Audio never leaves your machine unless you've picked a cloud engine. The Local option is fully offline, no API key, free forever. Config and API keys live in <code>~/.anyscribe/</code> and nowhere else. No analytics, no tracking, no cookies.
         </p>
       </div>
     </div>
@@ -1953,21 +1953,21 @@
 
     <div class="tab-panel active" data-panel="mac">
       <div class="big-cmd">
-        <span class="p">$</span><span id="mac-cmd">curl -fsSL https://raw.githubusercontent.com/rishmadaan/anyscribecli/main/install.sh | bash</span>
+        <span class="p">$</span><span id="mac-cmd">curl -fsSL https://raw.githubusercontent.com/rishmadaan/anyscribe/main/install.sh | bash</span>
         <button class="copy-btn" data-copy="mac-cmd">copy</button>
       </div>
       <p class="big-cmd-note">Installs Python (if missing), ffmpeg, yt-dlp, and the anyscribe CLI. Works on macOS (Homebrew) and Linux (apt, dnf, pacman).</p>
     </div>
     <div class="tab-panel" data-panel="win">
       <div class="big-cmd">
-        <span class="p">&gt;</span><span id="win-cmd">irm https://raw.githubusercontent.com/rishmadaan/anyscribecli/main/install.ps1 | iex</span>
+        <span class="p">&gt;</span><span id="win-cmd">irm https://raw.githubusercontent.com/rishmadaan/anyscribe/main/install.ps1 | iex</span>
         <button class="copy-btn" data-copy="win-cmd">copy</button>
       </div>
       <p class="big-cmd-note">PowerShell on native Windows. If you're on WSL2, use the macOS / Linux command above.</p>
     </div>
     <div class="tab-panel" data-panel="pip">
       <div class="big-cmd">
-        <span class="p">$</span><span id="pip-cmd">pip install anyscribecli</span>
+        <span class="p">$</span><span id="pip-cmd">pip install anyscribe</span>
         <button class="copy-btn" data-copy="pip-cmd">copy</button>
       </div>
       <p class="big-cmd-note">If you already have Python 3.10+, yt-dlp and ffmpeg, pip is the shortest path there is.</p>
@@ -2012,8 +2012,8 @@
         <h3>any<b>scribe</b><span class="lamp"></span></h3>
         <p>A small, open-source tool that lets your AI agent transcribe anything. Written with care. Distributed under MIT.</p>
         <div class="btn-row">
-          <a class="btn primary" href="https://github.com/rishmadaan/anyscribecli" target="_blank" rel="noopener">GitHub →</a>
-          <a class="btn" href="https://pypi.org/project/anyscribecli/" target="_blank" rel="noopener">PyPI</a>
+          <a class="btn primary" href="https://github.com/rishmadaan/anyscribe" target="_blank" rel="noopener">GitHub →</a>
+          <a class="btn" href="https://pypi.org/project/anyscribe/" target="_blank" rel="noopener">PyPI</a>
         </div>
       </div>
 
@@ -2022,27 +2022,27 @@
         <ul>
           <li><a href="#install">Install</a></li>
           <li><a href="#agent">Ways to use it</a></li>
-          <li><a href="https://github.com/rishmadaan/anyscribecli/blob/main/docs/user/getting-started.md" target="_blank" rel="noopener">Getting started</a></li>
-          <li><a href="https://github.com/rishmadaan/anyscribecli/blob/main/docs/user/commands.md" target="_blank" rel="noopener">Commands</a></li>
+          <li><a href="https://github.com/rishmadaan/anyscribe/blob/main/docs/user/getting-started.md" target="_blank" rel="noopener">Getting started</a></li>
+          <li><a href="https://github.com/rishmadaan/anyscribe/blob/main/docs/user/commands.md" target="_blank" rel="noopener">Commands</a></li>
         </ul>
       </div>
 
       <div class="foot-col">
         <h5>Reference</h5>
         <ul>
-          <li><a href="https://github.com/rishmadaan/anyscribecli/blob/main/docs/user/providers.md" target="_blank" rel="noopener">Providers</a></li>
-          <li><a href="https://github.com/rishmadaan/anyscribecli/blob/main/docs/user/configuration.md" target="_blank" rel="noopener">Configuration</a></li>
+          <li><a href="https://github.com/rishmadaan/anyscribe/blob/main/docs/user/providers.md" target="_blank" rel="noopener">Providers</a></li>
+          <li><a href="https://github.com/rishmadaan/anyscribe/blob/main/docs/user/configuration.md" target="_blank" rel="noopener">Configuration</a></li>
           <li><a href="#agent">AI agents</a></li>
-          <li><a href="https://github.com/rishmadaan/anyscribecli/blob/main/BACKLOG.md" target="_blank" rel="noopener">Changelog</a></li>
+          <li><a href="https://github.com/rishmadaan/anyscribe/blob/main/BACKLOG.md" target="_blank" rel="noopener">Changelog</a></li>
         </ul>
       </div>
 
       <div class="foot-col">
         <h5>Project</h5>
         <ul>
-          <li><a href="https://github.com/rishmadaan/anyscribecli/issues" target="_blank" rel="noopener">Report an issue</a></li>
-          <li><a href="https://github.com/rishmadaan/anyscribecli/blob/main/LICENSE" target="_blank" rel="noopener">MIT licence</a></li>
-          <li><a href="https://pypi.org/project/anyscribecli/" target="_blank" rel="noopener">Version history</a></li>
+          <li><a href="https://github.com/rishmadaan/anyscribe/issues" target="_blank" rel="noopener">Report an issue</a></li>
+          <li><a href="https://github.com/rishmadaan/anyscribe/blob/main/LICENSE" target="_blank" rel="noopener">MIT licence</a></li>
+          <li><a href="https://pypi.org/project/anyscribe/" target="_blank" rel="noopener">Version history</a></li>
         </ul>
       </div>
     </div>

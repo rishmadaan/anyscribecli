@@ -8,7 +8,7 @@ from unittest.mock import patch
 import typer
 from typer.testing import CliRunner
 
-from anyscribecli.cli.onboard import onboard
+from anyscribe.cli.onboard import onboard
 
 runner = CliRunner()
 
@@ -39,7 +39,7 @@ def test_yes_with_existing_config_refuses_without_force(tmp_path, monkeypatch):
     # Simulate an existing config file so the "already configured" gate fires.
     fake_config = tmp_path / "config.yaml"
     fake_config.write_text("provider: openai\n")
-    monkeypatch.setattr("anyscribecli.cli.onboard.CONFIG_FILE", fake_config)
+    monkeypatch.setattr("anyscribe.cli.onboard.CONFIG_FILE", fake_config)
     result = runner.invoke(
         _make_app(),
         ["--yes", "--provider", "openai", "--json"],
@@ -51,7 +51,7 @@ def test_yes_with_existing_config_refuses_without_force(tmp_path, monkeypatch):
 
 def test_yes_happy_path_delegates_to_headless(tmp_path, monkeypatch):
     fake_config = tmp_path / "config.yaml"
-    monkeypatch.setattr("anyscribecli.cli.onboard.CONFIG_FILE", fake_config)
+    monkeypatch.setattr("anyscribe.cli.onboard.CONFIG_FILE", fake_config)
     fake_result = {
         "status": "onboarded",
         "provider": "openai",
@@ -63,7 +63,7 @@ def test_yes_happy_path_delegates_to_headless(tmp_path, monkeypatch):
         "config_file": str(fake_config),
     }
     with patch(
-        "anyscribecli.core.onboard_headless.run_headless_onboard",
+        "anyscribe.core.onboard_headless.run_headless_onboard",
         return_value=fake_result,
     ) as run:
         result = runner.invoke(
@@ -87,7 +87,7 @@ def test_yes_happy_path_delegates_to_headless(tmp_path, monkeypatch):
 
 def test_yes_partial_result_exits_1(tmp_path, monkeypatch):
     fake_config = tmp_path / "config.yaml"
-    monkeypatch.setattr("anyscribecli.cli.onboard.CONFIG_FILE", fake_config)
+    monkeypatch.setattr("anyscribe.cli.onboard.CONFIG_FILE", fake_config)
     partial = {
         "status": "partial",
         "provider": "local",
@@ -99,7 +99,7 @@ def test_yes_partial_result_exits_1(tmp_path, monkeypatch):
         "config_file": str(fake_config),
     }
     with patch(
-        "anyscribecli.core.onboard_headless.run_headless_onboard",
+        "anyscribe.core.onboard_headless.run_headless_onboard",
         return_value=partial,
     ):
         result = runner.invoke(
@@ -118,9 +118,9 @@ def test_quality_and_model_flags_require_yes():
 
 def test_quality_and_model_flags_reach_headless(tmp_path, monkeypatch):
     fake_config = tmp_path / "config.yaml"
-    monkeypatch.setattr("anyscribecli.cli.onboard.CONFIG_FILE", fake_config)
+    monkeypatch.setattr("anyscribe.cli.onboard.CONFIG_FILE", fake_config)
     with patch(
-        "anyscribecli.core.onboard_headless.run_headless_onboard",
+        "anyscribe.core.onboard_headless.run_headless_onboard",
         return_value={
             "status": "onboarded",
             "provider": "openai",
@@ -156,9 +156,9 @@ def test_quality_and_model_flags_reach_headless(tmp_path, monkeypatch):
 
 def test_invalid_model_is_reported_with_exit_2(tmp_path, monkeypatch):
     fake_config = tmp_path / "config.yaml"
-    monkeypatch.setattr("anyscribecli.cli.onboard.CONFIG_FILE", fake_config)
+    monkeypatch.setattr("anyscribe.cli.onboard.CONFIG_FILE", fake_config)
     monkeypatch.setenv("HOME", str(tmp_path))
-    monkeypatch.setattr("anyscribecli.config.settings.CONFIG_FILE", fake_config)
+    monkeypatch.setattr("anyscribe.config.settings.CONFIG_FILE", fake_config)
     result = runner.invoke(
         _make_app(),
         ["--yes", "--provider", "deepgram", "--api-key", "k", "--model", "nope", "--json"],
@@ -172,59 +172,59 @@ class TestModelPicker:
     """`_pick_model` — the TUI step. bselect is patched; only the write logic runs."""
 
     def _settings(self, provider="openai"):
-        from anyscribecli.config.settings import Settings
+        from anyscribe.config.settings import Settings
 
         return Settings(provider=provider)
 
     def test_no_picker_when_catalog_has_one_entry(self):
-        from anyscribecli.cli.onboard import _pick_model
+        from anyscribe.cli.onboard import _pick_model
 
         settings = self._settings("elevenlabs")
-        with patch("anyscribecli.cli.onboard.bselect") as sel:
+        with patch("anyscribe.cli.onboard.bselect") as sel:
             _pick_model("elevenlabs", settings)
         sel.assert_not_called()
         assert settings.provider_models == {}
 
     def test_no_picker_for_local(self):
-        from anyscribecli.cli.onboard import _pick_model
+        from anyscribe.cli.onboard import _pick_model
 
         settings = self._settings("local")
-        with patch("anyscribecli.cli.onboard.bselect") as sel:
+        with patch("anyscribe.cli.onboard.bselect") as sel:
             _pick_model("local", settings)
         sel.assert_not_called()
 
     def test_default_pick_writes_no_pin(self):
-        from anyscribecli.cli.onboard import _pick_model
+        from anyscribe.cli.onboard import _pick_model
 
         settings = self._settings()
         settings.provider_models["openai"] = "whisper-1"
-        with patch("anyscribecli.cli.onboard.bselect", side_effect=lambda opts, **kw: opts[0]):
+        with patch("anyscribe.cli.onboard.bselect", side_effect=lambda opts, **kw: opts[0]):
             _pick_model("openai", settings)
         # Picking the catalog default clears the stale pin.
         assert settings.provider_models == {}
 
     def test_non_default_pick_writes_pin(self):
-        from anyscribecli.cli.onboard import _pick_model
+        from anyscribe.cli.onboard import _pick_model
 
         settings = self._settings()
-        with patch("anyscribecli.cli.onboard.bselect", side_effect=lambda opts, **kw: opts[1]):
+        with patch("anyscribe.cli.onboard.bselect", side_effect=lambda opts, **kw: opts[1]):
             _pick_model("openai", settings)
         assert settings.provider_models["openai"] == "whisper-1"
 
     def test_cursor_starts_on_current_pin(self):
-        from anyscribecli.cli.onboard import _pick_model
+        from anyscribe.cli.onboard import _pick_model
 
         settings = self._settings()
         settings.provider_models["openai"] = "gpt-4o-transcribe"
-        with patch("anyscribecli.cli.onboard.bselect", return_value=None) as sel:
+        with patch("anyscribe.cli.onboard.bselect", return_value=None) as sel:
             _pick_model("openai", settings)
         assert sel.call_args.kwargs["cursor_index"] == 2
 
     def test_extra_openrouter_models_are_offered(self):
-        from anyscribecli.cli.onboard import _pick_model
+        from anyscribe.cli.onboard import _pick_model
 
         settings = self._settings("openrouter")
         settings.extra_models["openrouter"] = ["vendor/custom"]
-        with patch("anyscribecli.cli.onboard.bselect", side_effect=lambda opts, **kw: opts[-1]):
+        with patch("anyscribe.cli.onboard.bselect", side_effect=lambda opts, **kw: opts[-1]):
             _pick_model("openrouter", settings)
         assert settings.provider_models["openrouter"] == "vendor/custom"

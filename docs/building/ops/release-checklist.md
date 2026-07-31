@@ -1,12 +1,12 @@
 ---
 type: reference
 tags: [release, checklist, versioning, pypi, distribution]
-tldr: "Step-by-step checklist for every anyscribecli release — version bump through PyPI publish and post-release verification."
+tldr: "Step-by-step checklist for every anyscribe release — version bump through PyPI publish and post-release verification."
 ---
 
 # Release Checklist
 
-Follow this every time you release a new version of anyscribecli. Do not skip steps.
+Follow this every time you release a new version of anyscribe. Do not skip steps.
 
 ---
 
@@ -83,7 +83,7 @@ If you need to release without the script (or the Action fails):
 
 ```bash
 # Bump version in __init__.py AND pyproject.toml, then:
-git add src/anyscribecli/__init__.py pyproject.toml
+git add src/anyscribe/__init__.py pyproject.toml
 git commit -m "Bump to vX.Y.Z"
 git tag vX.Y.Z
 git push && git push --tags
@@ -105,7 +105,7 @@ twine upload dist/*
 # Install in a clean environment to verify
 python -m venv /tmp/scribe-test
 source /tmp/scribe-test/bin/activate
-pip install anyscribecli
+pip install anyscribe
 scribe --version    # Should show new version
 scribe doctor       # Should pass
 deactivate
@@ -126,7 +126,7 @@ gh release create vX.Y.Z \
 ## Install / Update
 
 \`\`\`bash
-pip install --upgrade anyscribecli
+pip install --upgrade anyscribe
 \`\`\`"
 ```
 
@@ -159,7 +159,7 @@ pytest && ruff check src tests
 ./scripts/release.sh X.Y.Z "description"
 
 # Verify (after GitHub Actions finishes ~1-2 min)
-pip install --upgrade anyscribecli
+pip install --upgrade anyscribe
 scribe --version
 ```
 
@@ -173,5 +173,5 @@ scribe --version
 | Wrong version number | Can't undo — release the correct version as the next bump |
 | Upload fails with 403 | API token expired — regenerate at pypi.org, update ~/.pypirc |
 | Upload fails with 400 | Version already exists — you need a new version number |
-| `scribe` command not found after install | Check `[project.scripts]` in pyproject.toml, rebuild; on Windows try `python -m anyscribecli --version` |
+| `scribe` command not found after install | Check `[project.scripts]` in pyproject.toml, rebuild; on Windows try `python -m anyscribe --version` |
 | Tests pass locally but package broken | Test in a clean venv (step 9) before publishing |

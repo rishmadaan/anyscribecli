@@ -63,12 +63,13 @@ The `0.x` prefix means pre-stable — breaking changes are allowed between minor
 | 0.14.0 | Per-provider model picker (`PROVIDER_MODELS` registry, `settings.provider_models`, `--model/-m` on transcribe+batch, `config set provider_models.<p>`, Web UI dropdowns, MCP `model` param). New models from the July-2026 market sweep: OpenAI `gpt-transcribe`/`gpt-4o-transcribe`/`gpt-4o-mini-transcribe` (json-only, no segments — whisper-1 stays default); Sarvam default → `saaras:v3` on `/speech-to-text` (v2.5 endpoint deprecated upstream); OpenRouter default → `openai/gpt-audio-mini` (old `gpt-4o-audio-preview` removed upstream — was silently broken); Groq `whisper-large-v3`; local `large-v3-turbo` + `distil-large-v3.5` (local.py now loads by HF repo id) | Released 2026-07-29 |
 | 0.14.1 | Audit fixes (independent post-release audit): gpt-transcribe `languages` object parse (wrote a dict into frontmatter), `provider_models:` null-YAML crash, `-m` on local now rejected loudly, OpenAI diarize per spec (`diarized_json` + `chunking_strategy`), canonical turbo repo id (orphans turbo caches pulled during the brief 0.14.0 window — re-download), Sarvam `with_diarization` dropped (Batch-only upstream), diarized transcripts echo the requested language, doc contradiction fixes | Released 2026-07-29 |
 | 0.15.0 | **Config defaults, one knob.** `quality` gains `custom` and any provider write sets it (CLI/Web/MCP/onboard), so a chosen provider sticks. New `core/resolve.py::resolve_run` owns the single provider+model ladder for all four surfaces and returns visible notes — keyless tier now warns instead of falling back silently, and every run prints `→ provider · model (via)`. Bare `scribe config` is a defaults dashboard (`--json` = settings + `resolved` + `providers`, the one agent-discovery call). `core/config_set.py::set_value` becomes the single write path for every key incl. API keys. OpenAI default → `gpt-transcribe` with automatic `whisper-1` switch for timestamped/diarized output (explicit `-m` opts out). Catalogs: Deepgram +`nova-2`, ElevenLabs `scribe_v2` only, Sarvam `saaras:v3` only (v2.5 + legacy endpoint deleted, old pins auto-migrated). New `extra_models.openrouter` for user-added slugs (openrouter only — closed catalogs stay release-managed). `OPENROUTER_MODEL` env var removed. Onboarding gains a model step + `--quality`/`--model` headless flags | Released 2026-07-29 |
-| 0.15.1 | Full Web-UI config parity: Settings leads with a "Next run" banner (`_resolved` on GET/PUT `/api/config`, error-guarded), provider+model controls un-hidden (were gated behind picking "custom"), new Downloads & media section (`prompt_download`, `local_file_media`, `keep_media`, real `instagram.browser` select via a new `instagram` field on ConfigUpdateRequest), `resolve_run` warns on unknown quality values. Rule set in docs: nothing is terminal-only | **Current** |
+| 0.15.1 | Full Web-UI config parity: Settings leads with a "Next run" banner (`_resolved` on GET/PUT `/api/config`, error-guarded), provider+model controls un-hidden (were gated behind picking "custom"), new Downloads & media section (`prompt_download`, `local_file_media`, `keep_media`, real `instagram.browser` select via a new `instagram` field on ConfigUpdateRequest), `resolve_run` warns on unknown quality values. Rule set in docs: nothing is terminal-only | Released 2026-07-29 |
+| 0.16.0 | **Rename `anyscribecli` → `anyscribe`** — new PyPI package, `anyscribe` primary command (`scribe`/`ascli` kept as permanent aliases), `~/.anyscribecli/` → `~/.anyscribe/` config dir with automatic + one-shot `anyscribe migrate`. Old `anyscribecli` PyPI project ships a final shim release that re-declares `scribe`/`ascli`/`scribe-mcp` so upgrades don't lose the console scripts | **Current** (rename branch) |
 | 1.0.0 | Stable: broader test coverage and release hardening | Future |
 
 ### How to bump versions
 
-Version lives in TWO places (must match): `src/anyscribecli/__init__.py` and `pyproject.toml`.
+Version lives in TWO places (must match): `src/anyscribe/__init__.py` and `pyproject.toml`.
 
 ```bash
 # One-command release (bumps both files, commits, tags, pushes → triggers PyPI publish):
@@ -413,9 +414,35 @@ Accepted tradeoffs:
 
 ---
 
+## v0.14.0 — Rename to anyscribe
+
+**Status:** in progress (branch `rename/anyscribe`)
+
+Identity change (a milestone, hence the minor bump). Five identities renamed
+independently: PyPI distribution, Python import package (`src/anyscribecli/` →
+`src/anyscribe/`), GitHub repo, command (`anyscribe` primary; `scribe` and
+`ascli` kept as **permanent** aliases, never deprecated), and the config dir
+(`~/.anyscribecli/` → `~/.anyscribe/`).
+
+- [x] Import package + all five console scripts (`anyscribe`, `scribe`, `ascli`,
+      `anyscribe-mcp`, `scribe-mcp`) resolve to the new module
+- [x] Config dir auto-migrates at every app-home read choke point; empty-target
+      case handled so keys are never stranded
+- [x] `anyscribe migrate` — one-shot mover (config/keys/sessions/downloads),
+      skill refresh, MCP re-key, command verification; `--dry-run` writes nothing
+- [x] Skill + docs + landing lead with `anyscribe`
+- [ ] Final `anyscribecli` shim release re-declaring `scribe`/`ascli`/`scribe-mcp`
+      (pip uninstalls the old package *after* installing the new one, which would
+      otherwise delete the shared console scripts — proven with a repro)
+
+Full plan and hazard analysis: `docs/building/plans/rename-to-anyscribe.md`.
+Decision record: `docs/building/journal/2026-07-21-rename-to-anyscribe.md`.
+
+---
+
 ## v1.0.0 — Stable Release
 
-- [x] PyPI published (`pip install anyscribecli`) — live since v0.3.1
+- [x] PyPI published (`pip install anyscribe`) — live since v0.3.1
 - [x] GitHub Releases with release notes for each tag — publish workflow auto-creates a release on every tag push (`gh release create --generate-notes`); all 39 historical tags backfilled with BACKLOG descriptions (v0.13.0)
 - [ ] Full test coverage
 - [ ] Stable config format (breaking changes require v2.0.0)

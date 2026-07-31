@@ -3,8 +3,8 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "anyscribecli"
-version = "0.15.1"
+name = "anyscribe"
+version = "0.16.0"
 description = "CLI tool to download, transcribe, and convert video/audio to structured markdown"
 readme = "README.md"
 license = "MIT"
@@ -44,9 +44,9 @@ dependencies = [
 ]
 
 [project.urls]
-Repository = "https://github.com/rishmadaan/anyscribecli"
-Issues = "https://github.com/rishmadaan/anyscribecli/issues"
-Documentation = "https://github.com/rishmadaan/anyscribecli/tree/main/docs"
+Repository = "https://github.com/rishmadaan/anyscribe"
+Issues = "https://github.com/rishmadaan/anyscribe/issues"
+Documentation = "https://github.com/rishmadaan/anyscribe/tree/main/docs"
 
 [project.optional-dependencies]
 dev = [
@@ -68,12 +68,14 @@ tray = [
 ]
 
 [project.scripts]
-scribe = "anyscribecli.cli.main:app"
-ascli = "anyscribecli.cli.main:app"
-scribe-mcp = "anyscribecli.mcp.server:main"
+anyscribe = "anyscribe.cli.main:app"
+scribe = "anyscribe.cli.main:app"
+ascli = "anyscribe.cli.main:app"
+anyscribe-mcp = "anyscribe.mcp.server:main"
+scribe-mcp = "anyscribe.mcp.server:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/anyscribecli"]
+packages = ["src/anyscribe"]
 
 [tool.ruff]
 target-version = "py310"

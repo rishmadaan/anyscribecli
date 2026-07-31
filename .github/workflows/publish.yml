@@ -48,7 +48,7 @@ jobs:
         run: npm run build
 
       - name: Verify committed static bundle is current
-        run: git diff --exit-code -- src/anyscribecli/web/static
+        run: git diff --exit-code -- src/anyscribe/web/static
 
       - name: Build package
         run: python -m build

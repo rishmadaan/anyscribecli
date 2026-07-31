@@ -7,11 +7,11 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-from anyscribecli.config.settings import Settings
-from anyscribecli.downloaders.base import DownloadResult
-from anyscribecli.providers.base import TranscriptResult
-from anyscribecli.vault.index import delete_transcript, update_indexes
-from anyscribecli.vault.writer import write_transcript
+from anyscribe.config.settings import Settings
+from anyscribe.downloaders.base import DownloadResult
+from anyscribe.providers.base import TranscriptResult
+from anyscribe.vault.index import delete_transcript, update_indexes
+from anyscribe.vault.writer import write_transcript
 
 
 def _make_transcript(ws: Path, title: str) -> Path:
@@ -69,13 +69,13 @@ class TestVaultDelete:
 class TestWebDelete:
     @pytest.fixture
     def client(self, tmp_path, monkeypatch):
-        import anyscribecli.vault.index as vault_index
-        import anyscribecli.web.routes.history as history
+        import anyscribe.vault.index as vault_index
+        import anyscribe.web.routes.history as history
 
         monkeypatch.setattr(history, "get_workspace_dir", lambda: tmp_path)
         monkeypatch.setattr(vault_index, "get_workspace_dir", lambda: tmp_path)
 
-        from anyscribecli.web.app import create_app
+        from anyscribe.web.app import create_app
 
         return TestClient(create_app())
 

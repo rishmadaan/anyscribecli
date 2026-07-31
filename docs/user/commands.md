@@ -53,6 +53,7 @@ Every scribe command. Copy-paste friendly.
 | `scribe uninstall-service` | Remove the login auto-start |
 | `scribe install-skill` | Install/update Claude Code skill |
 | `scribe update` | Update to the latest version |
+| `anyscribe migrate` | One-time move from an old `anyscribecli` install (run once after upgrading) |
 | `scribe doctor` | Check system health |
 | `scribe --version` | Show version |
 | `scribe --help` | Show help |
@@ -119,7 +120,7 @@ scribe onboard \
 |------|-----------------------|---------|-------------|
 | `--yes` / `-y` | yes | off | Opt into headless mode. Without this, `scribe onboard` runs the interactive TUI. |
 | `--provider` / `-p` | **yes** | none | One of `openai`, `deepgram`, `elevenlabs`, `sargam`, `groq`, `openrouter`, `local`. |
-| `--api-key` | for API providers (or use env var) | none | Stored in `~/.anyscribecli/.env`. Prefer setting the env var (e.g. `OPENAI_API_KEY`) to avoid leaking keys into shell history. |
+| `--api-key` | for API providers (or use env var) | none | Stored in `~/.anyscribe/.env`. Prefer setting the env var (e.g. `OPENAI_API_KEY`) to avoid leaking keys into shell history. |
 | `--local-model` | **yes when `--provider=local`** | none | Whisper size. Recommended: `base`. |
 | `--model` / `-m` | no | provider's default | Pin the model for `--provider` (written to `provider_models`). Rejected with the valid list if the provider doesn't offer it. Not for `local` — use `--local-model`. |
 | `--quality` | no | `custom` | `accuracy`, `balanced`, `cost`, `free`, or `custom`. Omit it and onboarding writes `custom`, so the provider you just chose is the one that runs. |
@@ -547,7 +548,7 @@ Download video or audio from a URL — no transcription. Useful when you just wa
 scribe download "<url>"
 ```
 
-Saves to `~/.anyscribecli/downloads/video/<platform>/` (default) or `~/.anyscribecli/downloads/audio/<platform>/` with `--audio-only`.
+Saves to `~/.anyscribe/downloads/video/<platform>/` (default) or `~/.anyscribe/downloads/audio/<platform>/` with `--audio-only`.
 
 ### Flags
 
@@ -709,7 +710,7 @@ See [configuration.md](configuration.md) for the full setting reference and [pro
 
 > **Dot-notation:** Use dots for nested keys like `instagram.browser` and `provider_models.openai`.
 >
-> **API keys:** `scribe config set` also accepts API key names (e.g., `deepgram_api_key`, `openai_api_key`, `elevenlabs_api_key`, `sargam_api_key`, `groq_api_key`, `openrouter_api_key`). These are stored in `~/.anyscribecli/.env`, not in config.yaml.
+> **API keys:** `scribe config set` also accepts API key names (e.g., `deepgram_api_key`, `openai_api_key`, `elevenlabs_api_key`, `sargam_api_key`, `groq_api_key`, `openrouter_api_key`). These are stored in `~/.anyscribe/.env`, not in config.yaml.
 
 ---
 
@@ -868,7 +869,7 @@ Opens your browser at `http://127.0.0.1:8457` with three views:
 - **History** — browse past transcripts from your vault, grouped by date, with search
 - **Settings** — change config, view provider status, add/replace/remove API keys, check system health
 
-> **Managing API keys in Settings → Providers:** expand a provider to add or replace its key. Once a key is saved, a **Remove key** button appears — click it, then click **Remove?** to confirm, and the key is deleted from `~/.anyscribecli/.env`. If a key comes from your shell environment instead (e.g. `export OPENAI_API_KEY=…` in your shell profile), the Remove button is hidden — scribe can't edit your shell, so unset it there instead.
+> **Managing API keys in Settings → Providers:** expand a provider to add or replace its key. Once a key is saved, a **Remove key** button appears — click it, then click **Remove?** to confirm, and the key is deleted from `~/.anyscribe/.env`. If a key comes from your shell environment instead (e.g. `export OPENAI_API_KEY=…` in your shell profile), the Remove button is hidden — scribe can't edit your shell, so unset it there instead.
 
 > **Web UI label conventions:** the `--diarize` CLI flag appears as a `Multi-speaker` toggle, and the `diarized` output format is labelled `with-speaker-labels`. Wire values (what gets sent to the API and saved to config) are unchanged — only the display labels are friendlier. The provider dropdown also disables unconfigured providers with a `· needs key` suffix and a one-click link to Settings, and the language input is a per-provider dropdown of every supported code (clear the field on focus to see the full list).
 
@@ -900,7 +901,7 @@ scribe ui --no-open
 
 A menu-bar icon that keeps `scribe ui` running in the background — click the icon instead of remembering to run a command every time.
 
-> **Requires an extra install:** `pip install -U "anyscribecli[tray]"`. This pulls in `pystray`, `Pillow`, and (on macOS) `pyobjc` — kept out of the base install so `pip install anyscribecli` stays lightweight. If you run `scribe tray` without it, you'll get an install hint instead of a crash.
+> **Requires an extra install:** `pip install -U "anyscribe[tray]"`. This pulls in `pystray`, `Pillow`, and (on macOS) `pyobjc` — kept out of the base install so `pip install anyscribe` stays lightweight. If you run `scribe tray` without it, you'll get an install hint instead of a crash.
 
 ```bash
 scribe tray
@@ -911,7 +912,7 @@ The icon appears in your menu bar (macOS) or system tray (Linux/Windows) with:
 - **Open UI** — opens `http://127.0.0.1:8457` in your browser
 - **Status** — shows `running` or `stopped`
 - **Restart server** — stops and restarts the web server
-- **Check for updates…** — opens the [GitHub releases page](https://github.com/rishmadaan/anyscribecli/releases)
+- **Check for updates…** — opens the [GitHub releases page](https://github.com/rishmadaan/anyscribe/releases)
 - **Quit** — stops the server and exits the tray cleanly
 
 If a `scribe ui` server is already running on the port, `scribe tray` attaches to it instead of starting a second one. If a tray is already running, a second `scribe tray` refuses to start (no port collisions, no duplicate icons).
@@ -926,7 +927,7 @@ If a `scribe ui` server is already running on the port, `scribe tray` attaches t
 
 ```bash
 # Start the tray (installs the extra first, one time)
-pip install -U "anyscribecli[tray]"
+pip install -U "anyscribe[tray]"
 scribe tray
 
 # Use a different port
@@ -1042,6 +1043,48 @@ scribe update
 
 # Force update (stashes any local changes)
 scribe update --force
+```
+
+---
+
+## anyscribe migrate
+
+Run this **once** after upgrading from the old `anyscribecli` package. It moves
+your config, API keys, sessions, and downloads from the old app folder
+(`~/.anyscribecli/`) to the new one (`~/.anyscribe/`), refreshes the Claude Code
+skill, re-points the MCP server registration at `anyscribe`, and checks that the
+`anyscribe`, `scribe`, and `ascli` commands all work. It never overwrites
+anything already in the new folder, and it reports how many keys it moved —
+never the keys themselves — so the output is safe to paste into a bug report.
+
+> **Try `--dry-run` first.** It prints exactly what a real run would move and
+> writes nothing at all. If the preview looks right, run it again without the flag.
+
+```bash
+anyscribe migrate --dry-run   # preview — nothing is written
+anyscribe migrate             # actually migrate
+```
+
+Running it a second time is safe: it will simply report there is nothing left to do.
+
+### Flags
+
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--dry-run` | | Show exactly what would change and write nothing (not even a backup) |
+| `--json` | `-j` | Print the report as JSON instead of formatted text |
+
+### Examples
+
+```bash
+# See what would move, change nothing
+anyscribe migrate --dry-run
+
+# Do the migration
+anyscribe migrate
+
+# Machine-readable report (for scripts / agents)
+anyscribe migrate --json
 ```
 
 ---

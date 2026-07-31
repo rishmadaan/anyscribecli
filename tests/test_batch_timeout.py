@@ -7,7 +7,7 @@ import time
 
 from typer.testing import CliRunner
 
-from anyscribecli.cli.main import app
+from anyscribe.cli.main import app
 
 runner = CliRunner()
 
@@ -22,13 +22,13 @@ def _write_urls(tmp_path, content=URLS):
 
 def test_no_timeout_flag_skips_executor(tmp_path, monkeypatch):
     """Default behavior (no --timeout): process() is called directly, no wrapping."""
-    import anyscribecli.core.orchestrator as orchestrator
+    import anyscribe.core.orchestrator as orchestrator
 
     calls = []
 
     def fake_process(url, settings, quiet=False, force=False, model=None):
         calls.append(url)
-        from anyscribecli.core.orchestrator import ProcessResult
+        from anyscribe.core.orchestrator import ProcessResult
 
         return ProcessResult(
             file_path=tmp_path / "out.md",
@@ -53,10 +53,10 @@ def test_no_timeout_flag_skips_executor(tmp_path, monkeypatch):
 
 def test_timeout_marks_slow_url_failed_and_continues(tmp_path, monkeypatch):
     """A URL whose processing sleeps past --timeout is marked failed; batch continues."""
-    import anyscribecli.core.orchestrator as orchestrator
+    import anyscribe.core.orchestrator as orchestrator
 
     def fake_process(url, settings, quiet=False, force=False, model=None):
-        from anyscribecli.core.orchestrator import ProcessResult
+        from anyscribe.core.orchestrator import ProcessResult
 
         if "slow" in url:
             time.sleep(2)  # exceeds the 0.1s timeout below

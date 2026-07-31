@@ -7,9 +7,9 @@ import json
 import pytest
 from typer.testing import CliRunner
 
-from anyscribecli.cli.config_cmd import config_app, providers_app
-from anyscribecli.config.settings import Settings, save_config
-from anyscribecli.providers import PROVIDER_KEY_ENV, list_providers
+from anyscribe.cli.config_cmd import config_app, providers_app
+from anyscribe.config.settings import Settings, save_config
+from anyscribe.providers import PROVIDER_KEY_ENV, list_providers
 
 runner = CliRunner()
 
@@ -17,8 +17,8 @@ runner = CliRunner()
 @pytest.fixture(autouse=True)
 def isolated_config(tmp_path, monkeypatch):
     """Point config.yaml/.env at tmp_path and start with no API keys set."""
-    monkeypatch.setattr("anyscribecli.config.settings.CONFIG_FILE", tmp_path / "config.yaml")
-    monkeypatch.setattr("anyscribecli.config.settings.ENV_FILE", tmp_path / ".env")
+    monkeypatch.setattr("anyscribe.config.settings.CONFIG_FILE", tmp_path / "config.yaml")
+    monkeypatch.setattr("anyscribe.config.settings.ENV_FILE", tmp_path / ".env")
     for env in PROVIDER_KEY_ENV.values():
         if env:
             monkeypatch.delenv(env, raising=False)
@@ -192,8 +192,8 @@ def test_dashboard_survives_unknown_provider_in_config(monkeypatch, tmp_path, ca
     import yaml as _yaml
     from typer.testing import CliRunner
 
-    import anyscribecli.config.settings as settings_mod
-    from anyscribecli.cli.main import app
+    import anyscribe.config.settings as settings_mod
+    from anyscribe.cli.main import app
 
     cfg = tmp_path / "config.yaml"
     cfg.write_text(_yaml.dump({"provider": "whisper", "quality": "custom"}))

@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from anyscribecli.core.errors import (
+from anyscribe.core.errors import (
     AuthenticationError,
     RateLimitError,
     ScribeAPIError,
@@ -63,7 +63,7 @@ class TestWithRetry:
         assert decorated() == "ok"
         assert fn.call_count == 1
 
-    @patch("anyscribecli.core.errors.time.sleep")
+    @patch("anyscribe.core.errors.time.sleep")
     def test_retries_on_server_error(self, mock_sleep):
         fn = MagicMock(
             side_effect=[
@@ -77,7 +77,7 @@ class TestWithRetry:
         assert fn.call_count == 3
         assert mock_sleep.call_count == 2
 
-    @patch("anyscribecli.core.errors.time.sleep")
+    @patch("anyscribe.core.errors.time.sleep")
     def test_no_retry_on_auth_error(self, mock_sleep):
         fn = MagicMock(
             side_effect=AuthenticationError("bad key", status_code=401, provider="openai")
@@ -88,7 +88,7 @@ class TestWithRetry:
         assert fn.call_count == 1
         mock_sleep.assert_not_called()
 
-    @patch("anyscribecli.core.errors.time.sleep")
+    @patch("anyscribe.core.errors.time.sleep")
     def test_exhausts_retries(self, mock_sleep):
         fn = MagicMock(side_effect=RateLimitError("limited", status_code=429, provider="openai"))
         decorated = with_retry(max_retries=2, base_delay=0.01)(fn)

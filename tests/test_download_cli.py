@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from typer.testing import CliRunner
 
-from anyscribecli.cli.main import app
+from anyscribe.cli.main import app
 
 runner = CliRunner()
 

@@ -293,7 +293,7 @@ scribe config set provider_models.openrouter google/gemini-2.5-flash
 
 > **The old default is gone.** scribe used to default to `openai/gpt-4o-audio-preview`, which OpenRouter has since removed — requests to it now fail with a "model not found" error. The default is now `openai/gpt-audio-mini`. If you pinned the old one yourself, change it to a current model name.
 
-> **`OPENROUTER_MODEL` in `.env` is no longer read** (removed in 0.15.0). Use `scribe config set provider_models.openrouter <slug>` instead, and delete the line from `~/.anyscribecli/.env`.
+> **`OPENROUTER_MODEL` in `.env` is no longer read** (removed in 0.15.0). Use `anyscribe config set provider_models.openrouter <slug>` instead, and delete the line from `~/.anyscribe/.env`.
 
 > **When to use:** When you need a specific model that's only available on OpenRouter. Not recommended as a primary transcription provider — dedicated STT APIs are faster, cheaper, and more accurate.
 
@@ -416,7 +416,7 @@ scribe config set sargam_api_key YOUR_KEY
 scribe config set groq_api_key gsk-...
 ```
 
-These are stored in `~/.anyscribecli/.env` automatically.
+These are stored in `~/.anyscribe/.env` automatically.
 
 Or use the onboarding wizard:
 
@@ -424,7 +424,7 @@ Or use the onboarding wizard:
 scribe onboard --force
 ```
 
-Or edit `~/.anyscribecli/.env` directly.
+Or edit `~/.anyscribe/.env` directly.
 
 Test that a provider works:
 

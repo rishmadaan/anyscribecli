@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-from anyscribecli.web.app import create_app
+from anyscribe.web.app import create_app
 
 
 @pytest.fixture
@@ -48,21 +48,21 @@ class TestConfig:
         assert set(tiers) == {"accuracy", "balanced", "cost", "free"}
 
     def test_put_config_returns_same_payload_shape_as_get(self, client, tmp_path, monkeypatch):
-        monkeypatch.setattr("anyscribecli.config.settings.CONFIG_FILE", tmp_path / "config.yaml")
+        monkeypatch.setattr("anyscribe.config.settings.CONFIG_FILE", tmp_path / "config.yaml")
         r = client.put("/api/config", json={"keep_media": True})
         assert r.status_code == 200
         assert set(r.json()) == set(client.get("/api/config").json())
 
     def test_put_config_rejects_invalid_model_pin(self, client, tmp_path, monkeypatch):
         # Invalid entries are refused outright — nothing is persisted.
-        monkeypatch.setattr("anyscribecli.config.settings.CONFIG_FILE", tmp_path / "config.yaml")
+        monkeypatch.setattr("anyscribe.config.settings.CONFIG_FILE", tmp_path / "config.yaml")
         r = client.put("/api/config", json={"provider_models": {"deepgram": "nova-9"}})
         assert r.status_code == 422
         assert r.json()["success"] is False
         assert not (tmp_path / "config.yaml").exists()
 
     def test_put_config_provider_sets_quality_custom(self, client, tmp_path, monkeypatch):
-        monkeypatch.setattr("anyscribecli.config.settings.CONFIG_FILE", tmp_path / "config.yaml")
+        monkeypatch.setattr("anyscribe.config.settings.CONFIG_FILE", tmp_path / "config.yaml")
         r = client.put("/api/config", json={"provider": "groq"})
         assert r.status_code == 200
         assert r.json()["provider"] == "groq"
@@ -82,7 +82,7 @@ class TestConfig:
             assert "key_in_env_file" in p
 
     def test_get_providers_merges_user_added_models(self, client, tmp_path, monkeypatch):
-        monkeypatch.setattr("anyscribecli.config.settings.CONFIG_FILE", tmp_path / "config.yaml")
+        monkeypatch.setattr("anyscribe.config.settings.CONFIG_FILE", tmp_path / "config.yaml")
         client.put("/api/config", json={"extra_models": {"openrouter": ["acme/whisper-xl"]}})
         openrouter = next(
             p for p in client.get("/api/providers").json() if p["name"] == "openrouter"
@@ -153,7 +153,7 @@ class TestTranscribe:
         assert "job_id" in data
 
     def test_upload_preserves_safe_original_filename(self, client, tmp_path, monkeypatch):
-        from anyscribecli.web.routes import transcribe
+        from anyscribe.web.routes import transcribe
 
         monkeypatch.setattr(transcribe, "TMP_DIR", tmp_path)
         r = client.post(
@@ -168,7 +168,7 @@ class TestTranscribe:
         assert path.read_bytes() == b"fake audio"
 
     def test_upload_sanitizes_path_like_filename(self, client, tmp_path, monkeypatch):
-        from anyscribecli.web.routes import transcribe
+        from anyscribe.web.routes import transcribe
 
         monkeypatch.setattr(transcribe, "TMP_DIR", tmp_path)
         r = client.post(
@@ -193,7 +193,7 @@ class TestTranscribe:
         assert r.status_code == 404
 
     def test_cancel_finished_job_is_noop(self, client):
-        from anyscribecli.web.jobs import Job, JobStatus, job_manager
+        from anyscribe.web.jobs import Job, JobStatus, job_manager
 
         job = Job(id="finished1", url="https://example.com/x", status=JobStatus.COMPLETED)
         job_manager._jobs[job.id] = job
@@ -248,10 +248,10 @@ def test_config_payload_carries_resolved_plan(client):
 
 def test_config_payload_resolved_error_for_bogus_provider(client, monkeypatch):
     # A hand-edited config with an unknown provider must yield {error}, not 500.
-    from anyscribecli.config.settings import Settings
+    from anyscribe.config.settings import Settings
 
     monkeypatch.setattr(
-        "anyscribecli.web.routes.config.load_config",
+        "anyscribe.web.routes.config.load_config",
         lambda: Settings(provider="whisper", quality="custom"),
     )
     r = client.get("/api/config")

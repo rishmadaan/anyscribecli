@@ -7,7 +7,7 @@ from unittest.mock import patch
 import pytest
 from fastapi.testclient import TestClient
 
-from anyscribecli.web.app import create_app
+from anyscribe.web.app import create_app
 
 
 @pytest.fixture
@@ -65,7 +65,7 @@ def test_save_delegates_to_headless(client):
         "config_file": "/tmp/cfg.yaml",
     }
     with patch(
-        "anyscribecli.web.routes.onboarding.run_headless_onboard",
+        "anyscribe.web.routes.onboarding.run_headless_onboard",
         return_value=fake_result,
     ) as run:
         r = client.post(
@@ -81,7 +81,7 @@ def test_save_passes_quality_and_model_through(client):
     """The wizard inherits the provider->quality=custom invariant by going
     through run_headless_onboard; these two fields must not be dropped."""
     with patch(
-        "anyscribecli.web.routes.onboarding.run_headless_onboard",
+        "anyscribe.web.routes.onboarding.run_headless_onboard",
         return_value={"status": "onboarded", "provider": "openai"},
     ) as run:
         r = client.post(

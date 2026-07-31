@@ -2,7 +2,7 @@
 
 import threading
 
-from anyscribecli.core.fileutil import atomic_write, file_lock
+from anyscribe.core.fileutil import atomic_write, file_lock
 
 
 class TestAtomicWrite:

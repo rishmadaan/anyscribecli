@@ -11,7 +11,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from anyscribecli.downloaders.instagram import InstagramDownloader
+from anyscribe.downloaders.instagram import InstagramDownloader
 
 
 @pytest.fixture
@@ -69,7 +69,7 @@ def test_extract_shortcode_raises_on_bad_url(
         downloader._extract_shortcode("https://example.com/foo")
 
 
-@patch("anyscribecli.downloaders.instagram.load_config")
+@patch("anyscribe.downloaders.instagram.load_config")
 def test_build_ytdlp_args_no_browser_omits_cookies(
     mock_load_config: MagicMock, downloader: InstagramDownloader
 ) -> None:
@@ -82,7 +82,7 @@ def test_build_ytdlp_args_no_browser_omits_cookies(
     assert args == []
 
 
-@patch("anyscribecli.downloaders.instagram.load_config")
+@patch("anyscribe.downloaders.instagram.load_config")
 def test_build_ytdlp_args_with_browser_adds_cookies(
     mock_load_config: MagicMock, downloader: InstagramDownloader
 ) -> None:
@@ -95,9 +95,9 @@ def test_build_ytdlp_args_with_browser_adds_cookies(
     assert args == ["--cookies-from-browser", "firefox"]
 
 
-@patch("anyscribecli.downloaders.instagram.subprocess.run")
-@patch("anyscribecli.downloaders.instagram.load_config")
-@patch("anyscribecli.downloaders.instagram.ensure_ytdlp_current")
+@patch("anyscribe.downloaders.instagram.subprocess.run")
+@patch("anyscribe.downloaders.instagram.load_config")
+@patch("anyscribe.downloaders.instagram.ensure_ytdlp_current")
 def test_download_invokes_ytdlp_with_audio_flags(
     mock_ensure: MagicMock,
     mock_load_config: MagicMock,

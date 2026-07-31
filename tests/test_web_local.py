@@ -10,7 +10,7 @@ from unittest.mock import patch
 import pytest
 from fastapi.testclient import TestClient
 
-from anyscribecli.web.app import create_app
+from anyscribe.web.app import create_app
 
 
 @pytest.fixture
@@ -50,7 +50,7 @@ def test_local_setup_rejects_invalid_model(client):
 def test_local_setup_starts_background_and_is_non_blocking(client):
     # run_setup would normally block; intercept the background entry point so
     # the test returns instantly.
-    with patch("anyscribecli.web.routes.local._background_setup", return_value=None):
+    with patch("anyscribe.web.routes.local._background_setup", return_value=None):
         r = client.post("/api/local/setup", json={"model": "base"})
     assert r.status_code == 200
     body = r.json()
@@ -61,7 +61,7 @@ def test_local_setup_starts_background_and_is_non_blocking(client):
 def test_concurrent_setup_returns_409(client):
     # First call marks state.running = True; _background_setup is stubbed so
     # it never resets it. A second call must 409.
-    with patch("anyscribecli.web.routes.local._background_setup", return_value=None):
+    with patch("anyscribe.web.routes.local._background_setup", return_value=None):
         first = client.post("/api/local/setup", json={"model": "base"})
         assert first.status_code == 200
         second = client.post("/api/local/setup", json={"model": "tiny"})
@@ -79,7 +79,7 @@ def test_local_teardown_calls_run_teardown(client):
         "uninstall": {"status": "already_absent"},
         "provider_reset": False,
     }
-    with patch("anyscribecli.web.routes.local.run_teardown", return_value=fake):
+    with patch("anyscribe.web.routes.local.run_teardown", return_value=fake):
         r = client.post("/api/local/teardown")
     assert r.status_code == 200
     assert r.json()["status"] == "removed"
@@ -89,7 +89,7 @@ def test_local_teardown_calls_run_teardown(client):
 
 
 def test_list_local_models_returns_all_sizes(client):
-    from anyscribecli.providers.local_models import MODEL_SIZES
+    from anyscribe.providers.local_models import MODEL_SIZES
 
     r = client.get("/api/models/local")
     assert r.status_code == 200
@@ -104,7 +104,7 @@ def test_pull_unknown_size_returns_400(client):
 
 def test_pull_without_faster_whisper_returns_409(client):
     with patch(
-        "anyscribecli.web.routes.models.faster_whisper_importable",
+        "anyscribe.web.routes.models.faster_whisper_importable",
         return_value=False,
     ):
         r = client.post("/api/models/local/base/pull")
@@ -129,7 +129,7 @@ def test_providers_list_includes_set_up_field_for_all(client):
 
 def test_local_provider_honest_about_readiness(client):
     # Without faster-whisper / cached models, has_key must NOT lie.
-    with patch("anyscribecli.web.routes.config.local_ready", return_value=False):
+    with patch("anyscribe.web.routes.config.local_ready", return_value=False):
         r = client.get("/api/providers")
     local = next(p for p in r.json() if p["name"] == "local")
     assert local["has_key"] is False
@@ -220,7 +220,7 @@ def test_reinstall_unknown_size_returns_400(client):
 
 def test_reinstall_without_faster_whisper_returns_409(client):
     with patch(
-        "anyscribecli.web.routes.models.faster_whisper_importable",
+        "anyscribe.web.routes.models.faster_whisper_importable",
         return_value=False,
     ):
         r = client.post("/api/models/local/base/reinstall")
@@ -231,16 +231,16 @@ def test_reinstall_calls_delete_then_pull(client):
     # When the model is cached, reinstall should delete then pull and report
     # both byte counts.
     with patch(
-        "anyscribecli.web.routes.models.faster_whisper_importable",
+        "anyscribe.web.routes.models.faster_whisper_importable",
         return_value=True,
     ):
-        with patch("anyscribecli.web.routes.models.is_cached", return_value=True):
+        with patch("anyscribe.web.routes.models.is_cached", return_value=True):
             with patch(
-                "anyscribecli.web.routes.models.delete_model",
+                "anyscribe.web.routes.models.delete_model",
                 return_value={"status": "removed", "size": "base", "bytes_freed": 100},
             ) as d:
                 with patch(
-                    "anyscribecli.web.routes.models.pull_model",
+                    "anyscribe.web.routes.models.pull_model",
                     return_value={
                         "status": "downloaded",
                         "size": "base",
@@ -260,12 +260,12 @@ def test_reinstall_calls_delete_then_pull(client):
 
 def test_reinstall_not_cached_downloads_only(client):
     with patch(
-        "anyscribecli.web.routes.models.faster_whisper_importable",
+        "anyscribe.web.routes.models.faster_whisper_importable",
         return_value=True,
     ):
-        with patch("anyscribecli.web.routes.models.is_cached", return_value=False):
+        with patch("anyscribe.web.routes.models.is_cached", return_value=False):
             with patch(
-                "anyscribecli.web.routes.models.pull_model",
+                "anyscribe.web.routes.models.pull_model",
                 return_value={
                     "status": "downloaded",
                     "size": "base",

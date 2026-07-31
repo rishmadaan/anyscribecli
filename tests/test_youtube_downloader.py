@@ -9,7 +9,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from anyscribecli.downloaders.youtube import YouTubeDownloader
+from anyscribe.downloaders.youtube import YouTubeDownloader
 
 
 @pytest.fixture
@@ -43,8 +43,8 @@ def test_rejects_non_youtube_urls(downloader: YouTubeDownloader, url: str) -> No
     assert downloader.can_handle(url) is False
 
 
-@patch("anyscribecli.downloaders.youtube.subprocess.run")
-@patch("anyscribecli.core.deps.ensure_ytdlp_current")
+@patch("anyscribe.downloaders.youtube.subprocess.run")
+@patch("anyscribe.core.deps.ensure_ytdlp_current")
 def test_download_success_parses_metadata(
     mock_ensure: MagicMock, mock_run: MagicMock, downloader: YouTubeDownloader, tmp_path: Path
 ) -> None:
@@ -74,8 +74,8 @@ def test_download_success_parses_metadata(
     assert result.original_url == "https://www.youtube.com/watch?v=abc123"
 
 
-@patch("anyscribecli.downloaders.youtube.subprocess.run")
-@patch("anyscribecli.core.deps.ensure_ytdlp_current")
+@patch("anyscribe.downloaders.youtube.subprocess.run")
+@patch("anyscribe.core.deps.ensure_ytdlp_current")
 def test_download_metadata_failure_raises_runtime_error(
     mock_ensure: MagicMock, mock_run: MagicMock, downloader: YouTubeDownloader, tmp_path: Path
 ) -> None:
@@ -85,8 +85,8 @@ def test_download_metadata_failure_raises_runtime_error(
         downloader.download("https://www.youtube.com/watch?v=abc123", tmp_path)
 
 
-@patch("anyscribecli.downloaders.youtube.subprocess.run")
-@patch("anyscribecli.core.deps.ensure_ytdlp_current")
+@patch("anyscribe.downloaders.youtube.subprocess.run")
+@patch("anyscribe.core.deps.ensure_ytdlp_current")
 def test_download_audio_extraction_failure_raises_runtime_error(
     mock_ensure: MagicMock, mock_run: MagicMock, downloader: YouTubeDownloader, tmp_path: Path
 ) -> None:
@@ -100,8 +100,8 @@ def test_download_audio_extraction_failure_raises_runtime_error(
         downloader.download("https://www.youtube.com/watch?v=abc123", tmp_path)
 
 
-@patch("anyscribecli.downloaders.youtube.subprocess.run")
-@patch("anyscribecli.core.deps.ensure_ytdlp_current")
+@patch("anyscribe.downloaders.youtube.subprocess.run")
+@patch("anyscribe.core.deps.ensure_ytdlp_current")
 def test_download_no_mp3_found_raises_runtime_error(
     mock_ensure: MagicMock, mock_run: MagicMock, downloader: YouTubeDownloader, tmp_path: Path
 ) -> None:
@@ -115,8 +115,8 @@ def test_download_no_mp3_found_raises_runtime_error(
         downloader.download("https://www.youtube.com/watch?v=abc123", tmp_path)
 
 
-@patch("anyscribecli.downloaders.youtube.subprocess.run")
-@patch("anyscribecli.core.deps.ensure_ytdlp_current")
+@patch("anyscribe.downloaders.youtube.subprocess.run")
+@patch("anyscribe.core.deps.ensure_ytdlp_current")
 def test_download_invokes_ytdlp_with_expected_flags(
     mock_ensure: MagicMock, mock_run: MagicMock, downloader: YouTubeDownloader, tmp_path: Path
 ) -> None:

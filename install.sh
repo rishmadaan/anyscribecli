@@ -3,7 +3,7 @@
 # scribe installer
 #
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/rishmadaan/anyscribecli/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/rishmadaan/anyscribe/main/install.sh | bash
 #
 # Or with options:
 #   curl -fsSL ... | bash -s -- --method git --ui
@@ -12,7 +12,7 @@
 #   1. Checks your OS (macOS or Linux)
 #   2. Checks for Python 3.10+, installs if missing
 #   3. Checks for yt-dlp and ffmpeg, installs if missing
-#   4. Installs anyscribecli via pip (with pipx fallback)
+#   4. Installs anyscribe via pip (with pipx fallback)
 #   5. Tells you to run `scribe ui`
 # ──────────────────────────────────────────────────────────────
 
@@ -20,7 +20,7 @@ set -euo pipefail
 
 # ── Defaults ──────────────────────────────────────────────────
 INSTALL_METHOD="pip"       # pip (from PyPI) or git (from GitHub)
-REPO_URL="https://github.com/rishmadaan/anyscribecli.git"
+REPO_URL="https://github.com/rishmadaan/anyscribe.git"
 RUN_ONBOARD=false
 RUN_UI=false
 VERBOSE=false
@@ -262,7 +262,7 @@ check_ffmpeg() {
 install_scribe() {
     info "Installing scribe..."
 
-    local pip_cmd="anyscribecli"
+    local pip_cmd="anyscribe"
     if [[ "$INSTALL_METHOD" == "git" ]]; then
         pip_cmd="git+${REPO_URL}"
     elif [[ "$INSTALL_METHOD" != "pip" ]]; then
@@ -322,7 +322,7 @@ run_post_install() {
     if command_exists scribe; then
         cmd="scribe"
     else
-        cmd="python3 -m anyscribecli"
+        cmd="python3 -m anyscribe"
     fi
 
     if [[ "$RUN_UI" == true ]]; then

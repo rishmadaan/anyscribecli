@@ -49,7 +49,7 @@ export default function Layout() {
             className="text-lg font-semibold tracking-tight text-text"
             style={{ fontFamily: "var(--font-display)" }}
           >
-            scribe
+            anyscribe
           </span>
         </div>
 

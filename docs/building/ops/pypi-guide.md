@@ -1,14 +1,14 @@
 ---
 type: reference
 tags: [pypi, distribution, publishing, first-time-setup]
-tldr: "Complete guide to how PyPI works, first-time setup, TestPyPI, API tokens, and how to publish anyscribecli."
+tldr: "Complete guide to how PyPI works, first-time setup, TestPyPI, API tokens, and how to publish anyscribe."
 ---
 
 # PyPI Publishing Guide
 
 ## How PyPI Works
 
-PyPI (Python Package Index) is the App Store for Python packages. When someone runs `pip install anyscribecli`, pip goes to pypi.org, finds the package, downloads it, and installs it.
+PyPI (Python Package Index) is the App Store for Python packages. When someone runs `pip install anyscribe`, pip goes to pypi.org, finds the package, downloads it, and installs it.
 
 The flow:
 
@@ -20,8 +20,8 @@ Your code → Build (creates .tar.gz + .whl) → Upload to PyPI → Users instal
 
 When you build, two files are created in `dist/`:
 
-- `anyscribecli-X.Y.Z.tar.gz` — source distribution (raw code)
-- `anyscribecli-X.Y.Z-py3-none-any.whl` — wheel (pre-built, installs faster)
+- `anyscribe-X.Y.Z.tar.gz` — source distribution (raw code)
+- `anyscribe-X.Y.Z-py3-none-any.whl` — wheel (pre-built, installs faster)
 
 Both get uploaded. pip prefers the wheel.
 
@@ -31,7 +31,7 @@ PyPI pulls your project page from `pyproject.toml`:
 - `name`, `version`, `description` → shown on the project page
 - `readme = "README.md"` → rendered as the long description
 - `project.urls` → links sidebar on the project page
-- `project.scripts` → the `scribe` CLI entry point, plus `ascli` as a backward-compatible alias
+- `project.scripts` → the `anyscribe` CLI entry point, plus `scribe` and `ascli` as permanent aliases (and `anyscribe-mcp` / `scribe-mcp` for the MCP server)
 
 All of this is already configured in your `pyproject.toml`.
 
@@ -63,7 +63,7 @@ Go to **test.pypi.org** and create an account. This is a sandbox — same system
 Go to **pypi.org** → Account Settings → API Tokens → Add API Token.
 
 - First upload: scope to "Entire account" (project doesn't exist yet)
-- After first upload: delete this token, create a new one scoped to `anyscribecli` only
+- After first upload: delete this token, create a new one scoped to `anyscribe` only
 
 ### 4. Save Tokens in ~/.pypirc
 
@@ -100,7 +100,7 @@ python -m build
 twine upload --repository testpypi dist/*
 
 # 3. Install from TestPyPI to verify
-pip install --index-url https://test.pypi.org/simple/ anyscribecli
+pip install --index-url https://test.pypi.org/simple/ anyscribe
 
 # 4. Test it works
 scribe --version
@@ -132,7 +132,19 @@ Once you upload `0.3.0`, it's permanent. You cannot overwrite it, delete it, or 
 
 ### Name Is Claimed on First Upload
 
-The name `anyscribecli` gets reserved to your account on first upload. Nobody else can use it after that.
+The name `anyscribe` gets reserved to your account on first upload. Nobody else can use it after that.
+
+### The `anyscribecli` Name (Legacy Shim)
+
+The project was originally published as `anyscribecli`. It has been renamed to
+`anyscribe` (the import package, CLI, repo, and PyPI distribution all moved). The
+old `anyscribecli` PyPI project is **not deleted** (PyPI can't delete names) — its
+final release `0.13.5` is a metadata-only shim that depends on `anyscribe` and
+re-declares the legacy console scripts (`scribe`, `ascli`, `scribe-mcp`) pointing at
+the new `anyscribe` module. This keeps `pip install --upgrade anyscribecli` working
+for existing users without deleting their commands. See
+`docs/building/plans/rename-to-anyscribe.md` for the full mechanics (the shim is
+published by hand with twine using an `anyscribecli`-scoped token, not by tagging).
 
 ### README Rendering
 
@@ -147,13 +159,13 @@ PyPI renders your README.md as the project description. If it looks broken, chec
 
 ### Your Project Page
 
-`https://pypi.org/project/anyscribecli/`
+`https://pypi.org/project/anyscribe/`
 
 Shows: description, version history, install command, metadata, links.
 
 ### Download Stats
 
-`https://pypistats.org/packages/anyscribecli`
+`https://pypistats.org/packages/anyscribe`
 
 Shows: daily/weekly/monthly downloads, broken down by Python version, OS, and package version. Updates daily with ~1 day lag. No code changes needed — this is automatic for all PyPI packages.
 
@@ -162,7 +174,7 @@ Shows: daily/weekly/monthly downloads, broken down by Python version, OS, and pa
 After the first real publish, update `install.sh` to use PyPI as primary:
 
 ```bash
-pip install anyscribecli           # instead of git+https://github.com/...
+pip install anyscribe           # instead of git+https://github.com/...
 ```
 
 The GitHub fallback can stay as a backup.
@@ -175,6 +187,6 @@ The GitHub fallback can stay as a backup.
 |---------|-------|-----|
 | `twine upload` fails with 403 | Token expired or wrong scope | Regenerate token, update ~/.pypirc |
 | `twine upload` fails with 400 | Version already exists on PyPI | Bump version, rebuild, re-upload |
-| Package installs but `scribe` not found | Entry point misconfigured or Python Scripts directory is not on PATH | Check `[project.scripts]` in pyproject.toml; on Windows verify `python -m anyscribecli --version` |
+| Package installs but `scribe` not found | Entry point misconfigured or Python Scripts directory is not on PATH | Check `[project.scripts]` in pyproject.toml; on Windows verify `python -m anyscribe --version` |
 | README looks broken on PyPI | Unsupported markdown or relative links | Run `twine check dist/*`, fix markdown |
-| `pip install` gets old version | pip cache | `pip install --no-cache-dir anyscribecli` |
+| `pip install` gets old version | pip cache | `pip install --no-cache-dir anyscribe` |

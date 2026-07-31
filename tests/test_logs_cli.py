@@ -6,7 +6,7 @@ import json
 
 from typer.testing import CliRunner
 
-from anyscribecli.cli.main import app
+from anyscribe.cli.main import app
 
 runner = CliRunner()
 
@@ -26,7 +26,7 @@ def _write_daily_log(ws, date: str, rows: list[tuple[str, str, str, str]]) -> No
 
 
 def _patch_workspace(monkeypatch, tmp_path):
-    import anyscribecli.cli.logs_cmd as logs_cmd
+    import anyscribe.cli.logs_cmd as logs_cmd
 
     ws = tmp_path / "workspace"
     monkeypatch.setattr(logs_cmd, "get_workspace_dir", lambda: ws)

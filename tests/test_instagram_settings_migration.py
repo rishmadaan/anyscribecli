@@ -7,7 +7,7 @@ yt-dlp migration, those configs must still load without error.
 
 from __future__ import annotations
 
-from anyscribecli.config.settings import InstagramSettings, Settings
+from anyscribe.config.settings import InstagramSettings, Settings
 
 
 def test_legacy_username_field_is_discarded() -> None:

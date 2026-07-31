@@ -1,4 +1,4 @@
-# anyscribecli — Agent Directives
+# anyscribe — Agent Directives
 
 ## Before Starting Work
 
@@ -58,21 +58,21 @@ Then prepend a row to `docs/building/_index.md`.
 
 ## Quick Context
 
-- CLI entry point: `src/anyscribecli/cli/main.py`
-- Onboarding + provider info: `src/anyscribecli/cli/onboard.py`
-- Config/providers commands: `src/anyscribecli/cli/config_cmd.py`
-- Download command: `src/anyscribecli/cli/download.py`
-- Batch processing: `src/anyscribecli/cli/batch.py`
-- Config loading: `src/anyscribecli/config/settings.py`
-- Path constants: `src/anyscribecli/config/paths.py`
-- Provider ABC + registry: `src/anyscribecli/providers/base.py`, `providers/__init__.py`
-- Downloader ABC + registry: `src/anyscribecli/downloaders/base.py`, `downloaders/registry.py`
-- Core flow: `src/anyscribecli/core/orchestrator.py`
-- Dependency checker: `src/anyscribecli/core/deps.py`
-- Update system: `src/anyscribecli/core/updater.py`
-- Web UI backend: `src/anyscribecli/web/app.py` (FastAPI factory + static serving)
-- Web UI routes: `src/anyscribecli/web/routes/` (transcribe, history, config, health, system)
-- Web UI job manager: `src/anyscribecli/web/jobs.py` (ThreadPoolExecutor + asyncio bridge)
+- CLI entry point: `src/anyscribe/cli/main.py`
+- Onboarding + provider info: `src/anyscribe/cli/onboard.py`
+- Config/providers commands: `src/anyscribe/cli/config_cmd.py`
+- Download command: `src/anyscribe/cli/download.py`
+- Batch processing: `src/anyscribe/cli/batch.py`
+- Config loading: `src/anyscribe/config/settings.py`
+- Path constants: `src/anyscribe/config/paths.py`
+- Provider ABC + registry: `src/anyscribe/providers/base.py`, `providers/__init__.py`
+- Downloader ABC + registry: `src/anyscribe/downloaders/base.py`, `downloaders/registry.py`
+- Core flow: `src/anyscribe/core/orchestrator.py`
+- Dependency checker: `src/anyscribe/core/deps.py`
+- Update system: `src/anyscribe/core/updater.py`
+- Web UI backend: `src/anyscribe/web/app.py` (FastAPI factory + static serving)
+- Web UI routes: `src/anyscribe/web/routes/` (transcribe, history, config, health, system)
+- Web UI job manager: `src/anyscribe/web/jobs.py` (ThreadPoolExecutor + asyncio bridge)
 - Frontend source: `ui/` (React + TypeScript + Vite, builds to `web/static/`)
 
 ## Key Dependencies

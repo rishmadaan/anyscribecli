@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from anyscribecli.config.settings import Settings
-from anyscribecli.core.resolve import resolve_run
+from anyscribe.config.settings import Settings
+from anyscribe.core.resolve import resolve_run
 
 KEYS = (
     "OPENAI_API_KEY",
@@ -188,8 +188,8 @@ def test_cli_prints_the_plan_and_passes_the_model(tmp_path, monkeypatch):
 
     from typer.testing import CliRunner
 
-    import anyscribecli.core.orchestrator as orchestrator
-    from anyscribecli.cli.main import app
+    import anyscribe.core.orchestrator as orchestrator
+    from anyscribe.cli.main import app
 
     seen: dict = {}
 
@@ -231,8 +231,8 @@ def test_cli_prints_the_plan_and_passes_the_model(tmp_path, monkeypatch):
 def test_cli_rejects_an_unknown_model(tmp_path, monkeypatch):
     from typer.testing import CliRunner
 
-    import anyscribecli.core.orchestrator as orchestrator
-    from anyscribecli.cli.main import app
+    import anyscribe.core.orchestrator as orchestrator
+    from anyscribe.cli.main import app
 
     def fail(*a, **kw):  # pragma: no cover — must never run
         raise AssertionError("process() should not be reached")
@@ -248,8 +248,8 @@ def test_cli_rejects_an_unknown_model(tmp_path, monkeypatch):
 
 def test_config_level_diarize_folds_into_resolution(monkeypatch):
     # Persisted diarize: true must resolve like --diarize (audit finding).
-    from anyscribecli.config.settings import Settings
-    from anyscribecli.core.resolve import resolve_run
+    from anyscribe.config.settings import Settings
+    from anyscribe.core.resolve import resolve_run
 
     monkeypatch.setenv("DEEPGRAM_API_KEY", "k")
     s = Settings(provider="openai", quality="custom", diarize=True, output_format="diarized")
@@ -261,8 +261,8 @@ def test_config_level_diarize_folds_into_resolution(monkeypatch):
 
 
 def test_diarize_without_deepgram_key_notes_skipped_tier(monkeypatch):
-    from anyscribecli.config.settings import Settings
-    from anyscribecli.core.resolve import resolve_run
+    from anyscribe.config.settings import Settings
+    from anyscribe.core.resolve import resolve_run
 
     monkeypatch.delenv("DEEPGRAM_API_KEY", raising=False)
     monkeypatch.setenv("GROQ_API_KEY", "k")
@@ -275,8 +275,8 @@ def test_diarize_without_deepgram_key_notes_skipped_tier(monkeypatch):
 def test_unknown_provider_rejected_at_resolve():
     import pytest as _pytest
 
-    from anyscribecli.config.settings import Settings
-    from anyscribecli.core.resolve import resolve_run
+    from anyscribe.config.settings import Settings
+    from anyscribe.core.resolve import resolve_run
 
     with _pytest.raises(ValueError, match="Unknown provider"):
         resolve_run(Settings(), cli_provider="nope")
@@ -285,8 +285,8 @@ def test_unknown_provider_rejected_at_resolve():
 def test_diarize_keyless_balanced_tier_keeps_actionable_warning(monkeypatch):
     # balanced -> deepgram, which CAN diarize — the note must say the key is
     # missing, not that the tier "can't diarize" (re-verify finding D2).
-    from anyscribecli.config.settings import Settings
-    from anyscribecli.core.resolve import resolve_run
+    from anyscribe.config.settings import Settings
+    from anyscribe.core.resolve import resolve_run
 
     monkeypatch.delenv("DEEPGRAM_API_KEY", raising=False)
     plan = resolve_run(Settings(provider="openai", quality="balanced"), diarize=True)
@@ -296,8 +296,8 @@ def test_diarize_keyless_balanced_tier_keeps_actionable_warning(monkeypatch):
 
 
 def test_unknown_quality_gets_warning_note():
-    from anyscribecli.config.settings import Settings
-    from anyscribecli.core.resolve import resolve_run
+    from anyscribe.config.settings import Settings
+    from anyscribe.core.resolve import resolve_run
 
     plan = resolve_run(Settings(provider="openai", quality="nonsense"))
     assert plan.provider == "openai"

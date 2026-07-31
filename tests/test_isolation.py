@@ -7,8 +7,8 @@ from pathlib import Path
 
 
 def test_home_isolation_canary():
-    from anyscribecli.config.paths import APP_HOME, CONFIG_FILE
-    from anyscribecli.config.settings import CONFIG_FILE as SETTINGS_CONFIG_FILE
+    from anyscribe.config.paths import APP_HOME, CONFIG_FILE
+    from anyscribe.config.settings import CONFIG_FILE as SETTINGS_CONFIG_FILE
 
     assert str(Path.home()).startswith("/") and "ascli-test-home-" in str(Path.home())
     assert str(APP_HOME).startswith(str(Path.home()))
