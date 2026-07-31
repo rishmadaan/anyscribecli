@@ -33,6 +33,10 @@ export default function Layout() {
           <Power className="w-8 h-8 text-text-muted mx-auto mb-3" />
           <p className="text-lg font-medium text-text mb-1">Server stopped</p>
           <p className="text-sm text-text-muted">You can close this tab.</p>
+          <p className="text-xs text-text-muted mt-3">
+            To reopen later, run <code className="font-mono">scribe ui</code> in your
+            terminal — or click the anyscribe menu-bar icon, if installed.
+          </p>
         </div>
       </div>
     );
