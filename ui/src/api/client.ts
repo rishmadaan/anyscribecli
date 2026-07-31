@@ -177,3 +177,15 @@ export const saveOnboarding = (payload: OnboardingPayload) =>
     method: "POST",
     body: JSON.stringify(payload),
   });
+
+// ── System ───────────────────────────────────────────
+
+export type AutostartState = { supported: boolean; enabled: boolean };
+
+export const getAutostart = () => fetchJSON<AutostartState>("/autostart");
+
+export const setAutostart = (enabled: boolean) =>
+  fetchJSON<AutostartState>("/autostart", {
+    method: "PUT",
+    body: JSON.stringify({ enabled }),
+  });
