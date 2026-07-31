@@ -147,6 +147,10 @@ for existing users without deleting their commands.
 The complete shim `pyproject.toml` (reproducible from this repo alone):
 
 ```toml
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "anyscribecli"
 version = "0.15.2"

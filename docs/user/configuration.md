@@ -185,7 +185,7 @@ with the same merged list as suggestions.
 > is rejected on purpose. OpenRouter is a router — it will forward any model name
 > and the model does the rest. Every other provider needs code that knows how to
 > read *that specific model's* response, so their lists are curated and shipped
-> with anyscribe releases. **If a provider added a model you want, that's a anyscribe
+> with anyscribe releases. **If a provider added a model you want, that's an anyscribe
 > update, not a config change** — run `anyscribe update`.
 
 #### quality

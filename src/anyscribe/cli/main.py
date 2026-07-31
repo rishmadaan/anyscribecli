@@ -107,13 +107,13 @@ def _auto_update_skill() -> None:
 
 
 def _check_path_windows() -> None:
-    """On Windows, warn once if `scribe` is not on PATH and print the fix command."""
+    """On Windows, warn once if `anyscribe` is not on PATH and print the fix command."""
     import platform
     import shutil
 
     if platform.system() != "Windows":
         return
-    if shutil.which("scribe") is not None:
+    if shutil.which("anyscribe") is not None:
         return
 
     import sysconfig
@@ -127,7 +127,7 @@ def _check_path_windows() -> None:
 
     scripts_dir = sysconfig.get_path("scripts")
     console.print()
-    console.print("[bold yellow]scribe is not on your PATH.[/bold yellow]")
+    console.print("[bold yellow]anyscribe is not on your PATH.[/bold yellow]")
     console.print("Run this command in PowerShell to fix it permanently:\n")
     console.print(
         f'  [bold cyan]$env:Path += ";{scripts_dir}"; '
@@ -135,7 +135,7 @@ def _check_path_windows() -> None:
         f"[Environment]::GetEnvironmentVariable('Path', 'User') + ';{scripts_dir}', "
         f"'User')[/bold cyan]\n"
     )
-    console.print("Then restart your terminal and use [bold]scribe[/bold] directly.\n")
+    console.print("Then restart your terminal and use [bold]anyscribe[/bold] directly.\n")
     APP_HOME.mkdir(parents=True, exist_ok=True)
     marker.touch()
 

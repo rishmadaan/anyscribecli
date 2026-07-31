@@ -10,6 +10,8 @@ read_when:
 
 Every anyscribe command. Copy-paste friendly.
 
+> **`scribe` and `ascli` are shorter aliases for `anyscribe`** — every command below works typed as any of the three.
+
 > **Agentic-first CLI.** anyscribe's CLI is designed to be usable by AI agents, CI jobs, and scripts — not just humans. Consequential commands follow the same contract:
 >
 > - **`--json` on every command** — machine-parseable output; agents parse this, humans ignore it.
