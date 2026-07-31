@@ -103,7 +103,7 @@ twine upload --repository testpypi dist/*
 pip install --index-url https://test.pypi.org/simple/ anyscribe
 
 # 4. Test it works
-scribe --version
+anyscribe --version
 ```
 
 If something is wrong (bad description, missing metadata), fix it and bump the version — you cannot re-upload the same version number, even on TestPyPI.
@@ -139,12 +139,40 @@ The name `anyscribe` gets reserved to your account on first upload. Nobody else 
 The project was originally published as `anyscribecli`. It has been renamed to
 `anyscribe` (the import package, CLI, repo, and PyPI distribution all moved). The
 old `anyscribecli` PyPI project is **not deleted** (PyPI can't delete names) — its
-final release `0.13.5` is a metadata-only shim that depends on `anyscribe` and
+final release `0.15.2` is a metadata-only shim that depends on `anyscribe` and
 re-declares the legacy console scripts (`scribe`, `ascli`, `scribe-mcp`) pointing at
 the new `anyscribe` module. This keeps `pip install --upgrade anyscribecli` working
-for existing users without deleting their commands. See
-`docs/building/plans/rename-to-anyscribe.md` for the full mechanics (the shim is
-published by hand with twine using an `anyscribecli`-scoped token, not by tagging).
+for existing users without deleting their commands.
+
+The complete shim `pyproject.toml` (reproducible from this repo alone):
+
+```toml
+[project]
+name = "anyscribecli"
+version = "0.15.2"
+description = "Renamed to `anyscribe`. Install that instead."
+dependencies = ["anyscribe>=0.16.0"]
+
+[project.scripts]          # MUST stay — pip's uninstall order deletes bin/scribe otherwise
+scribe     = "anyscribe.cli.main:app"
+ascli      = "anyscribe.cli.main:app"
+scribe-mcp = "anyscribe.mcp.server:main"
+
+[tool.hatch.build.targets.wheel]
+bypass-selection = true    # metadata-only wheel; hatchling errors without it
+```
+
+> **Why `[project.scripts]` is not optional:** `pip install --upgrade anyscribecli`
+> installs `anyscribe` first (writing `bin/scribe`), then uninstalls the old
+> `anyscribecli`, whose RECORD still lists `bin/scribe` — deleting the file just
+> written. The shim installs last and re-declares the three scripts, so it rewrites
+> the deleted files. A shim without them wipes `scribe`/`ascli`/`scribe-mcp` for
+> every upgrading user.
+
+Publish the shim **by hand with twine** using an `anyscribecli`-scoped token, not by
+tagging (tagging would run the publish workflow's test/build steps against the gutted
+branch and fail). See `docs/building/plans/rename-to-anyscribe.md` for the full
+mechanics.
 
 ### README Rendering
 
@@ -187,6 +215,6 @@ The GitHub fallback can stay as a backup.
 |---------|-------|-----|
 | `twine upload` fails with 403 | Token expired or wrong scope | Regenerate token, update ~/.pypirc |
 | `twine upload` fails with 400 | Version already exists on PyPI | Bump version, rebuild, re-upload |
-| Package installs but `scribe` not found | Entry point misconfigured or Python Scripts directory is not on PATH | Check `[project.scripts]` in pyproject.toml; on Windows verify `python -m anyscribe --version` |
+| Package installs but `anyscribe` not found | Entry point misconfigured or Python Scripts directory is not on PATH | Check `[project.scripts]` in pyproject.toml; on Windows verify `python -m anyscribe --version` |
 | README looks broken on PyPI | Unsupported markdown or relative links | Run `twine check dist/*`, fix markdown |
 | `pip install` gets old version | pip cache | `pip install --no-cache-dir anyscribe` |
