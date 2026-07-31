@@ -25,8 +25,8 @@ ruff check src tests
 ruff format src tests
 
 # Run the app — smoke test key commands
-scribe --version
-scribe doctor
+anyscribe --version
+anyscribe doctor
 ```
 
 Everything must pass. Do not release with failing tests or lint errors.
@@ -103,13 +103,13 @@ twine upload dist/*
 
 ```bash
 # Install in a clean environment to verify
-python -m venv /tmp/scribe-test
-source /tmp/scribe-test/bin/activate
+python -m venv /tmp/anyscribe-test
+source /tmp/anyscribe-test/bin/activate
 pip install anyscribe
-scribe --version    # Should show new version
-scribe doctor       # Should pass
+anyscribe --version    # Should show new version
+anyscribe doctor       # Should pass
 deactivate
-rm -rf /tmp/scribe-test
+rm -rf /tmp/anyscribe-test
 ```
 
 ### 10. Create a GitHub Release (Optional but Recommended)
@@ -136,9 +136,9 @@ This gives users a changelog on GitHub and shows download counts per release.
 
 ```bash
 # From an existing install, test that update works
-scribe update --check    # Should detect new version
-scribe update            # Should install it
-scribe --version         # Should show new version
+anyscribe update --check    # Should detect new version
+anyscribe update            # Should install it
+anyscribe --version         # Should show new version
 ```
 
 ### 12. Write a Building Doc Journal Entry
@@ -160,7 +160,7 @@ pytest && ruff check src tests
 
 # Verify (after GitHub Actions finishes ~1-2 min)
 pip install --upgrade anyscribe
-scribe --version
+anyscribe --version
 ```
 
 ---
@@ -173,5 +173,5 @@ scribe --version
 | Wrong version number | Can't undo — release the correct version as the next bump |
 | Upload fails with 403 | API token expired — regenerate at pypi.org, update ~/.pypirc |
 | Upload fails with 400 | Version already exists — you need a new version number |
-| `scribe` command not found after install | Check `[project.scripts]` in pyproject.toml, rebuild; on Windows try `python -m anyscribe --version` |
+| `anyscribe` command not found after install | Check `[project.scripts]` in pyproject.toml, rebuild; on Windows try `python -m anyscribe --version` |
 | Tests pass locally but package broken | Test in a clean venv (step 9) before publishing |

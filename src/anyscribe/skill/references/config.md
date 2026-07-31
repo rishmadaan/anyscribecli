@@ -34,13 +34,13 @@ instagram:
 
 **provider** — The transcription service used when `quality` is `custom`. It is also the fallback when a `quality` tier's key is missing. Override per-command with `--provider`.
 
-> **The invariant:** setting `provider` anywhere — `scribe config set provider`, the Web UI Settings page, MCP `set_config` — writes `quality: custom` in the same save, so the choice sticks. Never set `quality: custom` as a separate step.
+> **The invariant:** setting `provider` anywhere — `anyscribe config set provider`, the Web UI Settings page, MCP `set_config` — writes `quality: custom` in the same save, so the choice sticks. Never set `quality: custom` as a separate step.
 >
-> To see which one is winning: `scribe config --json` → `resolved.via` is `config`, `quality: <tier>`, `flag`, or `diarize`.
+> To see which one is winning: `anyscribe config --json` → `resolved.via` is `config`, `quality: <tier>`, `flag`, or `diarize`.
 
-> **Web UI parity:** every config key (including `prompt_download`, `local_file_media`, `keep_media`, `instagram.browser`) is editable at `scribe ui` → Settings; the page leads with a "Next run" banner mirroring `scribe config`. When a user asks "where do I change X in the UI", the answer is always Settings — nothing is terminal-only.
+> **Web UI parity:** every config key (including `prompt_download`, `local_file_media`, `keep_media`, `instagram.browser`) is editable at `anyscribe ui` → Settings; the page leads with a "Next run" banner mirroring `anyscribe config`. When a user asks "where do I change X in the UI", the answer is always Settings — nothing is terminal-only.
 
-**provider_models** — A map of provider name → pinned model id. Each provider has its own entry, so switching providers keeps whatever model you chose for each one. A provider with no entry uses its built-in default (the first in its list). Set with `scribe config set provider_models.<provider> <model>`; override for a single run with `-m`.
+**provider_models** — A map of provider name → pinned model id. Each provider has its own entry, so switching providers keeps whatever model you chose for each one. A provider with no entry uses its built-in default (the first in its list). Set with `anyscribe config set provider_models.<provider> <model>`; override for a single run with `-m`.
 
 ```yaml
 provider_models:
@@ -54,8 +54,8 @@ Invalid models are rejected at set time with the valid list (exit 1); `openroute
 **extra_models** — User-added model ids merged into the pickers, **openrouter only**:
 
 ```bash
-scribe config set extra_models.openrouter "qwen/qwen3-omni-flash,openai/gpt-audio"
-scribe config set extra_models.openrouter ""      # empty value removes the entry
+anyscribe config set extra_models.openrouter "qwen/qwen3-omni-flash,openai/gpt-audio"
+anyscribe config set extra_models.openrouter ""      # empty value removes the entry
 ```
 
 ```yaml
@@ -64,13 +64,13 @@ extra_models:
     - qwen/qwen3-omni-flash
 ```
 
-`extra_models.<any other provider>` is rejected: *custom models are only supported for openrouter (curated lists elsewhere)*. Those catalogs ship with scribe releases because each model needs response-parsing code — the fix for "my provider added a model" is `scribe update`.
+`extra_models.<any other provider>` is rejected: *custom models are only supported for openrouter (curated lists elsewhere)*. Those catalogs ship with anyscribe releases because each model needs response-parsing code — the fix for "my provider added a model" is `anyscribe update`.
 
-**local_model** — Which cached Whisper size the `local` provider loads: `tiny`, `base`, `small`, `medium`, `large-v3`, `large-v3-turbo`, `distil-large-v3.5`. Set by `scribe local setup --model <size>`; changing it with `scribe config set local_model <size>` requires the size to already be cached (`scribe model pull <size>` first).
+**local_model** — Which cached Whisper size the `local` provider loads: `tiny`, `base`, `small`, `medium`, `large-v3`, `large-v3-turbo`, `distil-large-v3.5`. Set by `anyscribe local setup --model <size>`; changing it with `anyscribe config set local_model <size>` requires the size to already be cached (`anyscribe model pull <size>` first).
 
 **quality** — Accuracy↔cost preset that picks a provider: `accuracy`→ElevenLabs scribe_v2, `balanced`→Deepgram nova-3, `cost`→Groq, `free`→local, or `custom`→whatever `provider` says. Default `balanced`. Override per-command with `--quality`; `--provider` wins over it for that run.
 
-If the tier's provider has no key, scribe emits `WARNING: quality '<tier>' wants <p> but no <ENV> is set — using <provider> instead` and runs on the configured provider. Relay the warning; don't treat it as a failure.
+If the tier's provider has no key, anyscribe emits `WARNING: quality '<tier>' wants <p> but no <ENV> is set — using <provider> instead` and runs on the configured provider. Relay the warning; don't treat it as a failure.
 
 **language** — Default audio language. `auto` lets the provider detect it. Set explicitly if detection is wrong. Override per-command with `--language`.
 
@@ -118,7 +118,7 @@ ASCLI_LOCAL_MODEL=base                   # Optional: tiny|base|small|medium|larg
 ```
 
 > `OPENROUTER_MODEL` was removed in 0.15.0 and is no longer read. Use
-> `scribe config set provider_models.openrouter <slug>` and delete the line.
+> `anyscribe config set provider_models.openrouter <slug>` and delete the line.
 
 ## Workspace Structure
 

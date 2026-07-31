@@ -1421,7 +1421,7 @@
     </div>
 
     <h1 class="hero-h">
-      Let your AI agent <span class="it">scribe</span> <span class="amber">anything.</span>
+      Let your AI agent <span class="it">transcribe</span> <span class="amber">anything.</span>
     </h1>
 
     <p class="hero-lede">
@@ -1502,7 +1502,7 @@
             <p>On it. Routing to the balanced engine and diarizing so I can attribute the asks.</p>
             <div class="tool-call">
               <span class="tc-label">running</span>
-              <code>scribe "https://youtube.com/watch?v=roadmap-2026" --diarize --json</code>
+              <code>anyscribe "https://youtube.com/watch?v=roadmap-2026" --diarize --json</code>
             </div>
             <div class="tool-out">
               <span class="tl phos">✓ saved</span> ~/anyscribe/sources/youtube/roadmap-2026.md<br/>
@@ -1523,7 +1523,7 @@
       <div class="af">
         <span class="af-eyebrow">Claude Code skill</span>
         <p>Onboarding detects Claude Code and installs a skill that teaches it how to drive anyscribe: a decision tree, safety rules, and JSON patterns. No config to write.</p>
-        <code class="af-cmd"><span class="p">$</span>scribe install-skill <span class="d"># or auto during onboarding</span></code>
+        <code class="af-cmd"><span class="p">$</span>anyscribe install-skill <span class="d"># or auto during onboarding</span></code>
       </div>
       <div class="af">
         <span class="af-eyebrow">MCP server</span>
@@ -1533,7 +1533,7 @@
       <div class="af">
         <span class="af-eyebrow">JSON on every command</span>
         <p>Add <code>--json</code> to any primary command for machine-readable metadata, file paths, and provider info. Structured exit codes, no silent defaults.</p>
-        <code class="af-cmd"><span class="p">$</span>scribe "url" --json</code>
+        <code class="af-cmd"><span class="p">$</span>anyscribe "url" --json</code>
       </div>
     </div>
   </div>
@@ -1550,7 +1550,7 @@
         <span class="amber">on your machine.</span>
       </h2>
       <p class="sec-sub">
-        Run <code class="mono inline-code">scribe ui</code> and anyscribe opens a dashboard at <code class="mono inline-code">127.0.0.1:8457</code>, served from your own machine, no cloud behind it. Paste a URL, watch progress live, browse your history, change settings. First run walks you through setup in a wizard. It is a first-class surface, not a fallback.
+        Run <code class="mono inline-code">anyscribe ui</code> and anyscribe opens a dashboard at <code class="mono inline-code">127.0.0.1:8457</code>, served from your own machine, no cloud behind it. Paste a URL, watch progress live, browse your history, change settings. First run walks you through setup in a wizard. It is a first-class surface, not a fallback.
       </p>
     </div>
 
@@ -1634,7 +1634,7 @@
 
     <div class="show-notes">
       <p>No browser extensions, no paid SaaS dashboard, no scrubbing through a video to cherry-pick a quote. One command on your machine, and the result is a folder of markdown you own forever. Written in Python, MIT-licensed.</p>
-      <p>Every flag the CLI takes, your agent takes too, and the web UI drives the same engine. Pick the surface that fits the moment: <code>scribe "&lt;url&gt;"</code> here, <code>scribe ui</code> for the dashboard, or just ask Claude.</p>
+      <p>Every flag the CLI takes, your agent takes too, and the web UI drives the same engine. Pick the surface that fits the moment: <code>anyscribe "&lt;url&gt;"</code> here, <code>anyscribe ui</code> for the dashboard, or just ask Claude.</p>
     </div>
   </div>
 </section>
@@ -1665,7 +1665,7 @@
         <span class="fn">02</span>
         <h3 class="ft">A proper <span class="it">web UI</span></h3>
         <p class="fd">
-          <code>scribe ui</code> launches a local dashboard at <code>127.0.0.1:8457</code>. Paste URLs, watch progress live over WebSocket, browse your transcript history, manage config. It's all backed by the exact same engine as the CLI.
+          <code>anyscribe ui</code> launches a local dashboard at <code>127.0.0.1:8457</code>. Paste URLs, watch progress live over WebSocket, browse your transcript history, manage config. It's all backed by the exact same engine as the CLI.
         </p>
       </div>
 
@@ -1835,7 +1835,7 @@
           <h3 class="name">Local <span class="it">whisper</span></h3>
           <span class="tag">free · offline</span>
         </div>
-        <p class="desc">faster-whisper on your own CPU or GPU. No API key, no network, no bills, no audio leaving the building. Perfect for sensitive recordings, or a flight. Set it up once with <code style="font-family: var(--mono); font-size: 13px; background: rgba(0,0,0,0.3); border: 1px solid var(--rule); padding: 2px 7px; border-radius: 3px; color: var(--phosphor);">scribe local setup --model base</code>.</p>
+        <p class="desc">faster-whisper on your own CPU or GPU. No API key, no network, no bills, no audio leaving the building. Perfect for sensitive recordings, or a flight. Set it up once with <code style="font-family: var(--mono); font-size: 13px; background: rgba(0,0,0,0.3); border: 1px solid var(--rule); padding: 2px 7px; border-radius: 3px; color: var(--phosphor);">anyscribe local setup --model base</code>.</p>
         <div class="specs">
           <span><b>$0</b> · forever</span>
           <span>offline</span>
@@ -1868,7 +1868,7 @@
             <span class="num">i.</span>
             <div>
               <h4>Your vault, your files.</h4>
-              <p>Everything under <code>~/anyscribe/</code>. Change the path with <code>scribe config set workspace_path</code>. Point Obsidian at it and it just works.</p>
+              <p>Everything under <code>~/anyscribe/</code>. Change the path with <code>anyscribe config set workspace_path</code>. Point Obsidian at it and it just works.</p>
             </div>
           </div>
           <div class="vault-point">
@@ -1941,7 +1941,7 @@
         the wizard. <span class="amber">Go.</span>
       </h2>
       <p class="sec-sub">
-        One command installs everything. Then <code class="mono" style="background: var(--bg-3); border: 1px solid var(--rule); padding: 2px 7px; border-radius: 3px; font-size: 13px;">scribe ui</code> opens a wizard in your browser that checks your system, installs missing pieces (<code class="mono" style="background: var(--bg-3); border: 1px solid var(--rule); padding: 2px 7px; border-radius: 3px; font-size: 13px;">yt-dlp</code>, <code class="mono" style="background: var(--bg-3); border: 1px solid var(--rule); padding: 2px 7px; border-radius: 3px; font-size: 13px;">ffmpeg</code>), and walks you through picking an engine. From nothing to your first transcript in about five minutes.
+        One command installs everything. Then <code class="mono" style="background: var(--bg-3); border: 1px solid var(--rule); padding: 2px 7px; border-radius: 3px; font-size: 13px;">anyscribe ui</code> opens a wizard in your browser that checks your system, installs missing pieces (<code class="mono" style="background: var(--bg-3); border: 1px solid var(--rule); padding: 2px 7px; border-radius: 3px; font-size: 13px;">yt-dlp</code>, <code class="mono" style="background: var(--bg-3); border: 1px solid var(--rule); padding: 2px 7px; border-radius: 3px; font-size: 13px;">ffmpeg</code>), and walks you through picking an engine. From nothing to your first transcript in about five minutes.
       </p>
     </div>
 
@@ -1978,14 +1978,14 @@
         <span class="n">i.</span>
         <div>
           <h4>Open the wizard in your browser</h4>
-          <p>Runs a local dashboard at <code>127.0.0.1:8457</code>. No cloud, no account. Pick an engine, paste a key (with a live Test button), confirm your folder. Prefer the terminal? <code>scribe onboard</code> does the same with arrow keys. &nbsp;&nbsp;<code>scribe ui</code></p>
+          <p>Runs a local dashboard at <code>127.0.0.1:8457</code>. No cloud, no account. Pick an engine, paste a key (with a live Test button), confirm your folder. Prefer the terminal? <code>anyscribe onboard</code> does the same with arrow keys. &nbsp;&nbsp;<code>anyscribe ui</code></p>
         </div>
       </div>
       <div class="step">
         <span class="n">ii.</span>
         <div>
           <h4>Ask Claude to transcribe it, or run it yourself</h4>
-          <p>The Claude Code skill auto-installs during onboarding, so you can just ask Claude to transcribe a talk and pull out the notes. Rather type it? Pass a YouTube URL, an Instagram reel, or a local file and the markdown lands in <code>~/anyscribe/</code>. Add <code>--diarize</code> for speaker labels. &nbsp;&nbsp;<code>scribe "https://youtube.com/watch?v=&hellip;"</code></p>
+          <p>The Claude Code skill auto-installs during onboarding, so you can just ask Claude to transcribe a talk and pull out the notes. Rather type it? Pass a YouTube URL, an Instagram reel, or a local file and the markdown lands in <code>~/anyscribe/</code>. Add <code>--diarize</code> for speaker labels. &nbsp;&nbsp;<code>anyscribe "https://youtube.com/watch?v=&hellip;"</code></p>
         </div>
       </div>
       <div class="step">
@@ -2129,7 +2129,7 @@
     const outEl = document.getElementById('term-out');
     if (!cmdEl || !outEl) return;
 
-    const cmd = 'scribe "https://youtube.com/watch?v=espresso-guide" --diarize';
+    const cmd = 'anyscribe "https://youtube.com/watch?v=espresso-guide" --diarize';
     const lines = [
       { d: 360, c: 'out dim',    h: '&nbsp;' },
       { d: 260, c: 'out dim',    h: '<span class="arr">›</span> Checking system &hellip; <span class="phos">yt-dlp ok, ffmpeg ok</span>' },
