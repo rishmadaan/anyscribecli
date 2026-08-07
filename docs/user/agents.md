@@ -27,7 +27,7 @@ scribe install-skill
 
 That copies the skill into `~/.claude/skills/anyscribe/`. Claude Code picks it up on the next session — no restart dance beyond opening a new one.
 
-Already ran the setup wizard? `scribe onboard` auto-detects Claude Code and offers to install the skill for you, so you may already have it.
+**You may already have it.** If Claude Code is installed on this machine, scribe installs the skill for you the first time you run *any* scribe command, and quietly refreshes it whenever the copy on disk falls behind the installed version. No prompt, nothing to opt into. Run `scribe install-skill` when you want to re-install or confirm it explicitly — say, after deleting the folder or debugging why Claude isn't picking it up.
 
 Then either type `/anyscribe` to invoke it explicitly, or just ask in plain English — the skill activates on its own when your request is about transcription:
 
@@ -43,7 +43,7 @@ Then either type `/anyscribe` to invoke it explicitly, or just ask in plain Engl
 pip install "anyscribe[mcp]"
 ```
 
-The `[mcp]` part pulls in the MCP library, which is kept out of the base install so a plain `pip install anyscribe` stays light. It gives you a second command, `anyscribe-mcp` — that's the server your agent talks to.
+The server command, `anyscribe-mcp`, ships with the base package — it's already on your PATH. What the `[mcp]` extra adds is the MCP library the server needs in order to run, kept out of the base install so a plain `pip install anyscribe` stays light. Without the extra, the command exists but stops on a missing import; with it, `anyscribe-mcp` is the server your agent talks to.
 
 **Claude Code:**
 
@@ -61,7 +61,7 @@ claude mcp add anyscribe -- anyscribe-mcp
 
 > **Configure scribe first.** The MCP server uses the same `~/.anyscribe/config.yaml` and API keys as the CLI. Run `scribe onboard` once before wiring up MCP, or the tools will start by telling your agent there's no provider configured.
 
-## What your agent can reach
+## What your agent can reach (skill vs MCP)
 
 Both paths hit the same engine — the difference is how much of it is exposed.
 
@@ -84,7 +84,7 @@ Both paths hit the same engine — the difference is how much of it is exposed.
 | Manage Whisper models (`model list` / `pull` / `rm`) | ✓ | — |
 | Menu-bar tray | ✗ | ✗ |
 
-The tray is the one thing no agent can touch — it's a menu-bar icon you click, not a command with an output to parse. If you want scribe always running in the background, see the keep-it-running notes in [Getting Started](getting-started.md).
+The tray is the one row where the agent runs out of road partway. Claude Code can *start* it (`scribe tray`) or set it to launch at login (`scribe install-service`), because those are ordinary commands. What no agent can do is use it: the tray's whole point is a menu-bar icon you click, and there's nothing to click on from a transcript. If you want scribe always running in the background, see the keep-it-running notes in [Getting Started](getting-started.md).
 
 > **Why the short list on MCP?** Every MCP tool is a permanent promise with a fixed shape. Ten cover the work; the rest are one-off maintenance jobs better done by a human at a terminal — or by Claude Code, which has the whole CLI anyway.
 
