@@ -16,7 +16,7 @@ By the end of this guide you will have:
 - An Obsidian vault ready to browse your transcripts
 - Your first video transcribed to markdown
 
-> **scribe has three equivalent surfaces.** The Web UI, the terminal wizard, and the headless flag-driven CLI all cover the full product. You never need to hop between them. Pick whichever fits:
+> **scribe has three equivalent surfaces.** The Web UI, the terminal wizard, and the headless flag-driven CLI all cover the full product. Every *setting* can be changed from either the CLI or the Web UI. A few maintenance commands are CLI-only: `batch`, `logs`, `doctor`, `update`, and `tray`. Pick whichever fits:
 >
 > - **Prefer clicking?** → `scribe ui` opens a browser dashboard with a setup wizard on first launch. See Option A in Step 3.
 > - **Prefer typing?** → `scribe onboard` runs an arrow-key terminal wizard. See Option B.
@@ -82,7 +82,7 @@ scribe --version
 python -m anyscribe --version
 ```
 
-You should see `scribe v0.8.3` (or a newer version).
+You should see `scribe` followed by a version number — the latest version.
 
 > **Why `python -m` on Windows?** pip installs `scribe.exe` to a Scripts directory that's usually not on PATH. `python -m anyscribe` always works because it uses the same Python you installed with. On first run, it will print the exact PowerShell command to add `scribe` to your PATH permanently — after that, you can use `scribe` directly.
 
@@ -100,7 +100,7 @@ scribe ui
 
 Opens a local dashboard at `http://127.0.0.1:8457`. A **setup wizard pops up on first launch**: pick a provider, paste your API key (with a live Test button), choose whether to also enable offline transcription, confirm your workspace, done. Click around — no commands to memorize.
 
-Close the tab when you're finished; to stop the server, hit Ctrl+C in the terminal or click "Quit" in the sidebar.
+Close the tab when you're finished; to stop the server, hit Ctrl+C in the terminal or click "Shutdown" in the sidebar.
 
 ### Option B: Terminal (interactive)
 
@@ -253,7 +253,7 @@ Supported browsers: `firefox`, `chrome`, `safari`, `brave`, `edge`, `chromium`,
 > **Tip:** Firefox tends to work most reliably on macOS. Chrome's cookie
 > encryption can make extraction flakier.
 
-> **Note for upgraders:** If you onboarded with scribe < 0.8.3, you may have
+> **Note for upgraders:** If you onboarded with scribe < 0.8.3, you may have <!-- version-pin-ok -->
 > an `INSTAGRAM_PASSWORD` in your `~/.anyscribe/.env`. It's no longer used
 > and can be removed.
 

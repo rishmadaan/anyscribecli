@@ -264,7 +264,7 @@ anyscribe tray
 
 ### Tray runs but no icon in the menu bar
 
-If the server responds at `http://127.0.0.1:8457` but you can't find the waveform icon, check whether a menu-bar manager (Hidden Bar, Bartender, Ice, Dozer) is running. macOS inserts new status items at the LEFT of the strip, which these apps hide by default — expand the manager (chevron icon) and drag the anyscribe waveform to the always-visible side. Also make sure anyscribe is v0.13.2+ (`anyscribe update`): 0.13.1 had a bug where the icon never appeared at all.
+If the server responds at `http://127.0.0.1:8457` but you can't find the waveform icon, check whether a menu-bar manager (Hidden Bar, Bartender, Ice, Dozer) is running. macOS inserts new status items at the LEFT of the strip, which these apps hide by default — expand the manager (chevron icon) and drag the anyscribe waveform to the always-visible side. Also make sure anyscribe is v0.13.2+ (`anyscribe update`): 0.13.1 had a bug where the icon never appeared at all. <!-- version-pin-ok -->
 
 ### "A anyscribe tray is already running"
 

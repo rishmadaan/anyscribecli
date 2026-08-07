@@ -1114,7 +1114,7 @@ Print the installed version.
 
 ```bash
 scribe --version
-# Output: scribe v0.13.0
+# Output: your installed version — check `scribe --version`
 ```
 
 ---
