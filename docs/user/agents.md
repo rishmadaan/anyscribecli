@@ -84,7 +84,7 @@ Both paths hit the same engine — the difference is how much of it is exposed.
 | Manage Whisper models (`model list` / `pull` / `rm`) | ✓ | — |
 | Menu-bar tray | ✗ | ✗ |
 
-The tray is the one row where the agent runs out of road partway. Claude Code can *start* it (`scribe tray`) or set it to launch at login (`scribe install-service`), because those are ordinary commands. What no agent can do is use it: the tray's whole point is a menu-bar icon you click, and there's nothing to click on from a transcript. If you want scribe always running in the background, see the keep-it-running notes in [Getting Started](getting-started.md).
+The tray is the one row where the agent runs out of road partway. Claude Code can *start* it (`scribe tray`) or set it to launch at login (`scribe install-service`), because those are ordinary commands. What no agent can do is use it: the tray's whole point is a menu-bar icon you click, and there's nothing to click on from a transcript. If you want scribe always running in the background, see [Getting Started → Keep it running](getting-started.md#keep-it-running).
 
 > **Why the short list on MCP?** Every MCP tool is a permanent promise with a fixed shape. Ten cover the work; the rest are one-off maintenance jobs better done by a human at a terminal — or by Claude Code, which has the whole CLI anyway.
 
