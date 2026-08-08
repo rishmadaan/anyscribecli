@@ -14,7 +14,7 @@ This doc explains what anyscribe already does automatically behind the scenes, s
 
 **File:** `src/anyscribe/core/updater.py`
 
-The app has a built-in self-update system that users interact with via `scribe update`.
+The app has a built-in self-update system that users interact with via `anyscribe update`.
 
 ### Install Type Detection
 
@@ -25,7 +25,7 @@ The updater auto-detects how the user installed the app:
 
 Detection is fully automatic. No config needed.
 
-### What `scribe update` Does
+### What `anyscribe update` Does
 
 **For git installs:**
 1. Checks for uncommitted changes (aborts if found, unless `--force`)
@@ -41,7 +41,7 @@ Detection is fully automatic. No config needed.
 3. Spawns a subprocess to read the new version (avoids module cache)
 4. Reports old → new version
 
-### What `scribe update --check` Does
+### What `anyscribe update --check` Does
 
 Checks for available updates **without installing**:
 
@@ -66,20 +66,20 @@ All operations have timeouts to prevent hanging:
 
 **File:** `src/anyscribe/cli/main.py`
 
-`scribe doctor` runs a health check that includes:
+`anyscribe doctor` runs a health check that includes:
 
 - Dependency checks (yt-dlp, ffmpeg, etc.)
 - Config validation
 - Workspace integrity
 - **Silent update check** — calls `check_for_updates(quiet=True)`, only prints if an update is available
 
-This is the only place the app checks for updates without the user explicitly running `scribe update`.
+This is the only place the app checks for updates without the user explicitly running `anyscribe update`.
 
 ---
 
 ## Automated: Version Display
 
-`scribe --version` (or `scribe -v`) reads from `src/anyscribe/__init__.py:__version__` and prints it.
+`anyscribe --version` (or `anyscribe -v`) reads from `src/anyscribe/__init__.py:__version__` and prints it.
 
 ---
 
@@ -139,10 +139,10 @@ The `COMMIT_CHECKLIST.md` exists as a reminder, but it's your discipline that en
 From a user's perspective, the update flow is:
 
 ```
-scribe doctor          # Tells them if an update is available (passively)
-scribe update --check  # Explicitly check
-scribe update          # Install the update
-scribe --version       # Verify
+anyscribe doctor          # Tells them if an update is available (passively)
+anyscribe update --check  # Explicitly check
+anyscribe update          # Install the update
+anyscribe --version       # Verify
 ```
 
 There are **no automatic updates**, **no background checks**, **no telemetry**, and **no phone-home behavior**. The user is always in control.
@@ -157,4 +157,4 @@ Things that could be automated but aren't yet:
 |------|-----|----------|
 | Version sync check | Pre-commit hook comparing both files | Medium |
 | Changelog generation | From git tags/commits | Low |
-| Startup update notification | Opt-in check on `scribe` launch with TTL | Low |
+| Startup update notification | Opt-in check on `anyscribe` launch with TTL | Low |

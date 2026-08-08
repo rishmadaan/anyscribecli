@@ -106,7 +106,7 @@ Default provider. Reliable, well-documented, good across most languages. Support
 | Model | Cost | Segment timestamps | Notes |
 |---|---|---|---|
 | `gpt-transcribe` **(default)** | $0.0045/min (~$0.27/hr) | No | OpenAI's newest and recommended file-transcription model (released 2026-07-28). Roughly half Whisper's error rate in OpenAI's benchmarks, and 25% cheaper |
-| `whisper-1` | $0.006/min (~$0.36/hr) | **Yes** | The OpenAI model that returns timestamps. scribe swaps to it automatically when the output format needs them |
+| `whisper-1` | $0.006/min (~$0.36/hr) | **Yes** | The OpenAI model that returns timestamps. anyscribe swaps to it automatically when the output format needs them |
 | `gpt-4o-transcribe` | $0.006/min | No | Older 4o-family model; `gpt-transcribe` beats it at a lower price ($0.0045) |
 | `gpt-4o-mini-transcribe` | $0.003/min | No | Cheapest OpenAI option, lowest accuracy of the three |
 
@@ -116,7 +116,7 @@ Default provider. Reliable, well-documented, good across most languages. Support
 
 > Upgrade note: the default used to be `whisper-1`. Unpinned OpenAI runs now use `gpt-transcribe`.
 
-> OpenAI also shipped `gpt-live-transcribe`. It's a realtime/streaming Realtime-API model; scribe transcribes files, so it isn't supported and isn't in the picker.
+> OpenAI also shipped `gpt-live-transcribe`. It's a realtime/streaming Realtime-API model; anyscribe transcribes files, so it isn't supported and isn't in the picker.
 
 ## Deepgram Nova (provider: `deepgram`)
 
@@ -153,8 +153,8 @@ Premium accuracy with word-level timestamps and speaker diarization.
 
 Specialized for Indian languages. Dramatically better than Whisper for Hindi, Tamil, Telugu, and 19 other Indian languages.
 
-- **Model:** `saaras:v3` — Sarvam's Feb-2026 flagship, on `/speech-to-text` with `mode=translate`. The only model scribe offers.
-- **Retired:** `saaras:v2.5` and its deprecated endpoint are gone. `scribe config set provider_models.sargam saaras:v2.5` is now rejected, and an existing pin is dropped automatically on the next run (`Sarvam saaras:v2.5 is retired — using saaras:v3`). If a user asks for it, explain it no longer exists upstream.
+- **Model:** `saaras:v3` — Sarvam's Feb-2026 flagship, on `/speech-to-text` with `mode=translate`. The only model anyscribe offers.
+- **Retired:** `saaras:v2.5` and its deprecated endpoint are gone. `anyscribe config set provider_models.sargam saaras:v2.5` is now rejected, and an existing pin is dropped automatically on the next run (`Sarvam saaras:v2.5 is retired — using saaras:v3`). If a user asks for it, explain it no longer exists upstream.
 - **Cost:** ~$0.35/hr; free tier ~$12 in credits
 - **Supported:** Hindi, Tamil, Telugu, Kannada, Malayalam, Bengali, Gujarati, Marathi, Punjabi, Odia, Assamese, Urdu, Sanskrit, and more
 - **Chunking:** sync API limited to 30 seconds — anyscribe auto-chunks into 30-sec segments (unchanged on v3)
@@ -183,8 +183,8 @@ Routes to various AI models via a unified API. Uses audio-capable chat models wi
 
 - **Default model:** `openai/gpt-audio-mini`
 - **Listed models:** `openai/gpt-audio-mini`, `google/gemini-2.5-flash-lite`, `google/gemini-2.5-flash`, `google/gemini-3-flash-preview`, `mistralai/voxtral-small-24b-2507`, `openai/gpt-audio`
-- **Any slug works:** OpenRouter is the one provider where `-m` isn't validated — pass any audio-capable slug and scribe forwards it. A wrong slug fails at the API (404), not at scribe.
-- **Keep slugs in the picker:** `scribe config set extra_models.openrouter "<slug>,<slug>"` (empty value clears). Openrouter-only.
+- **Any slug works:** OpenRouter is the one provider where `-m` isn't validated — pass any audio-capable slug and anyscribe forwards it. A wrong slug fails at the API (404), not at anyscribe.
+- **Keep slugs in the picker:** `anyscribe config set extra_models.openrouter "<slug>,<slug>"` (empty value clears). Openrouter-only.
 - **Removed:** the `OPENROUTER_MODEL` env var is no longer read (0.15.0). Migrate to `provider_models.openrouter` and delete the `.env` line. <!-- version-pin-ok -->
 - **Cost:** Per-token pricing, generally more expensive than dedicated STT
 - **No timestamps** — returns plain text only

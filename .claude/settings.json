@@ -9,7 +9,7 @@
       "Bash(curl -s http://127.0.0.1:8457/api/config)",
       "Bash(xargs ls:*)",
       "Bash(xargs cat:*)",
-      "Read(//Users/rish/labs/projects/anyscribecli/**)",
+      "Read(//Users/rish/labs/projects/anyscribe/**)",
       "Bash(git status:*)",
       "Read(//Users/rish/labs/oss/KraftedX-Labs/kx-tess/**)",
       "Bash(mv \"128x128 - White.png\" kx-logo-white-128.png)",

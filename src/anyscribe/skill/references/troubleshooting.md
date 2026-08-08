@@ -146,74 +146,74 @@ anything else.
 
 The model that ran doesn't return segment timestamps, so there's nothing to render `[mm:ss]` markers from. On OpenAI that's `gpt-transcribe` (the default), `gpt-4o-transcribe`, and `gpt-4o-mini-transcribe`; `sargam` and `openrouter` never return them either.
 
-**On OpenAI this shouldn't happen by itself** — scribe swaps in `whisper-1` when `output_format` is `timestamped`/`diarized` and prints `switched to whisper-1 — gpt-transcribe can't produce timestamps`. So if the user got paragraphs, one of these is true:
+**On OpenAI this shouldn't happen by itself** — anyscribe swaps in `whisper-1` when `output_format` is `timestamped`/`diarized` and prints `switched to whisper-1 — gpt-transcribe can't produce timestamps`. So if the user got paragraphs, one of these is true:
 
 1. **The run passed `-m`.** An explicit per-run model suppresses the swap. Re-run without `-m` (or with `-m whisper-1`).
-2. **The provider isn't OpenAI.** Sarvam and OpenRouter have no timestamped model to fall back to — switch provider: `scribe "url" -p deepgram --force`.
-3. **`output_format` is `clean`.** Then there were never going to be timestamps: `scribe config set output_format timestamped`.
+2. **The provider isn't OpenAI.** Sarvam and OpenRouter have no timestamped model to fall back to — switch provider: `anyscribe "url" -p deepgram --force`.
+3. **`output_format` is `clean`.** Then there were never going to be timestamps: `anyscribe config set output_format timestamped`.
 
 **Check what actually ran:**
 ```bash
-scribe config --json     # resolved.provider, resolved.model, resolved.notes
+anyscribe config --json     # resolved.provider, resolved.model, resolved.notes
 ```
 
-Deepgram and ElevenLabs give word-level timestamps if the user wants finer granularity than Whisper's segments. To force Whisper on every OpenAI run: `scribe config set provider_models.openai whisper-1`.
+Deepgram and ElevenLabs give word-level timestamps if the user wants finer granularity than Whisper's segments. To force Whisper on every OpenAI run: `anyscribe config set provider_models.openai whisper-1`.
 
 ### "Next run" isn't the provider I set
 
 `quality` outranks `provider`. If `quality` is a tier (`accuracy`/`balanced`/`cost`/`free`), the tier picks the provider and the `provider` line is ignored.
 
 ```bash
-scribe config              # look at the (…) after the model — `quality: balanced` means the tier won
+anyscribe config              # look at the (…) after the model — `quality: balanced` means the tier won
 ```
 
 **Fix:** re-set the provider — that writes `quality: custom` in the same save, which is what makes it stick:
 ```bash
-scribe config set provider elevenlabs
+anyscribe config set provider elevenlabs
 ```
 
 A config hand-edited in an editor is the usual cause: writing `provider:` without also writing `quality: custom` leaves the tier in charge.
 
 ### "WARNING: quality 'X' wants Y but no Y_API_KEY is set"
 
-Not an error — scribe ran anyway on the configured `provider`. The tier you chose needs a key you don't have.
+Not an error — anyscribe ran anyway on the configured `provider`. The tier you chose needs a key you don't have.
 
 **Either add the key:**
 ```bash
-scribe config set deepgram_api_key YOUR_KEY
+anyscribe config set deepgram_api_key YOUR_KEY
 ```
 
-**or pick a tier you have a key for** (`scribe config` shows which keys are present in the `Key` column).
+**or pick a tier you have a key for** (`anyscribe config` shows which keys are present in the `Key` column).
 
 ### OpenRouter: "model not found" / 404
 
-The requested slug isn't available on OpenRouter. Most often this is the **old default `openai/gpt-4o-audio-preview`**, which OpenRouter removed — anything still pointing at it will 404. OpenRouter is the one provider scribe doesn't validate models for, so a typo'd or retired slug reaches the API before failing.
+The requested slug isn't available on OpenRouter. Most often this is the **old default `openai/gpt-4o-audio-preview`**, which OpenRouter removed — anything still pointing at it will 404. OpenRouter is the one provider anyscribe doesn't validate models for, so a typo'd or retired slug reaches the API before failing.
 
 **Find the pin:**
 ```bash
-scribe config --json     # resolved.model, and providers[].default_model
-scribe config show       # provider_models.openrouter
+anyscribe config --json     # resolved.model, and providers[].default_model
+anyscribe config show       # provider_models.openrouter
 ```
 
 > A stale `OPENROUTER_MODEL=` line in `~/.anyscribe/.env` is **not** the cause — that env var was removed in 0.15.0 and is no longer read. Tell the user to delete the line and set `provider_models.openrouter` instead. <!-- version-pin-ok -->
 
 **Fix — set a current slug:**
 ```bash
-scribe config set provider_models.openrouter openai/gpt-audio-mini
+anyscribe config set provider_models.openrouter openai/gpt-audio-mini
 ```
 
 Current options: `openai/gpt-audio-mini` (default), `google/gemini-2.5-flash-lite`, `google/gemini-2.5-flash`, `google/gemini-3-flash-preview`, `mistralai/voxtral-small-24b-2507`, `openai/gpt-audio`. Any other audio-capable OpenRouter slug also works — check https://openrouter.ai/models for what's live.
 
 ### "Unknown model 'X' for provider 'Y'"
 
-The model isn't in that provider's list. scribe rejects it before downloading or spending anything, and the error names the valid models.
+The model isn't in that provider's list. anyscribe rejects it before downloading or spending anything, and the error names the valid models.
 
-**Fix:** run `scribe config --json` (or `scribe providers list --json`) to see each provider's current model and alternatives, then pick from that list. Note `elevenlabs` and `sargam` have exactly one model each, and `local` has none — its sizes come from `scribe model list`, not `-m`.
+**Fix:** run `anyscribe config --json` (or `anyscribe providers list --json`) to see each provider's current model and alternatives, then pick from that list. Note `elevenlabs` and `sargam` have exactly one model each, and `local` has none — its sizes come from `anyscribe model list`, not `-m`.
 
 Two cases that look like bugs but aren't:
 
 - **`saaras:v2.5` is rejected.** Sarvam retired the endpoint it ran on; `saaras:v3` is the only model. An existing pin is dropped automatically on the next run.
-- **`extra_models.<provider>` is rejected for everything but openrouter.** By design — those catalogs ship with scribe releases because each model needs response-parsing code. The fix is `scribe update`, not a config key.
+- **`extra_models.<provider>` is rejected for everything but openrouter.** By design — those catalogs ship with anyscribe releases because each model needs response-parsing code. The fix is `anyscribe update`, not a config key.
 
 ### "Provider error" or API failures
 

@@ -1,31 +1,31 @@
 ---
-summary: One installer command, one setup wizard, one transcript — then how to keep scribe running in the background and where to go next.
+summary: One installer command, one setup wizard, one transcript — then how to keep anyscribe running in the background and where to go next.
 read_when:
-  - First time setting up scribe
+  - First time setting up anyscribe
   - You want the fastest path to a working transcription
-  - You want scribe always running (menu bar, open at login)
+  - You want anyscribe always running (menu bar, open at login)
   - You're an agent / script and want the headless setup form
 ---
 
 # Getting Started
 
-Install scribe, run setup, get your first transcript — about 5 minutes.
+Install anyscribe, run setup, get your first transcript — about 5 minutes.
 
 By the end of this guide you will have:
-- scribe installed on your machine
+- anyscribe installed on your machine
 - An Obsidian vault ready to browse your transcripts
 - Your first video transcribed to markdown
-- scribe running in the background, if you want it there
+- anyscribe running in the background, if you want it there
 
-> **scribe has three equivalent surfaces.** The Web UI, the terminal wizard, and the headless flag-driven CLI all cover the full product. Every *setting* can be changed from either the CLI or the Web UI. A few maintenance commands are CLI-only: `batch`, `logs`, `doctor`, `update`, and `tray`. Pick whichever fits:
+> **anyscribe has three equivalent surfaces.** The Web UI, the terminal wizard, and the headless flag-driven CLI all cover the full product. Every *setting* can be changed from either the CLI or the Web UI. A few maintenance commands are CLI-only: `batch`, `logs`, `doctor`, `update`, and `tray`. Pick whichever fits:
 >
-> - **Prefer clicking?** → `scribe ui` opens a browser dashboard with a setup wizard on first launch. See Option A in Step 2.
-> - **Prefer typing?** → `scribe onboard` runs an arrow-key terminal wizard. See Option B.
-> - **Writing a script or an AI agent?** → `scribe onboard --provider X --api-key $KEY --yes --json`. See Option C.
+> - **Prefer clicking?** → `anyscribe ui` opens a browser dashboard with a setup wizard on first launch. See Option A in Step 2.
+> - **Prefer typing?** → `anyscribe onboard` runs an arrow-key terminal wizard. See Option B.
+> - **Writing a script or an AI agent?** → `anyscribe onboard --provider X --api-key $KEY --yes --json`. See Option C.
 >
 > All three write the same config and land you in the same place. Transcriptions you start from one surface show up in all of them.
 
-> **Everything runs locally.** The Web UI at `http://127.0.0.1:8457` is a server on your own machine — no cloud account, no sign-up, no telemetry. The only time scribe touches the internet is when *you* ask it to: downloading a YouTube/Instagram source you pointed it at, calling whichever transcription API provider you set up, or pulling a Whisper model for offline transcription (once, the first time). Point it at a local file with the local provider and the whole pipeline runs offline — your audio never leaves your machine.
+> **Everything runs locally.** The Web UI at `http://127.0.0.1:8457` is a server on your own machine — no cloud account, no sign-up, no telemetry. The only time anyscribe touches the internet is when *you* ask it to: downloading a YouTube/Instagram source you pointed it at, calling whichever transcription API provider you set up, or pulling a Whisper model for offline transcription (once, the first time). Point it at a local file with the local provider and the whole pipeline runs offline — your audio never leaves your machine.
 
 ## What you need
 
@@ -36,7 +36,7 @@ By the end of this guide you will have:
 
 > **Later, if you want cheaper or more accurate:** each provider offers a few models you can switch between — see [providers.md](providers.md). You don't need to think about this to get started; the defaults are good.
 
-> **New to the command line?** You'll be typing commands in your Terminal app (macOS), terminal emulator (Linux), or Command Prompt / PowerShell (Windows). Every command in this guide starts with `scribe` — just copy-paste and press Enter.
+> **New to the command line?** You'll be typing commands in your Terminal app (macOS), terminal emulator (Linux), or Command Prompt / PowerShell (Windows). Every command in this guide starts with `anyscribe` — just copy-paste and press Enter.
 
 ## Step 1 — Install
 
@@ -50,15 +50,17 @@ curl -fsSL https://raw.githubusercontent.com/rishmadaan/anyscribe/main/install.s
 irm https://raw.githubusercontent.com/rishmadaan/anyscribe/main/install.ps1 | iex
 ```
 
-The installer checks for Python 3.10+, ffmpeg, and yt-dlp, installs whatever's missing, then installs scribe with the menu-bar tray included. On Windows it also fixes your PATH so `scribe` works from any terminal (on Windows, ffmpeg needs winget or Chocolatey — the installer tells you if neither is present).
+The installer checks for Python 3.10+, ffmpeg, and yt-dlp, installs whatever's missing, then installs anyscribe with the menu-bar tray included. On Windows it also fixes your PATH so `anyscribe` works from any terminal (on Windows, ffmpeg needs winget or Chocolatey — the installer tells you if neither is present).
 
 Verify it worked:
 
 ```bash
-scribe --version
+anyscribe --version
 ```
 
 You should see `anyscribe` followed by a version number.
+
+> **`scribe` and `ascli` are shorter aliases.** Every `anyscribe` command in this guide also works typed as `scribe` or `ascli` — same tool, fewer letters. Use whichever you like.
 
 **Already have Python and just want the package?**
 
@@ -66,20 +68,20 @@ You should see `anyscribe` followed by a version number.
 pip install "anyscribe[tray]"
 ```
 
-The `[tray]` extra is what gives you the menu-bar icon and open-at-login (see [Keep it running](#keep-it-running)). Plain `pip install anyscribe` works too, and you can add the extra later. With pip you install ffmpeg and yt-dlp yourself — or just run `scribe doctor`, which tells you what's missing.
+The `[tray]` extra is what gives you the menu-bar icon and open-at-login (see [Keep it running](#keep-it-running)). Plain `pip install anyscribe` works too, and you can add the extra later. With pip you install ffmpeg and yt-dlp yourself — or just run `anyscribe doctor`, which tells you what's missing.
 
 > **Want to install Python and the dependencies by hand?** See the [Appendix: manual install](#appendix-manual-install) at the bottom.
 
-> **`command not found: scribe` on Windows?** Use `python -m anyscribe` as a drop-in replacement — it always works. See [Troubleshooting](#troubleshooting).
+> **`command not found: anyscribe` on Windows?** Use `python -m anyscribe` as a drop-in replacement — it always works. See [Troubleshooting](#troubleshooting).
 
 ## Step 2 — First run
 
-You can set up scribe either way — both paths save the same config, so pick whichever feels natural.
+You can set up anyscribe either way — both paths save the same config, so pick whichever feels natural.
 
 ### Option A (recommended): Web UI
 
 ```bash
-scribe ui
+anyscribe ui
 ```
 
 Opens a local dashboard at `http://127.0.0.1:8457`. A **setup wizard pops up on first launch**:
@@ -96,7 +98,7 @@ Close the tab when you're finished; to stop the server, hit Ctrl+C in the termin
 ### Option B: Terminal (interactive)
 
 ```bash
-scribe onboard                   # macOS / Linux
+anyscribe onboard                   # macOS / Linux
 python -m anyscribe onboard      # Windows (first time — prints PATH fix)
 ```
 
@@ -111,38 +113,38 @@ The wizard uses arrow-key selectors — navigate with **↑↓** and press **Ent
 7. **Choose language** — auto-detect (default) or pick a specific language.
 8. **Keep audio files** — whether to save the transcription audio to `~/.anyscribe/downloads/audio/`.
 9. **Local file handling** — what to do with original files when transcribing local audio/video (skip/copy/move/ask).
-10. **Post-transcription downloads** — whether scribe should offer to download the full video after each transcription (never/ask/always).
+10. **Post-transcription downloads** — whether anyscribe should offer to download the full video after each transcription (never/ask/always).
 11. **Choose workspace location** — where to store transcripts (default: `~/anyscribe/`).
 12. **Create workspace** — sets up your Obsidian vault at the chosen location.
 
-> **Re-run anytime:** `scribe onboard --force` to change settings — it shows your current config and lets you choose which parts to update. `scribe onboard --skip-deps` to skip the dependency check. Or use the Web UI: Settings → **Run setup wizard**.
+> **Re-run anytime:** `anyscribe onboard --force` to change settings — it shows your current config and lets you choose which parts to update. `anyscribe onboard --skip-deps` to skip the dependency check. Or use the Web UI: Settings → **Run setup wizard**.
 
 ### Option C: Headless (for agents + scripts)
 
-If you're automating scribe (CI, a Claude Code agent, a provisioning script), bypass the wizards entirely with `scribe onboard --yes`:
+If you're automating anyscribe (CI, a Claude Code agent, a provisioning script), bypass the wizards entirely with `anyscribe onboard --yes`:
 
 ```bash
-scribe onboard \
+anyscribe onboard \
   --provider openai \
   --api-key "$OPENAI_API_KEY" \
   --yes --json
 ```
 
-Every interactive field maps to a flag. Full reference: [commands.md → scribe onboard](commands.md#scribe-onboard).
+Every interactive field maps to a flag. Full reference: [commands.md → anyscribe onboard](commands.md#anyscribe-onboard).
 
 ## Step 3 — First transcript
 
 Pick any YouTube video and run:
 
 ```bash
-scribe "https://www.youtube.com/watch?v=VIDEO_ID"
+anyscribe "https://www.youtube.com/watch?v=VIDEO_ID"
 ```
 
 Replace `VIDEO_ID` with a real video ID. A short video (under 5 minutes) is good for your first try.
 
-> **No subcommand needed.** Just `scribe "url"` — it knows you want to transcribe. You can also write `scribe transcribe "url"` explicitly, but it's not required.
+> **No subcommand needed.** Just `anyscribe "url"` — it knows you want to transcribe. You can also write `anyscribe transcribe "url"` explicitly, but it's not required.
 
-> **Always wrap URLs in quotes** (`"..."`). Shells like zsh break URLs with `?` in them. Or run `scribe` with no URL and paste it when prompted — no quoting needed.
+> **Always wrap URLs in quotes** (`"..."`). Shells like zsh break URLs with `?` in them. Or run `anyscribe` with no URL and paste it when prompted — no quoting needed.
 
 You'll see:
 
@@ -158,16 +160,16 @@ Transcription saved: ~/anyscribe/sources/youtube/how-to-make-perfect-coffee.md
 
 ```bash
 # Local audio/video file (mp3, mp4, m4a, wav, opus, ogg, flac, webm)
-scribe /path/to/podcast.mp3
+anyscribe /path/to/podcast.mp3
 
 # Instagram reel
-scribe "https://www.instagram.com/reel/SHORTCODE/"
+anyscribe "https://www.instagram.com/reel/SHORTCODE/"
 
 # Just download, no transcription
-scribe download "https://www.youtube.com/watch?v=VIDEO_ID"
+anyscribe download "https://www.youtube.com/watch?v=VIDEO_ID"
 
 # From clipboard (copy a URL first)
-scribe --clipboard
+anyscribe --clipboard
 ```
 
 ### Browse it in Obsidian
@@ -199,61 +201,61 @@ tags: [transcript, youtube]
 
 ## Keep it running
 
-`scribe ui` runs in a terminal window, which means the server dies when you close it. If you want scribe to just *be there*, put it in your menu bar.
+`anyscribe ui` runs in a terminal window, which means the server dies when you close it. If you want anyscribe to just *be there*, put it in your menu bar.
 
 **The menu-bar icon:**
 
 ```bash
-scribe tray
+anyscribe tray
 ```
 
 The tray is a small icon that sits in your menu bar (macOS) or system tray (Linux/Windows) with the web server running behind it. Click it to open the dashboard, no terminal needed. Both one-line installers include the tray by default, so this works right after install. Installed with plain `pip install anyscribe`? Add it with `pip install "anyscribe[tray]"`.
 
 **Start it automatically at login (macOS):**
 
-Open `scribe ui` → **Settings** → **Startup** → toggle **Open at login (menu-bar app)** on. That's it — the menu-bar icon comes back every time you log in.
+Open `anyscribe ui` → **Settings** → **Startup** → toggle **Open at login (menu-bar app)** on. That's it — the menu-bar icon comes back every time you log in.
 
 > The Startup section only appears on macOS. If the tray extra isn't installed, the toggle refuses with a message telling you to run `pip install "anyscribe[tray]"` first — better than a login item that silently fails.
 
 The CLI does the same thing:
 
 ```bash
-scribe install-service      # register the tray to start at login
-scribe uninstall-service    # undo it
+anyscribe install-service      # register the tray to start at login
+anyscribe uninstall-service    # undo it
 ```
 
-**The way back in.** Closed the tab, clicked Shutdown, or rebooted? Run `scribe ui` again — or click the menu-bar icon if you set up the tray. Your library, config, and API keys are untouched; nothing about stopping the server touches your data.
+**The way back in.** Closed the tab, clicked Shutdown, or rebooted? Run `anyscribe ui` again — or click the menu-bar icon if you set up the tray. Your library, config, and API keys are untouched; nothing about stopping the server touches your data.
 
-See [Commands → scribe tray](commands.md#scribe-tray) and [scribe install-service](commands.md#scribe-install-service) for the full reference.
+See [Commands → anyscribe tray](commands.md#anyscribe-tray) and [anyscribe install-service](commands.md#anyscribe-install-service) for the full reference.
 
 ## Where next
 
-Three doors, depending on how you want to use scribe:
+Three doors, depending on how you want to use anyscribe:
 
-- **[Use scribe from your AI tools](agents.md)** — the Claude Code skill and the MCP server, so you can say "transcribe this" instead of typing commands
+- **[Use anyscribe from your AI tools](agents.md)** — the Claude Code skill and the MCP server, so you can say "transcribe this" instead of typing commands
 - **[Commands](commands.md)** — every command, flag, and example
 - **[Providers](providers.md)** — cost, accuracy, languages, and how to switch
 - **[Troubleshooting](troubleshooting.md)** — every common error and its fix, when something goes sideways
 
 Handy things you can do right now:
 
-- **Speaker diarization** — `scribe "url" --diarize` identifies who said what (auto-detects number of speakers). Set up Deepgram first: `scribe config set deepgram_api_key YOUR_KEY` ($200 free credit at [console.deepgram.com](https://console.deepgram.com/))
-- **Batch process** — `scribe batch urls.txt` to transcribe a list of URLs
-- **See what will run** — `scribe config` shows the provider + model of your next transcription and every alternative
-- **Switch providers** — `scribe config set provider elevenlabs` (or let a tier choose: `scribe config set quality accuracy`)
-- **Try JSON output** — `scribe "url" --json` for scripting
-- **Check health** — `scribe doctor` verifies everything is working
-- **Update** — `scribe update` pulls the latest version
-- **View all commands** — `scribe --help`
+- **Speaker diarization** — `anyscribe "url" --diarize` identifies who said what (auto-detects number of speakers). Set up Deepgram first: `anyscribe config set deepgram_api_key YOUR_KEY` ($200 free credit at [console.deepgram.com](https://console.deepgram.com/))
+- **Batch process** — `anyscribe batch urls.txt` to transcribe a list of URLs
+- **See what will run** — `anyscribe config` shows the provider + model of your next transcription and every alternative
+- **Switch providers** — `anyscribe config set provider elevenlabs` (or let a tier choose: `anyscribe config set quality accuracy`)
+- **Try JSON output** — `anyscribe "url" --json` for scripting
+- **Check health** — `anyscribe doctor` verifies everything is working
+- **Update** — `anyscribe update` pulls the latest version
+- **View all commands** — `anyscribe --help`
 
 ## Instagram (optional)
 
 Public reels usually work out of the box. If you hit rate-limiting, or want
-to transcribe reels from accounts you follow, scribe can read your existing
+to transcribe reels from accounts you follow, anyscribe can read your existing
 browser session — no password needed:
 
 ```bash
-scribe config set instagram.browser firefox
+anyscribe config set instagram.browser firefox
 ```
 
 Supported browsers: `firefox`, `chrome`, `safari`, `brave`, `edge`, `chromium`,
@@ -262,15 +264,15 @@ Supported browsers: `firefox`, `chrome`, `safari`, `brave`, `edge`, `chromium`,
 > **Tip:** Firefox tends to work most reliably on macOS. Chrome's cookie
 > encryption can make extraction flakier.
 
-> **Note for upgraders:** If you onboarded with scribe < 0.8.3, you may have <!-- version-pin-ok -->
+> **Note for upgraders:** If you onboarded with anyscribe < 0.8.3, you may have <!-- version-pin-ok -->
 > an `INSTAGRAM_PASSWORD` in your `~/.anyscribe/.env`. It's no longer used
 > and can be removed.
 
 ## Troubleshooting
 
-Everything that commonly goes wrong — `command not found: scribe`, missing API keys, shells mangling URLs, yt-dlp failures, Instagram `login_required`, wrong language, slow long videos — is covered with fixes in **[troubleshooting.md](troubleshooting.md)**.
+Everything that commonly goes wrong — `command not found: anyscribe`, missing API keys, shells mangling URLs, yt-dlp failures, Instagram `login_required`, wrong language, slow long videos — is covered with fixes in **[troubleshooting.md](troubleshooting.md)**.
 
-The one worth knowing up front: if `scribe` isn't recognized, `python -m anyscribe` is a drop-in replacement that always works (`python -m anyscribe onboard`, `python -m anyscribe transcribe "..."`).
+The one worth knowing up front: if `anyscribe` isn't recognized, `python -m anyscribe` is a drop-in replacement that always works (`python -m anyscribe onboard`, `python -m anyscribe transcribe "..."`).
 
 ## Appendix: manual install
 
@@ -319,7 +321,7 @@ winget install ffmpeg
 pip install yt-dlp
 ```
 
-**3. scribe itself.**
+**3. anyscribe itself.**
 
 ```bash
 pip install "anyscribe[tray]"
@@ -329,7 +331,7 @@ Verify:
 
 **macOS / Linux:**
 ```bash
-scribe --version
+anyscribe --version
 ```
 
 **Windows:**
@@ -339,14 +341,14 @@ python -m anyscribe --version
 
 You should see `anyscribe` followed by a version number.
 
-> **Why `python -m` on Windows?** pip installs `scribe.exe` to a Scripts directory that's usually not on PATH. `python -m anyscribe` always works because it uses the same Python you installed with. On first run, it will print the exact PowerShell command to add `scribe` to your PATH permanently — after that, you can use `scribe` directly.
+> **Why `python -m` on Windows?** pip installs `anyscribe.exe` to a Scripts directory that's usually not on PATH. `python -m anyscribe` always works because it uses the same Python you installed with. On first run, it will print the exact PowerShell command to add `anyscribe` to your PATH permanently — after that, you can use `anyscribe` directly.
 
 **4. Check everything landed:**
 
 ```bash
-scribe doctor
+anyscribe doctor
 ```
 
 Then head back to **Step 2 — First run** above.
 
-> **Developing on scribe?** [Clone the repo](https://github.com/rishmadaan/anyscribe) and install it editable — see the building docs.
+> **Developing on anyscribe?** [Clone the repo](https://github.com/rishmadaan/anyscribe) and install it editable — see the building docs.

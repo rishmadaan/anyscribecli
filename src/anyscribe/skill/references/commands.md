@@ -36,14 +36,14 @@ anyscribe transcribe "<url>"             # Explicit subcommand (also works)
 3. The provider's built-in default (first entry in its model list)
 
 ```bash
-scribe "url" -p openai -m whisper-1               # force Whisper (default is gpt-transcribe)
-scribe "url" -p groq -m whisper-large-v3          # higher accuracy than the turbo default
-scribe "url" -p openrouter -m google/gemini-2.5-flash
+anyscribe "url" -p openai -m whisper-1               # force Whisper (default is gpt-transcribe)
+anyscribe "url" -p groq -m whisper-large-v3          # higher accuracy than the turbo default
+anyscribe "url" -p openrouter -m google/gemini-2.5-flash
 ```
 
-Unknown models are rejected before any download or API call, with the valid list in the error — **except `openrouter`**, which accepts any slug (including anything in `extra_models.openrouter`) and only fails at the API. Providers with one model (`elevenlabs`, `sargam`) accept only that model. `local` has no `-m`: use `scribe local setup --model <size>` or `scribe config set local_model <size>`.
+Unknown models are rejected before any download or API call, with the valid list in the error — **except `openrouter`**, which accepts any slug (including anything in `extra_models.openrouter`) and only fails at the API. Providers with one model (`elevenlabs`, `sargam`) accept only that model. `local` has no `-m`: use `anyscribe local setup --model <size>` or `anyscribe config set local_model <size>`.
 
-**Timestamp caveat — and why you usually do nothing.** `gpt-transcribe` (the OpenAI default), `gpt-4o-transcribe`, and `gpt-4o-mini-transcribe` don't return segment timestamps. When `output_format` is `timestamped` / `diarized`, scribe switches the run to `whisper-1` itself and emits `switched to whisper-1 — gpt-transcribe can't produce timestamps`. **Passing `-m` suppresses that switch** — an explicit per-run model always wins — so don't pass `-m gpt-transcribe` for a user who wants timestamps. A config pin does not suppress it.
+**Timestamp caveat — and why you usually do nothing.** `gpt-transcribe` (the OpenAI default), `gpt-4o-transcribe`, and `gpt-4o-mini-transcribe` don't return segment timestamps. When `output_format` is `timestamped` / `diarized`, anyscribe switches the run to `whisper-1` itself and emits `switched to whisper-1 — gpt-transcribe can't produce timestamps`. **Passing `-m` suppresses that switch** — an explicit per-run model always wins — so don't pass `-m gpt-transcribe` for a user who wants timestamps. A config pin does not suppress it.
 
 ### The plan line
 
@@ -84,7 +84,7 @@ Before transcribing, anyscribe scans the vault for a transcript whose frontmatte
 }
 ```
 
-`model` is the model that actually ran — read it rather than assuming the pin, since scribe may have switched it (timestamps) or the provider may have come from a tier. `via` says which rung picked the provider (`flag` | `diarize` | `quality: <tier>` | `config`), and `notes` carries every swap or warning in machine-readable form (keyless-tier fallback, whisper-1 timestamp switch, diarize routing) — surface any `WARNING:` note to the user even in `--quiet` runs. Batch `--json` carries the same two fields at the top level.
+`model` is the model that actually ran — read it rather than assuming the pin, since anyscribe may have switched it (timestamps) or the provider may have come from a tier. `via` says which rung picked the provider (`flag` | `diarize` | `quality: <tier>` | `config`), and `notes` carries every swap or warning in machine-readable form (keyless-tier fallback, whisper-1 timestamp switch, diarize routing) — surface any `WARNING:` note to the user even in `--quiet` runs. Batch `--json` carries the same two fields at the top level.
 
 When the source was already in the vault, the same shape comes back with `"cached": true` and the existing file's path.
 
@@ -116,7 +116,7 @@ anyscribe ~/recordings/meeting.m4a
 anyscribe "https://youtube.com/watch?v=abc123" --provider elevenlabs
 
 # Override provider AND model for one transcription
-scribe "https://youtube.com/watch?v=abc123" -p openai -m gpt-transcribe
+anyscribe "https://youtube.com/watch?v=abc123" -p openai -m gpt-transcribe
 
 # Force language detection
 anyscribe "https://youtube.com/watch?v=abc123" --language hi
@@ -381,9 +381,9 @@ anyscribe config list-keys --json          # Every settable key + current value
 anyscribe config path                      # Print config file location
 ```
 
-### `scribe config` (no subcommand) — the discovery call
+### `anyscribe config` (no subcommand) — the discovery call
 
-**This is the one command to run when you need to know what scribe will do.** Human output:
+**This is the one command to run when you need to know what anyscribe will do.** Human output:
 
 ```
 Next run: deepgram · nova-3 (quality: balanced)
@@ -397,10 +397,10 @@ Provider      Default model           Alternatives      Key      Notes
   openrouter  openai/gpt-audio-mini   5 more            missing
   sargam      saaras:v3                                 missing
 
-Missing keys:    elevenlabs, groq, openai, openrouter, sargam  (scribe config set <provider>_api_key <key>)
-Change provider: scribe config set provider <name>  (also sets quality = custom, so it sticks)
-Pin a model:     scribe config set provider_models.<provider> <model>
-Or pick a tier:  scribe config set quality accuracy|balanced|cost|free|custom
+Missing keys:    elevenlabs, groq, openai, openrouter, sargam  (anyscribe config set <provider>_api_key <key>)
+Change provider: anyscribe config set provider <name>  (also sets quality = custom, so it sticks)
+Pin a model:     anyscribe config set provider_models.<provider> <model>
+Or pick a tier:  anyscribe config set quality accuracy|balanced|cost|free|custom
 ```
 
 `--json` returns every setting plus:
@@ -415,7 +415,7 @@ Or pick a tier:  scribe config set quality accuracy|balanced|cost|free|custom
 }
 ```
 
-`resolved` answers "what runs next and why"; `providers` answers "what can I change it to". `→` in the table marks `resolved.provider`, which is **not** always `provider` in the settings — a quality tier can override it. `scribe config show --json` is the raw settings file only (plus `_resolved_workspace`); prefer `scribe config --json` for anything decision-shaped.
+`resolved` answers "what runs next and why"; `providers` answers "what can I change it to". `→` in the table marks `resolved.provider`, which is **not** always `provider` in the settings — a quality tier can override it. `anyscribe config show --json` is the raw settings file only (plus `_resolved_workspace`); prefer `anyscribe config --json` for anything decision-shaped.
 
 ### Settable keys
 
@@ -454,9 +454,9 @@ anyscribe config set deepgram_api_key YOUR_KEY
 ### Pinning a model per provider
 
 ```bash
-scribe config set provider_models.openai whisper-1
-scribe config set provider_models.groq whisper-large-v3
-scribe config set provider_models.deepgram nova-2
+anyscribe config set provider_models.openai whisper-1
+anyscribe config set provider_models.groq whisper-large-v3
+anyscribe config set provider_models.deepgram nova-2
 ```
 
 The key is `provider_models.<provider>` — one pin per provider, so switching providers keeps each one's chosen model. A provider with no entry uses its built-in default. Invalid models exit 1 with the valid list; `openrouter` accepts any slug. `elevenlabs` and `sargam` have exactly one model, so pinning is a no-op. `provider_models.local` is rejected — use `local_model`.
@@ -464,11 +464,11 @@ The key is `provider_models.<provider>` — one pin per provider, so switching p
 ### Adding models (openrouter only)
 
 ```bash
-scribe config set extra_models.openrouter "qwen/qwen3-omni-flash,openai/gpt-audio"
-scribe config set extra_models.openrouter ""     # empty value removes the entry
+anyscribe config set extra_models.openrouter "qwen/qwen3-omni-flash,openai/gpt-audio"
+anyscribe config set extra_models.openrouter ""     # empty value removes the entry
 ```
 
-Comma-separated or a JSON list (MCP/web). Added slugs merge into every picker and are marked `(custom)` in `providers list`. `extra_models.<anything else>` exits 1: *custom models are only supported for openrouter (curated lists elsewhere)*. Don't work around it — new models for the other providers arrive via `scribe update`.
+Comma-separated or a JSON list (MCP/web). Added slugs merge into every picker and are marked `(custom)` in `providers list`. `extra_models.<anything else>` exits 1: *custom models are only supported for openrouter (curated lists elsewhere)*. Don't work around it — new models for the other providers arrive via `anyscribe update`.
 
 See [config.md](config.md) for the resulting `config.yaml` shape and [providers.md](providers.md) for each provider's models.
 
@@ -501,9 +501,9 @@ anyscribe providers test <name>            # Test a specific provider
 ]
 ```
 
-`model` is that provider's effective model; `models` is the full pickable list including `extra_models` (empty for `local`, whose sizes come from `scribe model list`); `custom_models` is just the user-added slugs.
+`model` is that provider's effective model; `models` is the full pickable list including `extra_models` (empty for `local`, whose sizes come from `anyscribe model list`); `custom_models` is just the user-added slugs.
 
-> **`active` is the `provider` setting, not necessarily what runs** — a quality tier can override it. For the effective provider, use `scribe config --json` → `resolved`.
+> **`active` is the `provider` setting, not necessarily what runs** — a quality tier can override it. For the effective provider, use `anyscribe config --json` → `resolved`.
 
 ---
 

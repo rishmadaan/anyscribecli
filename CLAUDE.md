@@ -24,7 +24,7 @@ Web flow: `Browser (React SPA) <-> FastAPI REST + WebSocket <-> orchestrator (sa
 
 ## Claude Code Skill — Primary Usage Path
 
-The Claude Code skill (`src/anyscribe/skill/`) is the **primary way users interact with anyscribe**. Most users invoke scribe through Claude Code rather than typing CLI commands directly. This means:
+The Claude Code skill (`src/anyscribe/skill/`) is the **primary way users interact with anyscribe**. Most users invoke anyscribe through Claude Code rather than typing CLI commands directly. This means:
 
 - **The skill files are first-class artifacts**, not an afterthought. Treat them with the same rigor as the CLI source code.
 - **Keep the skill in sync with every CLI change.** If you add/change a command, flag, provider, or behavior, update the corresponding skill files in the same commit:
@@ -48,9 +48,9 @@ The Claude Code skill (`src/anyscribe/skill/`) is the **primary way users intera
 - **Downloads outside vault** — audio in `~/.anyscribe/downloads/audio/`, video in `downloads/video/`
 - **Audio params** optimized for Whisper: 16kHz, mono, 64kbps mp3
 - **Chunking** — 18-min segments for Whisper (25MB limit), 30s segments for Sarvam (REST API limit)
-- **Web UI** — `scribe ui` launches FastAPI + built React SPA at `127.0.0.1:8457`. REST API for config/history, WebSocket for real-time transcription progress. Frontend source in `ui/`, builds to `src/anyscribe/web/static/`. Server stashed on `app.state` for graceful `/shutdown`. Orchestrator accepts optional `on_progress` callback — web layer bridges sync→async via ThreadPoolExecutor + asyncio.Queue
-- **Three-surface onboarding parity** — `scribe onboard` (interactive TUI), `scribe onboard --yes --provider X ...` (headless for agents), and the Web UI first-run wizard all call `core/onboard_headless.py::run_headless_onboard()`. Each surface is a thin flow controller; the backend state transitions are identical. Rule documented in `docs/building/architecture.md` → "CLI ↔ Web UI: shared backend, asymmetric surfaces"
-- **Local transcription is opt-in** — setup installs `faster-whisper` via pip subprocess on demand (`core/local_setup.py`), then downloads a Whisper model via `huggingface_hub`. CLI: `scribe local setup --model <size>`. Web UI: "Set up local transcription" button on the Local provider card. `scribe model {list, pull, rm, reinstall, info}` for day-to-day cache management. The `--model` flag is **always required** on `scribe local setup` — no silent defaults, even in a TTY
+- **Web UI** — `anyscribe ui` launches FastAPI + built React SPA at `127.0.0.1:8457`. REST API for config/history, WebSocket for real-time transcription progress. Frontend source in `ui/`, builds to `src/anyscribe/web/static/`. Server stashed on `app.state` for graceful `/shutdown`. Orchestrator accepts optional `on_progress` callback — web layer bridges sync→async via ThreadPoolExecutor + asyncio.Queue
+- **Three-surface onboarding parity** — `anyscribe onboard` (interactive TUI), `anyscribe onboard --yes --provider X ...` (headless for agents), and the Web UI first-run wizard all call `core/onboard_headless.py::run_headless_onboard()`. Each surface is a thin flow controller; the backend state transitions are identical. Rule documented in `docs/building/architecture.md` → "CLI ↔ Web UI: shared backend, asymmetric surfaces"
+- **Local transcription is opt-in** — setup installs `faster-whisper` via pip subprocess on demand (`core/local_setup.py`), then downloads a Whisper model via `huggingface_hub`. CLI: `anyscribe local setup --model <size>`. Web UI: "Set up local transcription" button on the Local provider card. `anyscribe model {list, pull, rm, reinstall, info}` for day-to-day cache management. The `--model` flag is **always required** on `anyscribe local setup` — no silent defaults, even in a TTY
 
 ## Documentation Ethic
 

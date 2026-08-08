@@ -9,12 +9,12 @@ and the Claude Code skill (via MCP) all funnel into the same orchestrator, which
 runs a fixed pipeline:
 
 ```
-   three ways in            ┌────────┐  ┌────────┐  ┌──────────────┐
-                            │  CLI   │  │ Web UI │  │  Claude Code │
-                            │ scribe │  │ React+ │  │   skill/MCP  │
-                            │        │  │FastAPI │  │              │
-                            └───┬────┘  └───┬────┘  └──────┬───────┘
-                                └───────────┼──────────────┘
+   three ways in            ┌─────────┐ ┌────────┐  ┌──────────────┐
+                            │   CLI   │ │ Web UI │  │  Claude Code │
+                            │anyscribe│ │ React+ │  │   skill/MCP  │
+                            │         │ │FastAPI │  │              │
+                            └────┬────┘ └───┬────┘  └──────┬───────┘
+                                 └──────────┼──────────────┘
                                             ▼
                               ┌───────────────────────────┐
    one shared core            │  core/orchestrator.process │
@@ -57,14 +57,14 @@ the Obsidian vault at `~/anyscribe/` stays pure markdown.
 
 ### CLI Layer (`cli/`)
 - Typer app with `rich_markup_mode="rich"`, custom `DefaultToTranscribe(TyperGroup)` class for bare-URL routing
-- Primary command: `scribe` (alias: `ascli` for backward compat)
+- Primary command: `anyscribe` (aliases: `scribe`, `ascli` for backward compat)
 - Commands: `onboard`, `transcribe`, `download`, `batch`, `rm`, `logs`, `config`, `providers`, `local`, `model`, `ui`, `tray`, `install-service`, `uninstall-service`, `update`, `doctor`, `install-skill`
-- **Tray supervision model** (`cli/tray_cmd.py` + `core/tray.py`): `scribe tray` is a `pystray` menu-bar icon that supervises `scribe ui` as a subprocess — attaches to an already-running server instead of colliding (TCP connect-probe), guards against double-launch with a pidfile at `~/.anyscribe/tray.pid`, and tears down via a `signal.pthread_sigmask` + `signal.sigwait` watcher thread rather than a plain `signal.signal` handler (pystray's macOS Cocoa event loop can block Python bytecode from running, so a normal handler can miss SIGTERM/SIGINT). `core/service.py` registers a macOS launchd LaunchAgent (`scribe install-service`) that runs `{python} -m anyscribe tray` at login.
-- Bare URL: `scribe "url"` auto-routes to transcribe (first arg not a known subcommand → prepend `transcribe`)
+- **Tray supervision model** (`cli/tray_cmd.py` + `core/tray.py`): `anyscribe tray` is a `pystray` menu-bar icon that supervises `anyscribe ui` as a subprocess — attaches to an already-running server instead of colliding (TCP connect-probe), guards against double-launch with a pidfile at `~/.anyscribe/tray.pid`, and tears down via a `signal.pthread_sigmask` + `signal.sigwait` watcher thread rather than a plain `signal.signal` handler (pystray's macOS Cocoa event loop can block Python bytecode from running, so a normal handler can miss SIGTERM/SIGINT). `core/service.py` registers a macOS launchd LaunchAgent (`anyscribe install-service`) that runs `{python} -m anyscribe tray` at login.
+- Bare URL: `anyscribe "url"` auto-routes to transcribe (first arg not a known subcommand → prepend `transcribe`)
 - `--json` and `--quiet` available on main commands (transcribe, download, batch, config show, providers list)
 - `--json` for AI agent and scripting integration
 - `__main__.py` enables `python -m anyscribe` as alternative entry point (Windows PATH fallback)
-- On Windows, app callback checks if `scribe` is on PATH; if not, prints the exact PowerShell command to fix it (one-time, uses `.path_warned` marker)
+- On Windows, app callback checks if `anyscribe` is on PATH; if not, prints the exact PowerShell command to fix it (one-time, uses `.path_warned` marker)
 
 ### MCP Layer (`mcp/`)
 - FastMCP server with `scribe-mcp` entry point (stdio transport)
@@ -77,7 +77,7 @@ the Obsidian vault at `~/anyscribe/` stays pure markdown.
 
 ### Web UI Layer (`web/` + `ui/`)
 - FastAPI backend serving a built React SPA at `127.0.0.1:8457`
-- Launched via `scribe ui` — core dependency, not optional
+- Launched via `anyscribe ui` — core dependency, not optional
 - REST API: `/api/config`, `/api/providers`, `/api/transcripts`, `/api/transcribe`, `/api/health`, `/api/shutdown`
 - WebSocket: `/api/ws/jobs/{job_id}` for real-time transcription progress
 - JobManager runs `process()` in ThreadPoolExecutor, bridges to async via `asyncio.Queue` + `call_soon_threadsafe`
@@ -89,10 +89,10 @@ the Obsidian vault at `~/anyscribe/` stays pure markdown.
 - 17 smoke tests via FastAPI TestClient
 
 ### Skill Layer (`skill/`)
-- Claude Code skill files bundled in package, auto-installed to `~/.claude/skills/scribe/`
+- Claude Code skill files bundled in package, auto-installed to `~/.claude/skills/anyscribe/`
 - AI-first: auto-installs if `~/.claude/` exists (no opt-in), auto-updates via `.version` marker
 - On every CLI invocation: compare `.version` to `__version__`, re-copy if mismatched
-- One-time migration from old `ascli` skill directory to `scribe`
+- One-time cleanup of the stale `ascli`/`scribe` skill directories (superseded by `anyscribe`)
 - Skill files: SKILL.md (operator guide), references/ (commands, providers, config, troubleshooting)
 
 ### Config Layer (`config/`)
@@ -152,7 +152,7 @@ the Obsidian vault at `~/anyscribe/` stays pure markdown.
 - **SemVer**: 0.x for pre-stable, 1.0.0 when all platforms + providers stable
 - **Auto-migration**: Startup migrations handle legacy paths transparently (workspace rename, media→downloads, date folder flattening)
 - **CI + PyPI automation**: GitHub Actions runs lint, tests, package build, and frontend bundle freshness checks on pushes/PRs. Tag pushes publish to PyPI via trusted publishing; `scripts/release.sh` handles one-command releases. The same workflow also runs `gh release create --generate-notes` after publish, so every tag gets a GitHub Release automatically.
-- **Tray as a supervisor, not a rewrite**: `scribe tray` spawns/attaches to the existing `scribe ui` server rather than embedding a webview or rewriting the UI as a native app — the browser stays the UI surface, the tray only adds discoverability and process supervision.
+- **Tray as a supervisor, not a rewrite**: `anyscribe tray` spawns/attaches to the existing `anyscribe ui` server rather than embedding a webview or rewriting the UI as a native app — the browser stays the UI surface, the tray only adds discoverability and process supervision.
 - **AI-first skill management**: Claude Code skill auto-installs and auto-updates on every CLI invocation. `.version` marker pattern borrowed from gitstow — one file read + string compare, never blocks CLI
 - **MCP server**: Thin wrapper around core modules. Both CLI and MCP use same orchestrator/providers/settings — only output format differs (Rich console vs JSON)
 - **Web UI as core dependency**: FastAPI/uvicorn ship with `pip install anyscribe` (not optional). One app, one install. Same pattern as gitstow. React SPA builds to `web/static/`, committed to repo — end users don't need Node.js
@@ -161,7 +161,7 @@ the Obsidian vault at `~/anyscribe/` stays pure markdown.
 
 ## Configurability surface: tunable vs hard-coded
 
-scribe draws a deliberate line: **user-facing behaviour is configurable; the
+anyscribe draws a deliberate line: **user-facing behaviour is configurable; the
 audio and transcription mechanics are constants in source.** This keeps
 `config.yaml` short for a semi-technical audience, at the cost of power-user
 tunability. The user-facing version of this boundary is in
@@ -212,7 +212,7 @@ Web UI ─────┘     (shared backend — single implementation)
 (FastAPI)
 ```
 
-`scribe "url"` and `POST /api/transcribe` both call `core/orchestrator.py::process()` directly. No subprocess layer. Add a provider in `providers/` and both surfaces pick it up; fix a bug in the orchestrator and both surfaces are fixed. Same applies to the MCP server (see decision above).
+`anyscribe "url"` and `POST /api/transcribe` both call `core/orchestrator.py::process()` directly. No subprocess layer. Add a provider in `providers/` and both surfaces pick it up; fix a bug in the orchestrator and both surfaces are fixed. Same applies to the MCP server (see decision above).
 
 For flows where UX differs meaningfully across surfaces (onboarding being the main one), we extract a shared backend function into `core/` that all surfaces' flow controllers converge on — e.g. `core/onboard_headless.py::run_headless_onboard()` powers the CLI `--yes` path and the Web UI wizard save-phase.
 
@@ -224,25 +224,25 @@ Not every feature lives on every surface. The asymmetry is intentional per-featu
 |---------|-----|--------|-------|
 | Transcribe URL/file | ✓ | ✓ | Same `orchestrator.process()` on both |
 | Duplicate detection (`cached`) + `--force` | ✓ (`--force`/`-f`) | ✓ ("Re-transcribe" on cached state) | Enforced in `orchestrator.process()` (dedup step 0), so all surfaces + MCP inherit it |
-| Delete transcript | ✓ (`scribe rm`) | ✓ (delete in History) | Same `vault/index.py::delete_transcript`; also MCP `delete_transcript` tool |
+| Delete transcript | ✓ (`anyscribe rm`) | ✓ (delete in History) | Same `vault/index.py::delete_transcript`; also MCP `delete_transcript` tool |
 | Cancel a running job | — | ✓ (`POST /api/jobs/{id}/cancel`, cooperative) | UI-only — a CLI run is cancelled with Ctrl+C |
 | Onboard (first-run setup) | ✓ (TUI + `--yes` headless) | ✓ (wizard) | Both call `run_headless_onboard()` |
-| Config read/write | ✓ (`scribe config`) | ✓ (Settings page) | Same `settings.load_config` / `save_config` |
-| Provider test | ✓ (`scribe providers test`) | ✓ (Test/Diagnose buttons) | Same `/providers/{name}/test` logic |
-| Local model mgmt | ✓ (`scribe model`) | ✓ (Models table) | Same `providers/local_models.py` |
-| Local setup/teardown | ✓ (`scribe local`) | ✓ (Setup modal, Teardown button) | Same `core/local_setup.py` |
+| Config read/write | ✓ (`anyscribe config`) | ✓ (Settings page) | Same `settings.load_config` / `save_config` |
+| Provider test | ✓ (`anyscribe providers test`) | ✓ (Test/Diagnose buttons) | Same `/providers/{name}/test` logic |
+| Local model mgmt | ✓ (`anyscribe model`) | ✓ (Models table) | Same `providers/local_models.py` |
+| Local setup/teardown | ✓ (`anyscribe local`) | ✓ (Setup modal, Teardown button) | Same `core/local_setup.py` |
 | History browse | Obsidian vault directly | ✓ (History page with search) | Web UI has richer UX; CLI leans on Obsidian |
 | Progress | Terminal progress | ✓ (WebSocket) | Same `on_progress` callback |
-| Batch processing | ✓ (`scribe batch`, `--timeout` per URL) | — | CLI-only. Add to UI if users ask |
-| Download-only | ✓ (`scribe download`) | — | CLI-only |
-| View recent activity | ✓ (`scribe logs`) | — | Reads workspace `daily/*.md` + recovery dir directly; UI already has richer History browsing |
+| Batch processing | ✓ (`anyscribe batch`, `--timeout` per URL) | — | CLI-only. Add to UI if users ask |
+| Download-only | ✓ (`anyscribe download`) | — | CLI-only |
+| View recent activity | ✓ (`anyscribe logs`) | — | Reads workspace `daily/*.md` + recovery dir directly; UI already has richer History browsing |
 | Local model download progress | — | ✓ (byte-level bar, `setup_progress`/`progress` on status polls) | UI-only — CLI shows NDJSON phase events, no byte counter |
-| System diagnostics | ✓ (`scribe doctor`) | ✓ (Settings → System section, lighter) | UI surfaces a subset |
-| Self-update | ✓ (`scribe update`) | — | CLI-only. Updating a running server is weird |
-| Claude Code skill install | ✓ (`scribe install-skill`) | — | CLI-only; runs automatically anyway |
-| Menu-bar tray + login auto-start | ✓ (`scribe tray`, `install-service`/`uninstall-service`) | — | CLI-only by nature — a tray icon and a launchd registration aren't Web UI concepts; the tray supervises the Web UI server, it doesn't compete with it |
+| System diagnostics | ✓ (`anyscribe doctor`) | ✓ (Settings → System section, lighter) | UI surfaces a subset |
+| Self-update | ✓ (`anyscribe update`) | — | CLI-only. Updating a running server is weird |
+| Claude Code skill install | ✓ (`anyscribe install-skill`) | — | CLI-only; runs automatically anyway |
+| Menu-bar tray + login auto-start | ✓ (`anyscribe tray`, `install-service`/`uninstall-service`) | — | CLI-only by nature — a tray icon and a launchd registration aren't Web UI concepts; the tray supervises the Web UI server, it doesn't compete with it |
 | Drag-and-drop upload | — | ✓ | UI-only |
-| API key management | ✓ (`scribe config set <prov>_api_key`) | ✓ (inline per-provider with Test) | UI has richer UX |
+| API key management | ✓ (`anyscribe config set <prov>_api_key`) | ✓ (inline per-provider with Test) | UI has richer UX |
 
 ### When to place a feature on which surface
 

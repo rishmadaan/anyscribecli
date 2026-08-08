@@ -58,19 +58,19 @@
 <header><nav><a class="home" href="/">anyscribe</a><a href="/docs">Docs</a><a href="/docs/agents" class="here">Agents</a><a href="/docs/getting-started">Getting started</a><a href="/docs/commands">Commands</a><a href="/docs/providers">Providers</a><a href="/docs/configuration">Configuration</a><a href="/docs/troubleshooting">Troubleshooting</a></nav></header>
 <main>
 <h1 id="use-anyscribe-from-your-ai-agent">Use anyscribe from your AI agent</h1>
-<p>You don't have to memorize flags. Hand a link to your agent and say "transcribe this" — it drives scribe for you.</p>
+<p>You don't have to memorize flags. Hand a link to your agent and say "transcribe this" — it drives anyscribe for you.</p>
 <h2 id="two-ways-in">Two ways in</h2>
-<p><strong>The Claude Code skill</strong> teaches Claude how to <em>use the CLI</em>. Claude runs <code>scribe</code> commands in your terminal the way you would, so anything the command line can do, the skill can reach: transcribing, batches, provider setup, log reading, updates, local model management. It's the fuller path, and it only works in Claude Code.</p>
+<p><strong>The Claude Code skill</strong> teaches Claude how to <em>use the CLI</em>. Claude runs <code>anyscribe</code> commands in your terminal the way you would, so anything the command line can do, the skill can reach: transcribing, batches, provider setup, log reading, updates, local model management. It's the fuller path, and it only works in Claude Code.</p>
 <p><strong>The MCP server</strong> exposes a fixed set of ten tools over MCP — the Model Context Protocol, the standard way an AI app talks to an outside tool. It's narrower by design, but it works in any MCP host: Claude Desktop, Cursor, Claude Code, and anything else that speaks the protocol.</p>
 <blockquote>
 <p><strong>Not sure which?</strong> If you live in Claude Code, install the skill. If you live in Claude Desktop or Cursor, use MCP. Installing both is fine — they don't conflict.</p>
 </blockquote>
 <h2 id="claude-code-skill">Claude Code (skill)</h2>
 <pre><code class="language-bash">pip install anyscribe
-scribe install-skill
+anyscribe install-skill
 </code></pre>
 <p>That copies the skill into <code>~/.claude/skills/anyscribe/</code>. Claude Code picks it up on the next session — no restart dance beyond opening a new one.</p>
-<p><strong>You may already have it.</strong> If Claude Code is installed on this machine, scribe installs the skill for you the first time you run <em>any</em> scribe command, and quietly refreshes it whenever the copy on disk falls behind the installed version. No prompt, nothing to opt into. Run <code>scribe install-skill</code> when you want to re-install or confirm it explicitly — say, after deleting the folder or debugging why Claude isn't picking it up.</p>
+<p><strong>You may already have it.</strong> If Claude Code is installed on this machine, anyscribe installs the skill for you the first time you run <em>any</em> anyscribe command, and quietly refreshes it whenever the copy on disk falls behind the installed version. No prompt, nothing to opt into. Run <code>anyscribe install-skill</code> when you want to re-install or confirm it explicitly — say, after deleting the folder or debugging why Claude isn't picking it up.</p>
 <p>Then either type <code>/anyscribe</code> to invoke it explicitly, or just ask in plain English — the skill activates on its own when your request is about transcription:</p>
 <ul>
 <li>"Transcribe this YouTube link and drop it in my vault: <code>https://youtube.com/watch?v=...</code>"</li>
@@ -92,7 +92,7 @@ scribe install-skill
 </code></pre>
 <p><strong>Other hosts</strong> (Cursor and friends) want the same two facts in whatever shape their config file takes: the command is <code>anyscribe-mcp</code>, and it needs no arguments.</p>
 <blockquote>
-<p><strong>Configure scribe first.</strong> The MCP server uses the same <code>~/.anyscribe/config.yaml</code> and API keys as the CLI. Run <code>scribe onboard</code> once before wiring up MCP, or the tools will start by telling your agent there's no provider configured.</p>
+<p><strong>Configure anyscribe first.</strong> The MCP server uses the same <code>~/.anyscribe/config.yaml</code> and API keys as the CLI. Run <code>anyscribe onboard</code> once before wiring up MCP, or the tools will start by telling your agent there's no provider configured.</p>
 </blockquote>
 <h2 id="what-your-agent-can-reach-skill-vs-mcp">What your agent can reach (skill vs MCP)</h2>
 <p>Both paths hit the same engine — the difference is how much of it is exposed.</p>
@@ -161,7 +161,7 @@ scribe install-skill
 <td>—</td>
 </tr>
 <tr>
-<td>Update scribe (<code>update</code>)</td>
+<td>Update anyscribe (<code>update</code>)</td>
 <td>✓</td>
 <td>—</td>
 </tr>
@@ -187,13 +187,13 @@ scribe install-skill
 </tr>
 </tbody>
 </table>
-<p>The tray is the one row where the agent runs out of road partway. Claude Code can <em>start</em> it (<code>scribe tray</code>) or set it to launch at login (<code>scribe install-service</code>), because those are ordinary commands. What no agent can do is use it: the tray's whole point is a menu-bar icon you click, and there's nothing to click on from a transcript. If you want scribe always running in the background, see <a href="/docs/getting-started#keep-it-running">Getting Started → Keep it running</a>.</p>
+<p>The tray is the one row where the agent runs out of road partway. Claude Code can <em>start</em> it (<code>anyscribe tray</code>) or set it to launch at login (<code>anyscribe install-service</code>), because those are ordinary commands. What no agent can do is use it: the tray's whole point is a menu-bar icon you click, and there's nothing to click on from a transcript. If you want anyscribe always running in the background, see <a href="/docs/getting-started#keep-it-running">Getting Started → Keep it running</a>.</p>
 <blockquote>
 <p><strong>Why the short list on MCP?</strong> Every MCP tool is a permanent promise with a fixed shape. Ten cover the work; the rest are one-off maintenance jobs better done by a human at a terminal — or by Claude Code, which has the whole CLI anyway.</p>
 </blockquote>
 <h2 id="agent-friendly-flags">Agent-friendly flags</h2>
 <p>Anything your agent needs to parse, it should ask for as JSON:</p>
-<pre><code class="language-bash">scribe &quot;&lt;url&gt;&quot; --json --quiet
+<pre><code class="language-bash">anyscribe &quot;&lt;url&gt;&quot; --json --quiet
 </code></pre>
 <p>Most commands that report results accept <code>--json</code>, and commands that would stop to ask "are you sure?" accept <code>--yes</code> (<code>-y</code>) to answer in advance — the pair that keeps an agent from hanging on a prompt it can't see. Full details, including the exact JSON shape, live in <a href="/docs/commands#for-scripts-and-agents">Commands → For scripts and agents</a>.</p>
 </main>

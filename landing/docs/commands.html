@@ -58,14 +58,15 @@
 <header><nav><a class="home" href="/">anyscribe</a><a href="/docs">Docs</a><a href="/docs/agents">Agents</a><a href="/docs/getting-started">Getting started</a><a href="/docs/commands" class="here">Commands</a><a href="/docs/providers">Providers</a><a href="/docs/configuration">Configuration</a><a href="/docs/troubleshooting">Troubleshooting</a></nav></header>
 <main>
 <h1 id="command-reference">Command Reference</h1>
-<p>Every scribe command. Copy-paste friendly.</p>
+<p>Every anyscribe command. Copy-paste friendly.</p>
 <blockquote>
-<p><strong>Scripting or writing an agent skill?</strong> The CLI contract — <code>--json</code>, <code>--yes</code>, exit codes, secrets handling — is collected in <a href="#for-scripts-and-agents">For scripts and agents</a> at the bottom of this page. Running scribe by hand? You can ignore all of it; the defaults are friendly without flags.</p>
+<p><strong><code>scribe</code> and <code>ascli</code> are shorter aliases for <code>anyscribe</code></strong> — every command below works typed as any of the three.</p>
+<p><strong>Scripting or writing an agent skill?</strong> The CLI contract — <code>--json</code>, <code>--yes</code>, exit codes, secrets handling — is collected in <a href="#for-scripts-and-agents">For scripts and agents</a> at the bottom of this page. Running anyscribe by hand? You can ignore all of it; the defaults are friendly without flags.</p>
 <p><strong>Something broken?</strong> <a href="/docs/troubleshooting">Troubleshooting</a> lists the errors by the exact text you see.</p>
 </blockquote>
 <h2 id="quick-overview">Quick Overview</h2>
 <p>The <strong>Where in the Web UI?</strong> column tells you whether a command has a
-click-equivalent in <code>scribe ui</code>. The Web UI has three pages — <strong>Transcribe</strong>,
+click-equivalent in <code>anyscribe ui</code>. The Web UI has three pages — <strong>Transcribe</strong>,
 <strong>History</strong>, and <strong>Settings</strong> — and the maintenance commands deliberately stay
 CLI-only.</p>
 <table>
@@ -78,152 +79,152 @@ CLI-only.</p>
 </thead>
 <tbody>
 <tr>
-<td><code>scribe "&lt;url or file&gt;"</code></td>
+<td><code>anyscribe "&lt;url or file&gt;"</code></td>
 <td>Transcribe a URL or local file (default action)</td>
 <td>Transcribe page</td>
 </tr>
 <tr>
-<td><code>scribe onboard</code></td>
+<td><code>anyscribe onboard</code></td>
 <td>First-time setup wizard (interactive TUI)</td>
 <td>Settings → Run setup wizard</td>
 </tr>
 <tr>
-<td><code>scribe onboard --yes --provider X ...</code></td>
+<td><code>anyscribe onboard --yes --provider X ...</code></td>
 <td>Headless setup (for agents / scripts)</td>
 <td>— (CLI only)</td>
 </tr>
 <tr>
-<td><code>scribe download "&lt;url&gt;"</code></td>
+<td><code>anyscribe download "&lt;url&gt;"</code></td>
 <td>Download video or audio only (no transcription)</td>
 <td>— (CLI only)</td>
 </tr>
 <tr>
-<td><code>scribe batch &lt;file&gt;</code></td>
+<td><code>anyscribe batch &lt;file&gt;</code></td>
 <td>Batch transcribe URLs or file paths from a file</td>
 <td>— (CLI only)</td>
 </tr>
 <tr>
-<td><code>scribe rm &lt;path-or-slug&gt;</code></td>
+<td><code>anyscribe rm &lt;path-or-slug&gt;</code></td>
 <td>Delete a transcript and update the index</td>
 <td>History → trash icon on a row</td>
 </tr>
 <tr>
-<td><code>scribe logs</code></td>
+<td><code>anyscribe logs</code></td>
 <td>View recent transcription activity + recovery artifacts</td>
 <td>— (CLI only)</td>
 </tr>
 <tr>
-<td><code>scribe config</code></td>
+<td><code>anyscribe config</code></td>
 <td>Dashboard: what the next run will use, and every provider's model</td>
 <td>Settings</td>
 </tr>
 <tr>
-<td><code>scribe config show</code></td>
+<td><code>anyscribe config show</code></td>
 <td>View current settings</td>
 <td>Settings</td>
 </tr>
 <tr>
-<td><code>scribe config set &lt;key&gt; &lt;value&gt;</code></td>
+<td><code>anyscribe config set &lt;key&gt; &lt;value&gt;</code></td>
 <td>Change a setting</td>
 <td>Settings</td>
 </tr>
 <tr>
-<td><code>scribe config set provider_models.&lt;provider&gt; &lt;model&gt;</code></td>
+<td><code>anyscribe config set provider_models.&lt;provider&gt; &lt;model&gt;</code></td>
 <td>Pin which model a provider uses</td>
 <td>Settings → Providers</td>
 </tr>
 <tr>
-<td><code>scribe config set extra_models.openrouter &lt;slugs&gt;</code></td>
+<td><code>anyscribe config set extra_models.openrouter &lt;slugs&gt;</code></td>
 <td>Add your own OpenRouter models to the pickers</td>
 <td>Settings → Providers (OpenRouter model box)</td>
 </tr>
 <tr>
-<td><code>scribe config path</code></td>
+<td><code>anyscribe config path</code></td>
 <td>Print config file location</td>
 <td>— (CLI only)</td>
 </tr>
 <tr>
-<td><code>scribe config list-keys</code></td>
+<td><code>anyscribe config list-keys</code></td>
 <td>Every settable key with its current value</td>
 <td>Settings → Providers (key status)</td>
 </tr>
 <tr>
-<td><code>scribe providers list</code></td>
+<td><code>anyscribe providers list</code></td>
 <td>Show available providers</td>
 <td>Settings → Providers</td>
 </tr>
 <tr>
-<td><code>scribe providers test [name]</code></td>
+<td><code>anyscribe providers test [name]</code></td>
 <td>Test a provider's API key</td>
 <td>Settings → Providers → Test</td>
 </tr>
 <tr>
-<td><code>scribe local setup --model &lt;size&gt;</code></td>
+<td><code>anyscribe local setup --model &lt;size&gt;</code></td>
 <td>Install faster-whisper + download a Whisper model</td>
 <td>Settings → Local provider card</td>
 </tr>
 <tr>
-<td><code>scribe local status</code></td>
+<td><code>anyscribe local status</code></td>
 <td>Report local-transcription readiness</td>
 <td>Settings → Local provider card</td>
 </tr>
 <tr>
-<td><code>scribe local teardown --yes</code></td>
+<td><code>anyscribe local teardown --yes</code></td>
 <td>Uninstall faster-whisper + delete all cached models</td>
 <td>Settings → Local provider card → Remove local transcription</td>
 </tr>
 <tr>
-<td><code>scribe model list</code></td>
+<td><code>anyscribe model list</code></td>
 <td>List Whisper models with cache status</td>
 <td>Settings → Local provider card</td>
 </tr>
 <tr>
-<td><code>scribe model pull &lt;size&gt;</code></td>
+<td><code>anyscribe model pull &lt;size&gt;</code></td>
 <td>Download an additional Whisper model</td>
 <td>Settings → Local provider card</td>
 </tr>
 <tr>
-<td><code>scribe model rm &lt;size&gt; --yes</code></td>
+<td><code>anyscribe model rm &lt;size&gt; --yes</code></td>
 <td>Delete a cached Whisper model</td>
 <td>Settings → Local provider card</td>
 </tr>
 <tr>
-<td><code>scribe model reinstall &lt;size&gt; --yes</code></td>
+<td><code>anyscribe model reinstall &lt;size&gt; --yes</code></td>
 <td>Delete + re-download in one step (for corrupted weights)</td>
 <td>Settings → Local provider card</td>
 </tr>
 <tr>
-<td><code>scribe model info &lt;size&gt;</code></td>
+<td><code>anyscribe model info &lt;size&gt;</code></td>
 <td>Inspect a single Whisper model</td>
 <td>— (CLI only)</td>
 </tr>
 <tr>
-<td><code>scribe ui</code></td>
+<td><code>anyscribe ui</code></td>
 <td>Launch the web UI in your browser</td>
 <td>— (it <em>is</em> the Web UI)</td>
 </tr>
 <tr>
-<td><code>scribe tray</code></td>
+<td><code>anyscribe tray</code></td>
 <td>Menu-bar icon that supervises the web server</td>
 <td>— (CLI only)</td>
 </tr>
 <tr>
-<td><code>scribe install-service</code></td>
+<td><code>anyscribe install-service</code></td>
 <td>Auto-start the tray at login (macOS only)</td>
 <td>Settings → Startup (macOS)</td>
 </tr>
 <tr>
-<td><code>scribe uninstall-service</code></td>
+<td><code>anyscribe uninstall-service</code></td>
 <td>Remove the login auto-start</td>
 <td>Settings → Startup (macOS)</td>
 </tr>
 <tr>
-<td><code>scribe install-skill</code></td>
+<td><code>anyscribe install-skill</code></td>
 <td>Install/update Claude Code skill</td>
 <td>— (CLI only)</td>
 </tr>
 <tr>
-<td><code>scribe update</code></td>
+<td><code>anyscribe update</code></td>
 <td>Update to the latest version</td>
 <td>— (CLI only)</td>
 </tr>
@@ -233,17 +234,17 @@ CLI-only.</p>
 <td>— (CLI only)</td>
 </tr>
 <tr>
-<td><code>scribe doctor</code></td>
+<td><code>anyscribe doctor</code></td>
 <td>Check system health</td>
 <td>Settings → System</td>
 </tr>
 <tr>
-<td><code>scribe --version</code></td>
+<td><code>anyscribe --version</code></td>
 <td>Show version</td>
 <td>Settings → System</td>
 </tr>
 <tr>
-<td><code>scribe --help</code></td>
+<td><code>anyscribe --help</code></td>
 <td>Show help</td>
 <td>— (CLI only)</td>
 </tr>
@@ -283,17 +284,17 @@ CLI-only.</p>
 <tr>
 <td><code>--help</code></td>
 <td></td>
-<td>Show help — works on every subcommand too (<code>scribe batch --help</code>)</td>
+<td>Show help — works on every subcommand too (<code>anyscribe batch --help</code>)</td>
 </tr>
 </tbody>
 </table>
 <hr />
-<h2 id="scribe-onboard">scribe onboard</h2>
+<h2 id="anyscribe-onboard">anyscribe onboard</h2>
 <p>Interactive setup wizard. Run this once after installing, or again to change settings.</p>
-<pre><code class="language-bash">scribe onboard
+<pre><code class="language-bash">anyscribe onboard
 </code></pre>
 <blockquote>
-<p><strong>Prefer clicking to typing?</strong> <code>scribe ui</code> opens the Web UI with the same onboarding flow as a modal wizard. Both paths set up the same config — pick whichever feels faster. See <a href="/docs/getting-started">getting-started.md</a> for the Web UI walk-through.</p>
+<p><strong>Prefer clicking to typing?</strong> <code>anyscribe ui</code> opens the Web UI with the same onboarding flow as a modal wizard. Both paths set up the same config — pick whichever feels faster. See <a href="/docs/getting-started">getting-started.md</a> for the Web UI walk-through.</p>
 </blockquote>
 <p><strong>What the TUI does</strong> (arrow-key selectors throughout):
 1. Checks system dependencies (Python, yt-dlp, ffmpeg) — offers to install missing ones
@@ -308,7 +309,7 @@ CLI-only.</p>
 10. Choose workspace location (default: <code>~/anyscribe/</code>)
 11. Creates your Obsidian workspace</p>
 <blockquote>
-<p><strong>Running this from an agent, a script, or CI?</strong> <code>scribe onboard --yes</code> skips
+<p><strong>Running this from an agent, a script, or CI?</strong> <code>anyscribe onboard --yes</code> skips
 the interactive flow entirely — the arrow-key TUI can't work without a
 terminal. The full flag reference lives in
 <a href="#headless-onboarding">For scripts and agents → Headless onboarding</a>.</p>
@@ -334,37 +335,37 @@ terminal. The full flag reference lives in
 </table>
 <h3 id="examples">Examples</h3>
 <pre><code class="language-bash"># First-time setup
-scribe onboard
+anyscribe onboard
 
 # Re-run to change settings (e.g., switch provider or update API key)
-scribe onboard --force
+anyscribe onboard --force
 
 # Skip dependency check (you know they're installed)
-scribe onboard --force --skip-deps
+anyscribe onboard --force --skip-deps
 </code></pre>
 <hr />
-<h2 id="scribe-default-transcribe">scribe (default: transcribe)</h2>
+<h2 id="anyscribe-default-transcribe">anyscribe (default: transcribe)</h2>
 <p>The main command. Transcribes a URL or local audio/video file and saves a formatted markdown file. <strong>A bare URL routes to transcribe automatically — no subcommand needed.</strong></p>
-<pre><code class="language-bash">scribe &quot;&lt;url&gt;&quot;                          # bare URL — just works
-scribe /path/to/file.mp3               # local file — just works
-scribe transcribe &quot;&lt;url&gt;&quot;              # explicit subcommand (also works)
+<pre><code class="language-bash">anyscribe &quot;&lt;url&gt;&quot;                          # bare URL — just works
+anyscribe /path/to/file.mp3               # local file — just works
+anyscribe transcribe &quot;&lt;url&gt;&quot;              # explicit subcommand (also works)
 </code></pre>
 <blockquote>
 <p><strong>Important:</strong> Always wrap URLs in quotes. Shells like zsh treat <code>?</code> as a special character, which breaks unquoted YouTube URLs. Local file paths don't need quotes.</p>
 </blockquote>
 <h3 id="ways-to-provide-input">Ways to provide input</h3>
 <pre><code class="language-bash"># 1. Pass a URL as an argument (always use quotes)
-scribe &quot;https://www.youtube.com/watch?v=dQw4w9WgXcQ&quot;
+anyscribe &quot;https://www.youtube.com/watch?v=dQw4w9WgXcQ&quot;
 
 # 2. Pass a local audio/video file
-scribe /path/to/podcast.mp3
-scribe ~/recordings/meeting.m4a
+anyscribe /path/to/podcast.mp3
+anyscribe ~/recordings/meeting.m4a
 
 # 3. Run without input — you'll be prompted to paste a URL or file path
-scribe transcribe
+anyscribe transcribe
 
 # 4. Copy a URL to your clipboard, then:
-scribe --clipboard
+anyscribe --clipboard
 </code></pre>
 <h3 id="flags_1">Flags</h3>
 <table>
@@ -440,21 +441,21 @@ scribe --clipboard
 </tbody>
 </table>
 <h3 id="choosing-a-model-model">Choosing a model (<code>--model</code>)</h3>
-<p>A <strong>provider</strong> is the service that does the transcribing (OpenAI, Deepgram, Groq...). A <strong>model</strong> is the specific engine inside that service. Each provider has a default model that scribe uses unless you say otherwise — you can ignore this entirely and everything still works.</p>
+<p>A <strong>provider</strong> is the service that does the transcribing (OpenAI, Deepgram, Groq...). A <strong>model</strong> is the specific engine inside that service. Each provider has a default model that anyscribe uses unless you say otherwise — you can ignore this entirely and everything still works.</p>
 <p>Use <code>--model</code> (short: <code>-m</code>) when you want a different one for a single run:</p>
 <pre><code class="language-bash"># OpenAI's newer model — cheaper and more accurate than the default
-scribe &quot;https://youtube.com/watch?v=abc123&quot; -p openai -m gpt-transcribe
+anyscribe &quot;https://youtube.com/watch?v=abc123&quot; -p openai -m gpt-transcribe
 
 # Groq's more accurate (slightly slower) model
-scribe &quot;https://youtube.com/watch?v=abc123&quot; -p groq -m whisper-large-v3
+anyscribe &quot;https://youtube.com/watch?v=abc123&quot; -p groq -m whisper-large-v3
 </code></pre>
 <p>To see what's available, run:</p>
-<pre><code class="language-bash">scribe config            # or: scribe providers list
+<pre><code class="language-bash">anyscribe config            # or: anyscribe providers list
 </code></pre>
 <p>That prints every provider, the model it's currently using, and the other models you can pick.</p>
 <blockquote>
-<p><strong>Want it every time?</strong> <code>--model</code> only affects the one run. To make it stick, see <a href="#pinning-a-model-per-provider"><code>scribe config set provider_models</code></a> below.</p>
-<p><strong>Heads up on timestamps.</strong> OpenAI's <code>gpt-transcribe</code> (the default), <code>gpt-4o-transcribe</code>, and <code>gpt-4o-mini-transcribe</code> don't return timestamps. When your output format is <code>timestamped</code> or <code>diarized</code>, scribe switches the run to <code>whisper-1</code> for you and prints <code>switched to whisper-1 — gpt-transcribe can't produce timestamps</code>. Passing <code>-m gpt-transcribe</code> yourself turns that off — an explicit model is always honoured, paragraphs and all. See <a href="/docs/providers">providers.md</a> for the full picture.</p>
+<p><strong>Want it every time?</strong> <code>--model</code> only affects the one run. To make it stick, see <a href="#pinning-a-model-per-provider"><code>anyscribe config set provider_models</code></a> below.</p>
+<p><strong>Heads up on timestamps.</strong> OpenAI's <code>gpt-transcribe</code> (the default), <code>gpt-4o-transcribe</code>, and <code>gpt-4o-mini-transcribe</code> don't return timestamps. When your output format is <code>timestamped</code> or <code>diarized</code>, anyscribe switches the run to <code>whisper-1</code> for you and prints <code>switched to whisper-1 — gpt-transcribe can't produce timestamps</code>. Passing <code>-m gpt-transcribe</code> yourself turns that off — an explicit model is always honoured, paragraphs and all. See <a href="/docs/providers">providers.md</a> for the full picture.</p>
 </blockquote>
 <h3 id="the-line-above-your-transcript">The line above your transcript</h3>
 <p>Every run prints one line naming what it's about to use:</p>
@@ -464,62 +465,62 @@ scribe &quot;https://youtube.com/watch?v=abc123&quot; -p groq -m whisper-large-v
 <li><strong>provider · model</strong> — exactly what will be called.</li>
 <li><strong>(reason)</strong> — <code>flag</code> (you passed <code>--provider</code>), <code>diarize</code> (auto-routed for speaker labels), <code>quality: &lt;tier&gt;</code>, or <code>config</code> (your <code>provider</code> setting).</li>
 </ul>
-<p>Anything scribe decided on your behalf is printed underneath, indented:</p>
+<p>Anything anyscribe decided on your behalf is printed underneath, indented:</p>
 <pre><code>→ openai · whisper-1 (config)
     WARNING: quality 'balanced' wants deepgram but no DEEPGRAM_API_KEY is set — using openai instead
     switched to whisper-1 — gpt-transcribe can't produce timestamps
 </code></pre>
 <p>The line goes to stderr, so it never mixes into <code>--json</code> output — and <code>--quiet</code> hides it.</p>
 <blockquote>
-<p><strong>The <code>local</code> provider is different.</strong> Its models are downloaded to your machine, so you pick them with <code>scribe local setup --model &lt;size&gt;</code> and <code>scribe model pull &lt;size&gt;</code>, not with <code>-m</code>.</p>
-<p><strong>Already transcribed something? scribe won't do it twice.</strong> Before transcribing, scribe checks your vault for a transcript of the same URL or file (it matches the <code>source:</code> line in each note's frontmatter — the metadata block at the top). If it finds one, it hands you back that existing file instead of spending time and API credits re-transcribing. You'll see <code>Already transcribed: &lt;path&gt; — use --force to re-transcribe.</code> To force a fresh transcription anyway (say you switched providers, or the video was re-uploaded), add <code>--force</code>.</p>
+<p><strong>The <code>local</code> provider is different.</strong> Its models are downloaded to your machine, so you pick them with <code>anyscribe local setup --model &lt;size&gt;</code> and <code>anyscribe model pull &lt;size&gt;</code>, not with <code>-m</code>.</p>
+<p><strong>Already transcribed something? anyscribe won't do it twice.</strong> Before transcribing, anyscribe checks your vault for a transcript of the same URL or file (it matches the <code>source:</code> line in each note's frontmatter — the metadata block at the top). If it finds one, it hands you back that existing file instead of spending time and API credits re-transcribing. You'll see <code>Already transcribed: &lt;path&gt; — use --force to re-transcribe.</code> To force a fresh transcription anyway (say you switched providers, or the video was re-uploaded), add <code>--force</code>.</p>
 </blockquote>
 <h3 id="examples_1">Examples</h3>
 <pre><code class="language-bash"># YouTube video (always quote the URL)
-scribe &quot;https://www.youtube.com/watch?v=dQw4w9WgXcQ&quot;
+anyscribe &quot;https://www.youtube.com/watch?v=dQw4w9WgXcQ&quot;
 
 # Instagram reel
-scribe &quot;https://www.instagram.com/reel/C17LiBLyIOe/&quot;
+anyscribe &quot;https://www.instagram.com/reel/C17LiBLyIOe/&quot;
 
 # Local audio/video file
-scribe /path/to/podcast.mp3
-scribe ~/recordings/meeting.m4a
-scribe ./interview.opus
+anyscribe /path/to/podcast.mp3
+anyscribe ~/recordings/meeting.m4a
+anyscribe ./interview.opus
 
 # Interactive — paste URL or file path when prompted
-scribe transcribe
+anyscribe transcribe
 
 # Pick a quality tier — balanced (default), accuracy, cost, or free
-scribe &quot;https://youtube.com/watch?v=abc123&quot; --quality accuracy  # highest accuracy
-scribe &quot;https://youtube.com/watch?v=abc123&quot; --quality cost      # cheapest (Groq)
+anyscribe &quot;https://youtube.com/watch?v=abc123&quot; --quality accuracy  # highest accuracy
+anyscribe &quot;https://youtube.com/watch?v=abc123&quot; --quality cost      # cheapest (Groq)
 
 # From clipboard
-scribe --clipboard
+anyscribe --clipboard
 
 # Re-transcribe a source that's already in your vault (skip the &quot;already transcribed&quot; shortcut)
-scribe &quot;https://youtube.com/watch?v=abc123&quot; --force
+anyscribe &quot;https://youtube.com/watch?v=abc123&quot; --force
 
 # Specify language (skip auto-detection)
-scribe &quot;https://youtube.com/watch?v=abc123&quot; --language es
+anyscribe &quot;https://youtube.com/watch?v=abc123&quot; --language es
 
 # Keep the audio file alongside the transcript
-scribe &quot;https://youtube.com/watch?v=abc123&quot; --keep-media
+anyscribe &quot;https://youtube.com/watch?v=abc123&quot; --keep-media
 
 # Enable speaker diarization (auto-switches to Deepgram if configured)
 # Deepgram auto-detects the number of speakers — no need to specify a count
-scribe &quot;https://youtube.com/watch?v=abc123&quot; --diarize
+anyscribe &quot;https://youtube.com/watch?v=abc123&quot; --diarize
 
 # Diarize with a specific provider (overrides auto-routing)
-scribe &quot;https://youtube.com/watch?v=abc123&quot; --diarize --provider openai
+anyscribe &quot;https://youtube.com/watch?v=abc123&quot; --diarize --provider openai
 
 # Diarize a mostly-Hindi or Hinglish recording (romanized Latin script output)
-scribe &quot;https://youtube.com/watch?v=abc123&quot; --diarize --language hi-Latn
+anyscribe &quot;https://youtube.com/watch?v=abc123&quot; --diarize --language hi-Latn
 
 # JSON output — for scripts, AI agents, or piping to other tools
-scribe &quot;https://youtube.com/watch?v=abc123&quot; --json
+anyscribe &quot;https://youtube.com/watch?v=abc123&quot; --json
 </code></pre>
 <h3 id="json-output">JSON Output</h3>
-<p>When you use <code>--json</code>, scribe prints structured JSON to stdout (progress goes to stderr):</p>
+<p>When you use <code>--json</code>, anyscribe prints structured JSON to stdout (progress goes to stderr):</p>
 <pre><code class="language-json">{
   &quot;success&quot;: true,
   &quot;file&quot;: &quot;/Users/you/anyscribe/sources/youtube/video-title.md&quot;,
@@ -534,8 +535,8 @@ scribe &quot;https://youtube.com/watch?v=abc123&quot; --json
 }
 </code></pre>
 <blockquote>
-<p><strong>The <code>model</code> field</strong> tells you which model actually ran — useful when scribe switched it for you (e.g. back to <code>whisper-1</code> for timestamps).</p>
-<p><strong>The <code>cached</code> field:</strong> <code>false</code> means scribe transcribed the source just now. <code>true</code> means the source was already in your vault and scribe returned the existing file (<code>file</code> points at it) instead of re-transcribing. Add <code>--force</code> to make it transcribe fresh.</p>
+<p><strong>The <code>model</code> field</strong> tells you which model actually ran — useful when anyscribe switched it for you (e.g. back to <code>whisper-1</code> for timestamps).</p>
+<p><strong>The <code>cached</code> field:</strong> <code>false</code> means anyscribe transcribed the source just now. <code>true</code> means the source was already in your vault and anyscribe returned the existing file (<code>file</code> points at it) instead of re-transcribing. Add <code>--force</code> to make it transcribe fresh.</p>
 </blockquote>
 <p>On error:</p>
 <pre><code class="language-json">{
@@ -544,14 +545,14 @@ scribe &quot;https://youtube.com/watch?v=abc123&quot; --json
 }
 </code></pre>
 <blockquote>
-<p><strong>Scripting tip:</strong> Use <code>--json --quiet</code> together to get clean JSON with no extra output. Pipe to <code>jq</code> for filtering: <code>scribe "url" --json -q | jq '.file'</code></p>
+<p><strong>Scripting tip:</strong> Use <code>--json --quiet</code> together to get clean JSON with no extra output. Pipe to <code>jq</code> for filtering: <code>anyscribe "url" --json -q | jq '.file'</code></p>
 </blockquote>
 <h3 id="speaker-diarization">Speaker Diarization</h3>
-<p>The <code>--diarize</code> flag enables multi-speaker transcription — scribe identifies who said what and labels each turn.</p>
+<p>The <code>--diarize</code> flag enables multi-speaker transcription — anyscribe identifies who said what and labels each turn.</p>
 <p><strong>How it works:</strong>
 - <strong>Automatic speaker detection</strong> — the number of speakers is detected automatically from audio characteristics (pitch, tone, cadence). You never need to specify how many speakers are in the recording.
 - <strong>Speaker labels</strong> — each speaker gets a label (<code>Speaker 0</code>, <code>Speaker 1</code>, <code>Speaker 2</code>, etc.) assigned in the order they first appear.
-- <strong>Auto-routing to Deepgram</strong> — when <code>--diarize</code> is used without <code>-p</code>, scribe automatically switches to Deepgram if a Deepgram API key is configured. Deepgram handles files of any size natively and produces consistent speaker labels. Override with <code>-p openai</code> if needed.
+- <strong>Auto-routing to Deepgram</strong> — when <code>--diarize</code> is used without <code>-p</code>, anyscribe automatically switches to Deepgram if a Deepgram API key is configured. Deepgram handles files of any size natively and produces consistent speaker labels. Override with <code>-p openai</code> if needed.
 - <strong>No file size limit with Deepgram</strong> — unlike OpenAI (25MB limit for diarization), Deepgram processes the full audio in one shot regardless of length.</p>
 <p><strong>Language and diarization:</strong>
 - <strong>Auto-detect (default)</strong> — works well for English and English-with-some-Hindi conversations. Use this for most meetings.
@@ -566,11 +567,11 @@ scribe &quot;https://youtube.com/watch?v=abc123&quot; --json
 </code></pre>
 <p><strong>Quick setup:</strong></p>
 <pre><code class="language-bash"># 1. Add your Deepgram key (free $200 credit on signup at console.deepgram.com)
-scribe config set deepgram_api_key YOUR_KEY
+anyscribe config set deepgram_api_key YOUR_KEY
 
 # 2. Transcribe with speakers
-scribe &quot;url&quot; --diarize                        # English / auto-detect
-scribe &quot;url&quot; --diarize --language hi-Latn     # Hindi / Hinglish
+anyscribe &quot;url&quot; --diarize                        # English / auto-detect
+anyscribe &quot;url&quot; --diarize --language hi-Latn     # Hindi / Hinglish
 </code></pre>
 <h3 id="supported-inputs">Supported Inputs</h3>
 <table>
@@ -600,9 +601,9 @@ scribe &quot;url&quot; --diarize --language hi-Latn     # Hindi / Hinglish
 </tbody>
 </table>
 <hr />
-<h2 id="scribe-batch">scribe batch</h2>
+<h2 id="anyscribe-batch">anyscribe batch</h2>
 <p>Transcribe multiple URLs or local files from a list. One entry per line, blank lines and <code>#comments</code> are skipped.</p>
-<pre><code class="language-bash">scribe batch urls.txt
+<pre><code class="language-bash">anyscribe batch urls.txt
 </code></pre>
 <h3 id="flags_2">Flags</h3>
 <table>
@@ -697,35 +698,35 @@ https://instagram.com/reel/xyz789
 EOF
 
 # Transcribe all
-scribe batch urls.txt
+anyscribe batch urls.txt
 
 # Stop if any fail
-scribe batch urls.txt --stop-on-error
+anyscribe batch urls.txt --stop-on-error
 
 # JSON output for scripting
-scribe batch urls.txt --json
+anyscribe batch urls.txt --json
 
 # Cap each URL at 5 minutes — slow ones fail and the batch keeps going
-scribe batch urls.txt --timeout 300
+anyscribe batch urls.txt --timeout 300
 
 # Run the whole batch on a cheaper model
-scribe batch urls.txt -p openai -m gpt-4o-mini-transcribe
+anyscribe batch urls.txt -p openai -m gpt-4o-mini-transcribe
 </code></pre>
 <blockquote>
-<p><strong>A timed-out URL doesn't stop cleanly mid-download or mid-transcription</strong> — scribe can't kill that work outright, so it abandons it and moves on. This is fine for a normal batch run; just know the timed-out attempt may still be using network/API resources briefly in the background.</p>
+<p><strong>A timed-out URL doesn't stop cleanly mid-download or mid-transcription</strong> — anyscribe can't kill that work outright, so it abandons it and moves on. This is fine for a normal batch run; just know the timed-out attempt may still be using network/API resources briefly in the background.</p>
 </blockquote>
 <hr />
-<h2 id="scribe-rm">scribe rm</h2>
+<h2 id="anyscribe-rm">anyscribe rm</h2>
 <p>Delete a transcript from your vault and remove its row from the master index (<code>_index.md</code>). Use this to clean up a transcript you no longer want — or to clear the way before re-transcribing a source from scratch.</p>
-<pre><code class="language-bash">scribe rm &quot;sources/youtube/my-video.md&quot;    # by file path
-scribe rm my-video                          # by slug
+<pre><code class="language-bash">anyscribe rm &quot;sources/youtube/my-video.md&quot;    # by file path
+anyscribe rm my-video                          # by slug
 </code></pre>
 <blockquote>
-<p><strong>What's a "slug"?</strong> The slug is a transcript's filename without the <code>.md</code> extension — the short, dash-separated name scribe generates from the title. For a file at <code>sources/youtube/my-video.md</code>, the slug is <code>my-video</code>. You can pass either the full path or just the slug.</p>
+<p><strong>What's a "slug"?</strong> The slug is a transcript's filename without the <code>.md</code> extension — the short, dash-separated name anyscribe generates from the title. For a file at <code>sources/youtube/my-video.md</code>, the slug is <code>my-video</code>. You can pass either the full path or just the slug.</p>
 </blockquote>
-<p>If a slug matches more than one transcript (same title from different platforms, say), scribe lists the matches and stops without deleting anything — re-run with the full path to pick one.</p>
+<p>If a slug matches more than one transcript (same title from different platforms, say), anyscribe lists the matches and stops without deleting anything — re-run with the full path to pick one.</p>
 <blockquote>
-<p><strong>What gets deleted:</strong> only the transcript file itself and its entry in <code>_index.md</code>. Your <strong>daily logs</strong> (<code>daily/YYYY-MM-DD.md</code>) are left alone — they're a historical record of what you transcribed each day, so scribe keeps them intact.</p>
+<p><strong>What gets deleted:</strong> only the transcript file itself and its entry in <code>_index.md</code>. Your <strong>daily logs</strong> (<code>daily/YYYY-MM-DD.md</code>) are left alone — they're a historical record of what you transcribed each day, so anyscribe keeps them intact.</p>
 </blockquote>
 <h3 id="flags_3">Flags</h3>
 <table>
@@ -754,28 +755,28 @@ scribe rm my-video                          # by slug
 </table>
 <h3 id="examples_3">Examples</h3>
 <pre><code class="language-bash"># Delete by path (you'll be asked to confirm)
-scribe rm &quot;sources/youtube/my-video.md&quot;
+anyscribe rm &quot;sources/youtube/my-video.md&quot;
 
 # Delete by slug, no confirmation prompt
-scribe rm my-video --yes
+anyscribe rm my-video --yes
 
 # JSON output (for scripts)
-scribe rm my-video --yes --json
+anyscribe rm my-video --yes --json
 </code></pre>
 <h3 id="json-output_1">JSON Output</h3>
 <pre><code class="language-json">{ &quot;success&quot;: true, &quot;data&quot;: { &quot;deleted&quot;: &quot;sources/youtube/my-video.md&quot; }, &quot;error&quot;: null }
 </code></pre>
 <p>If nothing matches, the slug is ambiguous, or the file can't be deleted, <code>success</code> is <code>false</code>, <code>error</code> explains why, and the command exits with code 1.</p>
 <hr />
-<h2 id="scribe-logs">scribe logs</h2>
+<h2 id="anyscribe-logs">anyscribe logs</h2>
 <p>See what you've transcribed recently, and check for any leftover audio from failed runs.</p>
-<pre><code class="language-bash">scribe logs                # last 20 entries, newest first
-scribe logs --limit 50     # more entries
+<pre><code class="language-bash">anyscribe logs                # last 20 entries, newest first
+anyscribe logs --limit 50     # more entries
 </code></pre>
 <p>This reads straight from your workspace's <code>daily/YYYY-MM-DD.md</code> logs — the same
 files you can open in Obsidian — so there's nothing extra to keep in sync. It
 also lists <strong>recovery artifacts</strong>: if a transcription downloaded audio but then
-failed before finishing, scribe keeps that audio around instead of throwing it
+failed before finishing, anyscribe keeps that audio around instead of throwing it
 away, so you don't have to re-download it. Those show up in a separate section
 of the output.</p>
 <blockquote>
@@ -808,10 +809,10 @@ of the output.</p>
 </table>
 <h3 id="examples_4">Examples</h3>
 <pre><code class="language-bash"># Quick check on today's activity
-scribe logs --limit 5
+anyscribe logs --limit 5
 
 # JSON for scripting or piping to jq
-scribe logs --json --limit 100
+anyscribe logs --json --limit 100
 </code></pre>
 <h3 id="json-output_2">JSON Output</h3>
 <pre><code class="language-json">{
@@ -834,9 +835,9 @@ scribe logs --json --limit 100
 }
 </code></pre>
 <hr />
-<h2 id="scribe-download">scribe download</h2>
+<h2 id="anyscribe-download">anyscribe download</h2>
 <p>Download video or audio from a URL — no transcription. Useful when you just want the file.</p>
-<pre><code class="language-bash">scribe download &quot;&lt;url&gt;&quot;
+<pre><code class="language-bash">anyscribe download &quot;&lt;url&gt;&quot;
 </code></pre>
 <p>Saves to <code>~/.anyscribe/downloads/video/&lt;platform&gt;/</code> (default) or <code>~/.anyscribe/downloads/audio/&lt;platform&gt;/</code> with <code>--audio-only</code>.</p>
 <h3 id="flags_5">Flags</h3>
@@ -873,31 +874,31 @@ scribe logs --json --limit 100
 </table>
 <h3 id="examples_5">Examples</h3>
 <pre><code class="language-bash"># Download video
-scribe download &quot;https://www.youtube.com/watch?v=dQw4w9WgXcQ&quot;
+anyscribe download &quot;https://www.youtube.com/watch?v=dQw4w9WgXcQ&quot;
 
 # Download audio only (no video)
-scribe download &quot;https://www.youtube.com/watch?v=dQw4w9WgXcQ&quot; --audio-only
+anyscribe download &quot;https://www.youtube.com/watch?v=dQw4w9WgXcQ&quot; --audio-only
 
 # From clipboard
-scribe download --clipboard
+anyscribe download --clipboard
 
 # Interactive (paste URL when prompted)
-scribe download
+anyscribe download
 
 # JSON output
-scribe download &quot;https://youtube.com/watch?v=abc123&quot; --json
+anyscribe download &quot;https://youtube.com/watch?v=abc123&quot; --json
 </code></pre>
 <hr />
-<h2 id="scribe-config">scribe config</h2>
+<h2 id="anyscribe-config">anyscribe config</h2>
 <p>View and change settings.</p>
-<pre><code class="language-bash">scribe config                # dashboard: what runs next + every provider's model
-scribe config show           # display all settings
-scribe config set key value  # change a setting
-scribe config path           # print config file location
-scribe config list-keys      # every settable key with its current value
+<pre><code class="language-bash">anyscribe config                # dashboard: what runs next + every provider's model
+anyscribe config show           # display all settings
+anyscribe config set key value  # change a setting
+anyscribe config path           # print config file location
+anyscribe config list-keys      # every settable key with its current value
 </code></pre>
 <h3 id="the-defaults-dashboard">The defaults dashboard</h3>
-<p>Run <code>scribe config</code> with no subcommand to see, in one screen, what your next
+<p>Run <code>anyscribe config</code> with no subcommand to see, in one screen, what your next
 transcription will use and what else you could switch to:</p>
 <pre><code>Next run: deepgram · nova-3 (quality: balanced)
 
@@ -910,10 +911,10 @@ Provider      Default model           Alternatives      Key      Notes
   openrouter  openai/gpt-audio-mini   5 more            missing
   sargam      saaras:v3                                 missing
 
-Missing keys:    elevenlabs, groq, openai, openrouter, sargam  (scribe config set &lt;provider&gt;_api_key &lt;key&gt;)
-Change provider: scribe config set provider &lt;name&gt;  (also sets quality = custom, so it sticks)
-Pin a model:     scribe config set provider_models.&lt;provider&gt; &lt;model&gt;
-Or pick a tier:  scribe config set quality accuracy|balanced|cost|free|custom
+Missing keys:    elevenlabs, groq, openai, openrouter, sargam  (anyscribe config set &lt;provider&gt;_api_key &lt;key&gt;)
+Change provider: anyscribe config set provider &lt;name&gt;  (also sets quality = custom, so it sticks)
+Pin a model:     anyscribe config set provider_models.&lt;provider&gt; &lt;model&gt;
+Or pick a tier:  anyscribe config set quality accuracy|balanced|cost|free|custom
 </code></pre>
 <p>How to read it:</p>
 <table>
@@ -930,7 +931,7 @@ Or pick a tier:  scribe config set quality accuracy|balanced|cost|free|custom
 </tr>
 <tr>
 <td>Indented lines under it</td>
-<td>Anything scribe decided for you: a missing-key fallback, an automatic model switch, <code>hi-Latn</code> routing</td>
+<td>Anything anyscribe decided for you: a missing-key fallback, an automatic model switch, <code>hi-Latn</code> routing</td>
 </tr>
 <tr>
 <td><strong>→</strong></td>
@@ -955,9 +956,9 @@ Or pick a tier:  scribe config set quality accuracy|balanced|cost|free|custom
 </tbody>
 </table>
 <blockquote>
-<p><strong>This is the command to run when you're not sure what scribe will do.</strong> <code>scribe config show</code> dumps the raw settings file; <code>scribe config</code> answers "what happens if I hit enter".</p>
+<p><strong>This is the command to run when you're not sure what anyscribe will do.</strong> <code>anyscribe config show</code> dumps the raw settings file; <code>anyscribe config</code> answers "what happens if I hit enter".</p>
 </blockquote>
-<p><code>scribe config --json</code> returns the same thing for scripts and agents — the full settings, a <code>resolved</code> block (<code>provider</code>, <code>model</code>, <code>via</code>, <code>notes</code>), and a <code>providers</code> array with each provider's models, key status, and tier.</p>
+<p><code>anyscribe config --json</code> returns the same thing for scripts and agents — the full settings, a <code>resolved</code> block (<code>provider</code>, <code>model</code>, <code>via</code>, <code>notes</code>), and a <code>providers</code> array with each provider's models, key status, and tier.</p>
 <h3 id="flags_6">Flags</h3>
 <table>
 <thead>
@@ -991,68 +992,68 @@ Or pick a tier:  scribe config set quality accuracy|balanced|cost|free|custom
 </table>
 <h3 id="examples_6">Examples</h3>
 <pre><code class="language-bash"># What will the next run use?
-scribe config
+anyscribe config
 
 # Show current config
-scribe config show
+anyscribe config show
 
 # Change provider (also writes quality: custom, so the choice sticks)
-scribe config set provider elevenlabs
+anyscribe config set provider elevenlabs
 
 # Or let a tier pick the provider instead
-scribe config set quality accuracy
+anyscribe config set quality accuracy
 
 # Change language
-scribe config set language hi
+anyscribe config set language hi
 
 # Set an API key (stored in .env, not config.yaml)
-scribe config set deepgram_api_key YOUR_KEY
-scribe config set openai_api_key YOUR_KEY
+anyscribe config set deepgram_api_key YOUR_KEY
+anyscribe config set openai_api_key YOUR_KEY
 
 # Pin a model for a provider (see below)
-scribe config set provider_models.openai whisper-1
+anyscribe config set provider_models.openai whisper-1
 
 # Add your own OpenRouter models to the pickers (empty value clears them)
-scribe config set extra_models.openrouter &quot;qwen/qwen3-omni-flash,openai/gpt-audio&quot;
+anyscribe config set extra_models.openrouter &quot;qwen/qwen3-omni-flash,openai/gpt-audio&quot;
 
 # Set Instagram browser (for cookie-based downloads)
-scribe config set instagram.browser firefox
+anyscribe config set instagram.browser firefox
 
 # Get JSON output
-scribe config show --json
+anyscribe config show --json
 </code></pre>
 <h3 id="pinning-a-model-per-provider">Pinning a model per provider</h3>
 <p><code>--model</code> on a single command is temporary. To make a model choice permanent, set it in your config:</p>
-<pre><code class="language-bash">scribe config set provider_models.openai whisper-1
-scribe config set provider_models.groq whisper-large-v3
+<pre><code class="language-bash">anyscribe config set provider_models.openai whisper-1
+anyscribe config set provider_models.groq whisper-large-v3
 </code></pre>
 <p>The key is <code>provider_models.</code> followed by the provider name. Each provider gets its own entry, so if you switch between providers, each one remembers the model you picked for it. Anything you haven't set keeps that provider's default.</p>
-<p>If you type a model that provider doesn't have, scribe refuses the change and prints the list of valid ones:</p>
+<p>If you type a model that provider doesn't have, anyscribe refuses the change and prints the list of valid ones:</p>
 <pre><code>Unknown model 'whisper-2' for openai. Available: gpt-transcribe, whisper-1, gpt-4o-transcribe, gpt-4o-mini-transcribe
 </code></pre>
 <blockquote>
-<p><strong>OpenRouter is the exception.</strong> It accepts any audio-capable model slug, so scribe doesn't check it — a typo won't be caught until the request reaches OpenRouter.</p>
+<p><strong>OpenRouter is the exception.</strong> It accepts any audio-capable model slug, so anyscribe doesn't check it — a typo won't be caught until the request reaches OpenRouter.</p>
 </blockquote>
 <h3 id="adding-your-own-models-openrouter-only">Adding your own models (OpenRouter only)</h3>
-<pre><code class="language-bash">scribe config set extra_models.openrouter &quot;qwen/qwen3-omni-flash,openai/gpt-audio&quot;
-scribe config set extra_models.openrouter &quot;&quot;     # clears the list
+<pre><code class="language-bash">anyscribe config set extra_models.openrouter &quot;qwen/qwen3-omni-flash,openai/gpt-audio&quot;
+anyscribe config set extra_models.openrouter &quot;&quot;     # clears the list
 </code></pre>
-<p>Models you add are merged into every picker — the <code>scribe config</code> dashboard, <code>scribe providers list</code> (where they're marked <code>(custom)</code>), and the Web UI's OpenRouter model box.</p>
+<p>Models you add are merged into every picker — the <code>anyscribe config</code> dashboard, <code>anyscribe providers list</code> (where they're marked <code>(custom)</code>), and the Web UI's OpenRouter model box.</p>
 <blockquote>
-<p><strong>Why only OpenRouter?</strong> It forwards any model name unchanged, so scribe doesn't need to know anything about the model in advance. Every other provider returns its own response shape, which scribe needs code to read — so their lists ship with releases. <strong>To get a new Deepgram or ElevenLabs model, run <code>scribe update</code></strong>, not <code>config set</code>.</p>
-<p><strong>For the <code>local</code> provider, use <code>local_model</code> instead</strong> (<code>scribe config set local_model small</code>). Local models are downloaded to your machine, so they have their own commands — see <code>scribe model</code> below.</p>
+<p><strong>Why only OpenRouter?</strong> It forwards any model name unchanged, so anyscribe doesn't need to know anything about the model in advance. Every other provider returns its own response shape, which anyscribe needs code to read — so their lists ship with releases. <strong>To get a new Deepgram or ElevenLabs model, run <code>anyscribe update</code></strong>, not <code>config set</code>.</p>
+<p><strong>For the <code>local</code> provider, use <code>local_model</code> instead</strong> (<code>anyscribe config set local_model small</code>). Local models are downloaded to your machine, so they have their own commands — see <code>anyscribe model</code> below.</p>
 </blockquote>
 <p>See <a href="/docs/configuration">configuration.md</a> for the full setting reference and <a href="/docs/providers">providers.md</a> for what each model is good at.</p>
 <blockquote>
 <p><strong>Dot-notation:</strong> Use dots for nested keys like <code>instagram.browser</code> and <code>provider_models.openai</code>.</p>
-<p><strong>API keys:</strong> <code>scribe config set</code> also accepts API key names (e.g., <code>deepgram_api_key</code>, <code>openai_api_key</code>, <code>elevenlabs_api_key</code>, <code>sargam_api_key</code>, <code>groq_api_key</code>, <code>openrouter_api_key</code>). These are stored in <code>~/.anyscribe/.env</code>, not in config.yaml.</p>
+<p><strong>API keys:</strong> <code>anyscribe config set</code> also accepts API key names (e.g., <code>deepgram_api_key</code>, <code>openai_api_key</code>, <code>elevenlabs_api_key</code>, <code>sargam_api_key</code>, <code>groq_api_key</code>, <code>openrouter_api_key</code>). These are stored in <code>~/.anyscribe/.env</code>, not in config.yaml.</p>
 </blockquote>
 <hr />
-<h2 id="scribe-providers">scribe providers</h2>
+<h2 id="anyscribe-providers">anyscribe providers</h2>
 <p>Manage transcription providers.</p>
-<pre><code class="language-bash">scribe providers list          # show all providers
-scribe providers test          # test active provider
-scribe providers test openai   # test a specific provider
+<pre><code class="language-bash">anyscribe providers list          # show all providers
+anyscribe providers test          # test active provider
+anyscribe providers test openai   # test a specific provider
 </code></pre>
 <h3 id="flags_7">Flags</h3>
 <table>
@@ -1107,7 +1108,7 @@ openai      gpt-transcribe    whisper-1, gpt-4o-transcribe, ...
 </tbody>
 </table>
 <blockquote>
-<p><strong><code>Active</code> is your setting, not necessarily what runs.</strong> A <code>quality</code> tier can override it. For what will actually run, use <code>scribe config</code>.</p>
+<p><strong><code>Active</code> is your setting, not necessarily what runs.</strong> A <code>quality</code> tier can override it. For what will actually run, use <code>anyscribe config</code>.</p>
 </blockquote>
 <h3 id="available-providers">Available Providers</h3>
 <table>
@@ -1157,15 +1158,15 @@ openai      gpt-transcribe    whisper-1, gpt-4o-transcribe, ...
 </tbody>
 </table>
 <blockquote>
-<p><strong>Local provider</strong> requires a one-time setup: <code>scribe local setup --model base</code> (or click "Set up local transcription" in the Web UI). See <code>scribe local</code> and <code>scribe model</code> below.</p>
+<p><strong>Local provider</strong> requires a one-time setup: <code>anyscribe local setup --model base</code> (or click "Set up local transcription" in the Web UI). See <code>anyscribe local</code> and <code>anyscribe model</code> below.</p>
 </blockquote>
 <hr />
-<h2 id="scribe-local">scribe local</h2>
+<h2 id="anyscribe-local">anyscribe local</h2>
 <p>Three subcommands that manage offline transcription as a single opt-in lifecycle: install faster-whisper, download a model, persist the default; or reverse the whole thing. See also <a href="/docs/providers">providers.md → Local</a>.</p>
-<h3 id="scribe-local-setup">scribe local setup</h3>
-<pre><code class="language-bash">scribe local setup --model base --yes
+<h3 id="anyscribe-local-setup">anyscribe local setup</h3>
+<pre><code class="language-bash">anyscribe local setup --model base --yes
 </code></pre>
-<p>Installs faster-whisper into the same Python environment as scribe, downloads the Whisper model you picked, and saves it as your default. <strong>Idempotent</strong> — re-running with a model that's already cached just updates the default-model setting.</p>
+<p>Installs faster-whisper into the same Python environment as anyscribe, downloads the Whisper model you picked, and saves it as your default. <strong>Idempotent</strong> — re-running with a model that's already cached just updates the default-model setting.</p>
 <table>
 <thead>
 <tr>
@@ -1188,48 +1189,48 @@ openai      gpt-transcribe    whisper-1, gpt-4o-transcribe, ...
 </tr>
 </tbody>
 </table>
-<h3 id="scribe-local-status">scribe local status</h3>
-<pre><code class="language-bash">scribe local status --json
+<h3 id="anyscribe-local-status">anyscribe local status</h3>
+<pre><code class="language-bash">anyscribe local status --json
 </code></pre>
 <p>Reports faster-whisper version, ffmpeg presence, cached models, disk usage, and the detected install method (pip-venv / pipx / system). Always exits 0 — safe to call before setup.</p>
-<h3 id="scribe-local-teardown">scribe local teardown</h3>
-<pre><code class="language-bash">scribe local teardown --yes
+<h3 id="anyscribe-local-teardown">anyscribe local teardown</h3>
+<pre><code class="language-bash">anyscribe local teardown --yes
 </code></pre>
 <p>Uninstalls faster-whisper via the same method it was installed with, deletes every cached Whisper model, and resets <code>settings.provider</code> to <code>openai</code> if it was currently <code>local</code>. <code>--yes</code> is required.</p>
 <hr />
-<h2 id="scribe-model">scribe model</h2>
-<p>Day-to-day management of the Whisper cache. Requires <code>scribe local setup</code> to have run first (otherwise <code>pull</code> and <code>rm</code> error out with a hint pointing you at setup).</p>
+<h2 id="anyscribe-model">anyscribe model</h2>
+<p>Day-to-day management of the Whisper cache. Requires <code>anyscribe local setup</code> to have run first (otherwise <code>pull</code> and <code>rm</code> error out with a hint pointing you at setup).</p>
 <p>Valid sizes: <code>tiny</code>, <code>base</code>, <code>small</code>, <code>medium</code>, <code>large-v3</code>, <code>large-v3-turbo</code>, <code>distil-large-v3.5</code>. See <a href="/docs/providers">providers.md → Local</a> for download sizes, RAM needs, and speed.</p>
 <blockquote>
 <p><strong>This is offline models only.</strong> Cloud providers' models don't need downloading — you pick those with <code>-m</code> or <code>provider_models</code> (see above).</p>
 </blockquote>
-<h3 id="scribe-model-list">scribe model list</h3>
-<pre><code class="language-bash">scribe model list
-scribe model list --json
+<h3 id="anyscribe-model-list">anyscribe model list</h3>
+<pre><code class="language-bash">anyscribe model list
+anyscribe model list --json
 </code></pre>
 <p>Shows every size with cache status, disk usage, and which one is your default.</p>
-<h3 id="scribe-model-pull">scribe model pull</h3>
-<pre><code class="language-bash">scribe model pull small
-scribe model pull large-v3-turbo --json
+<h3 id="anyscribe-model-pull">anyscribe model pull</h3>
+<pre><code class="language-bash">anyscribe model pull small
+anyscribe model pull large-v3-turbo --json
 </code></pre>
 <p>Downloads an additional model into the cache. Idempotent — re-running on a cached size returns <code>{status: "already_present"}</code>.</p>
-<h3 id="scribe-model-rm">scribe model rm</h3>
-<pre><code class="language-bash">scribe model rm tiny --yes
+<h3 id="anyscribe-model-rm">anyscribe model rm</h3>
+<pre><code class="language-bash">anyscribe model rm tiny --yes
 </code></pre>
 <p>Deletes a cached model from disk. <code>--yes</code> required (destructive action).</p>
-<h3 id="scribe-model-reinstall">scribe model reinstall</h3>
-<pre><code class="language-bash">scribe model reinstall base --yes --json
+<h3 id="anyscribe-model-reinstall">anyscribe model reinstall</h3>
+<pre><code class="language-bash">anyscribe model reinstall base --yes --json
 </code></pre>
-<p>Delete + re-download in one call. Use when cached weights look corrupted or when you want to force a fresh copy. If the model wasn't cached to begin with, this is equivalent to <code>scribe model pull</code>. <code>--yes</code> is required (destructive).</p>
+<p>Delete + re-download in one call. Use when cached weights look corrupted or when you want to force a fresh copy. If the model wasn't cached to begin with, this is equivalent to <code>anyscribe model pull</code>. <code>--yes</code> is required (destructive).</p>
 <p>Returns <code>{status: "reinstalled", bytes_freed, bytes_downloaded}</code> when weights were replaced, or <code>{status: "downloaded_only"}</code> when the model wasn't cached.</p>
-<h3 id="scribe-model-info">scribe model info</h3>
-<pre><code class="language-bash">scribe model info base --json
+<h3 id="anyscribe-model-info">anyscribe model info</h3>
+<pre><code class="language-bash">anyscribe model info base --json
 </code></pre>
 <p>Inspects a single size — repo id, cache status, disk bytes, spec (download size / RAM / speed / quality).</p>
 <hr />
-<h2 id="scribe-ui">scribe ui</h2>
+<h2 id="anyscribe-ui">anyscribe ui</h2>
 <p>Launch a local web dashboard in your browser. Provides a visual interface for transcribing, browsing history, and managing settings — same functionality as the CLI, in a browser window.</p>
-<pre><code class="language-bash">scribe ui
+<pre><code class="language-bash">anyscribe ui
 </code></pre>
 <p>Opens your browser at <code>http://127.0.0.1:8457</code> with three views:</p>
 <ul>
@@ -1238,7 +1239,7 @@ scribe model pull large-v3-turbo --json
 <li><strong>Settings</strong> — change config, view provider status, add/replace/remove API keys, check system health</li>
 </ul>
 <blockquote>
-<p><strong>Managing API keys in Settings → Providers:</strong> expand a provider to add or replace its key. Once a key is saved, a <strong>Remove key</strong> button appears — click it, then click <strong>Remove?</strong> to confirm, and the key is deleted from <code>~/.anyscribe/.env</code>. If a key comes from your shell environment instead (e.g. <code>export OPENAI_API_KEY=…</code> in your shell profile), the Remove button is hidden — scribe can't edit your shell, so unset it there instead.</p>
+<p><strong>Managing API keys in Settings → Providers:</strong> expand a provider to add or replace its key. Once a key is saved, a <strong>Remove key</strong> button appears — click it, then click <strong>Remove?</strong> to confirm, and the key is deleted from <code>~/.anyscribe/.env</code>. If a key comes from your shell environment instead (e.g. <code>export OPENAI_API_KEY=…</code> in your shell profile), the Remove button is hidden — anyscribe can't edit your shell, so unset it there instead.</p>
 <p><strong>Web UI label conventions:</strong> the <code>--diarize</code> CLI flag appears as a <code>Multi-speaker</code> toggle, and the <code>diarized</code> output format is labelled <code>with-speaker-labels</code>. Wire values (what gets sent to the API and saved to config) are unchanged — only the display labels are friendlier. The provider dropdown also disables unconfigured providers with a <code>· needs key</code> suffix and a one-click link to Settings, and the language input is a per-provider dropdown of every supported code (clear the field on focus to see the full list).</p>
 </blockquote>
 <h3 id="flags_8">Flags</h3>
@@ -1268,24 +1269,24 @@ scribe model pull large-v3-turbo --json
 </table>
 <h3 id="examples_7">Examples</h3>
 <pre><code class="language-bash"># Launch web UI (opens browser automatically)
-scribe ui
+anyscribe ui
 
 # Use a different port
-scribe ui --port 9000
+anyscribe ui --port 9000
 
 # Start without opening browser
-scribe ui --no-open
+anyscribe ui --no-open
 </code></pre>
 <blockquote>
 <p><strong>Local only.</strong> The web UI binds to <code>127.0.0.1</code> — it's only accessible from your machine. No auth needed. Stop it with Ctrl+C.</p>
 </blockquote>
 <hr />
-<h2 id="scribe-tray">scribe tray</h2>
-<p>A menu-bar icon that keeps <code>scribe ui</code> running in the background — click the icon instead of remembering to run a command every time.</p>
+<h2 id="anyscribe-tray">anyscribe tray</h2>
+<p>A menu-bar icon that keeps <code>anyscribe ui</code> running in the background — click the icon instead of remembering to run a command every time.</p>
 <blockquote>
-<p><strong>Already installed if you used the one-line installer.</strong> Both installers pull in the <code>[tray]</code> extra (<code>pystray</code>, <code>Pillow</code>, and <code>pyobjc</code> on macOS) by default, so <code>scribe tray</code> just works. If you installed with a bare <code>pip install anyscribe</code>, that extra isn't there — add it with <code>pip install -U "anyscribe[tray]"</code>. Running <code>scribe tray</code> without it prints an install hint rather than crashing.</p>
+<p><strong>Already installed if you used the one-line installer.</strong> Both installers pull in the <code>[tray]</code> extra (<code>pystray</code>, <code>Pillow</code>, and <code>pyobjc</code> on macOS) by default, so <code>anyscribe tray</code> just works. If you installed with a bare <code>pip install anyscribe</code>, that extra isn't there — add it with <code>pip install -U "anyscribe[tray]"</code>. Running <code>anyscribe tray</code> without it prints an install hint rather than crashing.</p>
 </blockquote>
-<pre><code class="language-bash">scribe tray
+<pre><code class="language-bash">anyscribe tray
 </code></pre>
 <p>The icon appears in your menu bar (macOS) or system tray (Linux/Windows) with:</p>
 <ul>
@@ -1295,7 +1296,7 @@ scribe ui --no-open
 <li><strong>Check for updates…</strong> — opens the <a href="https://github.com/rishmadaan/anyscribe/releases">GitHub releases page</a></li>
 <li><strong>Quit</strong> — stops the server and exits the tray cleanly</li>
 </ul>
-<p>If a <code>scribe ui</code> server is already running on the port, <code>scribe tray</code> attaches to it instead of starting a second one. If a tray is already running, a second <code>scribe tray</code> refuses to start (no port collisions, no duplicate icons).</p>
+<p>If a <code>anyscribe ui</code> server is already running on the port, <code>anyscribe tray</code> attaches to it instead of starting a second one. If a tray is already running, a second <code>anyscribe tray</code> refuses to start (no port collisions, no duplicate icons).</p>
 <h3 id="flags_9">Flags</h3>
 <table>
 <thead>
@@ -1317,24 +1318,24 @@ scribe ui --no-open
 </table>
 <h3 id="examples_8">Examples</h3>
 <pre><code class="language-bash"># Start the tray
-scribe tray
+anyscribe tray
 
 # Only if you installed with a bare `pip install anyscribe` (one time)
 pip install -U &quot;anyscribe[tray]&quot;
 
 # Use a different port
-scribe tray --port 9000
+anyscribe tray --port 9000
 </code></pre>
 <blockquote>
 <p><strong>Tip:</strong> Quitting the tray (menu → Quit, or Ctrl+C in the terminal) stops the server it started and cleans up its pidfile. If it attached to a server it didn't start, quitting the tray leaves that server running.</p>
 </blockquote>
 <hr />
-<h2 id="scribe-install-service">scribe install-service</h2>
-<p>Register <code>scribe tray</code> to start automatically every time you log in — so the menu-bar icon is just always there, no manual launch.</p>
+<h2 id="anyscribe-install-service">anyscribe install-service</h2>
+<p>Register <code>anyscribe tray</code> to start automatically every time you log in — so the menu-bar icon is just always there, no manual launch.</p>
 <blockquote>
 <p><strong>macOS only for now.</strong> Other platforms print a friendly "not supported yet" error.</p>
 </blockquote>
-<pre><code class="language-bash">scribe install-service
+<pre><code class="language-bash">anyscribe install-service
 </code></pre>
 <p>Writes a launchd <code>LaunchAgent</code> (<code>~/Library/LaunchAgents/com.anyscribe.tray.plist</code>) with <code>RunAtLoad</code> set, and loads it immediately — so the tray starts now <em>and</em> at every future login.</p>
 <h3 id="flags_10">Flags</h3>
@@ -1360,19 +1361,19 @@ scribe tray --port 9000
 </tbody>
 </table>
 <h3 id="examples_9">Examples</h3>
-<pre><code class="language-bash">scribe install-service              # prompts for confirmation
-scribe install-service --yes        # no prompt
-scribe install-service --json       # {&quot;success&quot;: true, &quot;data&quot;: {&quot;plist&quot;: &quot;...&quot;}, &quot;error&quot;: null}
+<pre><code class="language-bash">anyscribe install-service              # prompts for confirmation
+anyscribe install-service --yes        # no prompt
+anyscribe install-service --json       # {&quot;success&quot;: true, &quot;data&quot;: {&quot;plist&quot;: &quot;...&quot;}, &quot;error&quot;: null}
 </code></pre>
 <hr />
-<h2 id="scribe-uninstall-service">scribe uninstall-service</h2>
-<p>Remove the login auto-start registered by <code>scribe install-service</code>.</p>
+<h2 id="anyscribe-uninstall-service">anyscribe uninstall-service</h2>
+<p>Remove the login auto-start registered by <code>anyscribe install-service</code>.</p>
 <blockquote>
 <p><strong>macOS only for now.</strong> Other platforms print a friendly "not supported yet" error.</p>
 </blockquote>
-<pre><code class="language-bash">scribe uninstall-service
+<pre><code class="language-bash">anyscribe uninstall-service
 </code></pre>
-<p>Unloads and deletes the LaunchAgent plist. This only removes the auto-start — it doesn't uninstall scribe itself or stop a tray that's currently running.</p>
+<p>Unloads and deletes the LaunchAgent plist. This only removes the auto-start — it doesn't uninstall anyscribe itself or stop a tray that's currently running.</p>
 <h3 id="flags_11">Flags</h3>
 <table>
 <thead>
@@ -1396,18 +1397,18 @@ scribe install-service --json       # {&quot;success&quot;: true, &quot;data&quo
 </tbody>
 </table>
 <h3 id="examples_10">Examples</h3>
-<pre><code class="language-bash">scribe uninstall-service            # prompts for confirmation
-scribe uninstall-service --yes      # no prompt
+<pre><code class="language-bash">anyscribe uninstall-service            # prompts for confirmation
+anyscribe uninstall-service --yes      # no prompt
 </code></pre>
 <blockquote>
-<p><strong>Fully removing the tray?</strong> <code>scribe uninstall-service</code> stops it from auto-starting at login. If a tray is currently running, quit it separately from its menu (or Ctrl+C the terminal it's running in).</p>
+<p><strong>Fully removing the tray?</strong> <code>anyscribe uninstall-service</code> stops it from auto-starting at login. If a tray is currently running, quit it separately from its menu (or Ctrl+C the terminal it's running in).</p>
 </blockquote>
 <hr />
-<h2 id="scribe-install-skill">scribe install-skill</h2>
-<p>Manually install or update the scribe skill for <a href="https://docs.anthropic.com/en/docs/claude-code">Claude Code</a>. This teaches Claude how to transcribe, configure providers, and troubleshoot scribe on your behalf.</p>
-<pre><code class="language-bash">scribe install-skill
+<h2 id="anyscribe-install-skill">anyscribe install-skill</h2>
+<p>Manually install or update the anyscribe skill for <a href="https://docs.anthropic.com/en/docs/claude-code">Claude Code</a>. This teaches Claude how to transcribe, configure providers, and troubleshoot anyscribe on your behalf.</p>
+<pre><code class="language-bash">anyscribe install-skill
 </code></pre>
-<p>Copies skill files from the scribe package to <code>~/.claude/skills/anyscribe/</code>. Requires Claude Code to be installed (<code>~/.claude/</code> must exist).</p>
+<p>Copies skill files from the anyscribe package to <code>~/.claude/skills/anyscribe/</code>. Requires Claude Code to be installed (<code>~/.claude/</code> must exist).</p>
 <h3 id="flags_12">Flags</h3>
 <table>
 <thead>
@@ -1429,9 +1430,9 @@ scribe uninstall-service --yes      # no prompt
 <p><strong>Tip:</strong> You usually don't need to run this manually. The skill <strong>auto-installs</strong> when Claude Code is detected and <strong>auto-updates</strong> on every CLI invocation when the version changes. Use <code>--force</code> only if you need to repair a corrupted install.</p>
 </blockquote>
 <hr />
-<h2 id="scribe-update">scribe update</h2>
-<p>Update scribe to the latest version by pulling from git and reinstalling.</p>
-<pre><code class="language-bash">scribe update
+<h2 id="anyscribe-update">anyscribe update</h2>
+<p>Update anyscribe to the latest version by pulling from git and reinstalling.</p>
+<pre><code class="language-bash">anyscribe update
 </code></pre>
 <h3 id="flags_13">Flags</h3>
 <table>
@@ -1457,13 +1458,13 @@ scribe uninstall-service --yes      # no prompt
 </table>
 <h3 id="examples_11">Examples</h3>
 <pre><code class="language-bash"># Check for updates without installing
-scribe update --check
+anyscribe update --check
 
 # Update to latest
-scribe update
+anyscribe update
 
 # Force update (stashes any local changes)
-scribe update --force
+anyscribe update --force
 </code></pre>
 <hr />
 <h2 id="anyscribe-migrate">anyscribe migrate</h2>
@@ -1515,9 +1516,9 @@ anyscribe migrate
 anyscribe migrate --json
 </code></pre>
 <hr />
-<h2 id="scribe-doctor">scribe doctor</h2>
+<h2 id="anyscribe-doctor">anyscribe doctor</h2>
 <p>Run diagnostic checks on your system. Useful when something isn't working.</p>
-<pre><code class="language-bash">scribe doctor
+<pre><code class="language-bash">anyscribe doctor
 </code></pre>
 <p><strong>What it checks:</strong>
 1. System dependencies (Python, yt-dlp, ffmpeg, ffprobe)
@@ -1526,32 +1527,32 @@ anyscribe migrate --json
 4. Claude Code skill (installed, version, current or outdated)
 5. Available updates</p>
 <blockquote>
-<p><strong>Tip:</strong> If you're reporting a bug or asking for help, run <code>scribe doctor</code> and include the output — it gives all the info needed to debug.</p>
+<p><strong>Tip:</strong> If you're reporting a bug or asking for help, run <code>anyscribe doctor</code> and include the output — it gives all the info needed to debug.</p>
 </blockquote>
 <hr />
-<h2 id="scribe-version">scribe --version</h2>
+<h2 id="anyscribe-version">anyscribe --version</h2>
 <p>Print the installed version.</p>
-<pre><code class="language-bash">scribe --version
+<pre><code class="language-bash">anyscribe --version
 # Output: anyscribe v&lt;your version&gt;
 </code></pre>
 <hr />
-<h2 id="scribe-help">scribe --help</h2>
+<h2 id="anyscribe-help">anyscribe --help</h2>
 <p>Show all available commands and global options.</p>
-<pre><code class="language-bash">scribe --help
+<pre><code class="language-bash">anyscribe --help
 </code></pre>
 <p>Every command also has its own help:</p>
-<pre><code class="language-bash">scribe transcribe --help
-scribe onboard --help
+<pre><code class="language-bash">anyscribe transcribe --help
+anyscribe onboard --help
 </code></pre>
 <hr />
 <h2 id="shell-completion">Shell Completion</h2>
-<p>scribe supports tab-completion for bash, zsh, and fish. Install it once:</p>
-<pre><code class="language-bash">scribe --install-completion
+<p>anyscribe supports tab-completion for bash, zsh, and fish. Install it once:</p>
+<pre><code class="language-bash">anyscribe --install-completion
 </code></pre>
 <p>After restarting your shell, you can press Tab to autocomplete commands and flags.</p>
 <hr />
 <h2 id="for-scripts-and-agents">For scripts and agents</h2>
-<p>scribe's CLI is built to be driven by AI agents, CI jobs, and shell scripts, not
+<p>anyscribe's CLI is built to be driven by AI agents, CI jobs, and shell scripts, not
 just by people. Everything an automated caller needs is collected here.</p>
 <p>If you're wiring up Claude Code or an MCP host rather than writing a script
 yourself, start at <a href="/docs/agents">Use anyscribe from your AI agent</a> — the skill and
@@ -1567,7 +1568,7 @@ the MCP server already know all of this.</p>
   when an agent or script is calling it. This is deliberate: a hung prompt an
   agent can't see is worse than a clean failure.</li>
 <li><strong>No silent defaults for choices an agent should make explicitly.</strong> For
-  example <code>scribe local setup</code> always requires <code>--model</code>; the CLI will never
+  example <code>anyscribe local setup</code> always requires <code>--model</code>; the CLI will never
   pick a model size on your behalf. Where there's a recommended value, it's
   documented so an agent knows what to pass.</li>
 <li><strong>Structured exit codes.</strong> <code>0</code> success · <code>1</code> operational failure · <code>2</code> usage
@@ -1579,41 +1580,41 @@ the MCP server already know all of this.</p>
 </ul>
 <h3 id="quiet-parseable-output">Quiet, parseable output</h3>
 <p><code>--json</code> and <code>--quiet</code> (<code>-q</code>) together give you nothing but the JSON object:</p>
-<pre><code class="language-bash">scribe &quot;https://youtube.com/watch?v=abc123&quot; --json --quiet | jq -r '.file'
+<pre><code class="language-bash">anyscribe &quot;https://youtube.com/watch?v=abc123&quot; --json --quiet | jq -r '.file'
 </code></pre>
 <p>The result shape for a transcription is documented under
 <a href="#json-output">JSON Output</a>. Machine-readable output is also available from
-<code>scribe config --json</code>, <code>scribe providers list --json</code>, <code>scribe logs --json</code>,
-<code>scribe rm --json</code>, <code>scribe batch --json</code>, <code>scribe model list --json</code>, and
-<code>scribe local status --json</code>.</p>
+<code>anyscribe config --json</code>, <code>anyscribe providers list --json</code>, <code>anyscribe logs --json</code>,
+<code>anyscribe rm --json</code>, <code>anyscribe batch --json</code>, <code>anyscribe model list --json</code>, and
+<code>anyscribe local status --json</code>.</p>
 <p>Two fields matter most when scripting a transcription:</p>
 <ul>
-<li><strong><code>cached</code></strong> — <code>true</code> means the source was already in the vault and scribe
+<li><strong><code>cached</code></strong> — <code>true</code> means the source was already in the vault and anyscribe
   returned the existing file instead of spending API credits. Pass <code>--force</code> if
   you want a fresh run regardless.</li>
 <li><strong><code>model</code></strong> — the model that <em>actually</em> ran, which isn't always the one you
-  asked for (scribe swaps in a timestamp-capable model when your output format
+  asked for (anyscribe swaps in a timestamp-capable model when your output format
   needs one).</li>
 </ul>
 <h3 id="headless-onboarding">Headless onboarding</h3>
 <p>Pass <code>--yes</code> with the settings you want and skip the interactive wizard
 entirely. Required for automation and CI — arrow-key TUIs don't work without a
 terminal.</p>
-<pre><code class="language-bash">scribe onboard \
+<pre><code class="language-bash">anyscribe onboard \
   --provider openai \
   --api-key &quot;$OPENAI_API_KEY&quot; \
   --yes --json
 </code></pre>
 <p>Add <code>--model</code> to pin a model and <code>--quality</code> to pick a tier instead of a fixed
 provider:</p>
-<pre><code class="language-bash">scribe onboard --provider openai --model whisper-1 --yes --json
-scribe onboard --provider deepgram --quality balanced --yes --json
+<pre><code class="language-bash">anyscribe onboard --provider openai --model whisper-1 --yes --json
+anyscribe onboard --provider deepgram --quality balanced --yes --json
 </code></pre>
 <p>The JSON result reports what was written, including the effective model:</p>
 <pre><code class="language-json">{&quot;status&quot;: &quot;onboarded&quot;, &quot;provider&quot;: &quot;openai&quot;, &quot;quality&quot;: &quot;custom&quot;, &quot;model&quot;: &quot;whisper-1&quot;, &quot;...&quot;: &quot;...&quot;}
 </code></pre>
 <p>For offline/local transcription as the primary provider:</p>
-<pre><code class="language-bash">scribe onboard \
+<pre><code class="language-bash">anyscribe onboard \
   --provider local \
   --local-model base \
   --yes --json
@@ -1632,7 +1633,7 @@ scribe onboard --provider deepgram --quality balanced --yes --json
 <td><code>--yes</code> / <code>-y</code></td>
 <td>yes</td>
 <td>off</td>
-<td>Opt into headless mode. Without this, <code>scribe onboard</code> runs the interactive TUI.</td>
+<td>Opt into headless mode. Without this, <code>anyscribe onboard</code> runs the interactive TUI.</td>
 </tr>
 <tr>
 <td><code>--provider</code> / <code>-p</code></td>
@@ -1722,27 +1723,27 @@ reason.</p>
 </thead>
 <tbody>
 <tr>
-<td><code>scribe rm &lt;path-or-slug&gt;</code></td>
+<td><code>anyscribe rm &lt;path-or-slug&gt;</code></td>
 <td>Deletes a transcript file</td>
 </tr>
 <tr>
-<td><code>scribe local setup --model &lt;size&gt;</code></td>
+<td><code>anyscribe local setup --model &lt;size&gt;</code></td>
 <td>Installs a package and downloads model weights</td>
 </tr>
 <tr>
-<td><code>scribe local teardown</code></td>
+<td><code>anyscribe local teardown</code></td>
 <td>Uninstalls faster-whisper and deletes every cached model</td>
 </tr>
 <tr>
-<td><code>scribe model rm &lt;size&gt;</code></td>
+<td><code>anyscribe model rm &lt;size&gt;</code></td>
 <td>Deletes cached weights from disk</td>
 </tr>
 <tr>
-<td><code>scribe model reinstall &lt;size&gt;</code></td>
+<td><code>anyscribe model reinstall &lt;size&gt;</code></td>
 <td>Deletes then re-downloads weights</td>
 </tr>
 <tr>
-<td><code>scribe install-service</code> / <code>scribe uninstall-service</code></td>
+<td><code>anyscribe install-service</code> / <code>anyscribe uninstall-service</code></td>
 <td>Changes login-item registration</td>
 </tr>
 </tbody>
@@ -1750,25 +1751,25 @@ reason.</p>
 <h3 id="checking-state-before-you-act">Checking state before you act</h3>
 <p>Two commands answer "what is this install going to do?" without changing
 anything — both are safe to call first, on every run:</p>
-<pre><code class="language-bash">scribe config --json        # resolved provider + model, every provider's key status
-scribe local status --json  # faster-whisper version, cached models, disk usage (always exits 0)
+<pre><code class="language-bash">anyscribe config --json        # resolved provider + model, every provider's key status
+anyscribe local status --json  # faster-whisper version, cached models, disk usage (always exits 0)
 </code></pre>
-<p><code>scribe config --json</code> is the one to poll before transcribing: its <code>resolved</code>
+<p><code>anyscribe config --json</code> is the one to poll before transcribing: its <code>resolved</code>
 block (<code>provider</code>, <code>model</code>, <code>via</code>, <code>notes</code>) tells you exactly what will run and
 why, and the <code>providers</code> array tells you which API keys are actually present.</p>
 <h3 id="batch-runs">Batch runs</h3>
-<p><code>scribe batch</code> is the built-in way to process a list without spawning a process
+<p><code>anyscribe batch</code> is the built-in way to process a list without spawning a process
 per URL. <code>--timeout</code> caps each entry so one bad URL can't stall the whole job,
 and duplicate detection means re-running the same file only transcribes what's
 new:</p>
-<pre><code class="language-bash">scribe batch urls.txt --json --quiet --timeout 300
+<pre><code class="language-bash">anyscribe batch urls.txt --json --quiet --timeout 300
 </code></pre>
 <p>Use <code>--stop-on-error</code> if a single failure should abort the run; by default the
 batch continues and reports per-entry results.</p>
 <h3 id="when-something-fails">When something fails</h3>
 <p>Errors are documented by the literal text they print in
 <a href="/docs/troubleshooting">Troubleshooting</a>. For a machine-readable health snapshot to
-attach to a bug report, <code>scribe doctor</code> covers dependencies, config,
+attach to a bug report, <code>anyscribe doctor</code> covers dependencies, config,
 installation, and updates in one pass.</p>
 </main>
 </body>

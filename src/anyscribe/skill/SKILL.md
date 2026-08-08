@@ -174,11 +174,11 @@ If the user asks which browser to specify, ask which browser they use when logge
 - `quality` is a tier (`accuracy` / `balanced` / `cost` / `free`) → the tier picks the provider, `provider` is ignored.
 - `quality` is `custom` → `provider` is used as-is.
 
-**Setting a provider anywhere writes `quality=custom` in the same save.** `scribe config set provider deepgram`, the Web UI Settings page, and the MCP `set_config` tool all do this. You never need to write `quality=custom` yourself, and you should not "helpfully" set it separately.
+**Setting a provider anywhere writes `quality=custom` in the same save.** `anyscribe config set provider deepgram`, the Web UI Settings page, and the MCP `set_config` tool all do this. You never need to write `quality=custom` yourself, and you should not "helpfully" set it separately.
 
-**Rule: to answer "what will run?", call `scribe config --json` — never infer it from `provider` alone.** The `resolved` block gives you `provider`, `model`, `via` (`config` / `quality: <tier>` / `flag` / `diarize`), and `notes`. `via` is the audit trail.
+**Rule: to answer "what will run?", call `anyscribe config --json` — never infer it from `provider` alone.** The `resolved` block gives you `provider`, `model`, `via` (`config` / `quality: <tier>` / `flag` / `diarize`), and `notes`. `via` is the audit trail.
 
-**Keyless tier = warning, not failure.** If the tier's provider has no key, scribe prints `WARNING: quality 'balanced' wants deepgram but no DEEPGRAM_API_KEY is set — using openai instead` and runs on the configured provider anyway. When you see this note, surface it to the user with the fix (`scribe config set deepgram_api_key <key>` or pick a different tier) — don't swallow it.
+**Keyless tier = warning, not failure.** If the tier's provider has no key, anyscribe prints `WARNING: quality 'balanced' wants deepgram but no DEEPGRAM_API_KEY is set — using openai instead` and runs on the configured provider anyway. When you see this note, surface it to the user with the fix (`anyscribe config set deepgram_api_key <key>` or pick a different tier) — don't swallow it.
 
 ## Provider Selection Guidance
 
@@ -202,21 +202,21 @@ For detailed provider comparison (pricing, limits, setup), read [references/prov
 Each cloud provider has a small list of pickable models. The **first is the default** — if the user never mentions a model, leave it alone and say nothing. Only reach for `-m` when the user asks for cheaper, more accurate, or a specific model.
 
 ```bash
-scribe "url" -p openai -m gpt-transcribe --json --quiet   # one run
-scribe config set provider_models.openai gpt-transcribe   # every run from now on
+anyscribe "url" -p openai -m gpt-transcribe --json --quiet   # one run
+anyscribe config set provider_models.openai gpt-transcribe   # every run from now on
 ```
 
-`-m` pins the model on whichever provider handles that run, and `--model` works the same on `scribe batch`. `scribe config --json` (or `scribe providers list --json`) shows each provider's current model plus its alternatives — run it before you guess.
+`-m` pins the model on whichever provider handles that run, and `--model` works the same on `anyscribe batch`. `anyscribe config --json` (or `anyscribe providers list --json`) shows each provider's current model plus its alternatives — run it before you guess.
 
 **OpenAI — and the one rule you must not get wrong:**
 
 | User wants | Use | Why |
 |---|---|---|
 | Default — best accuracy per dollar | `gpt-transcribe` | Already the default. $0.0045/min, roughly half Whisper's error rate |
-| Timestamps (`[mm:ss]` markers) | *nothing — leave it alone* | scribe auto-switches to `whisper-1` when it's needed |
+| Timestamps (`[mm:ss]` markers) | *nothing — leave it alone* | anyscribe auto-switches to `whisper-1` when it's needed |
 | Cheapest OpenAI option | `gpt-4o-mini-transcribe` | $0.003/min, lower accuracy than `gpt-transcribe` |
 
-**Decision rule — do NOT pin a model to get timestamps.** `gpt-transcribe`, `gpt-4o-transcribe`, and `gpt-4o-mini-transcribe` can't return segment timestamps. scribe already handles this: when `output_format` is `timestamped` or `diarized` **and the model wasn't pinned per-run**, it switches to `whisper-1` and emits the note `switched to whisper-1 — gpt-transcribe can't produce timestamps`.
+**Decision rule — do NOT pin a model to get timestamps.** `gpt-transcribe`, `gpt-4o-transcribe`, and `gpt-4o-mini-transcribe` can't return segment timestamps. anyscribe already handles this: when `output_format` is `timestamped` or `diarized` **and the model wasn't pinned per-run**, it switches to `whisper-1` and emits the note `switched to whisper-1 — gpt-transcribe can't produce timestamps`.
 
 The consequence for you: **passing `-m gpt-transcribe` disables that safety net**, because an explicit per-run model is always honoured. So:
 
@@ -226,7 +226,7 @@ The consequence for you: **passing `-m gpt-transcribe` disables that safety net*
 
 (`--diarize` is unaffected either way — it always reroutes to OpenAI's dedicated diarize model.)
 
-> `gpt-live-transcribe` is a realtime/streaming model on OpenAI's Realtime API. scribe transcribes files, so it is not supported — don't offer it.
+> `gpt-live-transcribe` is a realtime/streaming model on OpenAI's Realtime API. anyscribe transcribes files, so it is not supported — don't offer it.
 
 **Other providers, in one line each:**
 
@@ -234,10 +234,10 @@ The consequence for you: **passing `-m gpt-transcribe` disables that safety net*
 - **elevenlabs**: `scribe_v2` only — nothing to pick.
 - **sargam**: `saaras:v3` only. `saaras:v2.5` was retired upstream; an old pin is dropped automatically on the next run with a one-line notice.
 - **groq**: `whisper-large-v3-turbo` (default, cheapest/fastest) or `whisper-large-v3` for higher accuracy.
-- **openrouter**: accepts *any* audio-capable slug, not just the listed ones — a typo will fail at the API, not at scribe. Default `openai/gpt-audio-mini`. Add slugs the user reuses with `scribe config set extra_models.openrouter "<slug>,<slug>"` so they show up in the pickers (marked `(custom)`); an empty value clears them.
-- **local**: model choice is separate — it's `scribe local setup --model <size>` / `scribe model pull <size>`, not `-m`.
+- **openrouter**: accepts *any* audio-capable slug, not just the listed ones — a typo will fail at the API, not at anyscribe. Default `openai/gpt-audio-mini`. Add slugs the user reuses with `anyscribe config set extra_models.openrouter "<slug>,<slug>"` so they show up in the pickers (marked `(custom)`); an empty value clears them.
+- **local**: model choice is separate — it's `anyscribe local setup --model <size>` / `anyscribe model pull <size>`, not `-m`.
 
-**"Can I add a model to Deepgram / ElevenLabs / OpenAI?"** No — `extra_models` is openrouter-only, by design. Those providers' lists are curated per scribe release because scribe needs code that parses each model's response. The answer is `scribe update`, not a config change.
+**"Can I add a model to Deepgram / ElevenLabs / OpenAI?"** No — `extra_models` is openrouter-only, by design. Those providers' lists are curated per anyscribe release because anyscribe needs code that parses each model's response. The answer is `anyscribe update`, not a config change.
 
 Diarization on OpenAI always routes to `gpt-4o-transcribe-diarize` internally regardless of the pinned model — that's automatic, not something to set.
 

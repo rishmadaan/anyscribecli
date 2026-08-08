@@ -141,7 +141,7 @@ def config_main(
     if missing:
         console.print(
             f"[dim]Missing keys:    {', '.join(missing)}  "
-            f"(scribe config set <provider>_api_key <key>)[/dim]"
+            f"(anyscribe config set <provider>_api_key <key>)[/dim]"
         )
     console.print(
         "[dim]Change provider: scribe config set provider <name>  "

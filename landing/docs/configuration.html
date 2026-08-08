@@ -58,7 +58,10 @@
 <header><nav><a class="home" href="/">anyscribe</a><a href="/docs">Docs</a><a href="/docs/agents">Agents</a><a href="/docs/getting-started">Getting started</a><a href="/docs/commands">Commands</a><a href="/docs/providers">Providers</a><a href="/docs/configuration" class="here">Configuration</a><a href="/docs/troubleshooting">Troubleshooting</a></nav></header>
 <main>
 <h1 id="configuration">Configuration</h1>
-<p>scribe uses two locations: a visible workspace for your transcripts and a hidden directory for app internals.</p>
+<p>anyscribe uses two locations: a visible workspace for your transcripts and a hidden directory for app internals.</p>
+<blockquote>
+<p><strong><code>scribe</code> and <code>ascli</code> are shorter aliases for <code>anyscribe</code></strong> — all three commands are interchangeable everywhere in this guide.</p>
+</blockquote>
 <h2 id="file-locations">File Locations</h2>
 <table>
 <thead>
@@ -107,9 +110,9 @@
 </tbody>
 </table>
 <blockquote>
-<p><strong>Upgrading from an older version?</strong> If you have transcripts at <code>~/.anyscribe/workspace/</code>, scribe will automatically move them to <code>~/anyscribe/</code> on your next transcription.</p>
+<p><strong>Upgrading from an older version?</strong> If you have transcripts at <code>~/.anyscribe/workspace/</code>, anyscribe will automatically move them to <code>~/anyscribe/</code> on your next transcription.</p>
 <p><strong>Upgrading from the old <code>anyscribecli</code> package?</strong> The app folder moved from <code>~/.anyscribecli/</code> to <code>~/.anyscribe/</code>. This normally happens automatically on your next transcription, but if your keys ever seem to have vanished after upgrading, run <code>anyscribe migrate</code> (add <code>--dry-run</code> first to preview). It moves your config, keys, and downloads across without ever overwriting anything already in the new folder. See <a href="/docs/commands#anyscribe-migrate">Commands → anyscribe migrate</a>.</p>
-<p><strong>Tip:</strong> Run <code>scribe doctor</code> to see if all these exist and are healthy.</p>
+<p><strong>Tip:</strong> Run <code>anyscribe doctor</code> to see if all these exist and are healthy.</p>
 </blockquote>
 <h2 id="configyaml">config.yaml</h2>
 <p>This is your main settings file. The onboarding wizard creates it, but you can also edit it directly.</p>
@@ -132,8 +135,8 @@ instagram:                 # Instagram settings
 </code></pre>
 <blockquote>
 <p><strong>Note:</strong> API keys are stored in <code>~/.anyscribe/.env</code>, not in config.yaml. Secrets never go in config.</p>
-<p><strong>Adding and removing keys:</strong> Set a key with <code>scribe config set openai_api_key sk-…</code>, or in the Web UI under <strong>Settings → Providers</strong> (expand a provider to paste one). To <strong>remove</strong> a saved key, open that provider in the Web UI and click <strong>Remove key → Remove?</strong> — it's deleted from <code>.env</code>. You can also just delete the line from <code>~/.anyscribe/.env</code> by hand. A key you set through your shell environment (e.g. <code>export OPENAI_API_KEY=…</code> in your shell profile) isn't stored in <code>.env</code>, so the Web UI can't remove it — unset it in your shell.</p>
-<p><strong>Everything here is also editable in the Web UI</strong> (<code>scribe ui</code> → Settings) —
+<p><strong>Adding and removing keys:</strong> Set a key with <code>anyscribe config set openai_api_key sk-…</code>, or in the Web UI under <strong>Settings → Providers</strong> (expand a provider to paste one). To <strong>remove</strong> a saved key, open that provider in the Web UI and click <strong>Remove key → Remove?</strong> — it's deleted from <code>.env</code>. You can also just delete the line from <code>~/.anyscribe/.env</code> by hand. A key you set through your shell environment (e.g. <code>export OPENAI_API_KEY=…</code> in your shell profile) isn't stored in <code>.env</code>, so the Web UI can't remove it — unset it in your shell.</p>
+<p><strong>Everything here is also editable in the Web UI</strong> (<code>anyscribe ui</code> → Settings) —
 the page opens with a "Next run" banner showing exactly what your next
 transcription will use and why, the provider and model controls are always
 visible (a tier just pre-selects them), and a "Downloads &amp; media" section
@@ -146,17 +149,17 @@ Instagram cookie browser. Nothing needs the terminal.</p>
 two positions. <code>quality</code> is either a <strong>tier</strong> (<code>accuracy</code>, <code>balanced</code>, <code>cost</code>,
 <code>free</code>), in which case the tier picks the provider, or it is <code>custom</code>, in which
 case your <code>provider</code> line is used as-is.</p>
-<pre><code class="language-bash">scribe config set quality accuracy      # tier picks the provider (ElevenLabs)
-scribe config set provider deepgram     # also sets quality = custom, so it sticks
+<pre><code class="language-bash">anyscribe config set quality accuracy      # tier picks the provider (ElevenLabs)
+anyscribe config set provider deepgram     # also sets quality = custom, so it sticks
 </code></pre>
 <blockquote>
 <p><strong>Setting a provider always writes <code>quality: custom</code> in the same save.</strong> That's
 deliberate: without it, the next run would go back to the tier's provider and
 your choice would silently vanish. This happens wherever you set a provider —
-<code>scribe config set provider</code>, the Web UI Settings page, the MCP <code>set_config</code>
+<code>anyscribe config set provider</code>, the Web UI Settings page, the MCP <code>set_config</code>
 tool.</p>
 </blockquote>
-<p>To see which one is winning right now, run <a href="/docs/commands#scribe-config"><code>scribe config</code></a>
+<p>To see which one is winning right now, run <a href="/docs/commands#anyscribe-config"><code>anyscribe config</code></a>
 with no subcommand:</p>
 <pre><code>Next run: deepgram · nova-3 (quality: balanced)
 </code></pre>
@@ -218,9 +221,9 @@ and don't touch <code>provider</code> at all — the tier chooses for you.</p>
 </blockquote>
 <h4 id="provider_models">provider_models</h4>
 <p>Which <strong>model</strong> each provider should use. A provider is the service (OpenAI, Groq...); a model is the specific engine inside it. Every provider has a sensible default, so this setting starts empty and most people never touch it.</p>
-<p>Set one with <code>scribe config set</code>:</p>
-<pre><code class="language-bash">scribe config set provider_models.openai gpt-transcribe
-scribe config set provider_models.groq whisper-large-v3
+<p>Set one with <code>anyscribe config set</code>:</p>
+<pre><code class="language-bash">anyscribe config set provider_models.openai gpt-transcribe
+anyscribe config set provider_models.groq whisper-large-v3
 </code></pre>
 <p>Which produces:</p>
 <pre><code class="language-yaml">provider_models:
@@ -228,27 +231,27 @@ scribe config set provider_models.groq whisper-large-v3
   groq: whisper-large-v3
 </code></pre>
 <p>Each provider gets its own line, so switching providers keeps each one's chosen model. Any provider not listed uses its default.</p>
-<p><strong>To see the options,</strong> run <code>scribe config</code> (no subcommand) or <code>scribe providers list</code> — both show every provider, the model it would use, and the alternatives.</p>
+<p><strong>To see the options,</strong> run <code>anyscribe config</code> (no subcommand) or <code>anyscribe providers list</code> — both show every provider, the model it would use, and the alternatives.</p>
 <p><strong>To go back to the default,</strong> delete that line from <code>config.yaml</code>.</p>
-<p><strong>For one run only,</strong> skip config entirely and use the <code>--model</code> flag: <code>scribe "url" -p openai -m gpt-transcribe</code>. That wins over whatever is in <code>provider_models</code>.</p>
-<p>If you set a model a provider doesn't have, scribe refuses and prints the valid list. (OpenRouter is the exception — it takes any audio-capable model name, so scribe passes yours straight through. See <code>extra_models</code> below to keep your own names in the picker.)</p>
+<p><strong>For one run only,</strong> skip config entirely and use the <code>--model</code> flag: <code>anyscribe "url" -p openai -m gpt-transcribe</code>. That wins over whatever is in <code>provider_models</code>.</p>
+<p>If you set a model a provider doesn't have, anyscribe refuses and prints the valid list. (OpenRouter is the exception — it takes any audio-capable model name, so anyscribe passes yours straight through. See <code>extra_models</code> below to keep your own names in the picker.)</p>
 <blockquote>
 <p><strong>Timestamps are handled for you.</strong> OpenAI's default model, <code>gpt-transcribe</code>,
 is cheaper and more accurate than <code>whisper-1</code> — but it can't tell you <em>when</em>
 something was said. If your <code>output_format</code> is <code>timestamped</code> or <code>diarized</code>,
-scribe quietly switches that run to <code>whisper-1</code> and prints a note saying so:</p>
+anyscribe quietly switches that run to <code>whisper-1</code> and prints a note saying so:</p>
 <p><code>→ openai · whisper-1 (config)
     switched to whisper-1 — gpt-transcribe can't produce timestamps</code></p>
-<p>The switch only happens when scribe picked the model. If <strong>you</strong> passed
-<code>-m gpt-transcribe</code> for that run, scribe respects it and you get plain
+<p>The switch only happens when anyscribe picked the model. If <strong>you</strong> passed
+<code>-m gpt-transcribe</code> for that run, anyscribe respects it and you get plain
 paragraphs — you asked for that model explicitly.</p>
 <p><strong>The <code>local</code> provider isn't set here.</strong> Its models are files on your machine, so they live in <code>local_model</code> (below).</p>
 </blockquote>
 <h4 id="extra_models">extra_models</h4>
 <p>Your own model names for <strong>OpenRouter</strong>, merged into every model picker
-(the <code>scribe config</code> dashboard, <code>scribe providers list</code>, the Web UI dropdown).</p>
-<pre><code class="language-bash">scribe config set extra_models.openrouter &quot;qwen/qwen3-omni-flash,openai/gpt-audio&quot;
-scribe config set extra_models.openrouter &quot;&quot;      # empty value clears the list
+(the <code>anyscribe config</code> dashboard, <code>anyscribe providers list</code>, the Web UI dropdown).</p>
+<pre><code class="language-bash">anyscribe config set extra_models.openrouter &quot;qwen/qwen3-omni-flash,openai/gpt-audio&quot;
+anyscribe config set extra_models.openrouter &quot;&quot;      # empty value clears the list
 </code></pre>
 <pre><code class="language-yaml">extra_models:
   openrouter:
@@ -259,17 +262,17 @@ scribe config set extra_models.openrouter &quot;&quot;      # empty value clears
 tell yours apart. In the Web UI, the OpenRouter model box is a free-text field
 with the same merged list as suggestions.</p>
 <blockquote>
-<p><strong>Only OpenRouter accepts this.</strong> <code>scribe config set extra_models.deepgram …</code>
+<p><strong>Only OpenRouter accepts this.</strong> <code>anyscribe config set extra_models.deepgram …</code>
 is rejected on purpose. OpenRouter is a router — it will forward any model name
 and the model does the rest. Every other provider needs code that knows how to
 read <em>that specific model's</em> response, so their lists are curated and shipped
-with scribe releases. <strong>If a provider added a model you want, that's a scribe
-update, not a config change</strong> — run <code>scribe update</code>.</p>
+with anyscribe releases. <strong>If a provider added a model you want, that's an anyscribe
+update, not a config change</strong> — run <code>anyscribe update</code>.</p>
 </blockquote>
 <h4 id="quality">quality</h4>
-<p>Pick <strong>what you want</strong> — higher accuracy or lower cost — and scribe chooses the
+<p>Pick <strong>what you want</strong> — higher accuracy or lower cost — and anyscribe chooses the
 provider for you. Default: <code>balanced</code> (Deepgram). This is the easiest way to use
-scribe; you rarely need to touch <code>provider</code> directly.</p>
+anyscribe; you rarely need to touch <code>provider</code> directly.</p>
 <table>
 <thead>
 <tr>
@@ -297,7 +300,7 @@ scribe; you rarely need to touch <code>provider</code> directly.</p>
 <tr>
 <td><code>free</code></td>
 <td>Local faster-whisper</td>
-<td>Offline, $0 (needs <code>scribe local setup</code>)</td>
+<td>Offline, $0 (needs <code>anyscribe local setup</code>)</td>
 </tr>
 <tr>
 <td><code>custom</code></td>
@@ -306,30 +309,30 @@ scribe; you rarely need to touch <code>provider</code> directly.</p>
 </tr>
 </tbody>
 </table>
-<p>Change it with <code>scribe config set quality cost</code>, per-run with
-<code>scribe transcribe &lt;url&gt; --quality cost</code>, or from the picker in the Web UI.</p>
+<p>Change it with <code>anyscribe config set quality cost</code>, per-run with
+<code>anyscribe transcribe &lt;url&gt; --quality cost</code>, or from the picker in the Web UI.</p>
 <blockquote>
 <p><strong>How it works:</strong> the tier picks a provider. If you pass <code>--provider</code> (or pick
 one in the Web UI), that wins for that run. <code>custom</code> isn't a tier — it's the
-"hands off, use my <code>provider</code>" setting, and scribe writes it for you whenever
+"hands off, use my <code>provider</code>" setting, and anyscribe writes it for you whenever
 you set a provider.</p>
 <p><strong>Need a key:</strong> each tier needs that provider's key in <code>.env</code> —
 <code>accuracy</code> needs <code>ELEVENLABS_API_KEY</code>, <code>cost</code> needs <code>GROQ_API_KEY</code>, etc.
 <code>free</code> needs no key.</p>
-<p><strong>If the tier's key is missing, scribe says so and keeps going</strong> with your
+<p><strong>If the tier's key is missing, anyscribe says so and keeps going</strong> with your
 configured <code>provider</code> instead of failing:</p>
 <p><code>→ openai · gpt-transcribe (config)
     WARNING: quality 'balanced' wants deepgram but no DEEPGRAM_API_KEY is set — using openai instead</code></p>
-<p>Either add the key (<code>scribe config set deepgram_api_key …</code>) or pick a tier you
-have a key for. The warning appears on every surface — CLI runs, <code>scribe config</code>,
+<p>Either add the key (<code>anyscribe config set deepgram_api_key …</code>) or pick a tier you
+have a key for. The warning appears on every surface — CLI runs, <code>anyscribe config</code>,
 the Web UI, and MCP results.</p>
 </blockquote>
 <h4 id="language">language</h4>
 <p>What language to expect in the audio. Default: <code>auto</code> (let the API auto-detect).</p>
 <p>Use standard language codes: <code>en</code> (English), <code>es</code> (Spanish), <code>fr</code> (French), <code>hi</code> (Hindi), <code>ar</code> (Arabic), <code>zh</code> (Chinese), <code>ja</code> (Japanese), <code>ko</code> (Korean), etc.</p>
-<p>Each provider expects codes in a slightly different format — Whisper-family providers (<code>openai</code>, <code>local</code>) use ISO 639-1 like <code>en</code>, Deepgram uses BCP-47 codes (a standard format for language tags, like <code>en-US</code> or <code>hi-Latn</code>), and Sarvam uses BCP-47 with <code>-IN</code> suffixes like <code>hi-IN</code>. If you're unsure, the web UI (<code>scribe ui</code>) shows a per-provider dropdown of every supported code on the Transcribe page Options panel.</p>
+<p>Each provider expects codes in a slightly different format — Whisper-family providers (<code>openai</code>, <code>local</code>) use ISO 639-1 like <code>en</code>, Deepgram uses BCP-47 codes (a standard format for language tags, like <code>en-US</code> or <code>hi-Latn</code>), and Sarvam uses BCP-47 with <code>-IN</code> suffixes like <code>hi-IN</code>. If you're unsure, the web UI (<code>anyscribe ui</code>) shows a per-provider dropdown of every supported code on the Transcribe page Options panel.</p>
 <blockquote>
-<p><strong>When to set this explicitly:</strong> Auto-detection works well for most videos, but if you're transcribing content in a specific language and getting wrong results, setting the language explicitly helps. You can also override per-video: <code>scribe transcribe &lt;url&gt; --language hi</code></p>
+<p><strong>When to set this explicitly:</strong> Auto-detection works well for most videos, but if you're transcribing content in a specific language and getting wrong results, setting the language explicitly helps. You can also override per-video: <code>anyscribe transcribe &lt;url&gt; --language hi</code></p>
 </blockquote>
 <h4 id="keep_media">keep_media</h4>
 <p>Whether to save the downloaded audio file alongside the transcript. Default: <code>false</code>.</p>
@@ -363,13 +366,13 @@ the Web UI, and MCP results.</p>
 </table>
 <blockquote>
 <p><strong>Tip:</strong> When you use <code>--diarize</code>, the output format is automatically set to <code>diarized</code> unless you've explicitly set it to <code>timestamped</code>.</p>
-<p><strong>Web UI label:</strong> The <code>diarized</code> value is shown as <code>with-speaker-labels</code> in <code>scribe ui</code>. The wire value (what gets stored in <code>config.yaml</code>) is unchanged — picking either spelling produces the same output.</p>
+<p><strong>Web UI label:</strong> The <code>diarized</code> value is shown as <code>with-speaker-labels</code> in <code>anyscribe ui</code>. The wire value (what gets stored in <code>config.yaml</code>) is unchanged — picking either spelling produces the same output.</p>
 </blockquote>
 <h4 id="diarize">diarize</h4>
 <p>Whether to enable speaker diarization (identifying who said what) by default. Default: <code>false</code>.</p>
 <p>When enabled, providers that support diarization (OpenAI, Deepgram, Sarvam) will label each speaker in the transcript. You can also enable per-transcription with <code>--diarize</code> without changing this default.</p>
 <blockquote>
-<p><strong>Auto-routing:</strong> When <code>--diarize</code> is used (or this is set to <code>true</code>) without an explicit <code>--provider</code>, scribe automatically switches to Deepgram if a Deepgram API key is configured. Deepgram handles large files natively and produces the most consistent speaker labels. Override with <code>--provider openai</code> if needed.</p>
+<p><strong>Auto-routing:</strong> When <code>--diarize</code> is used (or this is set to <code>true</code>) without an explicit <code>--provider</code>, anyscribe automatically switches to Deepgram if a Deepgram API key is configured. Deepgram handles large files natively and produces the most consistent speaker labels. Override with <code>--provider openai</code> if needed.</p>
 <p><strong>Automatic speaker detection:</strong> The number of speakers is detected automatically from the audio — you never need to specify how many speakers are in the recording. Deepgram analyzes voice characteristics (pitch, tone, cadence) to distinguish speakers.</p>
 <p><strong>Language tip:</strong> For mostly-English meetings, auto-detect works well. For Hindi or Hinglish (Hindi-English mix), add <code>--language hi-Latn</code> for romanized Latin script output. See <a href="/docs/providers">Providers</a> for the full language guide.</p>
 <p><strong>When to enable:</strong> If you primarily transcribe meetings, interviews, or podcasts with multiple speakers. Leave off for single-speaker content like YouTube videos.</p>
@@ -399,7 +402,7 @@ the Web UI, and MCP results.</p>
 </tbody>
 </table>
 <blockquote>
-<p><strong>Tip:</strong> You can always download manually with <code>scribe download "&lt;url&gt;"</code> regardless of this setting.</p>
+<p><strong>Tip:</strong> You can always download manually with <code>anyscribe download "&lt;url&gt;"</code> regardless of this setting.</p>
 </blockquote>
 <h4 id="local_file_media">local_file_media</h4>
 <p>What to do with the original file when transcribing local audio/video files. Default: <code>skip</code>.</p>
@@ -491,25 +494,25 @@ the Web UI, and MCP results.</p>
 <blockquote>
 <p><strong>Want better quality without the wait?</strong> <code>large-v3-turbo</code> is the sweet spot — close to <code>large-v3</code> accuracy at roughly six times the speed on a CPU, and half the download. Pick <code>distil-large-v3.5</code> only if everything you transcribe is in English.</p>
 </blockquote>
-<p>Change it with <code>scribe config set local_model small</code> or from the default-model dropdown inside the Local provider panel in the Web UI. You can only select a model that's been cached — pull others with <code>scribe model pull &lt;size&gt;</code>. A one-off override is available via <code>ASCLI_LOCAL_MODEL=medium scribe "&lt;url&gt;"</code> (<code>ASCLI_</code> is the legacy env prefix, still honored).</p>
+<p>Change it with <code>anyscribe config set local_model small</code> or from the default-model dropdown inside the Local provider panel in the Web UI. You can only select a model that's been cached — pull others with <code>anyscribe model pull &lt;size&gt;</code>. A one-off override is available via <code>ASCLI_LOCAL_MODEL=medium anyscribe "&lt;url&gt;"</code> (<code>ASCLI_</code> is the legacy env prefix, still honored).</p>
 <blockquote>
-<p><strong>Not set until setup.</strong> This field has no effect until you run <code>scribe local setup --model &lt;size&gt;</code> (or the equivalent Web UI button). The field is still present in <code>config.yaml</code> with the default value of <code>base</code>.</p>
+<p><strong>Not set until setup.</strong> This field has no effect until you run <code>anyscribe local setup --model &lt;size&gt;</code> (or the equivalent Web UI button). The field is still present in <code>config.yaml</code> with the default value of <code>base</code>.</p>
 </blockquote>
 <h3 id="instagram-cookies-instagrambrowser">Instagram cookies (<code>instagram.browser</code>)</h3>
-<p>Tells scribe which browser to read Instagram cookies from. Cookies let scribe
+<p>Tells anyscribe which browser to read Instagram cookies from. Cookies let anyscribe
 download reels that need a logged-in session — including private reels and
 reels that are getting rate-limited for anonymous users.</p>
 <p><strong>Most common values:</strong> <code>firefox</code>, <code>chrome</code>, <code>safari</code>. Also supported: <code>brave</code>,
 <code>edge</code>, <code>chromium</code>, <code>vivaldi</code>, <code>opera</code>. Leave empty (the default) to skip
 cookies — many public reels work fine without them.</p>
-<pre><code class="language-bash">scribe config set instagram.browser firefox
+<pre><code class="language-bash">anyscribe config set instagram.browser firefox
 </code></pre>
 <blockquote>
-<p><strong>What scribe actually does:</strong> When you set this, scribe tells yt-dlp to read
+<p><strong>What anyscribe actually does:</strong> When you set this, anyscribe tells yt-dlp to read
 cookies from the browser's profile directory. yt-dlp handles the extraction
 using the browser's built-in decryption — your password is never asked for or
 stored.</p>
-<p><strong>Pre-0.8.3 upgrade note:</strong> Older versions of scribe asked for an Instagram <!-- version-pin-ok -->
+<p><strong>Pre-0.8.3 upgrade note:</strong> Older versions of anyscribe asked for an Instagram <!-- version-pin-ok -->
 username and password and stored the password in <code>~/.anyscribe/.env</code>.
 Those are no longer used — you can safely remove the <code>INSTAGRAM_PASSWORD</code>
 line from your <code>.env</code> file when convenient.</p>
@@ -528,22 +531,22 @@ DEEPGRAM_API_KEY=...
 <p><strong>Important:</strong> This file contains secrets. It's excluded from git by default. Never share it or commit it to a repository.</p>
 <p><strong><code>OPENROUTER_MODEL</code> no longer does anything.</strong> Older versions read that line to
 choose an OpenRouter model. Since 0.15.0 the model lives with every other model <!-- version-pin-ok -->
-choice — run <code>scribe config set provider_models.openrouter &lt;slug&gt;</code> and delete the
+choice — run <code>anyscribe config set provider_models.openrouter &lt;slug&gt;</code> and delete the
 <code>OPENROUTER_MODEL</code> line from <code>.env</code>.</p>
-<p><strong>Pre-0.8.3 upgrade note:</strong> <!-- version-pin-ok --> Older versions of scribe stored <code>INSTAGRAM_PASSWORD</code> in this file. It's no longer used — you can safely remove the <code>INSTAGRAM_PASSWORD</code> line when convenient. Instagram downloads now use browser cookies instead (see <code>instagram.browser</code> below).</p>
+<p><strong>Pre-0.8.3 upgrade note:</strong> <!-- version-pin-ok --> Older versions of anyscribe stored <code>INSTAGRAM_PASSWORD</code> in this file. It's no longer used — you can safely remove the <code>INSTAGRAM_PASSWORD</code> line when convenient. Instagram downloads now use browser cookies instead (see <code>instagram.browser</code> below).</p>
 </blockquote>
 <h3 id="changing-your-api-key">Changing your API key</h3>
-<p>The easiest way is to use <code>scribe config set</code>:</p>
-<pre><code class="language-bash">scribe config set openai_api_key sk-proj-...
-scribe config set deepgram_api_key YOUR_KEY
-scribe config set elevenlabs_api_key xi-...
-scribe config set sargam_api_key YOUR_KEY
-scribe config set openrouter_api_key sk-or-...
-scribe config set groq_api_key gsk-...
+<p>The easiest way is to use <code>anyscribe config set</code>:</p>
+<pre><code class="language-bash">anyscribe config set openai_api_key sk-proj-...
+anyscribe config set deepgram_api_key YOUR_KEY
+anyscribe config set elevenlabs_api_key xi-...
+anyscribe config set sargam_api_key YOUR_KEY
+anyscribe config set openrouter_api_key sk-or-...
+anyscribe config set groq_api_key gsk-...
 </code></pre>
 <p>These are stored in <code>~/.anyscribe/.env</code> automatically.</p>
 <p>Or re-run onboarding:</p>
-<pre><code class="language-bash">scribe onboard --force
+<pre><code class="language-bash">anyscribe onboard --force
 </code></pre>
 <p>This shows your current settings (API keys masked) and lets you change only what you need — no need to re-enter everything.</p>
 <p>Or edit the file directly with any text editor — here's <code>nano</code> as an example:</p>
@@ -563,7 +566,7 @@ scribe config set groq_api_key gsk-...
 ~/.anyscribe/                           # App internals (hidden)
 ├── downloads/                             # Downloads (separate from vault)
 │   ├── audio/&lt;platform&gt;/                  # Audio files (if keep_media=true)
-│   └── video/&lt;platform&gt;/                  # Video files (scribe download)
+│   └── video/&lt;platform&gt;/                  # Video files (anyscribe download)
 ├── sessions/                              # Cached sessions (legacy; no longer used for Instagram)
 └── logs/                                  # Processing logs
 </code></pre>
@@ -573,7 +576,7 @@ scribe config set groq_api_key gsk-...
 <h4 id="workspace_path">workspace_path</h4>
 <p>Where to store your transcript workspace. Default: <code>~/anyscribe/</code> (when set to empty string or omitted).</p>
 <p>Set a custom path to use an existing Obsidian vault or a different location:</p>
-<pre><code class="language-bash">scribe config set workspace_path ~/Documents/transcripts
+<pre><code class="language-bash">anyscribe config set workspace_path ~/Documents/transcripts
 </code></pre>
 <blockquote>
 <p><strong>Tip:</strong> Leave this empty to use the default <code>~/anyscribe/</code>. The workspace is visible in Finder/file managers — no need to navigate to hidden folders.</p>
@@ -604,7 +607,7 @@ tldr: &quot;Video Title&quot;                         # Quick summary
 <h2 id="what-you-can-change-vs-whats-fixed">What you can change vs what's fixed</h2>
 <p>Most things you'd want to adjust are settings you can change anytime. A few
 things are <strong>fixed in the code</strong> — they're tuned defaults that keep transcription
-reliable, and changing them means editing scribe's source and reinstalling.</p>
+reliable, and changing them means editing anyscribe's source and reinstalling.</p>
 <pre><code>   things you set (knobs)                things baked in (constants)
    ┌──────────────────────────┐         ┌──────────────────────────────┐
    │ config.yaml settings     │         │ audio quality (16kHz/mono)   │
@@ -640,7 +643,7 @@ workspace location, the local model, and all your API keys.</p>
 <tr>
 <td>The list of models you can pick from</td>
 <td>e.g. OpenAI offers <code>gpt-transcribe</code>, <code>whisper-1</code>, <code>gpt-4o-transcribe</code>, <code>gpt-4o-mini-transcribe</code></td>
-<td>Each provider's list is curated to models scribe knows how to read. You choose freely <em>within</em> the list via <code>provider_models</code> or <code>--model</code>; new entries arrive with scribe releases (<code>anyscribe update</code>). <strong>OpenRouter is the exception</strong> — it forwards any model name, so you can add your own with <code>extra_models.openrouter</code>.</td>
+<td>Each provider's list is curated to models anyscribe knows how to read. You choose freely <em>within</em> the list via <code>provider_models</code> or <code>--model</code>; new entries arrive with anyscribe releases (<code>anyscribe update</code>). <strong>OpenRouter is the exception</strong> — it forwards any model name, so you can add your own with <code>extra_models.openrouter</code>.</td>
 </tr>
 <tr>
 <td>App folder location</td>
@@ -650,7 +653,7 @@ workspace location, the local model, and all your API keys.</p>
 <tr>
 <td>Web UI address</td>
 <td><code>127.0.0.1</code> (your machine only)</td>
-<td>The Web UI has no password, so it only listens to your own computer. The port is changeable with <code>scribe ui --port 9000</code>.</td>
+<td>The Web UI has no password, so it only listens to your own computer. The port is changeable with <code>anyscribe ui --port 9000</code>.</td>
 </tr>
 </tbody>
 </table>
@@ -667,7 +670,7 @@ audio bitrate), that's a reasonable feature request.</p>
 <p><strong>Warning:</strong> This deletes your config, API keys, and transcripts. Back up <code>~/anyscribe/</code> first if you want to keep your transcripts. If you used a custom workspace path, back up that location instead.</p>
 </blockquote>
 <pre><code class="language-bash">rm -rf ~/.anyscribe ~/anyscribe
-scribe onboard
+anyscribe onboard
 </code></pre>
 </main>
 </body>

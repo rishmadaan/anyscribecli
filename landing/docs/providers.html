@@ -58,15 +58,16 @@
 <header><nav><a class="home" href="/">anyscribe</a><a href="/docs">Docs</a><a href="/docs/agents">Agents</a><a href="/docs/getting-started">Getting started</a><a href="/docs/commands">Commands</a><a href="/docs/providers" class="here">Providers</a><a href="/docs/configuration">Configuration</a><a href="/docs/troubleshooting">Troubleshooting</a></nav></header>
 <main>
 <h1 id="providers">Providers</h1>
-<p>scribe supports 7 transcription providers. Here's how they compare and when to use each.</p>
+<p>anyscribe supports 7 transcription providers. Here's how they compare and when to use each.</p>
 <blockquote>
+<p><strong>Commands below use <code>anyscribe</code>.</strong> The shorter aliases <code>scribe</code> and <code>ascli</code> work identically — swap in whichever you prefer.</p>
 <p><strong>Don't want to choose?</strong> Use the <strong><code>quality</code></strong> setting — pick <code>accuracy</code>,
-<code>balanced</code>, <code>cost</code>, or <code>free</code> and scribe selects the provider for you. See
+<code>balanced</code>, <code>cost</code>, or <code>free</code> and anyscribe selects the provider for you. See
 <a href="#quality-presets">Quality presets</a> below.</p>
 </blockquote>
 <h2 id="what-it-costs-to-start">What it costs to start</h2>
 <p><strong>Start with a tier, not a provider.</strong> Pick <code>accuracy</code>, <code>balanced</code>, <code>cost</code>, or
-<code>free</code> and scribe chooses for you — that's the whole decision for most people.
+<code>free</code> and anyscribe chooses for you — that's the whole decision for most people.
 The table below is a reference for when you'd rather pick yourself.</p>
 <table>
 <thead>
@@ -126,22 +127,22 @@ The table below is a reference for when you'd rather pick yourself.</p>
 <p><strong>Why so many "see the provider's page" cells?</strong> Because signup terms change
 whenever the provider feels like it, and a stale promise of "free, no card"
 is worse than no answer. The two we state outright — Deepgram's $200 credit
-and Local costing nothing — are the ones scribe itself depends on. Everything
+and Local costing nothing — are the ones anyscribe itself depends on. Everything
 else, check at the source before you sign up.</p>
 <p><strong>Cheapest honest path to a first transcript:</strong> <code>free</code> (Local, $0 forever,
 nothing to sign up for) or <code>balanced</code> (Deepgram, $200 of credit is a lot of
 hours at ~$0.30/hr).</p>
 </blockquote>
 <h2 id="privacy-who-sees-your-audio">Privacy — who sees your audio?</h2>
-<p>Worth knowing before you pick. scribe itself doesn't phone home — everything runs on your own machine — but your audio has to go wherever the transcription happens.</p>
+<p>Worth knowing before you pick. anyscribe itself doesn't phone home — everything runs on your own machine — but your audio has to go wherever the transcription happens.</p>
 <ul>
 <li><strong>Local provider:</strong> audio stays on your machine. Nothing leaves. Fully offline once the Whisper model is downloaded.</li>
-<li><strong>API providers (OpenAI / Deepgram / ElevenLabs / Sarvam / Groq / OpenRouter):</strong> scribe sends your audio to the API you picked and nothing else. No intermediary, no third party, no scribe-operated cloud. Your trust boundary is exactly the provider you chose — same as if you called their API directly.</li>
+<li><strong>API providers (OpenAI / Deepgram / ElevenLabs / Sarvam / Groq / OpenRouter):</strong> anyscribe sends your audio to the API you picked and nothing else. No intermediary, no third party, no anyscribe-operated cloud. Your trust boundary is exactly the provider you chose — same as if you called their API directly.</li>
 <li><strong>YouTube / Instagram source URLs:</strong> downloading the video obviously requires internet, and the source host sees the request. The transcribed audio then follows the same rule above (stays local with the local provider; goes to the API provider otherwise).</li>
 </ul>
-<p>If privacy is the main reason you're evaluating scribe, use the <strong>Local</strong> provider + local files for an end-to-end-offline pipeline.</p>
+<p>If privacy is the main reason you're evaluating anyscribe, use the <strong>Local</strong> provider + local files for an end-to-end-offline pipeline.</p>
 <h2 id="quality-presets">Quality presets</h2>
-<p>The easiest way to use scribe: pick <strong>what you want</strong> and it chooses the provider.</p>
+<p>The easiest way to use anyscribe: pick <strong>what you want</strong> and it chooses the provider.</p>
 <table>
 <thead>
 <tr>
@@ -178,9 +179,9 @@ hours at ~$0.30/hr).</p>
 </tr>
 </tbody>
 </table>
-<pre><code class="language-bash">scribe &quot;&lt;url&gt;&quot; --quality accuracy     # per run
-scribe config set quality cost         # change the default
-scribe config set provider sargam      # picks the provider directly (writes quality: custom)
+<pre><code class="language-bash">anyscribe &quot;&lt;url&gt;&quot; --quality accuracy     # per run
+anyscribe config set quality cost         # change the default
+anyscribe config set provider sargam      # picks the provider directly (writes quality: custom)
 </code></pre>
 <p><strong>It's one knob, not two.</strong> Either a tier picks the provider for you, or
 <code>quality</code> is <code>custom</code> and your <code>provider</code> setting is used as-is. Setting a
@@ -189,24 +190,24 @@ in the same save, so your choice sticks instead of being overridden by the tier
 on the next run.</p>
 <p>If you pass <code>--provider</code> on a single run, it wins for that run only.</p>
 <p>Each tier needs that provider's key (accuracy → <code>ELEVENLABS_API_KEY</code>, cost →
-<code>GROQ_API_KEY</code>, …); <code>free</code> needs none. <strong>If the key is missing, scribe warns and
+<code>GROQ_API_KEY</code>, …); <code>free</code> needs none. <strong>If the key is missing, anyscribe warns and
 falls back</strong> to your configured provider rather than failing:</p>
 <pre><code>→ openai · gpt-transcribe (config)
     WARNING: quality 'balanced' wants deepgram but no DEEPGRAM_API_KEY is set — using openai instead
 </code></pre>
-<p>Run <code>scribe config</code> (no subcommand) any time to see which provider and model the
+<p>Run <code>anyscribe config</code> (no subcommand) any time to see which provider and model the
 next run will actually use.</p>
 <h2 id="choosing-a-model-within-a-provider">Choosing a model within a provider</h2>
 <p>A <strong>provider</strong> is the company doing the transcribing. A <strong>model</strong> is the specific engine inside it. Each provider ships with a default model, so you can skip this section entirely and everything works.</p>
 <p>Change it for one run:</p>
-<pre><code class="language-bash">scribe &quot;&lt;url&gt;&quot; -p openai -m gpt-transcribe
+<pre><code class="language-bash">anyscribe &quot;&lt;url&gt;&quot; -p openai -m gpt-transcribe
 </code></pre>
 <p>Or make it permanent:</p>
-<pre><code class="language-bash">scribe config set provider_models.openai gpt-transcribe
+<pre><code class="language-bash">anyscribe config set provider_models.openai gpt-transcribe
 </code></pre>
 <p>See what you have:</p>
-<pre><code class="language-bash">scribe config            # every provider, its model, and which one runs next
-scribe providers list    # same model info, provider-focused
+<pre><code class="language-bash">anyscribe config            # every provider, its model, and which one runs next
+anyscribe providers list    # same model info, provider-focused
 </code></pre>
 <table>
 <thead>
@@ -256,15 +257,15 @@ scribe providers list    # same model info, provider-focused
 </table>
 <blockquote>
 <p><strong>The one gotcha worth knowing: timestamps.</strong> Some models return only plain text, with no record of <em>when</em> each sentence was said. This affects OpenAI's <code>gpt-transcribe</code>, <code>gpt-4o-transcribe</code>, and <code>gpt-4o-mini-transcribe</code>, plus Sarvam and OpenRouter generally.</p>
-<p>For OpenAI, scribe handles this for you: if your <code>output_format</code> is <code>timestamped</code> or <code>diarized</code> and the model can't do timestamps, it switches that run to <code>whisper-1</code> and prints a note. It only stands back if <em>you</em> named the model with <code>-m</code> — then you get exactly what you asked for, paragraphs and all. Sarvam and OpenRouter have no timestamped model to fall back to, so with those you simply get paragraphs.</p>
-<p><strong>Adding models OpenRouter offers but scribe doesn't list:</strong></p>
+<p>For OpenAI, anyscribe handles this for you: if your <code>output_format</code> is <code>timestamped</code> or <code>diarized</code> and the model can't do timestamps, it switches that run to <code>whisper-1</code> and prints a note. It only stands back if <em>you</em> named the model with <code>-m</code> — then you get exactly what you asked for, paragraphs and all. Sarvam and OpenRouter have no timestamped model to fall back to, so with those you simply get paragraphs.</p>
+<p><strong>Adding models OpenRouter offers but anyscribe doesn't list:</strong></p>
 <p><code>bash
-scribe config set extra_models.openrouter "qwen/qwen3-omni-flash"</code></p>
+anyscribe config set extra_models.openrouter "qwen/qwen3-omni-flash"</code></p>
 <p>They join the pickers everywhere, marked <code>(custom)</code>. This works for OpenRouter
 only — it forwards any model name unchanged. The other providers' lists are
-curated per release because scribe needs code that understands each model's
+curated per release because anyscribe needs code that understands each model's
 response format, so <strong>"how do I add a model to Deepgram?" is answered by
-<code>scribe update</code>, not by config.</strong></p>
+<code>anyscribe update</code>, not by config.</strong></p>
 <p><strong>In the Web UI:</strong> a model dropdown appears on the <strong>Transcribe</strong> page once you explicitly pick a provider, and on the <strong>Settings</strong> page under your default provider. For OpenRouter it's a free-text box with your merged list as suggestions.</p>
 </blockquote>
 <h2 id="quick-comparison">Quick Comparison</h2>
@@ -316,7 +317,7 @@ response format, so <strong>"how do I add a model to Deepgram?" is answered by
 <td><strong>Diarization</strong></td>
 <td>Yes (<code>--diarize</code>)</td>
 <td>Yes (<code>--diarize</code>)</td>
-<td>No (via scribe)</td>
+<td>No (via anyscribe)</td>
 <td>No</td>
 <td>No</td>
 <td>No</td>
@@ -377,13 +378,13 @@ response format, so <strong>"how do I add a model to Deepgram?" is answered by
 <h2 id="provider-details">Provider Details</h2>
 <h3 id="openai-whisper-default">OpenAI Whisper (default)</h3>
 <p>The most widely used speech-to-text API. Good accuracy across most languages. Segment-level timestamps included.</p>
-<pre><code class="language-bash">scribe config set provider openai
+<pre><code class="language-bash">anyscribe config set provider openai
 </code></pre>
 <ul>
 <li><strong>API key env var:</strong> <code>OPENAI_API_KEY</code></li>
 <li><strong>Get a key:</strong> <a href="https://platform.openai.com/api-keys">platform.openai.com/api-keys</a></li>
 <li><strong>Cost:</strong> $0.003–$0.006 per minute depending on the model (see below)</li>
-<li><strong>File limit:</strong> 25 MB for every model — scribe automatically chunks larger files into 18-minute segments</li>
+<li><strong>File limit:</strong> 25 MB for every model — anyscribe automatically chunks larger files into 18-minute segments</li>
 <li><strong>Default model:</strong> <code>gpt-transcribe</code></li>
 <li><strong>Diarization:</strong> Yes — use <code>--diarize</code> flag to enable speaker-labeled transcripts</li>
 </ul>
@@ -408,7 +409,7 @@ response format, so <strong>"how do I add a model to Deepgram?" is answered by
 <td><code>whisper-1</code></td>
 <td>$0.006 (~$0.36/hr)</td>
 <td><strong>Yes</strong></td>
-<td>The OpenAI model that tells you <em>when</em> things were said. scribe falls back to it automatically for timestamped or diarized output</td>
+<td>The OpenAI model that tells you <em>when</em> things were said. anyscribe falls back to it automatically for timestamped or diarized output</td>
 </tr>
 <tr>
 <td><code>gpt-4o-transcribe</code></td>
@@ -424,28 +425,28 @@ response format, so <strong>"how do I add a model to Deepgram?" is answered by
 </tr>
 </tbody>
 </table>
-<pre><code class="language-bash">scribe config set provider_models.openai whisper-1   # if you'd rather always use Whisper
+<pre><code class="language-bash">anyscribe config set provider_models.openai whisper-1   # if you'd rather always use Whisper
 </code></pre>
 <blockquote>
-<p><strong>You don't have to manage the timestamp tradeoff.</strong> <code>gpt-transcribe</code> is more accurate and cheaper than Whisper, so it's the default — but it can't produce <code>[mm:ss]</code> markers. When your <code>output_format</code> is <code>timestamped</code> or <code>diarized</code>, scribe switches that run to <code>whisper-1</code> and tells you:</p>
+<p><strong>You don't have to manage the timestamp tradeoff.</strong> <code>gpt-transcribe</code> is more accurate and cheaper than Whisper, so it's the default — but it can't produce <code>[mm:ss]</code> markers. When your <code>output_format</code> is <code>timestamped</code> or <code>diarized</code>, anyscribe switches that run to <code>whisper-1</code> and tells you:</p>
 <p><code>→ openai · whisper-1 (config)
     switched to whisper-1 — gpt-transcribe can't produce timestamps</code></p>
 <p>The one case where it doesn't intervene is when you name the model yourself with <code>-m</code> — an explicit choice is always honoured.</p>
-<p><strong>Upgrading from an older scribe?</strong> OpenAI's default used to be <code>whisper-1</code>. Unpinned OpenAI runs now use <code>gpt-transcribe</code>: cheaper, more accurate, and timestamps still work because of the automatic switch above. To go back permanently: <code>scribe config set provider_models.openai whisper-1</code>.</p>
-<p><strong>You may have heard of <code>gpt-live-transcribe</code>.</strong> That one is for live, streaming audio (phone calls, real-time captions). scribe works on finished files, so it isn't supported here.</p>
+<p><strong>Upgrading from an older anyscribe?</strong> OpenAI's default used to be <code>whisper-1</code>. Unpinned OpenAI runs now use <code>gpt-transcribe</code>: cheaper, more accurate, and timestamps still work because of the automatic switch above. To go back permanently: <code>anyscribe config set provider_models.openai whisper-1</code>.</p>
+<p><strong>You may have heard of <code>gpt-live-transcribe</code>.</strong> That one is for live, streaming audio (phone calls, real-time captions). anyscribe works on finished files, so it isn't supported here.</p>
 <p><strong>Diarization is handled for you.</strong> When you pass <code>--diarize</code>, OpenAI runs a dedicated model (<code>gpt-4o-transcribe-diarize</code>) regardless of what you've pinned. There's nothing to configure.</p>
 <p><strong>When to use:</strong> Good default for most use cases. Best balance of cost, accuracy, and language coverage. Use <code>--diarize</code> for meetings and multi-speaker content.</p>
 </blockquote>
 <h3 id="deepgram-nova">Deepgram Nova</h3>
-<p>Fast, accurate speech-to-text with native speaker diarization and Hindi Latin script (<code>hi-Latn</code>) support. <strong>The default provider for diarization</strong> — scribe auto-routes <code>--diarize</code> to Deepgram when configured.</p>
-<pre><code class="language-bash">scribe config set deepgram_api_key YOUR_KEY    # $200 free credit on signup
+<p>Fast, accurate speech-to-text with native speaker diarization and Hindi Latin script (<code>hi-Latn</code>) support. <strong>The default provider for diarization</strong> — anyscribe auto-routes <code>--diarize</code> to Deepgram when configured.</p>
+<pre><code class="language-bash">anyscribe config set deepgram_api_key YOUR_KEY    # $200 free credit on signup
 </code></pre>
 <ul>
 <li><strong>API key env var:</strong> <code>DEEPGRAM_API_KEY</code></li>
 <li><strong>Get a key:</strong> <a href="https://console.deepgram.com/">console.deepgram.com</a> — $200 free credit, no credit card required</li>
 <li><strong>Cost:</strong> ~$0.30/hour</li>
 <li><strong>Default model:</strong> <code>nova-3</code> (auto-falls back to <code>nova</code> for <code>hi-Latn</code>, which isn't supported on nova-3 yet)</li>
-<li><strong>Also available:</strong> <code>nova-2</code> — the previous generation. Pin it only if you're comparing against older transcripts: <code>scribe config set provider_models.deepgram nova-2</code></li>
+<li><strong>Also available:</strong> <code>nova-2</code> — the previous generation. Pin it only if you're comparing against older transcripts: <code>anyscribe config set provider_models.deepgram nova-2</code></li>
 <li><strong>No file size limit</strong> — processes files of any length in a single request (unlike OpenAI's 25MB limit)</li>
 <li><strong>Diarization:</strong> Native — automatically detects the number of speakers from audio characteristics. No need to specify a speaker count.</li>
 <li><strong>Hindi Latin:</strong> Set <code>--language hi-Latn</code> for romanized Hindi / Hinglish output</li>
@@ -478,17 +479,17 @@ response format, so <strong>"how do I add a model to Deepgram?" is answered by
 </tbody>
 </table>
 <blockquote>
-<p><strong>When to use:</strong> Best choice for multi-speaker transcripts (meetings, interviews, podcasts). Handles long recordings (3+ hours) without chunking. Excellent for Hinglish content with <code>--language hi-Latn</code>. This is the provider scribe auto-selects when you use <code>--diarize</code>, and what the <strong><code>balanced</code></strong> quality tier (the default) selects.</p>
+<p><strong>When to use:</strong> Best choice for multi-speaker transcripts (meetings, interviews, podcasts). Handles long recordings (3+ hours) without chunking. Excellent for Hinglish content with <code>--language hi-Latn</code>. This is the provider anyscribe auto-selects when you use <code>--diarize</code>, and what the <strong><code>balanced</code></strong> quality tier (the default) selects.</p>
 </blockquote>
 <h3 id="elevenlabs-scribe">ElevenLabs Scribe</h3>
 <p>High-accuracy transcription with word-level timestamps and optional speaker diarization (up to 32 speakers).</p>
-<pre><code class="language-bash">scribe config set provider elevenlabs
+<pre><code class="language-bash">anyscribe config set provider elevenlabs
 </code></pre>
 <ul>
 <li><strong>API key env var:</strong> <code>ELEVENLABS_API_KEY</code></li>
 <li><strong>Get a key:</strong> <a href="https://elevenlabs.io/app/settings/api-keys">elevenlabs.io/app/settings/api-keys</a></li>
 <li><strong>Cost:</strong> ~$0.22–0.40/hour depending on plan</li>
-<li><strong>File limit:</strong> The ElevenLabs API accepts up to 3 GB, but scribe chunks at 25 MB (same as OpenAI) for consistency</li>
+<li><strong>File limit:</strong> The ElevenLabs API accepts up to 3 GB, but anyscribe chunks at 25 MB (same as OpenAI) for consistency</li>
 <li><strong>Model:</strong> <code>scribe_v2</code> (the most accurate model currently measured)</li>
 </ul>
 <blockquote>
@@ -496,25 +497,25 @@ response format, so <strong>"how do I add a model to Deepgram?" is answered by
 </blockquote>
 <h3 id="sarvam-ai">Sarvam AI</h3>
 <p>Specialized for Indian languages. Supports 22 Indian languages plus English with Indian accent optimization.</p>
-<pre><code class="language-bash">scribe config set provider sargam
+<pre><code class="language-bash">anyscribe config set provider sargam
 </code></pre>
 <ul>
 <li><strong>API key env var:</strong> <code>SARGAM_API_KEY</code></li>
 <li><strong>Get a key:</strong> <a href="https://dashboard.sarvam.ai">dashboard.sarvam.ai</a></li>
 <li><strong>Cost:</strong> ~$0.35/hour; free tier: ~$12 in credits</li>
-<li><strong>File limit:</strong> the sync API is limited to 30 seconds (exclusive) — scribe automatically chunks audio into 28-second segments</li>
-<li><strong>Model:</strong> <code>saaras:v3</code> — Sarvam's flagship model, and the only one scribe offers</li>
+<li><strong>File limit:</strong> the sync API is limited to 30 seconds (exclusive) — anyscribe automatically chunks audio into 28-second segments</li>
+<li><strong>Model:</strong> <code>saaras:v3</code> — Sarvam's flagship model, and the only one anyscribe offers</li>
 <li><strong>Supported languages:</strong> Hindi, Tamil, Telugu, Kannada, Malayalam, Bengali, Gujarati, Marathi, Punjabi, Odia, Assamese, Urdu, Sanskrit, and more</li>
 </ul>
 <blockquote>
-<p><strong>Upgrading from an older scribe?</strong> The older <code>saaras:v2.5</code> model has been removed — Sarvam deprecated the endpoint it ran on. If you had it pinned, scribe drops the pin for you on your next transcription and prints <code>Sarvam saaras:v2.5 is retired — using saaras:v3</code>. Nothing for you to do. v3 behaves the same way — still translates to English, still chunked — just more accurately.</p>
+<p><strong>Upgrading from an older anyscribe?</strong> The older <code>saaras:v2.5</code> model has been removed — Sarvam deprecated the endpoint it ran on. If you had it pinned, anyscribe drops the pin for you on your next transcription and prints <code>Sarvam saaras:v2.5 is retired — using saaras:v3</code>. Nothing for you to do. v3 behaves the same way — still translates to English, still chunked — just more accurately.</p>
 <p><strong>Important — Sarvam <em>translates to English</em>.</strong> Sarvam transcribes in translate mode, so the output is an <strong>English translation</strong>, not a verbatim Hindi/Hinglish transcript. Use it when you want Indic audio rendered as English; use Deepgram <code>--language hi-Latn</code> (see below) when you want to keep the spoken Hinglish.</p>
 <p><strong>When to use:</strong> Getting an English version of Indian-language audio. Not the right choice if you want to preserve the original words.</p>
 <p><strong>Hinglish — what to keep?</strong> For Hindi-English audio, <strong>store the verbatim transcript, not a translation</strong> — translation is one-way (you can't recover the original) and LLMs read Hinglish fine. <strong>Deepgram <code>--language hi-Latn</code></strong> (the default <code>balanced</code> tier) gives clean romanized Hinglish; <strong>ElevenLabs</strong> (<code>accuracy</code> tier) gives native Devanagari. Either is a lossless source of truth an LLM can summarize or translate on demand. See the <a href="https://github.com/rishmadaan/anyscribe/blob/main/docs/building/journal/2026-06-29-hinglish-transcript-format-and-llm-consumption.md">building doc</a> for the research behind this.</p>
 </blockquote>
 <h3 id="groq">Groq</h3>
-<p>The cheapest and fastest cloud option. Runs OpenAI's Whisper <code>large-v3-turbo</code> on Groq's accelerators and returns the same Whisper output scribe already parses (segment timestamps included).</p>
-<pre><code class="language-bash">scribe config set groq_api_key gsk-...
+<p>The cheapest and fastest cloud option. Runs OpenAI's Whisper <code>large-v3-turbo</code> on Groq's accelerators and returns the same Whisper output anyscribe already parses (segment timestamps included).</p>
+<pre><code class="language-bash">anyscribe config set groq_api_key gsk-...
 </code></pre>
 <ul>
 <li><strong>API key env var:</strong> <code>GROQ_API_KEY</code></li>
@@ -522,7 +523,7 @@ response format, so <strong>"how do I add a model to Deepgram?" is answered by
 <li><strong>Cost:</strong> ~$0.04/hour — the cheapest cloud provider</li>
 <li><strong>File limit:</strong> 25 MB (auto-chunked, same as OpenAI)</li>
 <li><strong>Default model:</strong> <code>whisper-large-v3-turbo</code> — the fastest and cheapest</li>
-<li><strong>Also available:</strong> <code>whisper-large-v3</code> — more accurate, a bit slower, and Groq allows bigger uploads for it. Worth switching to if the turbo model is dropping words: <code>scribe config set provider_models.groq whisper-large-v3</code></li>
+<li><strong>Also available:</strong> <code>whisper-large-v3</code> — more accurate, a bit slower, and Groq allows bigger uploads for it. Worth switching to if the turbo model is dropping words: <code>anyscribe config set provider_models.groq whisper-large-v3</code></li>
 <li><strong>Diarization:</strong> No — use the <code>accuracy</code> or <code>balanced</code> tier (or <code>--provider deepgram</code>) for speaker labels</li>
 </ul>
 <blockquote>
@@ -530,7 +531,7 @@ response format, so <strong>"how do I add a model to Deepgram?" is answered by
 </blockquote>
 <h3 id="openrouter">OpenRouter</h3>
 <p>Access to various AI models through a unified API. Since OpenRouter doesn't have a dedicated speech-to-text endpoint, this uses audio-capable chat models with a transcription prompt.</p>
-<pre><code class="language-bash">scribe config set provider openrouter
+<pre><code class="language-bash">anyscribe config set provider openrouter
 </code></pre>
 <ul>
 <li><strong>API key env var:</strong> <code>OPENROUTER_API_KEY</code></li>
@@ -541,35 +542,35 @@ response format, so <strong>"how do I add a model to Deepgram?" is answered by
 <li><strong>Default model:</strong> <code>openai/gpt-audio-mini</code></li>
 <li><strong>Also suggested:</strong> <code>google/gemini-2.5-flash-lite</code>, <code>google/gemini-2.5-flash</code>, <code>google/gemini-3-flash-preview</code>, <code>mistralai/voxtral-small-24b-2507</code>, <code>openai/gpt-audio</code></li>
 </ul>
-<pre><code class="language-bash">scribe config set provider_models.openrouter google/gemini-2.5-flash
+<pre><code class="language-bash">anyscribe config set provider_models.openrouter google/gemini-2.5-flash
 </code></pre>
 <blockquote>
-<p><strong>OpenRouter takes any model name.</strong> Unlike the other providers, scribe doesn't check your choice against a list — type any audio-capable model name from <a href="https://openrouter.ai/models">openrouter.ai/models</a> and it gets passed straight through. The flip side: a typo isn't caught until OpenRouter rejects it.</p>
+<p><strong>OpenRouter takes any model name.</strong> Unlike the other providers, anyscribe doesn't check your choice against a list — type any audio-capable model name from <a href="https://openrouter.ai/models">openrouter.ai/models</a> and it gets passed straight through. The flip side: a typo isn't caught until OpenRouter rejects it.</p>
 <p><strong>Keep your own models in the list.</strong> Add the ones you use so they show up in every picker instead of being retyped:</p>
 <p><code>bash
-scribe config set extra_models.openrouter "qwen/qwen3-omni-flash,openai/gpt-audio"
-scribe config set extra_models.openrouter ""     # clears them</code></p>
+anyscribe config set extra_models.openrouter "qwen/qwen3-omni-flash,openai/gpt-audio"
+anyscribe config set extra_models.openrouter ""     # clears them</code></p>
 <p>They appear next to the built-ins, marked <code>(custom)</code>. OpenRouter is the only provider that accepts this — see <a href="/docs/configuration#extra_models">configuration.md</a>.</p>
-<p><strong>The old default is gone.</strong> scribe used to default to <code>openai/gpt-4o-audio-preview</code>, which OpenRouter has since removed — requests to it now fail with a "model not found" error. The default is now <code>openai/gpt-audio-mini</code>. If you pinned the old one yourself, change it to a current model name.</p>
+<p><strong>The old default is gone.</strong> anyscribe used to default to <code>openai/gpt-4o-audio-preview</code>, which OpenRouter has since removed — requests to it now fail with a "model not found" error. The default is now <code>openai/gpt-audio-mini</code>. If you pinned the old one yourself, change it to a current model name.</p>
 <p><strong><code>OPENROUTER_MODEL</code> in <code>.env</code> is no longer read</strong> (removed in 0.15.0). Use <code>anyscribe config set provider_models.openrouter &lt;slug&gt;</code> instead, and delete the line from <code>~/.anyscribe/.env</code>. <!-- version-pin-ok --></p>
 <p><strong>When to use:</strong> When you need a specific model that's only available on OpenRouter. Not recommended as a primary transcription provider — dedicated STT APIs are faster, cheaper, and more accurate.</p>
 </blockquote>
 <h3 id="local-faster-whisper">Local (faster-whisper)</h3>
 <p>Runs entirely on your machine. No API key, no internet connection, no cost. Uses faster-whisper, a CTranslate2-based reimplementation of OpenAI Whisper that's up to 4x faster.</p>
 <blockquote>
-<p><strong>Also needs <code>ffmpeg</code></strong> on your system PATH. scribe uses ffmpeg to pre-process audio before handing it to Whisper — if ffmpeg isn't installed, local transcription will fail even after setup. Install via <code>brew install ffmpeg</code> (macOS), <code>winget install Gyan.FFmpeg</code> (Windows), or your distro's package manager (Linux).</p>
+<p><strong>Also needs <code>ffmpeg</code></strong> on your system PATH. anyscribe uses ffmpeg to pre-process audio before handing it to Whisper — if ffmpeg isn't installed, local transcription will fail even after setup. Install via <code>brew install ffmpeg</code> (macOS), <code>winget install Gyan.FFmpeg</code> (Windows), or your distro's package manager (Linux).</p>
 </blockquote>
 <p><strong>Setup is a single action</strong> — pick whichever path fits your workflow; all four do the same thing:</p>
-<pre><code class="language-bash">scribe local setup --model base
+<pre><code class="language-bash">anyscribe local setup --model base
 </code></pre>
 <p>or in the Web UI, either:
-- <strong>First-run onboarding wizard</strong> (opens automatically on your first <code>scribe ui</code> launch) — pick "local" as your provider, or say Yes to the "Also enable offline transcription?" step.
+- <strong>First-run onboarding wizard</strong> (opens automatically on your first <code>anyscribe ui</code> launch) — pick "local" as your provider, or say Yes to the "Also enable offline transcription?" step.
 - <strong>Settings → Providers → Local → "Set up local transcription"</strong> at any time after onboarding.</p>
-<p>or during the terminal wizard, answer <strong>Yes</strong> when <code>scribe onboard</code> asks <em>"Also enable offline/local transcription?"</em>.</p>
-<p>Setup installs <code>faster-whisper</code> into the same Python environment as scribe, downloads the Whisper model you picked, and records it as your local default. After that, local transcription is fully offline.</p>
+<p>or during the terminal wizard, answer <strong>Yes</strong> when <code>anyscribe onboard</code> asks <em>"Also enable offline/local transcription?"</em>.</p>
+<p>Setup installs <code>faster-whisper</code> into the same Python environment as anyscribe, downloads the Whisper model you picked, and records it as your local default. After that, local transcription is fully offline.</p>
 <p><strong>Recommended model:</strong> <code>base</code> — good quality for most use cases, ~145 MB download, runs on modest CPUs. If a recording is critical (interviews, accents, lots of names), step up to <code>small</code>, then <code>large-v3-turbo</code>.</p>
 <p><strong>Switching the default model:</strong></p>
-<pre><code class="language-bash">scribe config set local_model small
+<pre><code class="language-bash">anyscribe config set local_model small
 </code></pre>
 <p>or pick from the dropdown in the Web UI's Local provider panel. (The model has to be cached first — see next section.)</p>
 <p><strong>Managing downloaded models</strong> (after setup):</p>
@@ -582,19 +583,19 @@ scribe config set extra_models.openrouter ""     # clears them</code></p>
 </thead>
 <tbody>
 <tr>
-<td><code>scribe model list</code></td>
+<td><code>anyscribe model list</code></td>
 <td>Show all 7 sizes with cache status and disk usage</td>
 </tr>
 <tr>
-<td><code>scribe model pull small</code></td>
+<td><code>anyscribe model pull small</code></td>
 <td>Download an additional model size</td>
 </tr>
 <tr>
-<td><code>scribe model rm tiny --yes</code></td>
+<td><code>anyscribe model rm tiny --yes</code></td>
 <td>Delete a cached model (<code>--yes</code> required — destructive)</td>
 </tr>
 <tr>
-<td><code>scribe model info large-v3-turbo</code></td>
+<td><code>anyscribe model info large-v3-turbo</code></td>
 <td>Inspect a single size</td>
 </tr>
 </tbody>
@@ -669,10 +670,10 @@ scribe config set extra_models.openrouter ""     # clears them</code></p>
 </blockquote>
 <ul>
 <li><strong>GPU:</strong> Automatically uses NVIDIA CUDA if available; falls back to CPU.</li>
-<li><strong>Env-var override:</strong> <code>ASCLI_LOCAL_MODEL=small scribe "&lt;url&gt;"</code> wins over the configured default for one invocation.</li>
+<li><strong>Env-var override:</strong> <code>ASCLI_LOCAL_MODEL=small anyscribe "&lt;url&gt;"</code> wins over the configured default for one invocation.</li>
 </ul>
 <p><strong>Removing local transcription</strong> (uninstalls faster-whisper and deletes every cached model):</p>
-<pre><code class="language-bash">scribe local teardown --yes
+<pre><code class="language-bash">anyscribe local teardown --yes
 </code></pre>
 <p>or click <strong>"Remove local transcription"</strong> at the bottom of the Local provider panel in the Web UI.</p>
 <blockquote>
@@ -680,41 +681,41 @@ scribe config set extra_models.openrouter ""     # clears them</code></p>
 </blockquote>
 <h2 id="switching-providers">Switching Providers</h2>
 <p>Change your default provider:</p>
-<pre><code class="language-bash">scribe config set provider elevenlabs
+<pre><code class="language-bash">anyscribe config set provider elevenlabs
 </code></pre>
 <p>Override for a single transcription:</p>
-<pre><code class="language-bash">scribe &quot;&lt;url&gt;&quot; --provider local
+<pre><code class="language-bash">anyscribe &quot;&lt;url&gt;&quot; --provider local
 </code></pre>
 <h2 id="switching-models">Switching Models</h2>
 <p>Change the model a provider uses, permanently:</p>
-<pre><code class="language-bash">scribe config set provider_models.openai gpt-transcribe
+<pre><code class="language-bash">anyscribe config set provider_models.openai gpt-transcribe
 </code></pre>
 <p>Or just for one transcription:</p>
-<pre><code class="language-bash">scribe &quot;&lt;url&gt;&quot; -p openai -m gpt-transcribe
+<pre><code class="language-bash">anyscribe &quot;&lt;url&gt;&quot; -p openai -m gpt-transcribe
 </code></pre>
 <p>Check what's in effect:</p>
-<pre><code class="language-bash">scribe providers list
+<pre><code class="language-bash">anyscribe providers list
 </code></pre>
 <p>See <a href="#choosing-a-model-within-a-provider">Choosing a model within a provider</a> for the full list and the timestamps caveat.</p>
 <h2 id="adding-api-keys">Adding API Keys</h2>
 <p>The quickest way to add an API key:</p>
-<pre><code class="language-bash">scribe config set deepgram_api_key YOUR_KEY
-scribe config set openai_api_key sk-proj-...
-scribe config set elevenlabs_api_key xi-...
-scribe config set openrouter_api_key sk-or-...
-scribe config set sargam_api_key YOUR_KEY
-scribe config set groq_api_key gsk-...
+<pre><code class="language-bash">anyscribe config set deepgram_api_key YOUR_KEY
+anyscribe config set openai_api_key sk-proj-...
+anyscribe config set elevenlabs_api_key xi-...
+anyscribe config set openrouter_api_key sk-or-...
+anyscribe config set sargam_api_key YOUR_KEY
+anyscribe config set groq_api_key gsk-...
 </code></pre>
 <p>These are stored in <code>~/.anyscribe/.env</code> automatically.</p>
 <p>Or use the onboarding wizard:</p>
-<pre><code class="language-bash">scribe onboard --force
+<pre><code class="language-bash">anyscribe onboard --force
 </code></pre>
 <p>Or edit <code>~/.anyscribe/.env</code> directly.</p>
 <p>Test that a provider works:</p>
-<pre><code class="language-bash">scribe providers test elevenlabs
+<pre><code class="language-bash">anyscribe providers test elevenlabs
 </code></pre>
 <h2 id="picking-a-language-web-ui">Picking a language (Web UI)</h2>
-<p>The web UI (<code>scribe ui</code>) shows a per-provider language dropdown so you
+<p>The web UI (<code>anyscribe ui</code>) shows a per-provider language dropdown so you
 don't have to guess the right code. Open the <strong>Options</strong> accordion on the
 Transcribe page and the language input becomes a combobox listing every
 language that provider supports — <code>auto</code> at the top, then the full list.
@@ -726,12 +727,12 @@ provider.</p>
 <p>The same dropdown drives the <strong>Default language</strong> field on the Settings
 page — it follows whichever provider you pick as default.</p>
 <h2 id="diarization-auto-routing">Diarization Auto-Routing</h2>
-<p>When you use <code>--diarize</code> without specifying a provider (<code>-p</code>), scribe automatically switches to <strong>Deepgram</strong> if a Deepgram API key is configured. This is because Deepgram handles large files natively (no chunking needed) and produces the most consistent speaker labels across long recordings.</p>
+<p>When you use <code>--diarize</code> without specifying a provider (<code>-p</code>), anyscribe automatically switches to <strong>Deepgram</strong> if a Deepgram API key is configured. This is because Deepgram handles large files natively (no chunking needed) and produces the most consistent speaker labels across long recordings.</p>
 <p>To override and use a specific provider for diarization:</p>
-<pre><code class="language-bash">scribe &quot;url&quot; --diarize --provider openai
+<pre><code class="language-bash">anyscribe &quot;url&quot; --diarize --provider openai
 </code></pre>
 <blockquote>
-<p><strong>Web UI naming:</strong> "Diarize" appears as a <code>Multi-speaker</code> toggle in <code>scribe ui</code> and the <code>diarized</code> output format is labelled <code>with-speaker-labels</code> — the underlying behavior is identical.</p>
+<p><strong>Web UI naming:</strong> "Diarize" appears as a <code>Multi-speaker</code> toggle in <code>anyscribe ui</code> and the <code>diarized</code> output format is labelled <code>with-speaker-labels</code> — the underlying behavior is identical.</p>
 </blockquote>
 </main>
 </body>
