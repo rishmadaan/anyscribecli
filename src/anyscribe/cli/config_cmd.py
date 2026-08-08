@@ -62,12 +62,12 @@ def config_main(
     ctx: typer.Context,
     output_json: bool = typer.Option(False, "--json", "-j", help="Output as JSON."),
 ) -> None:
-    """[bold]View and change[/bold] scribe settings. No subcommand shows the defaults dashboard."""
+    """[bold]View and change[/bold] anyscribe settings. No subcommand shows the defaults dashboard."""
     if ctx.invoked_subcommand is not None:
         return
 
     # resolve_run pulls httpx in through the provider modules — keep it off the
-    # import path of every other `scribe` command.
+    # import path of every other `anyscribe` command.
     from anyscribe.core.resolve import resolve_run
 
     load_env()
@@ -82,7 +82,7 @@ def config_main(
             sys.stdout.write("\n")
         else:
             err_console.print(f"[red]Error:[/red] {e}")
-            err_console.print("[dim]Fix with: scribe config set provider <name>[/dim]")
+            err_console.print("[dim]Fix with: anyscribe config set provider <name>[/dim]")
         raise typer.Exit(code=1)
     rows = _provider_rows(settings)
 
@@ -186,7 +186,7 @@ def config_set(
 ) -> None:
     """[bold]Change[/bold] a configuration setting.
 
-    Use dot-notation for nested keys: `scribe config set instagram.browser firefox`
+    Use dot-notation for nested keys: `anyscribe config set instagram.browser firefox`
     """
     outcome = set_value(key, value)
     if not outcome.ok:
@@ -318,10 +318,10 @@ def providers_list(
             table.add_row(r["name"], current, others, is_active)
 
         console.print(table)
-        console.print("\n[dim]Change with: scribe config set provider <name>[/dim]")
+        console.print("\n[dim]Change with: anyscribe config set provider <name>[/dim]")
         console.print(
-            "[dim]Pin a model: scribe config set provider_models.<provider> <model>  "
-            "(or per-run: scribe <url> -p <provider> -m <model>)[/dim]"
+            "[dim]Pin a model: anyscribe config set provider_models.<provider> <model>  "
+            "(or per-run: anyscribe <url> -p <provider> -m <model>)[/dim]"
         )
 
 
