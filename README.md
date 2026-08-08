@@ -4,7 +4,7 @@
 
 Built agent-first, with three ways to reach it, in priority order:
 
-- **With your AI agent** (primary) — anyscribe ships as a Claude Code skill that installs itself the first time you run any scribe command, plus an MCP server (`pip install "anyscribe[mcp]"`, ten tools) for Claude Desktop, Cursor, and any MCP host. Every command also takes `--json` and `--yes` for agents, CI, and scripts.
+- **With your AI agent** (primary) — anyscribe ships as a Claude Code skill that installs itself the first time you run any scribe command, plus an MCP server (`pip install "anyscribe[mcp]"`, ten tools) for Claude Desktop, Cursor, and any MCP host. Most commands that report results also take `--json`, and the ones that would stop to ask take `--yes` — for agents, CI, and scripts.
 - **The web UI** (`scribe ui`) — a clean local dashboard at `127.0.0.1:8457` for when you want to see it: paste a URL, watch progress live, browse history, change settings, first-run wizard included.
 - **The CLI** (`scribe "<url>"`, `scribe onboard`) — one command with arrow-key prompts, for when you want your hands on it.
 
@@ -21,7 +21,7 @@ Shared backend, shared state: a transcription started from any surface is visibl
 - No analytics, no phone-home. `scribe update --check` reaches PyPI to compare versions, but only when you run it.
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/rishmadaan/anyscribe/blob/main/LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/anyscribe.svg)](https://pypi.org/project/anyscribe/)
 [![Platforms: macOS, Linux, Windows](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-informational.svg)](https://pypi.org/project/anyscribe/)
 
@@ -65,7 +65,7 @@ On first launch the web UI opens a full-screen onboarding wizard — pick a prov
 
 > **Windows:** if `scribe` isn't recognized, use `python -m anyscribe ui`.
 
-![The anyscribe web UI — paste a URL, watch progress, browse your transcripts](landing/assets/scribe-ui.png)
+![The anyscribe web UI — paste a URL, watch progress, browse your transcripts](https://raw.githubusercontent.com/rishmadaan/anyscribe/main/landing/assets/scribe-ui.png)
 
 Then transcribe something:
 
@@ -78,14 +78,14 @@ scribe /path/to/podcast.mp3
 
 | Start here | What it covers |
 |------------|----------------|
-| **[Use it from your AI agent](docs/user/agents.md)** | The primary path — Claude Code skill and MCP setup, what your agent can drive |
-| [Getting started](docs/user/getting-started.md) | Install to first transcript, step by step |
-| [Commands](docs/user/commands.md) | Every command and flag, with examples |
-| [Providers](docs/user/providers.md) | The seven providers compared — accuracy, cost, languages |
-| [Configuration](docs/user/configuration.md) | Every setting, where it lives, what it changes |
-| [Troubleshooting](docs/user/troubleshooting.md) | Common errors and plain-English fixes |
+| **[Use it from your AI agent](https://github.com/rishmadaan/anyscribe/blob/main/docs/user/agents.md)** | The primary path — Claude Code skill and MCP setup, what your agent can drive |
+| [Getting started](https://github.com/rishmadaan/anyscribe/blob/main/docs/user/getting-started.md) | Install to first transcript, step by step |
+| [Commands](https://github.com/rishmadaan/anyscribe/blob/main/docs/user/commands.md) | Every command and flag, with examples |
+| [Providers](https://github.com/rishmadaan/anyscribe/blob/main/docs/user/providers.md) | The seven providers compared — accuracy, cost, languages |
+| [Configuration](https://github.com/rishmadaan/anyscribe/blob/main/docs/user/configuration.md) | Every setting, where it lives, what it changes |
+| [Troubleshooting](https://github.com/rishmadaan/anyscribe/blob/main/docs/user/troubleshooting.md) | Common errors and plain-English fixes |
 
-For contributors: [CLAUDE.md](CLAUDE.md), [AGENTS.md](AGENTS.md), and [docs/building/](docs/building/).
+For contributors: [CLAUDE.md](https://github.com/rishmadaan/anyscribe/blob/main/CLAUDE.md), [AGENTS.md](https://github.com/rishmadaan/anyscribe/blob/main/AGENTS.md), and [docs/building/](https://github.com/rishmadaan/anyscribe/tree/main/docs/building/).
 
 ## Development
 
