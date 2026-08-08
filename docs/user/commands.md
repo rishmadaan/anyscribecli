@@ -36,11 +36,12 @@ CLI-only.
 | `scribe config set provider_models.<provider> <model>` | Pin which model a provider uses | Settings → Providers |
 | `scribe config set extra_models.openrouter <slugs>` | Add your own OpenRouter models to the pickers | Settings → Providers (OpenRouter model box) |
 | `scribe config path` | Print config file location | — (CLI only) |
+| `scribe config list-keys` | Every settable key with its current value | Settings → Providers (key status) |
 | `scribe providers list` | Show available providers | Settings → Providers |
 | `scribe providers test [name]` | Test a provider's API key | Settings → Providers → Test |
 | `scribe local setup --model <size>` | Install faster-whisper + download a Whisper model | Settings → Local provider card |
 | `scribe local status` | Report local-transcription readiness | Settings → Local provider card |
-| `scribe local teardown --yes` | Uninstall faster-whisper + delete all cached models | — (CLI only) |
+| `scribe local teardown --yes` | Uninstall faster-whisper + delete all cached models | Settings → Local provider card → Remove local transcription |
 | `scribe model list` | List Whisper models with cache status | Settings → Local provider card |
 | `scribe model pull <size>` | Download an additional Whisper model | Settings → Local provider card |
 | `scribe model rm <size> --yes` | Delete a cached Whisper model | Settings → Local provider card |

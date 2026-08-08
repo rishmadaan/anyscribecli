@@ -216,7 +216,7 @@ scribe config set provider elevenlabs
 Hand-editing `config.yaml` is the usual cause: writing `provider:` without also
 writing `quality: custom` leaves the tier in charge.
 
-### `Unknown model 'X' for provider 'Y'`
+### `Unknown model 'whisper-2' for openai.`
 
 That model isn't in the provider's list. scribe rejects it before downloading or
 spending anything, and the error names the valid options.
@@ -348,7 +348,7 @@ or just delete the file if you've moved on — nothing else references it.
 
 ## Local (offline) transcription
 
-### `faster-whisper not found`
+### `faster-whisper is not installed`
 
 The local provider is opt-in and needs a one-time install:
 
@@ -431,7 +431,7 @@ waveform to the always-visible side.
 > Very old versions had a bug where the icon never appeared at all — fixed in
 > 0.13.2. Run `scribe update` if you're on anything older. <!-- version-pin-ok -->
 
-### `A anyscribe tray is already running`
+### `A scribe tray is already running.`
 
 A tray is already active and its pidfile (`~/.anyscribe/tray.pid`) still points
 at a live process. This is intentional — scribe refuses to start a second tray
