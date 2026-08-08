@@ -94,11 +94,27 @@ auto-retry on port conflict and the sarvam/sargam spelling alias, deleting
 
 ## Fresh-environment install verification (spec §6)
 
-Required before release. Two of the three legs ran; recorded verbatim.
+Required before release. Two of the three legs ran at the time of writing; the
+Docker/Ubuntu leg landed after (see below). Recorded verbatim.
 
-**Docker/Ubuntu leg — NOT RUN.** `docker info` reports the daemon unavailable
-on this machine. Not installed for this task; the Linux leg remains
-outstanding.
+**Docker/Ubuntu leg — PASS** (run later, once a Docker daemon was available;
+the original note here read "NOT RUN — `docker info` reports the daemon
+unavailable"). A clean `docker run ubuntu:24.04` container with curl, sudo,
+python3, pip and ffmpeg preinstalled, prompts answered through a pty:
+`install.sh` detected an externally-managed pip, fell back to pipx via the apt
+branch, printed the success box and exited 0. `scribe --version` then printed
+`anyscribe v0.16.0`.
+
+Two honest caveats:
+
+- The installed package came **from PyPI, not from this branch** — so what this
+  leg verifies is the *script logic* (OS detection, externally-managed-pip
+  detection, the pipx fallback, the prompt flow), not this branch's package
+  contents.
+- The container needed **`sudo` preinstalled**. `install.sh` hardcodes `sudo`
+  in front of `apt`/`dnf`/`pacman`, so in a bare root container without sudo it
+  dies with exit 127. Harmless on normal desktop Linux, where sudo is always
+  present — recorded as a known limitation, not fixed here.
 
 **PATH-stripped dry run — PASS (Homebrew branch fires).**
 `env PATH=/usr/bin:/bin HOME="$HOME" bash install.sh --dry-run` with stdin
