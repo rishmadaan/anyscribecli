@@ -52,7 +52,7 @@ irm https://raw.githubusercontent.com/rishmadaan/anyscribe/main/install.ps1 | ie
 **Already have Python, ffmpeg, and yt-dlp?**
 
 ```bash
-pip install anyscribe
+pip install "anyscribe[tray]"
 ```
 
 Then start it:
@@ -61,7 +61,7 @@ Then start it:
 scribe ui    # opens the web dashboard — guides you through setup
 ```
 
-On first launch the web UI opens a full-screen onboarding wizard — pick a provider, paste the API key (with a live Test button), optionally enable offline transcription, confirm your workspace, done. Prefer the terminal? `scribe onboard` does the same thing with arrow keys, and `scribe onboard --provider openai --api-key "$OPENAI_API_KEY" --yes --json` does it headlessly for agents and CI.
+On first launch the web UI opens a full-screen onboarding wizard — pick a provider, paste the API key (with a Test key button), optionally enable offline transcription, confirm your workspace, done. Prefer the terminal? `scribe onboard` does the same thing with arrow keys, and `scribe onboard --provider openai --api-key "$OPENAI_API_KEY" --yes --json` does it headlessly for agents and CI.
 
 > **Windows:** if `scribe` isn't recognized, use `python -m anyscribe ui`.
 

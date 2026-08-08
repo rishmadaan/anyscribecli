@@ -25,7 +25,7 @@ jobs:
           python -m pip install build
 
       - name: Lint
-        run: ruff check src tests
+        run: ruff check src tests scripts
 
       - name: Test
         run: pytest

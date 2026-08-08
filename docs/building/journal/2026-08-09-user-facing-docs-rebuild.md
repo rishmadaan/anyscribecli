@@ -1,14 +1,14 @@
 ---
 type: feature
 tags: [docs, landing, install, web-ui, ci, agents]
-tldr: "User-facing docs rebuilt as three doors (agent / dashboard / CLI) with docs/user/*.md as the single source of truth, rendered to landing/docs at commit time by scripts/build-docs.py and gated in CI by scripts/check-docs.py (version drift + MCP-table drift + stale HTML). Ships the product fixes the docs needed to stop lying: install.sh survives a fresh Apple Silicon Mac, install.ps1 gets the [tray] extra, keys/status counts local (kills the permanent setup banner), Groq card in the wizard, honest post-Shutdown copy, and a macOS open-at-login toggle guarded on the tray extra."
+tldr: "User-facing docs rebuilt as three doors (agent / dashboard / CLI) with docs/user/*.md as the single source of truth, rendered to landing/docs at commit time by scripts/build-docs.py and gated in CI by scripts/check-docs.py (version drift + MCP-table drift + stale HTML). Ships the product fixes the docs needed to stop lying: install.sh should survive a fresh Apple Silicon Mac (dry-run verified; clean-VM leg outstanding), install.ps1 gets the [tray] extra, keys/status counts local (kills the permanent setup banner), Groq card in the wizard, honest post-Shutdown copy, and a macOS open-at-login toggle guarded on the tray extra."
 ---
 
 # User-facing documentation rebuild (branch `user-facing-docs`)
 
 **Date:** 2026-08-09 · Spec: `docs/superpowers/specs/2026-07-31-user-facing-docs-design.md` ·
 Plan: `docs/superpowers/plans/2026-07-31-user-facing-docs-rebuild.md` ·
-Commits: `7f9228d..d25720f` (19 commits, 38 files, +5900/-569)
+Commits: `7f9228d..d25720f` (20 commits, 38 files, +5900/-569)
 
 ## Why
 
@@ -52,7 +52,8 @@ too, not just today's.
 
 **Product fixes** (shipped so the docs stop contradicting the product):
 
-- `install.sh` survives a fresh Apple Silicon Mac — `brew shellenv` activation,
+- `install.sh` should survive a fresh Apple Silicon Mac — dry-run verified;
+  clean-VM leg outstanding — `brew shellenv` activation,
   pip invoked through the resolved `$PY`, pipx installed via brew, and the
   `[tray]` extra included.
 - `install.ps1` gains the same `[tray]` extra (parity; read-through review

@@ -79,7 +79,7 @@
 <li><strong>A computer running macOS, Linux, or Windows</strong> (native Windows and WSL2 both work). The one-line installer below brings the rest: Python, ffmpeg, and yt-dlp.</li>
 <li><strong>Then pick one engine:</strong></li>
 <li><strong>Free, offline</strong> — the <strong>local</strong> provider. No API key, no internet, runs Whisper on your machine. Downloads a model once during setup.</li>
-<li><strong>Or an API key</strong> from one provider — OpenAI is the default. Get one at <a href="https://platform.openai.com/api-keys">platform.openai.com/api-keys</a>; Whisper costs about $0.006/minute, so a 10-minute video is roughly 6 cents. Six cloud providers are supported alongside local — see <a href="/docs/providers">providers.md</a> for the comparison.</li>
+<li><strong>Or an API key</strong> from one provider — OpenAI is the default. Get one at <a href="https://platform.openai.com/api-keys">platform.openai.com/api-keys</a>; transcription costs about $0.0045/minute — a 10-minute video costs around 5 cents. Six cloud providers are supported alongside local — see <a href="/docs/providers">providers.md</a> for the comparison.</li>
 </ul>
 <blockquote>
 <p><strong>Later, if you want cheaper or more accurate:</strong> each provider offers a few models you can switch between — see <a href="/docs/providers">providers.md</a>. You don't need to think about this to get started; the defaults are good.</p>
@@ -92,11 +92,11 @@
 <p><strong>Windows (PowerShell):</strong></p>
 <pre><code class="language-powershell">irm https://raw.githubusercontent.com/rishmadaan/anyscribe/main/install.ps1 | iex
 </code></pre>
-<p>The installer checks for Python 3.10+, ffmpeg, and yt-dlp, installs whatever's missing, then installs scribe with the menu-bar tray included. On Windows it also fixes your PATH so <code>scribe</code> works from any terminal.</p>
+<p>The installer checks for Python 3.10+, ffmpeg, and yt-dlp, installs whatever's missing, then installs scribe with the menu-bar tray included. On Windows it also fixes your PATH so <code>scribe</code> works from any terminal (on Windows, ffmpeg needs winget or Chocolatey — the installer tells you if neither is present).</p>
 <p>Verify it worked:</p>
 <pre><code class="language-bash">scribe --version
 </code></pre>
-<p>You should see <code>scribe</code> followed by a version number.</p>
+<p>You should see <code>anyscribe</code> followed by a version number.</p>
 <p><strong>Already have Python and just want the package?</strong></p>
 <pre><code class="language-bash">pip install &quot;anyscribe[tray]&quot;
 </code></pre>
@@ -113,7 +113,7 @@
 <p>Opens a local dashboard at <code>http://127.0.0.1:8457</code>. A <strong>setup wizard pops up on first launch</strong>:</p>
 <ol>
 <li><strong>Pick a provider</strong> — cards for <code>openai</code> (general purpose, multilingual), <code>deepgram</code> (fast, native diarization), <code>groq</code> (cheapest and fastest cloud Whisper), <code>elevenlabs</code> (high accuracy, 99 languages), <code>sargam</code> (Sarvam AI, Indic languages), <code>openrouter</code> (many models, one API), plus <code>local</code> for free offline transcription on your own machine.</li>
-<li><strong>Paste your API key</strong> — with a live <strong>Test</strong> button so you know it works before you continue. (Skipped if you picked <code>local</code>.)</li>
+<li><strong>Paste your API key</strong> — with a <strong>Test key</strong> button so you know it works before you continue. (Skipped if you picked <code>local</code>.)</li>
 <li><strong>Choose whether to also enable offline transcription</strong> — installs faster-whisper and a Whisper model so you have a free fallback.</li>
 <li><strong>Confirm your workspace</strong> — where your transcripts live, default <code>~/anyscribe/</code>.</li>
 </ol>
@@ -221,6 +221,7 @@ scribe uninstall-service    # undo it
 <li><strong><a href="/docs/agents">Use scribe from your AI tools</a></strong> — the Claude Code skill and the MCP server, so you can say "transcribe this" instead of typing commands</li>
 <li><strong><a href="/docs/commands">Commands</a></strong> — every command, flag, and example</li>
 <li><strong><a href="/docs/providers">Providers</a></strong> — cost, accuracy, languages, and how to switch</li>
+<li><strong><a href="/docs/troubleshooting">Troubleshooting</a></strong> — every common error and its fix, when something goes sideways</li>
 </ul>
 <p>Handy things you can do right now:</p>
 <ul>
@@ -249,39 +250,8 @@ an <code>INSTAGRAM_PASSWORD</code> in your <code>~/.anyscribe/.env</code>. It's 
 and can be removed.</p>
 </blockquote>
 <h2 id="troubleshooting">Troubleshooting</h2>
-<p><strong>"command not found: scribe"</strong> or <strong>"scribe is not recognized"</strong>
-You can always use <code>python -m anyscribe</code> as a drop-in replacement for <code>scribe</code>:</p>
-<pre><code class="language-bash">python -m anyscribe onboard           # works exactly like: scribe onboard
-python -m anyscribe transcribe &quot;...&quot;  # works exactly like: scribe transcribe &quot;...&quot;
-</code></pre>
-<p>To make the <code>scribe</code> shortcut work, add your Python Scripts directory to PATH:
-- <strong>macOS</strong>: add the Python framework bin directory to your PATH
-- <strong>Linux</strong>: add <code>~/.local/bin</code> to your PATH
-- <strong>Windows</strong> (PowerShell, run as admin):
-  ```powershell
-  # Find where pip installed scripts:
-  python -c "import sysconfig; print(sysconfig.get_path('scripts'))"
-  # Then add that path permanently (replace <path> with the output above):</p>
-<p>```
-  Then restart your terminal.</p>
-<p><strong>"OPENAI_API_KEY not set"</strong>
-Set the key directly: <code>scribe config set openai_api_key YOUR_KEY</code>. Or run <code>scribe onboard --force</code> to re-enter it interactively.</p>
-<p><strong>"No matches found" when pasting a URL</strong>
-Your shell is interpreting <code>?</code> as a special character. Wrap the URL in quotes:</p>
-<pre><code class="language-bash">scribe transcribe &quot;https://www.youtube.com/watch?v=VIDEO_ID&quot;
-</code></pre>
-<p>Or run <code>scribe transcribe</code> without a URL and paste it at the prompt.</p>
-<p><strong>"yt-dlp download failed"</strong>
-scribe automatically updates yt-dlp if it's more than 60 days old (YouTube frequently changes formats, breaking older versions). If you still see this error, the video may be age-restricted, private, or geo-blocked. Try a different video, or manually update: <code>pip install --upgrade yt-dlp</code>.</p>
-<p><strong>Instagram "login_required" errors</strong>
-Instagram rate-limits anonymous access. Tell scribe which browser to borrow cookies from:</p>
-<pre><code class="language-bash">scribe config set instagram.browser firefox
-</code></pre>
-<p>Supported browsers: <code>firefox</code>, <code>chrome</code>, <code>safari</code>, <code>brave</code>, <code>edge</code>, <code>chromium</code>, <code>vivaldi</code>, <code>opera</code>. Make sure you're already logged in to Instagram in that browser. Firefox tends to work most reliably on macOS.</p>
-<p><strong>Transcription in wrong language</strong>
-Force a specific language: <code>scribe transcribe "url" --language en</code> (or <code>es</code>, <code>fr</code>, <code>hi</code>, etc.)</p>
-<p><strong>Large video taking too long</strong>
-Videos over ~30 minutes are chunked automatically. Each chunk is transcribed separately and merged. This is normal.</p>
+<p>Everything that commonly goes wrong — <code>command not found: scribe</code>, missing API keys, shells mangling URLs, yt-dlp failures, Instagram <code>login_required</code>, wrong language, slow long videos — is covered with fixes in <strong><a href="/docs/troubleshooting">troubleshooting.md</a></strong>.</p>
+<p>The one worth knowing up front: if <code>scribe</code> isn't recognized, <code>python -m anyscribe</code> is a drop-in replacement that always works (<code>python -m anyscribe onboard</code>, <code>python -m anyscribe transcribe "..."</code>).</p>
 <h2 id="appendix-manual-install">Appendix: manual install</h2>
 <p>Prefer to install each piece yourself? The one-line installer in Step 1 does all of this for you — this path is for people who'd rather see every step.</p>
 <p><strong>1. Python 3.10 or newer.</strong> Check what you have:</p>
@@ -322,7 +292,7 @@ pip install yt-dlp
 <p><strong>Windows:</strong></p>
 <pre><code class="language-bash">python -m anyscribe --version
 </code></pre>
-<p>You should see <code>scribe</code> followed by a version number.</p>
+<p>You should see <code>anyscribe</code> followed by a version number.</p>
 <blockquote>
 <p><strong>Why <code>python -m</code> on Windows?</strong> pip installs <code>scribe.exe</code> to a Scripts directory that's usually not on PATH. <code>python -m anyscribe</code> always works because it uses the same Python you installed with. On first run, it will print the exact PowerShell command to add <code>scribe</code> to your PATH permanently — after that, you can use <code>scribe</code> directly.</p>
 </blockquote>
@@ -333,7 +303,6 @@ pip install yt-dlp
 <blockquote>
 <p><strong>Developing on scribe?</strong> <a href="https://github.com/rishmadaan/anyscribe">Clone the repo</a> and install it editable — see the building docs.</p>
 </blockquote>
-<p>See <a href="/docs/commands">Commands</a> for the full reference, <a href="/docs/configuration">Configuration</a> for all settings, or <a href="/docs/providers">Providers</a> for provider comparison.</p>
 </main>
 </body>
 </html>

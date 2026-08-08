@@ -973,7 +973,7 @@ Manually install or update the scribe skill for [Claude Code](https://docs.anthr
 scribe install-skill
 ```
 
-Copies skill files from the scribe package to `~/.claude/skills/scribe/`. Requires Claude Code to be installed (`~/.claude/` must exist).
+Copies skill files from the scribe package to `~/.claude/skills/anyscribe/`. Requires Claude Code to be installed (`~/.claude/` must exist).
 
 ### Flags
 
@@ -1082,7 +1082,7 @@ Print the installed version.
 
 ```bash
 scribe --version
-# Output: your installed version — check `scribe --version`
+# Output: anyscribe v<your version>
 ```
 
 ---

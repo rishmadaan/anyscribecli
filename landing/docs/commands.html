@@ -1407,7 +1407,7 @@ scribe uninstall-service --yes      # no prompt
 <p>Manually install or update the scribe skill for <a href="https://docs.anthropic.com/en/docs/claude-code">Claude Code</a>. This teaches Claude how to transcribe, configure providers, and troubleshoot scribe on your behalf.</p>
 <pre><code class="language-bash">scribe install-skill
 </code></pre>
-<p>Copies skill files from the scribe package to <code>~/.claude/skills/scribe/</code>. Requires Claude Code to be installed (<code>~/.claude/</code> must exist).</p>
+<p>Copies skill files from the scribe package to <code>~/.claude/skills/anyscribe/</code>. Requires Claude Code to be installed (<code>~/.claude/</code> must exist).</p>
 <h3 id="flags_12">Flags</h3>
 <table>
 <thead>
@@ -1532,7 +1532,7 @@ anyscribe migrate --json
 <h2 id="scribe-version">scribe --version</h2>
 <p>Print the installed version.</p>
 <pre><code class="language-bash">scribe --version
-# Output: your installed version — check `scribe --version`
+# Output: anyscribe v&lt;your version&gt;
 </code></pre>
 <hr />
 <h2 id="scribe-help">scribe --help</h2>

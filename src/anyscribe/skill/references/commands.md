@@ -659,7 +659,7 @@ anyscribe migrate --json                   # machine-readable report
 
 ```bash
 anyscribe --version
-# Output: your installed version — check `scribe --version`
+# Output: anyscribe v<your version>
 ```
 
 ---
