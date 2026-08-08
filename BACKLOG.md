@@ -473,16 +473,19 @@ product stop contradicting each other.
       names the way back in, macOS "Open at login" toggle wired to the existing
       launchd service and refused when the `[tray]` extra isn't installed
 
-**Verification still owed before release:** the Linux (Docker/Ubuntu) and clean
-macOS VM install legs from the spec's §6 have not been run — Docker is
-unavailable on the dev machine and the macOS leg needs a spare Mac or VM
-without Homebrew. The PATH-stripped `install.sh --dry-run` harness passed.
+- [x] **Stale skill path in onboarding** — the success message printed
+      `~/.claude/skills/scribe/`; now `~/.claude/skills/anyscribe/`, with the
+      same fix in `docs/user/commands.md` (found during review, fixed in
+      `0728585`)
+
+**Verification still owed before release:** the clean macOS VM install leg from
+the spec's §6 has not been run — it needs a spare Mac or VM without Homebrew.
+The Linux (Docker/Ubuntu) leg has since **passed** on a clean `ubuntu:24.04`
+container (externally-managed pip → pipx fallback → exit 0), and the
+PATH-stripped `install.sh --dry-run` harness passed.
 
 **Found, not fixed (carried forward):**
 
-- [ ] `src/anyscribe/cli/onboard.py:847` — onboarding success message prints
-      the stale skill path `~/.claude/skills/scribe/`; the real path is
-      `~/.claude/skills/anyscribe/`
 - [ ] Windows *functional* install testing — `install.ps1` has had a
       read-through review only; revisit when a Windows environment exists
 

@@ -167,12 +167,14 @@ Mac without Homebrew). Flagged, not faked.
   that never ran. Empty output is only evidence when you have confirmed the
   command executed — check the exit status, not the blank screen.
 
-## Backlog item found on the way
+## Backlog item found on the way — and fixed
 
-`src/anyscribe/cli/onboard.py:847` — the onboarding success message prints a
+`src/anyscribe/cli/onboard.py:847` — the onboarding success message printed a
 stale skill path, `~/.claude/skills/scribe/`. The real path is
-`~/.claude/skills/anyscribe/`. Found during review, not fixed on this branch
-(out of scope); carried into BACKLOG.md.
+`~/.claude/skills/anyscribe/` (`config/paths.py:47`). Found during review and
+initially carried into BACKLOG.md as out of scope, then **fixed on this branch
+after all** in commit `0728585`, along with the same stale path in
+`docs/user/commands.md`. No test covers the success message, before or after.
 
 ## Gate at close-out
 
