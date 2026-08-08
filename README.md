@@ -4,7 +4,7 @@
 
 Built agent-first, with three ways to reach it, in priority order:
 
-- **With your AI agent** (primary) — anyscribe ships as a Claude Code skill that installs itself during onboarding, plus an MCP server (`pip install "anyscribe[mcp]"`, ten tools) for Claude Desktop, Cursor, and any MCP host. Every command also takes `--json` and `--yes` for agents, CI, and scripts.
+- **With your AI agent** (primary) — anyscribe ships as a Claude Code skill that installs itself the first time you run any scribe command, plus an MCP server (`pip install "anyscribe[mcp]"`, ten tools) for Claude Desktop, Cursor, and any MCP host. Every command also takes `--json` and `--yes` for agents, CI, and scripts.
 - **The web UI** (`scribe ui`) — a clean local dashboard at `127.0.0.1:8457` for when you want to see it: paste a URL, watch progress live, browse history, change settings, first-run wizard included.
 - **The CLI** (`scribe "<url>"`, `scribe onboard`) — one command with arrow-key prompts, for when you want your hands on it.
 
@@ -27,284 +27,65 @@ Shared backend, shared state: a transcription started from any surface is visibl
 
 ---
 
-## What it does
+## What you need
 
-```
-URL or local file → Download/convert audio → Transcribe → Formatted Markdown → Obsidian Vault
-```
+- **Python 3.10 or newer** — [python.org](https://www.python.org/downloads/)
+- **ffmpeg and yt-dlp** — the installers below put both in place for you; with the pip route, install them yourself (`brew install ffmpeg yt-dlp`, or [ffmpeg.org](https://ffmpeg.org/))
+- **An API key** for one cloud provider (OpenAI, Deepgram, ElevenLabs, Sarvam, Groq, OpenRouter) — or none at all if you run offline with the local provider
 
-- **7 transcription providers** — OpenAI Whisper, Deepgram Nova, ElevenLabs, Groq, OpenRouter, Sarvam AI, Local (offline)
-- **Speaker diarization** — `--diarize` flag for multi-speaker transcripts (meetings, interviews, podcasts)
-- **3 input sources** — YouTube, Instagram (reels + posts), local files (mp3, mp4, m4a, wav, opus, ogg, flac, webm)
-- **Obsidian-native output** — YAML frontmatter, word count, reading time, tags
-- **Master index + daily logs** — browse everything in Obsidian
-- **Download-only mode** — grab video or audio without transcribing
-- **Batch processing** — transcribe a list of URLs from a file
-- **No duplicate work** — a source already in your vault is returned from the existing file, not re-transcribed; `--force` overrides
-- **Web UI** — `scribe ui` launches a local dashboard (transcribe, browse history, manage settings, first-run onboarding wizard) at `127.0.0.1:8457` — served from your own machine, no cloud backend; local Whisper model downloads show byte-level progress (percent + MB)
-- **Local-first, no account** — no sign-up, no telemetry, no SaaS layer; fully offline with the local provider + local files
-- **Agent-friendly CLI** — `--json` output, structured exit codes, `--yes` for non-interactive runs on every consequential command; no silent defaults for choices an agent might make on the user's behalf
-- **Three-surface onboarding parity** — wizard modal in the Web UI, interactive prompts in `scribe onboard`, flag-driven in `scribe onboard --yes ...`; all three write the same config
+`scribe doctor` checks all of this at any time, and the setup wizard checks it for you on first run.
 
-## Quick Start
+## Install
 
-### Install
+**macOS / Linux** — installs Python, ffmpeg, yt-dlp, and scribe with the menu-bar app:
 
-**macOS / Linux** (one command — installs Python, ffmpeg, and scribe):
 ```bash
 curl -fsSL https://raw.githubusercontent.com/rishmadaan/anyscribe/main/install.sh | bash
 ```
 
-**Windows** (PowerShell — installs Python, ffmpeg, and scribe):
+**Windows** (PowerShell) — same, for Windows:
+
 ```powershell
 irm https://raw.githubusercontent.com/rishmadaan/anyscribe/main/install.ps1 | iex
 ```
 
-**Or install manually:**
+**Already have Python, ffmpeg, and yt-dlp?**
+
 ```bash
 pip install anyscribe
 ```
 
-> **Upgrading from `anyscribecli`?** The package, command, and app folder were
-> renamed (the `scribe` and `ascli` commands still work as permanent aliases).
-> After `pip install --upgrade anyscribe`, run `anyscribe migrate` once — it
-> moves your config and API keys from `~/.anyscribecli/` to `~/.anyscribe/`
-> without overwriting anything. Add `--dry-run` to preview first.
-
-### Get started
+Then start it:
 
 ```bash
-scribe ui    # opens web dashboard — guides you through setup
+scribe ui    # opens the web dashboard — guides you through setup
 ```
 
-On first launch the web UI opens a full-screen **onboarding wizard** — pick a provider, paste the API key (with a live Test button), optionally enable offline transcription, confirm your workspace, done.
+On first launch the web UI opens a full-screen onboarding wizard — pick a provider, paste the API key (with a live Test button), optionally enable offline transcription, confirm your workspace, done. Prefer the terminal? `scribe onboard` does the same thing with arrow keys, and `scribe onboard --provider openai --api-key "$OPENAI_API_KEY" --yes --json` does it headlessly for agents and CI.
 
-> **Windows:** If `scribe` isn't recognized, use `python -m anyscribe ui`
->
-> **Alternative paths** (same end state):
-> - `scribe onboard` — interactive terminal wizard.
-> - `scribe onboard --provider openai --api-key "$OPENAI_API_KEY" --yes --json` — headless mode for agents, CI, and scripts.
+> **Windows:** if `scribe` isn't recognized, use `python -m anyscribe ui`.
 
-### Transcribe
+![The anyscribe web UI — paste a URL, watch progress, browse your transcripts](landing/assets/scribe-ui.png)
+
+Then transcribe something:
 
 ```bash
-# From a URL
-scribe "https://www.youtube.com/watch?v=VIDEO_ID"
-
-# From a local file
+scribe "https://www.youtube.com/watch?v=VIDEO_ID"   # always quote URLs — shells break on ? and &
 scribe /path/to/podcast.mp3
 ```
 
-> **Always wrap URLs in quotes** — shells like zsh break URLs with `?` and `&`.
+## Docs
 
-### Download (no transcription)
+| Start here | What it covers |
+|------------|----------------|
+| **[Use it from your AI agent](docs/user/agents.md)** | The primary path — Claude Code skill and MCP setup, what your agent can drive |
+| [Getting started](docs/user/getting-started.md) | Install to first transcript, step by step |
+| [Commands](docs/user/commands.md) | Every command and flag, with examples |
+| [Providers](docs/user/providers.md) | The seven providers compared — accuracy, cost, languages |
+| [Configuration](docs/user/configuration.md) | Every setting, where it lives, what it changes |
+| [Troubleshooting](docs/user/troubleshooting.md) | Common errors and plain-English fixes |
 
-```bash
-scribe download "https://www.youtube.com/watch?v=VIDEO_ID"            # video
-scribe download "https://www.youtube.com/watch?v=VIDEO_ID" --audio-only  # audio
-```
-
-## Commands
-
-| Command | Description |
-|---------|-------------|
-| `scribe onboard` | Interactive setup wizard (TUI) |
-| `scribe onboard --provider X --api-key $KEY --yes` | Headless setup for agents / CI |
-| `scribe transcribe "<url or file>"` | Transcribe a video or local file to markdown (`-p` picks a provider, `-m` a specific model, e.g. `-p openai -m whisper-1`) |
-| `scribe download "<url>"` | Download video or audio only |
-| `scribe batch <file>` | Batch transcribe URLs or file paths from a file |
-| `scribe rm <path-or-slug>` | Delete a transcript and update the index |
-| `scribe logs` | View recent transcription activity + recovery artifacts |
-| `scribe config` | Defaults dashboard — the provider + model your next run uses, and every alternative |
-| `scribe config show/set/path/list-keys` | View and change settings |
-| `scribe providers list/test` | Manage transcription providers |
-| `scribe local setup --model <size>` | Install faster-whisper + download a Whisper model |
-| `scribe local status` / `scribe local teardown` | Report / remove offline transcription |
-| `scribe model list / pull / rm / reinstall / info` | Manage cached Whisper model weights |
-| `scribe ui` | Launch the web UI in your browser |
-| `scribe tray` | Menu-bar icon that supervises the web server (needs `pip install "anyscribe[tray]"`) |
-| `scribe install-service` / `scribe uninstall-service` | Auto-start the tray at login (macOS) |
-| `scribe install-skill` | Install Claude Code skill |
-| `scribe update` | Update to the latest version |
-| `scribe doctor` | Check system health |
-
-### Transcribe options
-
-```bash
-scribe transcribe "<url>"
-  --quality <tier>         # accuracy | balanced | cost | free — picks a provider (default: balanced)
-  --provider, -p <name>    # Explicit provider (openai, deepgram, elevenlabs, sargam, groq, local, ...) — overrides --quality
-  --language, -l <code>    # Language code (default: auto-detect)
-  --diarize, -d            # Enable speaker diarization (multi-speaker transcripts)
-  --force, -f              # Re-transcribe even if this source is already in the vault
-  --json, -j               # JSON output for scripting/AI agents
-  --keep-media             # Keep the downloaded audio file
-  --clipboard, -c          # Read URL from clipboard
-  --quiet, -q              # Suppress progress output
-```
-
-Provide a URL, file path, or use interactive mode:
-```bash
-scribe transcribe "https://..."     # quoted URL (primary)
-scribe transcribe /path/to/file.mp3 # local audio/video file
-scribe transcribe                    # interactive prompt (no quoting needed)
-scribe transcribe --clipboard        # read URL from system clipboard
-```
-
-### Download options
-
-```bash
-scribe download "<url>"
-  --video / --audio-only     # Video (default) or audio only
-  --json, -j                 # JSON output
-  --quiet, -q                # Suppress progress
-  --clipboard, -c            # Read URL from clipboard
-```
-
-### Batch options
-
-```bash
-scribe batch <file>
-  --provider, -p <name>      # Override provider
-  --language, -l <code>      # Override language
-  --json, -j                 # JSON output
-  --keep-media               # Keep audio files
-  --force, -f                # Re-transcribe sources already in the vault
-  --quiet, -q                # Suppress progress
-  --stop-on-error            # Stop at first failure
-```
-
-### JSON output
-
-```bash
-scribe transcribe "https://youtube.com/watch?v=abc123" --json
-```
-
-```json
-{
-  "success": true,
-  "file": "~/anyscribe/sources/youtube/video-title.md",
-  "title": "Video Title",
-  "platform": "youtube",
-  "duration": "12:34",
-  "language": "en",
-  "word_count": 1500,
-  "provider": "openai"
-}
-```
-
-## Menu-bar app
-
-Want `scribe ui` always running instead of launching it by hand? Install the tray extra and click the icon:
-
-```bash
-pip install "anyscribe[tray]"
-scribe tray                    # menu-bar icon: Open UI, Status, Restart, Check for updates, Quit
-scribe install-service         # optional: auto-start the tray at login (macOS)
-```
-
-## Prerequisites
-
-The onboarding wizard checks for these and offers to install them:
-
-| Dependency | Required | Install |
-|------------|----------|---------|
-| Python 3.10+ | Yes | [python.org](https://www.python.org/downloads/) |
-| yt-dlp | Yes | `brew install yt-dlp` or `pip install yt-dlp` |
-| ffmpeg | Yes | `brew install ffmpeg` or [ffmpeg.org](https://ffmpeg.org/) |
-| API key | Yes (for cloud providers) | See [Provider Guide](docs/user/providers.md) |
-
-## Directory structure
-
-```
-~/anyscribe/                              # Obsidian vault (configurable)
-├── _index.md                             # Master index (newest first)
-├── sources/
-│   ├── youtube/<slug>.md
-│   ├── instagram/<slug>.md
-│   └── local/<slug>.md
-└── daily/YYYY-MM-DD.md
-
-~/.anyscribe/                          # App internals (hidden)
-├── config.yaml                           # Settings (no secrets)
-├── .env                                  # API keys + passwords
-├── downloads/                            # Downloads (separate from vault)
-│   ├── audio/<platform>/                 # Kept audio (if keep_media=true)
-│   └── video/<platform>/                 # Downloaded videos
-├── sessions/                             # Login sessions
-└── logs/                                 # Processing logs
-```
-
-> **Workspace is visible and configurable** — transcripts default to `~/anyscribe/` (no hidden dot-dir). Change it with `scribe config set workspace_path /your/path`. Downloads stay separate to keep the vault lightweight.
-
-## Providers
-
-| Provider | Best for | API key |
-|----------|----------|---------|
-| **OpenAI Whisper** (default) | General purpose, multilingual | `OPENAI_API_KEY` |
-| **Deepgram Nova** | Diarization (auto-selected with `--diarize`), Hinglish | `DEEPGRAM_API_KEY` |
-| **ElevenLabs Scribe** | High accuracy, 99 languages, word timestamps | `ELEVENLABS_API_KEY` |
-| **Sarvam AI** | Indic languages (Hindi, Tamil, Telugu, etc.) | `SARGAM_API_KEY` |
-| **OpenRouter** | Access to various AI models | `OPENROUTER_API_KEY` |
-| **Local** (faster-whisper) | Offline, free, no API key needed | None |
-
-See [Provider Guide](docs/user/providers.md) for detailed comparison, pricing, and setup.
-
-## Configuration
-
-```yaml
-# ~/.anyscribe/config.yaml
-provider: openai          # Transcription provider (used when quality is `custom`)
-quality: balanced          # accuracy | balanced | cost | free | custom — picks the provider
-provider_models: {}        # provider -> pinned model id (empty = each provider's default)
-extra_models: {}           # openrouter -> your own model slugs, merged into the pickers
-language: auto             # Language (auto-detect or ISO code)
-keep_media: false          # Keep audio files after transcription
-output_format: clean       # clean | timestamped | diarized
-diarize: false             # enable speaker diarization
-prompt_download: never     # never | ask | always — download video after transcription
-local_file_media: skip     # skip | copy | move | ask — what to do with local files
-workspace_path: ""         # empty = ~/anyscribe (default), or set a custom path
-```
-
-API keys and passwords live in `~/.anyscribe/.env` (separate from config, never committed). You can set API keys directly:
-
-```bash
-scribe config set deepgram_api_key YOUR_KEY
-scribe config set openai_api_key YOUR_KEY
-```
-
-> **One knob picks the provider.** `quality` is either a tier (which chooses the provider) or `custom` (which uses your `provider` line). Setting a provider anywhere writes `quality: custom` in the same save, so your choice sticks. Run `scribe config` to see what wins.
-
-> **Diarization auto-routing:** When you use `--diarize` without specifying a provider, scribe automatically switches to Deepgram (if configured) for best speaker detection. Override with `-p openai` if needed.
-
-> **Timestamps on OpenAI are automatic.** The default model `gpt-transcribe` is cheaper and more accurate but can't emit `[mm:ss]` markers, so scribe switches that run to `whisper-1` when your output format is `timestamped` or `diarized` — unless you named a model yourself with `-m`.
-
-> **Web UI labels:** The CLI's `--diarize` flag is shown as `Multi-speaker` in the web UI, and the `diarized` output format is labelled `with-speaker-labels`. Wire values are unchanged — the rename is display-only so the UI reads in plain English.
-
-See [Configuration Guide](docs/user/configuration.md) for all options.
-
-## Claude Code Integration
-
-scribe ships with a [Claude Code skill](https://code.claude.com/docs/en/skills) that teaches Claude how to transcribe, configure providers, and troubleshoot on your behalf. After installing scribe:
-
-```bash
-scribe install-skill
-```
-
-Or run `scribe onboard` — it auto-detects Claude Code and offers to install the skill. Once installed, Claude can use `/anyscribe` or auto-activate when you ask it to transcribe something.
-
-## Documentation
-
-| For | Where |
-|-----|-------|
-| First-time users | [Getting Started](docs/user/getting-started.md) |
-| Command reference | [Commands](docs/user/commands.md) |
-| All config options | [Configuration](docs/user/configuration.md) |
-| Provider comparison | [Providers](docs/user/providers.md) |
-| AI developers | [CLAUDE.md](CLAUDE.md) |
-| Agent directives | [AGENTS.md](AGENTS.md) |
-| Developer memory | [Building Docs](docs/building/) |
+For contributors: [CLAUDE.md](CLAUDE.md), [AGENTS.md](AGENTS.md), and [docs/building/](docs/building/).
 
 ## Development
 
@@ -317,6 +98,10 @@ ruff check src/          # lint
 ruff format src/         # format
 pytest                   # test
 ```
+
+## Upgrading from `anyscribecli`
+
+The package, command, and app folder were renamed (the `scribe` and `ascli` commands still work as permanent aliases). After `pip install --upgrade anyscribe`, run `anyscribe migrate` once — it moves your config and API keys from `~/.anyscribecli/` to `~/.anyscribe/` without overwriting anything. Add `--dry-run` to preview first.
 
 ## License
 
