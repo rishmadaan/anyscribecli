@@ -356,7 +356,7 @@ DEEPGRAM_API_KEY=...
 > **Important:** This file contains secrets. It's excluded from git by default. Never share it or commit it to a repository.
 
 > **`OPENROUTER_MODEL` no longer does anything.** Older versions read that line to
-> choose an OpenRouter model. Since 0.15.0 the model lives with every other model
+> choose an OpenRouter model. Since 0.15.0 the model lives with every other model <!-- version-pin-ok -->
 > choice — run `scribe config set provider_models.openrouter <slug>` and delete the
 > `OPENROUTER_MODEL` line from `.env`.
 

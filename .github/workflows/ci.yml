@@ -61,3 +61,24 @@ jobs:
 
       - name: Verify committed static bundle is current
         run: git diff --exit-code -- src/anyscribe/web/static
+
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install renderer
+        run: python -m pip install "markdown>=3.5"
+
+      - name: Render docs
+        run: python scripts/build-docs.py
+
+      - name: Committed HTML matches sources
+        run: git diff --exit-code landing/docs
+
+      - name: Version + capability drift gates
+        run: python scripts/check-docs.py

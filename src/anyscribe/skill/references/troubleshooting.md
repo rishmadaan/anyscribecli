@@ -195,7 +195,7 @@ scribe config --json     # resolved.model, and providers[].default_model
 scribe config show       # provider_models.openrouter
 ```
 
-> A stale `OPENROUTER_MODEL=` line in `~/.anyscribe/.env` is **not** the cause — that env var was removed in 0.15.0 and is no longer read. Tell the user to delete the line and set `provider_models.openrouter` instead.
+> A stale `OPENROUTER_MODEL=` line in `~/.anyscribe/.env` is **not** the cause — that env var was removed in 0.15.0 and is no longer read. Tell the user to delete the line and set `provider_models.openrouter` instead. <!-- version-pin-ok -->
 
 **Fix — set a current slug:**
 ```bash

@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Use anyscribe from your AI agent — anyscribe docs</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230E0D0B'/><circle cx='16' cy='16' r='4.5' fill='%23F5A524'/></svg>" />
+<style>
+  :root {
+    --bg: #0E0D0B; --bg-2: #15130F; --bg-3: #1E1B16;
+    --ink: #ECE8DC; --ink-2: #B6AE9D; --ink-3: #8D8574;
+    --rule: rgba(236,232,220,0.08); --rule-2: rgba(236,232,220,0.14);
+    --signal: #F5A524; --phosphor: #C8E887;
+    --display: "Unbounded", "Helvetica Neue", system-ui, sans-serif;
+    --sans: "Geist", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+    --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans);
+         font-size: 17px; line-height: 1.7; -webkit-font-smoothing: antialiased; }
+  a { color: var(--signal); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  header { border-bottom: 1px solid var(--rule); padding: 20px clamp(20px,5vw,56px); }
+  header nav { display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: baseline;
+               max-width: 860px; margin: 0 auto; font-size: 14px; }
+  header .home { font-family: var(--mono); color: var(--ink); margin-right: 8px; }
+  header nav a.here { color: var(--phosphor); }
+  header nav a { color: var(--ink-3); }
+  main { max-width: 860px; margin: 0 auto; padding: 48px clamp(20px,5vw,56px) 96px; }
+  h1, h2, h3, h4 { font-family: var(--display); font-weight: 400; letter-spacing: -0.03em;
+                   line-height: 1.25; margin: 2em 0 0.6em; }
+  h1 { font-size: clamp(30px, 5vw, 42px); margin-top: 0; }
+  h2 { font-size: 26px; padding-top: 20px; border-top: 1px solid var(--rule); }
+  h3 { font-size: 20px; }
+  p, li { color: var(--ink-2); }
+  strong { color: var(--ink); }
+  code { font-family: var(--mono); font-size: 0.88em; background: var(--bg-3);
+         border: 1px solid var(--rule); border-radius: 4px; padding: 1px 5px; color: var(--phosphor); }
+  pre { background: var(--bg-2); border: 1px solid var(--rule); border-radius: 8px;
+        padding: 16px; overflow-x: auto; }
+  pre code { background: none; border: 0; padding: 0; color: var(--ink); }
+  blockquote { margin: 1.5em 0; padding: 2px 0 2px 18px; border-left: 2px solid var(--signal);
+               color: var(--ink-3); }
+  table { border-collapse: collapse; width: 100%; display: block; overflow-x: auto; margin: 1.5em 0; }
+  th, td { border: 1px solid var(--rule-2); padding: 8px 12px; text-align: left; font-size: 15px;
+           color: var(--ink-2); }
+  th { color: var(--ink); font-weight: 600; background: var(--bg-2); }
+  hr { border: 0; border-top: 1px solid var(--rule); margin: 3em 0; }
+  .cards { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+  .card { display: block; background: var(--bg-2); border: 1px solid var(--rule);
+          border-radius: 10px; padding: 20px; color: inherit; }
+  .card:hover { border-color: var(--signal); text-decoration: none; }
+  .card h2 { font-size: 19px; margin: 0 0 6px; border: 0; padding: 0; color: var(--ink); }
+  .card p { margin: 0; font-size: 15px; color: var(--ink-3); }
+</style>
+</head>
+<body>
+<header><nav><a class="home" href="/">anyscribe</a><a href="/docs">Docs</a><a href="/docs/agents" class="here">Agents</a><a href="/docs/getting-started">Getting started</a><a href="/docs/commands">Commands</a><a href="/docs/providers">Providers</a><a href="/docs/configuration">Configuration</a><a href="/docs/troubleshooting">Troubleshooting</a></nav></header>
+<main>
+<h1 id="use-anyscribe-from-your-ai-agent">Use anyscribe from your AI agent</h1>
+<p>You don't have to memorize flags. Hand a link to your agent and say "transcribe this" — it drives scribe for you.</p>
+<h2 id="two-ways-in">Two ways in</h2>
+<p><strong>The Claude Code skill</strong> teaches Claude how to <em>use the CLI</em>. Claude runs <code>scribe</code> commands in your terminal the way you would, so anything the command line can do, the skill can reach: transcribing, batches, provider setup, log reading, updates, local model management. It's the fuller path, and it only works in Claude Code.</p>
+<p><strong>The MCP server</strong> exposes a fixed set of ten tools over MCP — the Model Context Protocol, the standard way an AI app talks to an outside tool. It's narrower by design, but it works in any MCP host: Claude Desktop, Cursor, Claude Code, and anything else that speaks the protocol.</p>
+<blockquote>
+<p><strong>Not sure which?</strong> If you live in Claude Code, install the skill. If you live in Claude Desktop or Cursor, use MCP. Installing both is fine — they don't conflict.</p>
+</blockquote>
+<h2 id="claude-code-skill">Claude Code (skill)</h2>
+<pre><code class="language-bash">pip install anyscribe
+scribe install-skill
+</code></pre>
+<p>That copies the skill into <code>~/.claude/skills/anyscribe/</code>. Claude Code picks it up on the next session — no restart dance beyond opening a new one.</p>
+<p><strong>You may already have it.</strong> If Claude Code is installed on this machine, scribe installs the skill for you the first time you run <em>any</em> scribe command, and quietly refreshes it whenever the copy on disk falls behind the installed version. No prompt, nothing to opt into. Run <code>scribe install-skill</code> when you want to re-install or confirm it explicitly — say, after deleting the folder or debugging why Claude isn't picking it up.</p>
+<p>Then either type <code>/anyscribe</code> to invoke it explicitly, or just ask in plain English — the skill activates on its own when your request is about transcription:</p>
+<ul>
+<li>"Transcribe this YouTube link and drop it in my vault: <code>https://youtube.com/watch?v=...</code>"</li>
+<li>"Transcribe these five URLs with the cheapest provider, and tell me which ones failed."</li>
+<li>"Switch me to Deepgram and re-run the last one with speaker labels."</li>
+</ul>
+<blockquote>
+<p><strong>New to skills?</strong> A skill is a folder of instructions Claude reads when your request matches. Nothing runs in the background — the files just sit there until Claude needs them.</p>
+</blockquote>
+<h2 id="mcp-claude-desktop-cursor-other-hosts">MCP (Claude Desktop, Cursor, other hosts)</h2>
+<pre><code class="language-bash">pip install &quot;anyscribe[mcp]&quot;
+</code></pre>
+<p>The server command, <code>anyscribe-mcp</code>, ships with the base package — it's already on your PATH. What the <code>[mcp]</code> extra adds is the MCP library the server needs in order to run, kept out of the base install so a plain <code>pip install anyscribe</code> stays light. Without the extra, the command exists but stops on a missing import; with it, <code>anyscribe-mcp</code> is the server your agent talks to.</p>
+<p><strong>Claude Code:</strong></p>
+<pre><code class="language-bash">claude mcp add anyscribe -- anyscribe-mcp
+</code></pre>
+<p><strong>Claude Desktop</strong> — add this to your <code>claude_desktop_config.json</code>:</p>
+<pre><code class="language-json">{ &quot;mcpServers&quot;: { &quot;anyscribe&quot;: { &quot;command&quot;: &quot;anyscribe-mcp&quot; } } }
+</code></pre>
+<p><strong>Other hosts</strong> (Cursor and friends) want the same two facts in whatever shape their config file takes: the command is <code>anyscribe-mcp</code>, and it needs no arguments.</p>
+<blockquote>
+<p><strong>Configure scribe first.</strong> The MCP server uses the same <code>~/.anyscribe/config.yaml</code> and API keys as the CLI. Run <code>scribe onboard</code> once before wiring up MCP, or the tools will start by telling your agent there's no provider configured.</p>
+</blockquote>
+<h2 id="what-your-agent-can-reach-skill-vs-mcp">What your agent can reach (skill vs MCP)</h2>
+<p>Both paths hit the same engine — the difference is how much of it is exposed.</p>
+<table>
+<thead>
+<tr>
+<th>Capability</th>
+<th>Skill (CLI)</th>
+<th>MCP</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Transcribe one URL or file</td>
+<td>✓</td>
+<td>✓ <code>transcribe</code></td>
+</tr>
+<tr>
+<td>Transcribe many at once</td>
+<td>✓</td>
+<td>✓ <code>batch_transcribe</code></td>
+</tr>
+<tr>
+<td>Download media without transcribing</td>
+<td>✓</td>
+<td>✓ <code>download</code></td>
+</tr>
+<tr>
+<td>Browse what's in your vault</td>
+<td>✓</td>
+<td>✓ <code>list_transcripts</code></td>
+</tr>
+<tr>
+<td>Delete a transcript</td>
+<td>✓</td>
+<td>✓ <code>delete_transcript</code></td>
+</tr>
+<tr>
+<td>Read your settings</td>
+<td>✓</td>
+<td>✓ <code>get_config</code></td>
+</tr>
+<tr>
+<td>Change a setting</td>
+<td>✓</td>
+<td>✓ <code>set_config</code></td>
+</tr>
+<tr>
+<td>See available providers</td>
+<td>✓</td>
+<td>✓ <code>list_providers</code></td>
+</tr>
+<tr>
+<td>Check an API key works</td>
+<td>✓</td>
+<td>✓ <code>test_provider</code></td>
+</tr>
+<tr>
+<td>Health check</td>
+<td>✓</td>
+<td>✓ <code>doctor</code></td>
+</tr>
+<tr>
+<td>Read run logs (<code>logs</code>)</td>
+<td>✓</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Update scribe (<code>update</code>)</td>
+<td>✓</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Run the setup wizard (<code>onboard</code>)</td>
+<td>✓</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Set up offline transcription (<code>local setup</code>)</td>
+<td>✓</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Manage Whisper models (<code>model list</code> / <code>pull</code> / <code>rm</code>)</td>
+<td>✓</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Menu-bar tray</td>
+<td>✗</td>
+<td>✗</td>
+</tr>
+</tbody>
+</table>
+<p>The tray is the one row where the agent runs out of road partway. Claude Code can <em>start</em> it (<code>scribe tray</code>) or set it to launch at login (<code>scribe install-service</code>), because those are ordinary commands. What no agent can do is use it: the tray's whole point is a menu-bar icon you click, and there's nothing to click on from a transcript. If you want scribe always running in the background, see <a href="/docs/getting-started#keep-it-running">Getting Started → Keep it running</a>.</p>
+<blockquote>
+<p><strong>Why the short list on MCP?</strong> Every MCP tool is a permanent promise with a fixed shape. Ten cover the work; the rest are one-off maintenance jobs better done by a human at a terminal — or by Claude Code, which has the whole CLI anyway.</p>
+</blockquote>
+<h2 id="agent-friendly-flags">Agent-friendly flags</h2>
+<p>Anything your agent needs to parse, it should ask for as JSON:</p>
+<pre><code class="language-bash">scribe &quot;&lt;url&gt;&quot; --json --quiet
+</code></pre>
+<p>Most commands that report results accept <code>--json</code>, and commands that would stop to ask "are you sure?" accept <code>--yes</code> (<code>-y</code>) to answer in advance — the pair that keeps an agent from hanging on a prompt it can't see. Full details, including the exact JSON shape, live in <a href="/docs/commands#for-scripts-and-agents">Commands → For scripts and agents</a>.</p>
+</main>
+</body>
+</html>

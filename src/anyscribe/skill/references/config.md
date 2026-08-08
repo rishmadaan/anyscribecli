@@ -117,7 +117,7 @@ GROQ_API_KEY=gsk-...
 ASCLI_LOCAL_MODEL=base                   # Optional: tiny|base|small|medium|large-v3|large-v3-turbo|distil-large-v3.5
 ```
 
-> `OPENROUTER_MODEL` was removed in 0.15.0 and is no longer read. Use
+> `OPENROUTER_MODEL` was removed in 0.15.0 and is no longer read. Use <!-- version-pin-ok -->
 > `scribe config set provider_models.openrouter <slug>` and delete the line.
 
 ## Workspace Structure

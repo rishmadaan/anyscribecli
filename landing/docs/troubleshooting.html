@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Troubleshooting — anyscribe docs</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230E0D0B'/><circle cx='16' cy='16' r='4.5' fill='%23F5A524'/></svg>" />
+<style>
+  :root {
+    --bg: #0E0D0B; --bg-2: #15130F; --bg-3: #1E1B16;
+    --ink: #ECE8DC; --ink-2: #B6AE9D; --ink-3: #8D8574;
+    --rule: rgba(236,232,220,0.08); --rule-2: rgba(236,232,220,0.14);
+    --signal: #F5A524; --phosphor: #C8E887;
+    --display: "Unbounded", "Helvetica Neue", system-ui, sans-serif;
+    --sans: "Geist", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+    --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans);
+         font-size: 17px; line-height: 1.7; -webkit-font-smoothing: antialiased; }
+  a { color: var(--signal); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  header { border-bottom: 1px solid var(--rule); padding: 20px clamp(20px,5vw,56px); }
+  header nav { display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: baseline;
+               max-width: 860px; margin: 0 auto; font-size: 14px; }
+  header .home { font-family: var(--mono); color: var(--ink); margin-right: 8px; }
+  header nav a.here { color: var(--phosphor); }
+  header nav a { color: var(--ink-3); }
+  main { max-width: 860px; margin: 0 auto; padding: 48px clamp(20px,5vw,56px) 96px; }
+  h1, h2, h3, h4 { font-family: var(--display); font-weight: 400; letter-spacing: -0.03em;
+                   line-height: 1.25; margin: 2em 0 0.6em; }
+  h1 { font-size: clamp(30px, 5vw, 42px); margin-top: 0; }
+  h2 { font-size: 26px; padding-top: 20px; border-top: 1px solid var(--rule); }
+  h3 { font-size: 20px; }
+  p, li { color: var(--ink-2); }
+  strong { color: var(--ink); }
+  code { font-family: var(--mono); font-size: 0.88em; background: var(--bg-3);
+         border: 1px solid var(--rule); border-radius: 4px; padding: 1px 5px; color: var(--phosphor); }
+  pre { background: var(--bg-2); border: 1px solid var(--rule); border-radius: 8px;
+        padding: 16px; overflow-x: auto; }
+  pre code { background: none; border: 0; padding: 0; color: var(--ink); }
+  blockquote { margin: 1.5em 0; padding: 2px 0 2px 18px; border-left: 2px solid var(--signal);
+               color: var(--ink-3); }
+  table { border-collapse: collapse; width: 100%; display: block; overflow-x: auto; margin: 1.5em 0; }
+  th, td { border: 1px solid var(--rule-2); padding: 8px 12px; text-align: left; font-size: 15px;
+           color: var(--ink-2); }
+  th { color: var(--ink); font-weight: 600; background: var(--bg-2); }
+  hr { border: 0; border-top: 1px solid var(--rule); margin: 3em 0; }
+  .cards { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+  .card { display: block; background: var(--bg-2); border: 1px solid var(--rule);
+          border-radius: 10px; padding: 20px; color: inherit; }
+  .card:hover { border-color: var(--signal); text-decoration: none; }
+  .card h2 { font-size: 19px; margin: 0 0 6px; border: 0; padding: 0; color: var(--ink); }
+  .card p { margin: 0; font-size: 15px; color: var(--ink-3); }
+</style>
+</head>
+<body>
+<header><nav><a class="home" href="/">anyscribe</a><a href="/docs">Docs</a><a href="/docs/agents">Agents</a><a href="/docs/getting-started">Getting started</a><a href="/docs/commands">Commands</a><a href="/docs/providers">Providers</a><a href="/docs/configuration">Configuration</a><a href="/docs/troubleshooting" class="here">Troubleshooting</a></nav></header>
+<main>
+<h1 id="troubleshooting">Troubleshooting</h1>
+<p>Find the error by the text you actually saw. Each entry says what it means and
+what to type.</p>
+<h2 id="start-here">Start here</h2>
+<p>Whatever the problem, run this first:</p>
+<pre><code class="language-bash">scribe doctor
+</code></pre>
+<p>It checks your dependencies, config, install, and whether an update is
+available. If you're asking for help or filing a bug, paste its output — it
+contains everything needed to diagnose the issue and no secrets.</p>
+<p>If the question is about a <em>specific past run</em> — did it actually transcribe,
+what happened to the one that failed — check the activity log instead:</p>
+<pre><code class="language-bash">scribe logs
+</code></pre>
+<p>That shows recent transcriptions plus any <strong>recovery artifacts</strong>: audio that was
+downloaded before a run failed, kept so you don't have to download it again.</p>
+<hr />
+<h2 id="install-and-startup">Install and startup</h2>
+<h3 id="command-not-found-scribe-or-scribe-is-not-recognized"><code>command not found: scribe</code> (or <code>'scribe' is not recognized</code>)</h3>
+<p>scribe is installed, but the folder pip put it in isn't on your PATH.</p>
+<p><strong>The instant workaround</strong> — this always works, no setup:</p>
+<pre><code class="language-bash">python -m anyscribe onboard              # same as: scribe onboard
+python -m anyscribe transcribe &quot;&lt;url&gt;&quot;   # same as: scribe transcribe &quot;&lt;url&gt;&quot;
+</code></pre>
+<p><strong>To fix the <code>scribe</code> shortcut properly</strong>, first confirm it's installed:</p>
+<pre><code class="language-bash">python3 -m pip show anyscribe
+</code></pre>
+<p>Then add your Python scripts directory to PATH:</p>
+<ul>
+<li><strong>macOS</strong> — add the Python framework <code>bin</code> directory to your PATH</li>
+<li><strong>Linux</strong> — add <code>~/.local/bin</code> to your PATH</li>
+<li><strong>Windows</strong> (PowerShell, as administrator):</li>
+</ul>
+<p>```powershell
+  # Find where pip installed the scripts:
+  python -c "import sysconfig; print(sysconfig.get_path('scripts'))"
+  # Add that path permanently (replace <path> with the output above):</p>
+<p>```</p>
+<p>Then restart your terminal.</p>
+<h3 id="i-upgraded-and-my-api-keys-are-gone">"I upgraded and my API keys are gone"</h3>
+<p>scribe used to keep config and keys in <code>~/.anyscribecli/</code>; it now uses
+<code>~/.anyscribe/</code>. Normally the move happens by itself on your first
+transcription — but if the first thing you ran after upgrading created an empty
+new folder (<code>scribe ui</code> or <code>scribe config</code>, say), the old keys can be stranded
+in the legacy folder.</p>
+<p><strong>Fix</strong> — run the one-time migration. It never overwrites anything already in
+the new folder, and it reports how many keys it moved, never the keys
+themselves:</p>
+<pre><code class="language-bash">anyscribe migrate --dry-run    # preview — writes nothing at all
+anyscribe migrate              # do it
+</code></pre>
+<p>Safe to run twice: a second run just reports there's nothing left to do.</p>
+<h3 id="permission-denied">"Permission denied"</h3>
+<p>Usually the app folder is owned by root, from an install run with <code>sudo</code>.</p>
+<pre><code class="language-bash">ls -la ~/.anyscribe/                      # check the owner
+sudo chown -R $(whoami) ~/.anyscribe/     # hand it back to yourself
+</code></pre>
+<hr />
+<h2 id="input-and-downloads">Input and downloads</h2>
+<h3 id="no-matches-found-when-you-paste-a-url"><code>no matches found</code> when you paste a URL</h3>
+<p>Your shell — zsh especially — is treating the <code>?</code> in the URL as a wildcard. This
+happens before scribe ever runs.</p>
+<p><strong>Fix:</strong> wrap the URL in double quotes.</p>
+<pre><code class="language-bash">scribe transcribe &quot;https://www.youtube.com/watch?v=VIDEO_ID&quot;
+</code></pre>
+<p>Or run <code>scribe transcribe</code> with no URL and paste it at the prompt, where no
+quoting is needed.</p>
+<h3 id="yt-dlp-download-failed-video-unavailable"><code>yt-dlp download failed: Video unavailable</code></h3>
+<p>The video is private, deleted, age-restricted, or blocked in your region.</p>
+<p>scribe auto-updates yt-dlp when it's more than 60 days old — YouTube changes
+formats often and old versions break — so this is rarely a stale-tool problem.
+Still:</p>
+<ol>
+<li>Try a different video, to confirm scribe itself is working.</li>
+<li>Update yt-dlp by hand: <code>pip install --upgrade yt-dlp</code></li>
+<li>If it's age-restricted, yt-dlp needs browser cookies (advanced).</li>
+</ol>
+<h3 id="instagram-rate-limit-reached-or-login-required">Instagram: <code>rate-limit reached</code> or <code>login required</code></h3>
+<p>The reel is behind a login wall. Point scribe at a browser you're already
+logged into — it borrows the cookies, no password involved:</p>
+<pre><code class="language-bash">scribe config set instagram.browser firefox
+</code></pre>
+<p>Supported: <code>firefox</code>, <code>chrome</code>, <code>safari</code>, <code>brave</code>, <code>edge</code>, <code>chromium</code>,
+<code>vivaldi</code>, <code>opera</code>. Firefox is the most reliable on macOS; Chrome's cookie
+encryption makes extraction flakier.</p>
+<p>Already configured a browser and still seeing this?</p>
+<ol>
+<li>Open Instagram in that browser and confirm you're logged in.</li>
+<li>Open the reel URL in that same browser and confirm you can watch it.</li>
+<li>If it plays in the browser but not through scribe, the cookie store may be
+   locked by the running browser — quit the browser and retry.</li>
+</ol>
+<h3 id="instagram-private-account">Instagram: <code>private account</code></h3>
+<p>The poster's account is private. Cookies from a browser logged into an account
+that <em>follows</em> them will work; cookies from any other account won't.</p>
+<h3 id="instagram-video-unavailable-post-not-found">Instagram: <code>video unavailable</code> / <code>post not found</code></h3>
+<p>The reel was deleted, made private, or is region-locked. Nothing to fix on your
+side.</p>
+<hr />
+<h2 id="providers-and-api-keys">Providers and API keys</h2>
+<h3 id="openai_api_key-not-set-or-any-other-missing-key-error"><code>OPENAI_API_KEY not set</code> (or any other missing-key error)</h3>
+<p>The key that provider needs isn't in <code>~/.anyscribe/.env</code>.</p>
+<pre><code class="language-bash">scribe config set openai_api_key YOUR_KEY   # set it directly
+scribe onboard --force                       # or re-run the wizard
+</code></pre>
+<h3 id="warning-quality-x-wants-y-but-no-y_api_key-is-set"><code>WARNING: quality 'X' wants Y but no Y_API_KEY is set</code></h3>
+<p>Not an error — scribe went ahead using your configured provider instead. Your
+quality tier prefers a provider whose key you don't have.</p>
+<p><strong>Either add the missing key:</strong></p>
+<pre><code class="language-bash">scribe config set deepgram_api_key YOUR_KEY
+</code></pre>
+<p><strong>Or pick a tier you have a key for.</strong> <code>scribe config</code> shows which keys are
+present in its <code>Key</code> column.</p>
+<h3 id="provider-error-or-general-api-failures"><code>Provider error</code> or general API failures</h3>
+<pre><code class="language-bash">scribe providers test                          # is the key valid?
+scribe &quot;url&quot; --provider openai                 # does another provider work?
+</code></pre>
+<p>If the test fails, the key is wrong, expired, or the account is out of credit.
+If the test passes but transcription fails, try another provider to isolate
+whether it's the service or the file.</p>
+<h3 id="next-run-isnt-the-provider-i-set">"Next run" isn't the provider I set</h3>
+<p><code>quality</code> outranks <code>provider</code>. If <code>quality</code> is a tier
+(<code>accuracy</code>/<code>balanced</code>/<code>cost</code>/<code>free</code>), that tier picks the provider and your
+<code>provider</code> line is ignored.</p>
+<pre><code class="language-bash">scribe config    # look at the (…) after the model — `quality: balanced` means the tier won
+</code></pre>
+<p><strong>Fix:</strong> set the provider through the CLI, which writes <code>quality: custom</code> in the
+same save — that's what makes the choice stick:</p>
+<pre><code class="language-bash">scribe config set provider elevenlabs
+</code></pre>
+<p>Hand-editing <code>config.yaml</code> is the usual cause: writing <code>provider:</code> without also
+writing <code>quality: custom</code> leaves the tier in charge.</p>
+<h3 id="unknown-model-whisper-2-for-openai"><code>Unknown model 'whisper-2' for openai.</code></h3>
+<p>That model isn't in the provider's list. scribe rejects it before downloading or
+spending anything, and the error names the valid options.</p>
+<pre><code class="language-bash">scribe config --json          # each provider's current model and alternatives
+scribe providers list --json
+</code></pre>
+<p>Two cases that look like bugs but aren't:</p>
+<ul>
+<li><strong><code>elevenlabs</code> and <code>sargam</code> have exactly one model each</strong>, and <code>local</code> has
+  none — its sizes come from <code>scribe model list</code>, not <code>-m</code>.</li>
+<li><strong><code>extra_models.&lt;provider&gt;</code> is rejected for everything except <code>openrouter</code>.</strong>
+  By design: every other provider's models ship with scribe releases because
+  each response shape needs parsing code. The fix is <code>scribe update</code>, not a
+  config key.</li>
+</ul>
+<h3 id="openrouter-model-not-found-404">OpenRouter: <code>model not found</code> / 404</h3>
+<p>The slug you pinned isn't available on OpenRouter. OpenRouter is the one
+provider scribe doesn't validate models for — it forwards any name unchanged —
+so a typo or a retired slug only fails once the request reaches the API. Old
+pins to models OpenRouter has since removed are the most common cause.</p>
+<p><strong>Find the pin:</strong></p>
+<pre><code class="language-bash">scribe config --json     # resolved.model, and providers[].default_model
+scribe config show       # provider_models.openrouter
+</code></pre>
+<p><strong>Set a current slug:</strong></p>
+<pre><code class="language-bash">scribe config set provider_models.openrouter openai/gpt-audio-mini
+</code></pre>
+<p>Any audio-capable OpenRouter slug works — see
+<a href="https://openrouter.ai/models">openrouter.ai/models</a> for what's live today.</p>
+<blockquote>
+<p>A leftover <code>OPENROUTER_MODEL=</code> line in <code>~/.anyscribe/.env</code> is <strong>not</strong> the
+cause — that variable is no longer read at all. Delete the line and use
+<code>provider_models.openrouter</code> instead.</p>
+</blockquote>
+<hr />
+<h2 id="transcription-results">Transcription results</h2>
+<h3 id="already-transcribed-nothing-got-re-transcribed">"Already transcribed" — nothing got re-transcribed</h3>
+<p>Not an error. scribe found an existing transcript whose <code>source:</code> frontmatter
+matches this URL or file, so it handed you that file back instead of
+re-downloading and re-paying for it. You'll see
+<code>Already transcribed: &lt;path&gt; — use --force to re-transcribe.</code> — in JSON that's
+<code>"cached": true</code>, and in a batch the row is marked <code>CACHED</code>.</p>
+<p><strong>If you genuinely want a fresh run</strong> (you switched providers, or the source was
+re-uploaded):</p>
+<pre><code class="language-bash">scribe &quot;url&quot; --force
+</code></pre>
+<p><strong>If you want the old one gone entirely:</strong> <code>scribe rm &lt;path-or-slug&gt;</code> first,
+then transcribe again.</p>
+<h3 id="transcription-came-out-in-the-wrong-language">Transcription came out in the wrong language</h3>
+<p>Auto-detection guessed wrong.</p>
+<pre><code class="language-bash">scribe &quot;url&quot; --language en        # force it for one run (or es, fr, hi, …)
+scribe config set language hi     # or make it the default
+</code></pre>
+<h3 id="timestamped-or-diarized-output-came-out-as-plain-paragraphs">Timestamped or diarized output came out as plain paragraphs</h3>
+<p>The model that ran doesn't return segment timestamps, so there's nothing to
+build <code>[mm:ss]</code> markers from. On OpenAI that's <code>gpt-transcribe</code> (the default),
+<code>gpt-4o-transcribe</code>, and <code>gpt-4o-mini-transcribe</code>; <code>sargam</code> and <code>openrouter</code>
+never return them at all.</p>
+<p><strong>On OpenAI this shouldn't happen on its own</strong> — scribe swaps in <code>whisper-1</code>
+when your output format is <code>timestamped</code> or <code>diarized</code>, and prints
+<code>switched to whisper-1 — gpt-transcribe can't produce timestamps</code>. So if you got
+paragraphs, one of these is true:</p>
+<ol>
+<li><strong>You passed <code>-m</code>.</strong> An explicit per-run model always wins, which suppresses
+   the swap. Re-run without <code>-m</code>, or with <code>-m whisper-1</code>.</li>
+<li><strong>The provider isn't OpenAI.</strong> Sarvam and OpenRouter have no timestamped
+   model to fall back to. Switch: <code>scribe "url" -p deepgram --force</code></li>
+<li><strong>Your <code>output_format</code> is <code>clean</code>.</strong> There were never going to be timestamps:
+   <code>scribe config set output_format timestamped</code></li>
+</ol>
+<p><strong>Check what actually ran:</strong></p>
+<pre><code class="language-bash">scribe config --json     # resolved.provider, resolved.model, resolved.notes
+</code></pre>
+<p>To force Whisper on every OpenAI run:
+<code>scribe config set provider_models.openai whisper-1</code>. Deepgram and ElevenLabs
+give word-level timestamps if you want finer granularity than Whisper's
+segments.</p>
+<h3 id="a-long-video-is-taking-forever">A long video is taking forever</h3>
+<p>Anything over ~30 minutes is split into chunks and transcribed piece by piece,
+then merged. That's normal, not a hang.</p>
+<p><strong>Rough guide:</strong> cloud providers run at roughly real-time speed. Local
+transcription on CPU is 2–5× real-time.</p>
+<h3 id="audio-left-over-after-a-failed-run">Audio left over after a failed run</h3>
+<p>When a transcription fails <em>after</em> the audio downloaded, scribe keeps that audio
+rather than throwing it away, so a retry doesn't re-download it.</p>
+<pre><code class="language-bash">scribe logs
+</code></pre>
+<p>Recovery artifacts appear in their own section, separate from the activity log.
+Re-run <code>scribe "url"</code> to retry (add <code>--force</code> if it partly wrote a transcript),
+or just delete the file if you've moved on — nothing else references it.</p>
+<hr />
+<h2 id="local-offline-transcription">Local (offline) transcription</h2>
+<h3 id="faster-whisper-is-not-installed"><code>faster-whisper is not installed</code></h3>
+<p>The local provider is opt-in and needs a one-time install:</p>
+<pre><code class="language-bash">scribe local setup --model base
+</code></pre>
+<p>That installs faster-whisper into the same Python environment as scribe and
+downloads the model. The first download needs internet (~150 MB for <code>base</code>);
+everything after that is fully offline.</p>
+<blockquote>
+<p><code>--model</code> is deliberately required — scribe will never pick a model size for
+you. <code>base</code> is the recommended starting point.</p>
+</blockquote>
+<h3 id="checking-whats-actually-installed">Checking what's actually installed</h3>
+<pre><code class="language-bash">scribe local status
+</code></pre>
+<p>Reports faster-whisper's version, whether ffmpeg is present, which models are
+cached, disk usage, and how scribe was installed. It always exits 0, so it's
+safe to run before setup.</p>
+<h3 id="model-weights-look-corrupted">Model weights look corrupted</h3>
+<p>Delete and re-download in one step:</p>
+<pre><code class="language-bash">scribe model reinstall base --yes
+</code></pre>
+<hr />
+<h2 id="web-ui-and-menu-bar-tray">Web UI and menu-bar tray</h2>
+<h3 id="the-setup-needed-to-start-transcribing-banner-wont-go-away">The "Setup needed to start transcribing" banner won't go away</h3>
+<p>The banner appears when either of two things is missing, and it disappears on
+its own — it re-checks every 30 seconds — once both are satisfied:</p>
+<ol>
+<li><strong>ffmpeg (and ffprobe) aren't installed.</strong> The banner shows the exact install
+   command for your platform, with a copy button.</li>
+<li><strong>No transcription provider is set up at all.</strong> Add an API key under
+   <strong>Settings → Providers</strong>.</li>
+</ol>
+<blockquote>
+<p><strong>Using local transcription only?</strong> That counts. Once faster-whisper is
+installed (<code>scribe local setup --model base</code>, or the <strong>Set up local
+transcription</strong> button on the Local provider card in Settings), the provider
+requirement is satisfied without any API key.</p>
+</blockquote>
+<p>You can also dismiss the banner with the ✕ for the current session.</p>
+<h3 id="the-remove-key-button-is-missing-for-a-provider">The Remove key button is missing for a provider</h3>
+<p>That provider's key is coming from your shell environment — an
+<code>export OPENAI_API_KEY=…</code> in your shell profile, say — not from
+<code>~/.anyscribe/.env</code>. scribe can't edit your shell config, so it hides a button
+that wouldn't work. Unset it where you set it.</p>
+<h3 id="the-tray-companion-needs-extra-packages-the-tray-wont-start"><code>The tray companion needs extra packages</code> / the tray won't start</h3>
+<p>The tray needs the optional <code>[tray]</code> extra (<code>pystray</code>, <code>Pillow</code>, and <code>pyobjc</code> on
+macOS). The one-line installers include it by default — if you see this message,
+you almost certainly installed with a bare <code>pip install anyscribe</code>:</p>
+<pre><code class="language-bash">pip install -U &quot;anyscribe[tray]&quot;
+scribe tray
+</code></pre>
+<h3 id="the-tray-is-running-but-theres-no-icon-in-the-menu-bar">The tray is running but there's no icon in the menu bar</h3>
+<p>If the server answers at <code>http://127.0.0.1:8457</code> but you can't find the waveform
+icon, check whether a menu-bar manager is running — Hidden Bar, Bartender, Ice,
+Dozer. macOS inserts new status items at the <strong>left</strong> of the strip, which these
+apps hide by default. Expand the manager (its chevron) and drag the scribe
+waveform to the always-visible side.</p>
+<blockquote>
+<p>Very old versions had a bug where the icon never appeared at all — fixed in
+0.13.2. Run <code>scribe update</code> if you're on anything older. <!-- version-pin-ok --></p>
+</blockquote>
+<h3 id="a-scribe-tray-is-already-running"><code>A scribe tray is already running.</code></h3>
+<p>A tray is already active and its pidfile (<code>~/.anyscribe/tray.pid</code>) still points
+at a live process. This is intentional — scribe refuses to start a second tray
+rather than collide with the first.</p>
+<p><strong>Fix:</strong> use the existing one (check your menu bar), or quit it first (menu →
+Quit, or Ctrl+C in its terminal) and relaunch.</p>
+<h3 id="port-already-in-use"><code>port already in use</code></h3>
+<p>If a <code>scribe ui</code> server is already listening, <code>scribe tray</code> <strong>attaches</strong> to it
+instead of erroring — that's expected. If some unrelated process holds the port,
+pick another:</p>
+<pre><code class="language-bash">scribe tray --port 9000
+scribe ui --port 9000
+</code></pre>
+<h3 id="removing-the-tray-completely">Removing the tray completely</h3>
+<ol>
+<li>Quit the tray if it's running (menu → Quit).</li>
+<li>Remove the login auto-start (macOS): <code>scribe uninstall-service --yes</code></li>
+<li>Optionally drop the extra packages: <code>pip uninstall pystray Pillow</code></li>
+</ol>
+<p><code>uninstall-service</code> only removes the login item — it doesn't stop a running tray
+or uninstall scribe.</p>
+<hr />
+<h2 id="last-resort">Last resort</h2>
+<h3 id="config-or-workspace-looks-corrupted">Config or workspace looks corrupted</h3>
+<pre><code class="language-bash">scribe doctor     # find out what's actually wrong first
+</code></pre>
+<p>The nuclear option resets your config and API keys. <strong>Your transcripts are
+safe</strong> — they live separately in <code>~/anyscribe/</code>:</p>
+<pre><code class="language-bash">rm -rf ~/.anyscribe
+scribe onboard
+</code></pre>
+<blockquote>
+<p>Check <code>scribe config show</code> first if you set a custom workspace path, and back
+up that folder if the transcripts matter to you.</p>
+</blockquote>
+<hr />
+<h2 id="still-stuck">Still stuck?</h2>
+<p>Run <code>scribe doctor</code> and include its full output when you
+<a href="https://github.com/rishmadaan/anyscribe/issues">open an issue</a>. It covers
+dependencies, config, install type, and version — everything needed to reproduce
+your setup, and nothing sensitive.</p>
+</main>
+</body>
+</html>
