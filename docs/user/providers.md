@@ -16,6 +16,32 @@ scribe supports 7 transcription providers. Here's how they compare and when to u
 > `balanced`, `cost`, or `free` and scribe selects the provider for you. See
 > [Quality presets](#quality-presets) below.
 
+## What it costs to start
+
+**Start with a tier, not a provider.** Pick `accuracy`, `balanced`, `cost`, or
+`free` and scribe chooses for you — that's the whole decision for most people.
+The table below is a reference for when you'd rather pick yourself.
+
+| Provider | Free to start? | Card needed? | Rough cost |
+|----------|----------------|--------------|------------|
+| **Local** | Yes — $0, no account | No — no account at all | Free |
+| **Deepgram** | Yes — $200 credit on signup | No | ~$0.30/hr |
+| **Sarvam** | Yes — ~$12 in credits | See [dashboard.sarvam.ai](https://dashboard.sarvam.ai) | ~$0.35/hr |
+| **Groq** | See [console.groq.com/keys](https://console.groq.com/keys) | See [console.groq.com/keys](https://console.groq.com/keys) | ~$0.04/hr |
+| **OpenAI** | See [platform.openai.com/api-keys](https://platform.openai.com/api-keys) | See [platform.openai.com/api-keys](https://platform.openai.com/api-keys) | ~$0.18–0.36/hr (by model) |
+| **ElevenLabs** | See [elevenlabs.io/app/settings/api-keys](https://elevenlabs.io/app/settings/api-keys) | See [elevenlabs.io/app/settings/api-keys](https://elevenlabs.io/app/settings/api-keys) | ~$0.22–0.40/hr (by plan) |
+| **OpenRouter** | See [openrouter.ai/keys](https://openrouter.ai/keys) | See [openrouter.ai/keys](https://openrouter.ai/keys) | Varies by model |
+
+> **Why so many "see the provider's page" cells?** Because signup terms change
+> whenever the provider feels like it, and a stale promise of "free, no card"
+> is worse than no answer. The two we state outright — Deepgram's $200 credit
+> and Local costing nothing — are the ones scribe itself depends on. Everything
+> else, check at the source before you sign up.
+
+> **Cheapest honest path to a first transcript:** `free` (Local, $0 forever,
+> nothing to sign up for) or `balanced` (Deepgram, $200 of credit is a lot of
+> hours at ~$0.30/hr).
+
 ## Privacy — who sees your audio?
 
 Worth knowing before you pick. scribe itself doesn't phone home — everything runs on your own machine — but your audio has to go wherever the transcription happens.
