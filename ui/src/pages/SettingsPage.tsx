@@ -13,7 +13,10 @@ import {
   deleteLocalModel,
   reinstallLocalModel,
   teardownLocal,
+  getAutostart,
+  setAutostart,
 } from "../api/client";
+import type { AutostartState } from "../api/client";
 import type {
   Config,
   Provider,
@@ -74,6 +77,25 @@ export default function SettingsPage() {
   const [reinstallingSize, setReinstallingSize] = useState<string | null>(null);
   const [confirmTeardown, setConfirmTeardown] = useState(false);
   const [tearingDown, setTearingDown] = useState(false);
+  // null = unsupported platform or unreachable; the row renders nothing.
+  const [autostart, setAutostartState] = useState<AutostartState | null>(null);
+
+  useEffect(() => {
+    getAutostart()
+      .then(setAutostartState)
+      .catch(() => setAutostartState(null));
+  }, []);
+
+  const handleAutostart = async (v: boolean) => {
+    setError(null);
+    try {
+      setAutostartState(await setAutostart(v));
+    } catch (e) {
+      setError(
+        e instanceof Error ? e.message : "Failed to change open-at-login"
+      );
+    }
+  };
 
   const refreshAll = useCallback(async () => {
     const [c, p, h, l] = await Promise.all([
@@ -302,6 +324,26 @@ export default function SettingsPage() {
             dismiss
           </button>
         </div>
+      )}
+
+      {/* Startup — macOS only; renders nothing anywhere else. */}
+      {autostart?.supported && (
+        <section className="mb-10">
+          <h2 className="text-xs font-mono text-text-muted uppercase tracking-wider mb-4">
+            Startup
+          </h2>
+          <div className="rounded-lg border border-border-subtle bg-surface px-4 py-3">
+            <SettingRow label="Open at login (menu-bar app)">
+              <Toggle
+                value={autostart.enabled}
+                onChange={(v) => void handleAutostart(v)}
+              />
+            </SettingRow>
+            <p className="text-xs text-text-muted mt-1">
+              Starts the anyscribe menu-bar icon when you log in.
+            </p>
+          </div>
+        </section>
       )}
 
       {/* Configure Defaults */}

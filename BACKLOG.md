@@ -440,6 +440,61 @@ Decision record: `docs/building/journal/2026-07-21-rename-to-anyscribe.md`.
 
 ---
 
+## Unreleased (user-facing docs rebuild)
+
+**Status:** complete on branch `user-facing-docs`; version bump and release
+still gated on Rishabh's go-ahead (no version row added yet).
+
+Repositions the user-facing documentation from dev-tool docs to product docs
+for AI-tool power users, and ships the product fixes needed so the docs and the
+product stop contradicting each other.
+
+- [x] **Three doors** in `docs/user/` — new `agents.md` (skill vs MCP as a
+      capability split, honest capability map), installer-first
+      `getting-started.md` with a "keep it running" chapter (tray, autostart,
+      getting back in), `commands.md` with a "Where in the Web UI?" column plus
+      a carved-out `troubleshooting.md`, cost-to-start table in `providers.md`,
+      README shrunk to a short pitch linking to the docs
+- [x] **Docs pipeline** — `docs/user/*.md` is the single source of truth,
+      rendered at **commit time** by `scripts/build-docs.py` into committed
+      `landing/docs/*.html`; landing nav/footer wired to the docs site
+- [x] **CI honesty gates** (`scripts/check-docs.py` + `git diff --exit-code
+      landing/docs`) — fail on stale/hand-edited HTML, on any `vX.Y.Z` in
+      `docs/user/`, `landing/`, `README.md`, or `src/anyscribe/skill/` that
+      doesn't match `pyproject.toml` (opt out per line with
+      `<!-- version-pin-ok -->`), and on any `@mcp.tool()` missing from
+      `agents.md`
+- [x] **Install fixes** — `install.sh` survives a fresh Apple Silicon Mac
+      (`brew shellenv` activation, pip via the resolved `$PY`, pipx via brew);
+      `[tray]` extra added to both `install.sh` and `install.ps1`
+- [x] **`keys/status` counts `local` as configured** — kills the permanent
+      "Setup needed" banner for local-only users
+- [x] **Web UI** — Groq card in the onboarding wizard, post-Shutdown screen
+      names the way back in, macOS "Open at login" toggle wired to the existing
+      launchd service and refused when the `[tray]` extra isn't installed
+
+- [x] **Stale skill path in onboarding** — the success message printed
+      `~/.claude/skills/scribe/`; now `~/.claude/skills/anyscribe/`, with the
+      same fix in `docs/user/commands.md` (found during review, fixed in
+      `0728585`)
+
+**Verification still owed before release:** the clean macOS VM install leg from
+the spec's §6 has not been run — it needs a spare Mac or VM without Homebrew.
+The Linux (Docker/Ubuntu) leg has since **passed** on a clean `ubuntu:24.04`
+container (externally-managed pip → pipx fallback → exit 0), and the
+PATH-stripped `install.sh --dry-run` harness passed.
+
+**Found, not fixed (carried forward):**
+
+- [ ] Windows *functional* install testing — `install.ps1` has had a
+      read-through review only; revisit when a Windows environment exists
+
+Design: `docs/superpowers/specs/2026-07-31-user-facing-docs-design.md` ·
+Plan: `docs/superpowers/plans/2026-07-31-user-facing-docs-rebuild.md` ·
+Journal: `docs/building/journal/2026-08-09-user-facing-docs-rebuild.md`.
+
+---
+
 ## v1.0.0 — Stable Release
 
 - [x] PyPI published (`pip install anyscribe`) — live since v0.3.1

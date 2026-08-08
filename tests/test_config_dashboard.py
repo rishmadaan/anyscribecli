@@ -38,7 +38,10 @@ def test_bare_config_renders_dashboard_on_default_config():
     assert "Next run:" in result.output
     for name in list_providers():
         assert name in result.output
-    assert "scribe config set provider" in result.output
+    # Whole hint line, not a fragment: "scribe config set provider" is a substring
+    # of the "anyscribe ..." form AND of the provider_models line, so a looser
+    # assertion passes either way and pins nothing.
+    assert "Change provider: anyscribe config set provider <name>" in result.output
 
 
 def test_dashboard_renders_on_populated_config(monkeypatch):

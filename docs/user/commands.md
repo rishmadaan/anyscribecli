@@ -12,53 +12,65 @@ Every anyscribe command. Copy-paste friendly.
 
 > **`scribe` and `ascli` are shorter aliases for `anyscribe`** — every command below works typed as any of the three.
 
-> **Agentic-first CLI.** anyscribe's CLI is designed to be usable by AI agents, CI jobs, and scripts — not just humans. Consequential commands follow the same contract:
->
-> - **`--json` on every command** — machine-parseable output; agents parse this, humans ignore it.
-> - **`--yes` for non-interactive runs** — commands that would normally prompt for confirmation refuse to run without `--yes` when there's no TTY (i.e., when invoked from an agent or script).
-> - **No silent defaults for choices agents might make** — e.g., `anyscribe local setup` requires `--model` explicitly; the CLI never picks a size on your behalf. The recommended value is documented so agents know what to pass.
-> - **Structured exit codes** — `0` success, `1` operational failure, `2` usage error. Stderr on exit 2 carries a JSON payload with the missing field(s).
-> - **Prefer env vars for secrets** — passing `--api-key` on argv leaks to shell history; set `$OPENAI_API_KEY` etc. in the environment instead.
->
-> Humans running anyscribe interactively can mostly ignore these rules — the defaults are friendly without flags. They're called out here so script authors and agent skills know what to expect.
+> **Scripting or writing an agent skill?** The CLI contract — `--json`, `--yes`, exit codes, secrets handling — is collected in [For scripts and agents](#for-scripts-and-agents) at the bottom of this page. Running anyscribe by hand? You can ignore all of it; the defaults are friendly without flags.
+
+> **Something broken?** [Troubleshooting](troubleshooting.md) lists the errors by the exact text you see.
 
 ## Quick Overview
 
-| Command | What it does |
-|---------|-------------|
-| `anyscribe "<url or file>"` | Transcribe a URL or local file (default action) |
-| `anyscribe onboard` | First-time setup wizard (interactive TUI) |
-| `anyscribe onboard --yes --provider X ...` | Headless setup (for agents / scripts) |
-| `anyscribe download "<url>"` | Download video or audio only (no transcription) |
-| `anyscribe batch <file>` | Batch transcribe URLs or file paths from a file |
-| `anyscribe rm <path-or-slug>` | Delete a transcript and update the index |
-| `anyscribe logs` | View recent transcription activity + recovery artifacts |
-| `anyscribe config` | Dashboard: what the next run will use, and every provider's model |
-| `anyscribe config show` | View current settings |
-| `anyscribe config set <key> <value>` | Change a setting |
-| `anyscribe config set provider_models.<provider> <model>` | Pin which model a provider uses |
-| `anyscribe config set extra_models.openrouter <slugs>` | Add your own OpenRouter models to the pickers |
-| `anyscribe config path` | Print config file location |
-| `anyscribe providers list` | Show available providers |
-| `anyscribe providers test [name]` | Test a provider's API key |
-| `anyscribe local setup --model <size>` | Install faster-whisper + download a Whisper model |
-| `anyscribe local status` | Report local-transcription readiness |
-| `anyscribe local teardown --yes` | Uninstall faster-whisper + delete all cached models |
-| `anyscribe model list` | List Whisper models with cache status |
-| `anyscribe model pull <size>` | Download an additional Whisper model |
-| `anyscribe model rm <size> --yes` | Delete a cached Whisper model |
-| `anyscribe model reinstall <size> --yes` | Delete + re-download in one step (for corrupted weights) |
-| `anyscribe model info <size>` | Inspect a single Whisper model |
-| `anyscribe ui` | Launch the web UI in your browser |
-| `anyscribe tray` | Menu-bar icon that supervises the web server (needs the `[tray]` extra) |
-| `anyscribe install-service` | Auto-start the tray at login (macOS only) |
-| `anyscribe uninstall-service` | Remove the login auto-start |
-| `anyscribe install-skill` | Install/update Claude Code skill |
-| `anyscribe update` | Update to the latest version |
-| `anyscribe migrate` | One-time move from an old `anyscribecli` install (run once after upgrading) |
-| `anyscribe doctor` | Check system health |
-| `anyscribe --version` | Show version |
-| `anyscribe --help` | Show help |
+The **Where in the Web UI?** column tells you whether a command has a
+click-equivalent in `anyscribe ui`. The Web UI has three pages — **Transcribe**,
+**History**, and **Settings** — and the maintenance commands deliberately stay
+CLI-only.
+
+| Command | What it does | Where in the Web UI? |
+|---------|-------------|----------------------|
+| `anyscribe "<url or file>"` | Transcribe a URL or local file (default action) | Transcribe page |
+| `anyscribe onboard` | First-time setup wizard (interactive TUI) | Settings → Run setup wizard |
+| `anyscribe onboard --yes --provider X ...` | Headless setup (for agents / scripts) | — (CLI only) |
+| `anyscribe download "<url>"` | Download video or audio only (no transcription) | — (CLI only) |
+| `anyscribe batch <file>` | Batch transcribe URLs or file paths from a file | — (CLI only) |
+| `anyscribe rm <path-or-slug>` | Delete a transcript and update the index | History → trash icon on a row |
+| `anyscribe logs` | View recent transcription activity + recovery artifacts | — (CLI only) |
+| `anyscribe config` | Dashboard: what the next run will use, and every provider's model | Settings |
+| `anyscribe config show` | View current settings | Settings |
+| `anyscribe config set <key> <value>` | Change a setting | Settings |
+| `anyscribe config set provider_models.<provider> <model>` | Pin which model a provider uses | Settings → Providers |
+| `anyscribe config set extra_models.openrouter <slugs>` | Add your own OpenRouter models to the pickers | Settings → Providers (OpenRouter model box) |
+| `anyscribe config path` | Print config file location | — (CLI only) |
+| `anyscribe config list-keys` | Every settable key with its current value | Settings → Providers (key status) |
+| `anyscribe providers list` | Show available providers | Settings → Providers |
+| `anyscribe providers test [name]` | Test a provider's API key | Settings → Providers → Test |
+| `anyscribe local setup --model <size>` | Install faster-whisper + download a Whisper model | Settings → Local provider card |
+| `anyscribe local status` | Report local-transcription readiness | Settings → Local provider card |
+| `anyscribe local teardown --yes` | Uninstall faster-whisper + delete all cached models | Settings → Local provider card → Remove local transcription |
+| `anyscribe model list` | List Whisper models with cache status | Settings → Local provider card |
+| `anyscribe model pull <size>` | Download an additional Whisper model | Settings → Local provider card |
+| `anyscribe model rm <size> --yes` | Delete a cached Whisper model | Settings → Local provider card |
+| `anyscribe model reinstall <size> --yes` | Delete + re-download in one step (for corrupted weights) | Settings → Local provider card |
+| `anyscribe model info <size>` | Inspect a single Whisper model | — (CLI only) |
+| `anyscribe ui` | Launch the web UI in your browser | — (it *is* the Web UI) |
+| `anyscribe tray` | Menu-bar icon that supervises the web server | — (CLI only) |
+| `anyscribe install-service` | Auto-start the tray at login (macOS only) | Settings → Startup (macOS) |
+| `anyscribe uninstall-service` | Remove the login auto-start | Settings → Startup (macOS) |
+| `anyscribe install-skill` | Install/update Claude Code skill | — (CLI only) |
+| `anyscribe update` | Update to the latest version | — (CLI only) |
+| `anyscribe migrate` | One-time move from an old `anyscribecli` install (run once after upgrading) | — (CLI only) |
+| `anyscribe doctor` | Check system health | Settings → System |
+| `anyscribe --version` | Show version | Settings → System |
+| `anyscribe --help` | Show help | — (CLI only) |
+
+### Global options
+
+These sit before the command name and work everywhere:
+
+| Option | Short | Description |
+|--------|-------|-------------|
+| `--version` | `-v` | Print the installed version and exit |
+| `--debug` | | Full tracebacks on error, plus a log at `~/.anyscribe/logs/scribe.log` |
+| `--install-completion` | | Install tab-completion for your shell (see [Shell Completion](#shell-completion)) |
+| `--show-completion` | | Print the completion script instead of installing it |
+| `--help` | | Show help — works on every subcommand too (`anyscribe batch --help`) |
 
 ---
 
@@ -85,56 +97,10 @@ anyscribe onboard
 10. Choose workspace location (default: `~/anyscribe/`)
 11. Creates your Obsidian workspace
 
-### Headless mode (for agents + scripts)
-
-Pass `--yes` with the settings you want and skip the interactive flow entirely. Required for automation and CI — arrow-key TUIs don't work without a tty.
-
-```bash
-anyscribe onboard \
-  --provider openai \
-  --api-key "$OPENAI_API_KEY" \
-  --yes --json
-```
-
-Add `--model` to pin a model and `--quality` to pick a tier instead of a fixed provider:
-
-```bash
-anyscribe onboard --provider openai --model whisper-1 --yes --json
-anyscribe onboard --provider deepgram --quality balanced --yes --json
-```
-
-The JSON result reports what was written, including the effective model:
-
-```json
-{"status": "onboarded", "provider": "openai", "quality": "custom", "model": "whisper-1", "...": "..."}
-```
-
-For offline/local transcription as the primary provider:
-
-```bash
-anyscribe onboard \
-  --provider local \
-  --local-model base \
-  --yes --json
-```
-
-| Flag | Required with `--yes` | Default | Description |
-|------|-----------------------|---------|-------------|
-| `--yes` / `-y` | yes | off | Opt into headless mode. Without this, `anyscribe onboard` runs the interactive TUI. |
-| `--provider` / `-p` | **yes** | none | One of `openai`, `deepgram`, `elevenlabs`, `sargam`, `groq`, `openrouter`, `local`. |
-| `--api-key` | for API providers (or use env var) | none | Stored in `~/.anyscribe/.env`. Prefer setting the env var (e.g. `OPENAI_API_KEY`) to avoid leaking keys into shell history. |
-| `--local-model` | **yes when `--provider=local`** | none | Whisper size. Recommended: `base`. |
-| `--model` / `-m` | no | provider's default | Pin the model for `--provider` (written to `provider_models`). Rejected with the valid list if the provider doesn't offer it. Not for `local` — use `--local-model`. |
-| `--quality` | no | `custom` | `accuracy`, `balanced`, `cost`, `free`, or `custom`. Omit it and onboarding writes `custom`, so the provider you just chose is the one that runs. |
-| `--workspace` | no | `~/anyscribe` | Absolute path to the Obsidian vault. |
-| `--language` | no | `auto` | Default language code. |
-| `--keep-media` / `--no-keep-media` | no | `--no-keep-media` | Keep downloaded audio after transcription. |
-| `--output-format` | no | `clean` | `clean`, `timestamped`, or `diarized`. |
-| `--instagram-browser` | no | — | Browser to read Instagram cookies from (`firefox`, `chrome`, `safari`, etc.). Only needed for rate-limited or private reels. |
-| `--force` / `-f` | no | off | Re-run over existing config. Required if `config.yaml` already exists. |
-| `--json` / `-j` | no | off | Emit the result as a single JSON object on stdout. |
-
-**Exit codes:** 0 success · 1 setup failure (e.g., local install failed) · 2 usage error (missing `--provider`, already configured without `--force`, etc.). On exit 2 stderr carries a structured JSON error with the missing field or the reason.
+> **Running this from an agent, a script, or CI?** `anyscribe onboard --yes` skips
+> the interactive flow entirely — the arrow-key TUI can't work without a
+> terminal. The full flag reference lives in
+> [For scripts and agents → Headless onboarding](#headless-onboarding).
 
 ### Flags
 
@@ -903,7 +869,7 @@ anyscribe ui --no-open
 
 A menu-bar icon that keeps `anyscribe ui` running in the background — click the icon instead of remembering to run a command every time.
 
-> **Requires an extra install:** `pip install -U "anyscribe[tray]"`. This pulls in `pystray`, `Pillow`, and (on macOS) `pyobjc` — kept out of the base install so `pip install anyscribe` stays lightweight. If you run `anyscribe tray` without it, you'll get an install hint instead of a crash.
+> **Already installed if you used the one-line installer.** Both installers pull in the `[tray]` extra (`pystray`, `Pillow`, and `pyobjc` on macOS) by default, so `anyscribe tray` just works. If you installed with a bare `pip install anyscribe`, that extra isn't there — add it with `pip install -U "anyscribe[tray]"`. Running `anyscribe tray` without it prints an install hint rather than crashing.
 
 ```bash
 anyscribe tray
@@ -928,9 +894,11 @@ If a `anyscribe ui` server is already running on the port, `anyscribe tray` atta
 ### Examples
 
 ```bash
-# Start the tray (installs the extra first, one time)
-pip install -U "anyscribe[tray]"
+# Start the tray
 anyscribe tray
+
+# Only if you installed with a bare `pip install anyscribe` (one time)
+pip install -U "anyscribe[tray]"
 
 # Use a different port
 anyscribe tray --port 9000
@@ -1116,7 +1084,7 @@ Print the installed version.
 
 ```bash
 anyscribe --version
-# Output: anyscribe v0.13.0
+# Output: anyscribe v<your version>
 ```
 
 ---
@@ -1147,3 +1115,162 @@ anyscribe --install-completion
 ```
 
 After restarting your shell, you can press Tab to autocomplete commands and flags.
+
+---
+
+## For scripts and agents
+
+anyscribe's CLI is built to be driven by AI agents, CI jobs, and shell scripts, not
+just by people. Everything an automated caller needs is collected here.
+
+If you're wiring up Claude Code or an MCP host rather than writing a script
+yourself, start at [Use anyscribe from your AI agent](agents.md) — the skill and
+the MCP server already know all of this.
+
+### The contract
+
+Every consequential command follows the same five rules:
+
+- **`--json` on every command that reports a result.** Machine-parseable output
+  on stdout; humans ignore it. Progress and status lines go to stderr, so
+  `--json` output is never polluted.
+- **`--yes` (`-y`) for non-interactive runs.** Anything that would stop to ask
+  "are you sure?" refuses to run without `--yes` when there's no TTY — that is,
+  when an agent or script is calling it. This is deliberate: a hung prompt an
+  agent can't see is worse than a clean failure.
+- **No silent defaults for choices an agent should make explicitly.** For
+  example `anyscribe local setup` always requires `--model`; the CLI will never
+  pick a model size on your behalf. Where there's a recommended value, it's
+  documented so an agent knows what to pass.
+- **Structured exit codes.** `0` success · `1` operational failure · `2` usage
+  error. On exit `2`, stderr carries a JSON payload naming the missing or
+  invalid field.
+- **Prefer environment variables for secrets.** Passing `--api-key` on the
+  command line leaks it into shell history and process listings. Set
+  `OPENAI_API_KEY`, `DEEPGRAM_API_KEY`, etc. in the environment instead.
+
+### Quiet, parseable output
+
+`--json` and `--quiet` (`-q`) together give you nothing but the JSON object:
+
+```bash
+anyscribe "https://youtube.com/watch?v=abc123" --json --quiet | jq -r '.file'
+```
+
+The result shape for a transcription is documented under
+[JSON Output](#json-output). Machine-readable output is also available from
+`anyscribe config --json`, `anyscribe providers list --json`, `anyscribe logs --json`,
+`anyscribe rm --json`, `anyscribe batch --json`, `anyscribe model list --json`, and
+`anyscribe local status --json`.
+
+Two fields matter most when scripting a transcription:
+
+- **`cached`** — `true` means the source was already in the vault and anyscribe
+  returned the existing file instead of spending API credits. Pass `--force` if
+  you want a fresh run regardless.
+- **`model`** — the model that *actually* ran, which isn't always the one you
+  asked for (anyscribe swaps in a timestamp-capable model when your output format
+  needs one).
+
+### Headless onboarding
+
+Pass `--yes` with the settings you want and skip the interactive wizard
+entirely. Required for automation and CI — arrow-key TUIs don't work without a
+terminal.
+
+```bash
+anyscribe onboard \
+  --provider openai \
+  --api-key "$OPENAI_API_KEY" \
+  --yes --json
+```
+
+Add `--model` to pin a model and `--quality` to pick a tier instead of a fixed
+provider:
+
+```bash
+anyscribe onboard --provider openai --model whisper-1 --yes --json
+anyscribe onboard --provider deepgram --quality balanced --yes --json
+```
+
+The JSON result reports what was written, including the effective model:
+
+```json
+{"status": "onboarded", "provider": "openai", "quality": "custom", "model": "whisper-1", "...": "..."}
+```
+
+For offline/local transcription as the primary provider:
+
+```bash
+anyscribe onboard \
+  --provider local \
+  --local-model base \
+  --yes --json
+```
+
+| Flag | Required with `--yes` | Default | Description |
+|------|-----------------------|---------|-------------|
+| `--yes` / `-y` | yes | off | Opt into headless mode. Without this, `anyscribe onboard` runs the interactive TUI. |
+| `--provider` / `-p` | **yes** | none | One of `openai`, `deepgram`, `elevenlabs`, `sargam`, `groq`, `openrouter`, `local`. |
+| `--api-key` | for API providers (or use env var) | none | Stored in `~/.anyscribe/.env`. Prefer setting the env var (e.g. `OPENAI_API_KEY`) to avoid leaking keys into shell history. |
+| `--local-model` | **yes when `--provider=local`** | none | Whisper size. Recommended: `base`. |
+| `--model` / `-m` | no | provider's default | Pin the model for `--provider` (written to `provider_models`). Rejected with the valid list if the provider doesn't offer it. Not for `local` — use `--local-model`. |
+| `--quality` | no | `custom` | `accuracy`, `balanced`, `cost`, `free`, or `custom`. Omit it and onboarding writes `custom`, so the provider you just chose is the one that runs. |
+| `--workspace` | no | `~/anyscribe` | Absolute path to the Obsidian vault. |
+| `--language` | no | `auto` | Default language code. |
+| `--keep-media` / `--no-keep-media` | no | `--no-keep-media` | Keep downloaded audio after transcription. |
+| `--output-format` | no | `clean` | `clean`, `timestamped`, or `diarized`. |
+| `--instagram-browser` | no | — | Browser to read Instagram cookies from (`firefox`, `chrome`, `safari`, etc.). Only needed for rate-limited or private reels. |
+| `--force` / `-f` | no | off | Re-run over existing config. Required if `config.yaml` already exists. |
+| `--json` / `-j` | no | off | Emit the result as a single JSON object on stdout. |
+
+**Exit codes:** 0 success · 1 setup failure (e.g., local install failed) · 2
+usage error (missing `--provider`, already configured without `--force`, etc.).
+On exit 2 stderr carries a structured JSON error with the missing field or the
+reason.
+
+### Other commands that need `--yes`
+
+| Command | Why it prompts |
+|---------|----------------|
+| `anyscribe rm <path-or-slug>` | Deletes a transcript file |
+| `anyscribe local setup --model <size>` | Installs a package and downloads model weights |
+| `anyscribe local teardown` | Uninstalls faster-whisper and deletes every cached model |
+| `anyscribe model rm <size>` | Deletes cached weights from disk |
+| `anyscribe model reinstall <size>` | Deletes then re-downloads weights |
+| `anyscribe install-service` / `anyscribe uninstall-service` | Changes login-item registration |
+
+### Checking state before you act
+
+Two commands answer "what is this install going to do?" without changing
+anything — both are safe to call first, on every run:
+
+```bash
+anyscribe config --json        # resolved provider + model, every provider's key status
+anyscribe local status --json  # faster-whisper version, cached models, disk usage (always exits 0)
+```
+
+`anyscribe config --json` is the one to poll before transcribing: its `resolved`
+block (`provider`, `model`, `via`, `notes`) tells you exactly what will run and
+why, and the `providers` array tells you which API keys are actually present.
+
+### Batch runs
+
+`anyscribe batch` is the built-in way to process a list without spawning a process
+per URL. `--timeout` caps each entry so one bad URL can't stall the whole job,
+and duplicate detection means re-running the same file only transcribes what's
+new:
+
+```bash
+anyscribe batch urls.txt --json --quiet --timeout 300
+```
+
+Use `--stop-on-error` if a single failure should abort the run; by default the
+batch continues and reports per-entry results.
+
+### When something fails
+
+Errors are documented by the literal text they print in
+[Troubleshooting](troubleshooting.md). For a machine-readable health snapshot to
+attach to a bug report, `anyscribe doctor` covers dependencies, config,
+installation, and updates in one pass.

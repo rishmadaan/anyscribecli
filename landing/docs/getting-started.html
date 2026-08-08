@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Getting started — anyscribe docs</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230E0D0B'/><circle cx='16' cy='16' r='4.5' fill='%23F5A524'/></svg>" />
+<style>
+  :root {
+    --bg: #0E0D0B; --bg-2: #15130F; --bg-3: #1E1B16;
+    --ink: #ECE8DC; --ink-2: #B6AE9D; --ink-3: #8D8574;
+    --rule: rgba(236,232,220,0.08); --rule-2: rgba(236,232,220,0.14);
+    --signal: #F5A524; --phosphor: #C8E887;
+    --display: "Unbounded", "Helvetica Neue", system-ui, sans-serif;
+    --sans: "Geist", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+    --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--sans);
+         font-size: 17px; line-height: 1.7; -webkit-font-smoothing: antialiased; }
+  a { color: var(--signal); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  header { border-bottom: 1px solid var(--rule); padding: 20px clamp(20px,5vw,56px); }
+  header nav { display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: baseline;
+               max-width: 860px; margin: 0 auto; font-size: 14px; }
+  header .home { font-family: var(--mono); color: var(--ink); margin-right: 8px; }
+  header nav a.here { color: var(--phosphor); }
+  header nav a { color: var(--ink-3); }
+  main { max-width: 860px; margin: 0 auto; padding: 48px clamp(20px,5vw,56px) 96px; }
+  h1, h2, h3, h4 { font-family: var(--display); font-weight: 400; letter-spacing: -0.03em;
+                   line-height: 1.25; margin: 2em 0 0.6em; }
+  h1 { font-size: clamp(30px, 5vw, 42px); margin-top: 0; }
+  h2 { font-size: 26px; padding-top: 20px; border-top: 1px solid var(--rule); }
+  h3 { font-size: 20px; }
+  p, li { color: var(--ink-2); }
+  strong { color: var(--ink); }
+  code { font-family: var(--mono); font-size: 0.88em; background: var(--bg-3);
+         border: 1px solid var(--rule); border-radius: 4px; padding: 1px 5px; color: var(--phosphor); }
+  pre { background: var(--bg-2); border: 1px solid var(--rule); border-radius: 8px;
+        padding: 16px; overflow-x: auto; }
+  pre code { background: none; border: 0; padding: 0; color: var(--ink); }
+  blockquote { margin: 1.5em 0; padding: 2px 0 2px 18px; border-left: 2px solid var(--signal);
+               color: var(--ink-3); }
+  table { border-collapse: collapse; width: 100%; display: block; overflow-x: auto; margin: 1.5em 0; }
+  th, td { border: 1px solid var(--rule-2); padding: 8px 12px; text-align: left; font-size: 15px;
+           color: var(--ink-2); }
+  th { color: var(--ink); font-weight: 600; background: var(--bg-2); }
+  hr { border: 0; border-top: 1px solid var(--rule); margin: 3em 0; }
+  .cards { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+  .card { display: block; background: var(--bg-2); border: 1px solid var(--rule);
+          border-radius: 10px; padding: 20px; color: inherit; }
+  .card:hover { border-color: var(--signal); text-decoration: none; }
+  .card h2 { font-size: 19px; margin: 0 0 6px; border: 0; padding: 0; color: var(--ink); }
+  .card p { margin: 0; font-size: 15px; color: var(--ink-3); }
+</style>
+</head>
+<body>
+<header><nav><a class="home" href="/">anyscribe</a><a href="/docs">Docs</a><a href="/docs/agents">Agents</a><a href="/docs/getting-started" class="here">Getting started</a><a href="/docs/commands">Commands</a><a href="/docs/providers">Providers</a><a href="/docs/configuration">Configuration</a><a href="/docs/troubleshooting">Troubleshooting</a></nav></header>
+<main>
+<h1 id="getting-started">Getting Started</h1>
+<p>Install anyscribe, run setup, get your first transcript — about 5 minutes.</p>
+<p>By the end of this guide you will have:
+- anyscribe installed on your machine
+- An Obsidian vault ready to browse your transcripts
+- Your first video transcribed to markdown
+- anyscribe running in the background, if you want it there</p>
+<blockquote>
+<p><strong>anyscribe has three equivalent surfaces.</strong> The Web UI, the terminal wizard, and the headless flag-driven CLI all cover the full product. Every <em>setting</em> can be changed from either the CLI or the Web UI. A few maintenance commands are CLI-only: <code>batch</code>, <code>logs</code>, <code>doctor</code>, <code>update</code>, and <code>tray</code>. Pick whichever fits:</p>
+<ul>
+<li><strong>Prefer clicking?</strong> → <code>anyscribe ui</code> opens a browser dashboard with a setup wizard on first launch. See Option A in Step 2.</li>
+<li><strong>Prefer typing?</strong> → <code>anyscribe onboard</code> runs an arrow-key terminal wizard. See Option B.</li>
+<li><strong>Writing a script or an AI agent?</strong> → <code>anyscribe onboard --provider X --api-key $KEY --yes --json</code>. See Option C.</li>
+</ul>
+<p>All three write the same config and land you in the same place. Transcriptions you start from one surface show up in all of them.</p>
+<p><strong>Everything runs locally.</strong> The Web UI at <code>http://127.0.0.1:8457</code> is a server on your own machine — no cloud account, no sign-up, no telemetry. The only time anyscribe touches the internet is when <em>you</em> ask it to: downloading a YouTube/Instagram source you pointed it at, calling whichever transcription API provider you set up, or pulling a Whisper model for offline transcription (once, the first time). Point it at a local file with the local provider and the whole pipeline runs offline — your audio never leaves your machine.</p>
+</blockquote>
+<h2 id="what-you-need">What you need</h2>
+<ul>
+<li><strong>A computer running macOS, Linux, or Windows</strong> (native Windows and WSL2 both work). The one-line installer below brings the rest: Python, ffmpeg, and yt-dlp.</li>
+<li><strong>Then pick one engine:</strong></li>
+<li><strong>Free, offline</strong> — the <strong>local</strong> provider. No API key, no internet, runs Whisper on your machine. Downloads a model once during setup.</li>
+<li><strong>Or an API key</strong> from one provider — OpenAI is the default. Get one at <a href="https://platform.openai.com/api-keys">platform.openai.com/api-keys</a>; transcription costs about $0.0045/minute — a 10-minute video costs around 5 cents. Six cloud providers are supported alongside local — see <a href="/docs/providers">providers.md</a> for the comparison.</li>
+</ul>
+<blockquote>
+<p><strong>Later, if you want cheaper or more accurate:</strong> each provider offers a few models you can switch between — see <a href="/docs/providers">providers.md</a>. You don't need to think about this to get started; the defaults are good.</p>
+<p><strong>New to the command line?</strong> You'll be typing commands in your Terminal app (macOS), terminal emulator (Linux), or Command Prompt / PowerShell (Windows). Every command in this guide starts with <code>anyscribe</code> — just copy-paste and press Enter.</p>
+</blockquote>
+<h2 id="step-1-install">Step 1 — Install</h2>
+<p><strong>macOS / Linux:</strong></p>
+<pre><code class="language-bash">curl -fsSL https://raw.githubusercontent.com/rishmadaan/anyscribe/main/install.sh | bash
+</code></pre>
+<p><strong>Windows (PowerShell):</strong></p>
+<pre><code class="language-powershell">irm https://raw.githubusercontent.com/rishmadaan/anyscribe/main/install.ps1 | iex
+</code></pre>
+<p>The installer checks for Python 3.10+, ffmpeg, and yt-dlp, installs whatever's missing, then installs anyscribe with the menu-bar tray included. On Windows it also fixes your PATH so <code>anyscribe</code> works from any terminal (on Windows, ffmpeg needs winget or Chocolatey — the installer tells you if neither is present).</p>
+<p>Verify it worked:</p>
+<pre><code class="language-bash">anyscribe --version
+</code></pre>
+<p>You should see <code>anyscribe</code> followed by a version number.</p>
+<blockquote>
+<p><strong><code>scribe</code> and <code>ascli</code> are shorter aliases.</strong> Every <code>anyscribe</code> command in this guide also works typed as <code>scribe</code> or <code>ascli</code> — same tool, fewer letters. Use whichever you like.</p>
+</blockquote>
+<p><strong>Already have Python and just want the package?</strong></p>
+<pre><code class="language-bash">pip install &quot;anyscribe[tray]&quot;
+</code></pre>
+<p>The <code>[tray]</code> extra is what gives you the menu-bar icon and open-at-login (see <a href="#keep-it-running">Keep it running</a>). Plain <code>pip install anyscribe</code> works too, and you can add the extra later. With pip you install ffmpeg and yt-dlp yourself — or just run <code>anyscribe doctor</code>, which tells you what's missing.</p>
+<blockquote>
+<p><strong>Want to install Python and the dependencies by hand?</strong> See the <a href="#appendix-manual-install">Appendix: manual install</a> at the bottom.</p>
+<p><strong><code>command not found: anyscribe</code> on Windows?</strong> Use <code>python -m anyscribe</code> as a drop-in replacement — it always works. See <a href="#troubleshooting">Troubleshooting</a>.</p>
+</blockquote>
+<h2 id="step-2-first-run">Step 2 — First run</h2>
+<p>You can set up anyscribe either way — both paths save the same config, so pick whichever feels natural.</p>
+<h3 id="option-a-recommended-web-ui">Option A (recommended): Web UI</h3>
+<pre><code class="language-bash">anyscribe ui
+</code></pre>
+<p>Opens a local dashboard at <code>http://127.0.0.1:8457</code>. A <strong>setup wizard pops up on first launch</strong>:</p>
+<ol>
+<li><strong>Pick a provider</strong> — cards for <code>openai</code> (general purpose, multilingual), <code>deepgram</code> (fast, native diarization), <code>groq</code> (cheapest and fastest cloud Whisper), <code>elevenlabs</code> (high accuracy, 99 languages), <code>sargam</code> (Sarvam AI, Indic languages), <code>openrouter</code> (many models, one API), plus <code>local</code> for free offline transcription on your own machine.</li>
+<li><strong>Paste your API key</strong> — with a <strong>Test key</strong> button so you know it works before you continue. (Skipped if you picked <code>local</code>.)</li>
+<li><strong>Choose whether to also enable offline transcription</strong> — installs faster-whisper and a Whisper model so you have a free fallback.</li>
+<li><strong>Confirm your workspace</strong> — where your transcripts live, default <code>~/anyscribe/</code>.</li>
+</ol>
+<p>Click around — no commands to memorize.</p>
+<p>Close the tab when you're finished; to stop the server, hit Ctrl+C in the terminal or click <strong>Shutdown</strong> in the sidebar.</p>
+<h3 id="option-b-terminal-interactive">Option B: Terminal (interactive)</h3>
+<pre><code class="language-bash">anyscribe onboard                   # macOS / Linux
+python -m anyscribe onboard      # Windows (first time — prints PATH fix)
+</code></pre>
+<p>The wizard uses arrow-key selectors — navigate with <strong>↑↓</strong> and press <strong>Enter</strong> to select:</p>
+<ol>
+<li><strong>Check your system</strong> — makes sure <code>yt-dlp</code> and <code>ffmpeg</code> are installed. Offers to install missing ones.</li>
+<li><strong>Choose your provider</strong> — 7 options: OpenAI (default), Deepgram, ElevenLabs, Sarvam AI, Groq, OpenRouter, Local.</li>
+<li><strong>Choose that provider's model</strong> — only if it offers more than one. The first is the recommended default; press Enter to take it.</li>
+<li><strong>Enter your API key</strong> — stored locally at <code>~/.anyscribe/.env</code>. Never sent anywhere except your provider.</li>
+<li><strong>Add more provider keys</strong> (optional) — configure multiple providers now or later.</li>
+<li><strong>Configure Instagram</strong> (optional) — choose which browser to read Instagram cookies from. Needed only for rate-limited or private reels.</li>
+<li><strong>Choose language</strong> — auto-detect (default) or pick a specific language.</li>
+<li><strong>Keep audio files</strong> — whether to save the transcription audio to <code>~/.anyscribe/downloads/audio/</code>.</li>
+<li><strong>Local file handling</strong> — what to do with original files when transcribing local audio/video (skip/copy/move/ask).</li>
+<li><strong>Post-transcription downloads</strong> — whether anyscribe should offer to download the full video after each transcription (never/ask/always).</li>
+<li><strong>Choose workspace location</strong> — where to store transcripts (default: <code>~/anyscribe/</code>).</li>
+<li><strong>Create workspace</strong> — sets up your Obsidian vault at the chosen location.</li>
+</ol>
+<blockquote>
+<p><strong>Re-run anytime:</strong> <code>anyscribe onboard --force</code> to change settings — it shows your current config and lets you choose which parts to update. <code>anyscribe onboard --skip-deps</code> to skip the dependency check. Or use the Web UI: Settings → <strong>Run setup wizard</strong>.</p>
+</blockquote>
+<h3 id="option-c-headless-for-agents-scripts">Option C: Headless (for agents + scripts)</h3>
+<p>If you're automating anyscribe (CI, a Claude Code agent, a provisioning script), bypass the wizards entirely with <code>anyscribe onboard --yes</code>:</p>
+<pre><code class="language-bash">anyscribe onboard \
+  --provider openai \
+  --api-key &quot;$OPENAI_API_KEY&quot; \
+  --yes --json
+</code></pre>
+<p>Every interactive field maps to a flag. Full reference: <a href="/docs/commands#anyscribe-onboard">commands.md → anyscribe onboard</a>.</p>
+<h2 id="step-3-first-transcript">Step 3 — First transcript</h2>
+<p>Pick any YouTube video and run:</p>
+<pre><code class="language-bash">anyscribe &quot;https://www.youtube.com/watch?v=VIDEO_ID&quot;
+</code></pre>
+<p>Replace <code>VIDEO_ID</code> with a real video ID. A short video (under 5 minutes) is good for your first try.</p>
+<blockquote>
+<p><strong>No subcommand needed.</strong> Just <code>anyscribe "url"</code> — it knows you want to transcribe. You can also write <code>anyscribe transcribe "url"</code> explicitly, but it's not required.</p>
+<p><strong>Always wrap URLs in quotes</strong> (<code>"..."</code>). Shells like zsh break URLs with <code>?</code> in them. Or run <code>anyscribe</code> with no URL and paste it when prompted — no quoting needed.</p>
+</blockquote>
+<p>You'll see:</p>
+<pre><code>Transcription saved: ~/anyscribe/sources/youtube/how-to-make-perfect-coffee.md
+  Title:    How to Make Perfect Coffee
+  Duration: 4:32
+  Language: en
+  Words:    847
+</code></pre>
+<h3 id="also-try">Also try</h3>
+<pre><code class="language-bash"># Local audio/video file (mp3, mp4, m4a, wav, opus, ogg, flac, webm)
+anyscribe /path/to/podcast.mp3
+
+# Instagram reel
+anyscribe &quot;https://www.instagram.com/reel/SHORTCODE/&quot;
+
+# Just download, no transcription
+anyscribe download &quot;https://www.youtube.com/watch?v=VIDEO_ID&quot;
+
+# From clipboard (copy a URL first)
+anyscribe --clipboard
+</code></pre>
+<h3 id="browse-it-in-obsidian">Browse it in Obsidian</h3>
+<p>Open Obsidian and select "Open folder as vault", then choose:</p>
+<pre><code>~/anyscribe/
+</code></pre>
+<blockquote>
+<p><strong>Tip:</strong> This folder is in your home directory — it shows up in Finder and file pickers by default. If you chose a custom workspace path during setup, use that path instead.</p>
+</blockquote>
+<p>You'll see:
+- <strong><code>_index.md</code></strong> — a table of all your transcripts, newest first
+- <strong><code>sources/youtube/</code></strong>, <strong><code>sources/instagram/</code></strong>, and <strong><code>sources/local/</code></strong> — transcripts organized by source
+- <strong><code>daily/</code></strong> — a log of what you transcribed each day</p>
+<p>Each transcript has YAML properties that Obsidian can search and filter:</p>
+<pre><code class="language-yaml">title: &quot;How to Make Perfect Coffee&quot;
+platform: youtube
+duration: &quot;4:32&quot;
+language: en
+word_count: 847
+reading_time: &quot;4 min&quot;
+tags: [transcript, youtube]
+</code></pre>
+<h2 id="keep-it-running">Keep it running</h2>
+<p><code>anyscribe ui</code> runs in a terminal window, which means the server dies when you close it. If you want anyscribe to just <em>be there</em>, put it in your menu bar.</p>
+<p><strong>The menu-bar icon:</strong></p>
+<pre><code class="language-bash">anyscribe tray
+</code></pre>
+<p>The tray is a small icon that sits in your menu bar (macOS) or system tray (Linux/Windows) with the web server running behind it. Click it to open the dashboard, no terminal needed. Both one-line installers include the tray by default, so this works right after install. Installed with plain <code>pip install anyscribe</code>? Add it with <code>pip install "anyscribe[tray]"</code>.</p>
+<p><strong>Start it automatically at login (macOS):</strong></p>
+<p>Open <code>anyscribe ui</code> → <strong>Settings</strong> → <strong>Startup</strong> → toggle <strong>Open at login (menu-bar app)</strong> on. That's it — the menu-bar icon comes back every time you log in.</p>
+<blockquote>
+<p>The Startup section only appears on macOS. If the tray extra isn't installed, the toggle refuses with a message telling you to run <code>pip install "anyscribe[tray]"</code> first — better than a login item that silently fails.</p>
+</blockquote>
+<p>The CLI does the same thing:</p>
+<pre><code class="language-bash">anyscribe install-service      # register the tray to start at login
+anyscribe uninstall-service    # undo it
+</code></pre>
+<p><strong>The way back in.</strong> Closed the tab, clicked Shutdown, or rebooted? Run <code>anyscribe ui</code> again — or click the menu-bar icon if you set up the tray. Your library, config, and API keys are untouched; nothing about stopping the server touches your data.</p>
+<p>See <a href="/docs/commands#anyscribe-tray">Commands → anyscribe tray</a> and <a href="/docs/commands#anyscribe-install-service">anyscribe install-service</a> for the full reference.</p>
+<h2 id="where-next">Where next</h2>
+<p>Three doors, depending on how you want to use anyscribe:</p>
+<ul>
+<li><strong><a href="/docs/agents">Use anyscribe from your AI tools</a></strong> — the Claude Code skill and the MCP server, so you can say "transcribe this" instead of typing commands</li>
+<li><strong><a href="/docs/commands">Commands</a></strong> — every command, flag, and example</li>
+<li><strong><a href="/docs/providers">Providers</a></strong> — cost, accuracy, languages, and how to switch</li>
+<li><strong><a href="/docs/troubleshooting">Troubleshooting</a></strong> — every common error and its fix, when something goes sideways</li>
+</ul>
+<p>Handy things you can do right now:</p>
+<ul>
+<li><strong>Speaker diarization</strong> — <code>anyscribe "url" --diarize</code> identifies who said what (auto-detects number of speakers). Set up Deepgram first: <code>anyscribe config set deepgram_api_key YOUR_KEY</code> ($200 free credit at <a href="https://console.deepgram.com/">console.deepgram.com</a>)</li>
+<li><strong>Batch process</strong> — <code>anyscribe batch urls.txt</code> to transcribe a list of URLs</li>
+<li><strong>See what will run</strong> — <code>anyscribe config</code> shows the provider + model of your next transcription and every alternative</li>
+<li><strong>Switch providers</strong> — <code>anyscribe config set provider elevenlabs</code> (or let a tier choose: <code>anyscribe config set quality accuracy</code>)</li>
+<li><strong>Try JSON output</strong> — <code>anyscribe "url" --json</code> for scripting</li>
+<li><strong>Check health</strong> — <code>anyscribe doctor</code> verifies everything is working</li>
+<li><strong>Update</strong> — <code>anyscribe update</code> pulls the latest version</li>
+<li><strong>View all commands</strong> — <code>anyscribe --help</code></li>
+</ul>
+<h2 id="instagram-optional">Instagram (optional)</h2>
+<p>Public reels usually work out of the box. If you hit rate-limiting, or want
+to transcribe reels from accounts you follow, anyscribe can read your existing
+browser session — no password needed:</p>
+<pre><code class="language-bash">anyscribe config set instagram.browser firefox
+</code></pre>
+<p>Supported browsers: <code>firefox</code>, <code>chrome</code>, <code>safari</code>, <code>brave</code>, <code>edge</code>, <code>chromium</code>,
+<code>vivaldi</code>, <code>opera</code>.</p>
+<blockquote>
+<p><strong>Tip:</strong> Firefox tends to work most reliably on macOS. Chrome's cookie
+encryption can make extraction flakier.</p>
+<p><strong>Note for upgraders:</strong> If you onboarded with anyscribe &lt; 0.8.3, you may have <!-- version-pin-ok -->
+an <code>INSTAGRAM_PASSWORD</code> in your <code>~/.anyscribe/.env</code>. It's no longer used
+and can be removed.</p>
+</blockquote>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<p>Everything that commonly goes wrong — <code>command not found: anyscribe</code>, missing API keys, shells mangling URLs, yt-dlp failures, Instagram <code>login_required</code>, wrong language, slow long videos — is covered with fixes in <strong><a href="/docs/troubleshooting">troubleshooting.md</a></strong>.</p>
+<p>The one worth knowing up front: if <code>anyscribe</code> isn't recognized, <code>python -m anyscribe</code> is a drop-in replacement that always works (<code>python -m anyscribe onboard</code>, <code>python -m anyscribe transcribe "..."</code>).</p>
+<h2 id="appendix-manual-install">Appendix: manual install</h2>
+<p>Prefer to install each piece yourself? The one-line installer in Step 1 does all of this for you — this path is for people who'd rather see every step.</p>
+<p><strong>1. Python 3.10 or newer.</strong> Check what you have:</p>
+<pre><code class="language-bash">python3 --version      # macOS / Linux
+python --version       # Windows
+</code></pre>
+<p>You should see something like <code>Python 3.12.x</code>. If you get an error or a version below 3.10:</p>
+<p><strong>macOS:</strong></p>
+<pre><code class="language-bash">brew install python@3.12
+</code></pre>
+<p><strong>Linux (Ubuntu/Debian):</strong></p>
+<pre><code class="language-bash">sudo apt install python3 python3-pip python3-venv
+</code></pre>
+<p><strong>Windows:</strong>
+Download from <a href="https://www.python.org/downloads/">python.org/downloads</a> and run the installer. <strong>Check "Add Python to PATH"</strong> during installation.</p>
+<blockquote>
+<p><strong>Don't have Homebrew?</strong> It's the standard package manager for macOS. Install it from <a href="https://brew.sh">brew.sh</a>.</p>
+</blockquote>
+<p><strong>2. ffmpeg and yt-dlp.</strong> ffmpeg converts audio; yt-dlp fetches the video.</p>
+<p><strong>macOS:</strong></p>
+<pre><code class="language-bash">brew install ffmpeg yt-dlp
+</code></pre>
+<p><strong>Linux (Ubuntu/Debian):</strong></p>
+<pre><code class="language-bash">sudo apt install ffmpeg
+pip install yt-dlp
+</code></pre>
+<p><strong>Windows:</strong></p>
+<pre><code class="language-powershell">winget install ffmpeg
+pip install yt-dlp
+</code></pre>
+<p><strong>3. anyscribe itself.</strong></p>
+<pre><code class="language-bash">pip install &quot;anyscribe[tray]&quot;
+</code></pre>
+<p>Verify:</p>
+<p><strong>macOS / Linux:</strong></p>
+<pre><code class="language-bash">anyscribe --version
+</code></pre>
+<p><strong>Windows:</strong></p>
+<pre><code class="language-bash">python -m anyscribe --version
+</code></pre>
+<p>You should see <code>anyscribe</code> followed by a version number.</p>
+<blockquote>
+<p><strong>Why <code>python -m</code> on Windows?</strong> pip installs <code>anyscribe.exe</code> to a Scripts directory that's usually not on PATH. <code>python -m anyscribe</code> always works because it uses the same Python you installed with. On first run, it will print the exact PowerShell command to add <code>anyscribe</code> to your PATH permanently — after that, you can use <code>anyscribe</code> directly.</p>
+</blockquote>
+<p><strong>4. Check everything landed:</strong></p>
+<pre><code class="language-bash">anyscribe doctor
+</code></pre>
+<p>Then head back to <strong>Step 2 — First run</strong> above.</p>
+<blockquote>
+<p><strong>Developing on anyscribe?</strong> <a href="https://github.com/rishmadaan/anyscribe">Clone the repo</a> and install it editable — see the building docs.</p>
+</blockquote>
+</main>
+</body>
+</html>

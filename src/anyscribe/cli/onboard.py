@@ -844,7 +844,7 @@ def onboard(
         copy_skill_files(quiet=True)
         skill_status = "installed"
         console.print(
-            "\n  [green]✓[/green] Claude Code skill installed to ~/.claude/skills/scribe/"
+            "\n  [green]✓[/green] Claude Code skill installed to ~/.claude/skills/anyscribe/"
         )
 
     if os.environ.get("INSTAGRAM_PASSWORD"):

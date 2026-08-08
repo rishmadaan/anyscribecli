@@ -8,7 +8,7 @@
 #   1. Checks for Python 3.10+, offers to install via winget
 #   2. Checks for ffmpeg, offers to install via winget/choco
 #   3. Installs yt-dlp via pip
-#   4. Installs anyscribe via pip
+#   4. Installs anyscribe (with menu-bar tray) via pip
 #   5. Fixes PATH so `scribe` works from any terminal
 #   6. Tells you to run `scribe ui`
 # ──────────────────────────────────────────────────────────────
@@ -155,7 +155,7 @@ function Test-YtDlp {
 
 function Install-Scribe {
     Write-Info "Installing scribe..."
-    & $script:PythonCmd -m pip install --quiet anyscribe
+    & $script:PythonCmd -m pip install --quiet "anyscribe[tray]"
 
     # Verify
     Refresh-Path

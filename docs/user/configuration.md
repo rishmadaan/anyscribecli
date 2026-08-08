@@ -232,7 +232,7 @@ What language to expect in the audio. Default: `auto` (let the API auto-detect).
 
 Use standard language codes: `en` (English), `es` (Spanish), `fr` (French), `hi` (Hindi), `ar` (Arabic), `zh` (Chinese), `ja` (Japanese), `ko` (Korean), etc.
 
-Each provider expects codes in a slightly different format — Whisper-family providers (`openai`, `local`) use ISO 639-1 like `en`, Deepgram uses BCP-47 like `en-US` or `hi-Latn`, and Sarvam uses BCP-47 with `-IN` suffixes like `hi-IN`. If you're unsure, the web UI (`anyscribe ui`) shows a per-provider dropdown of every supported code on the Transcribe page Options panel.
+Each provider expects codes in a slightly different format — Whisper-family providers (`openai`, `local`) use ISO 639-1 like `en`, Deepgram uses BCP-47 codes (a standard format for language tags, like `en-US` or `hi-Latn`), and Sarvam uses BCP-47 with `-IN` suffixes like `hi-IN`. If you're unsure, the web UI (`anyscribe ui`) shows a per-provider dropdown of every supported code on the Transcribe page Options panel.
 
 > **When to set this explicitly:** Auto-detection works well for most videos, but if you're transcribing content in a specific language and getting wrong results, setting the language explicitly helps. You can also override per-video: `anyscribe transcribe <url> --language hi`
 
@@ -313,7 +313,7 @@ Which Whisper model the `local` provider uses when transcribing. Default: `base`
 
 > **Want better quality without the wait?** `large-v3-turbo` is the sweet spot — close to `large-v3` accuracy at roughly six times the speed on a CPU, and half the download. Pick `distil-large-v3.5` only if everything you transcribe is in English.
 
-Change it with `anyscribe config set local_model small` or from the default-model dropdown inside the Local provider panel in the Web UI. You can only select a model that's been cached — pull others with `anyscribe model pull <size>`. A one-off override is available via `ASCLI_LOCAL_MODEL=medium anyscribe "<url>"`.
+Change it with `anyscribe config set local_model small` or from the default-model dropdown inside the Local provider panel in the Web UI. You can only select a model that's been cached — pull others with `anyscribe model pull <size>`. A one-off override is available via `ASCLI_LOCAL_MODEL=medium anyscribe "<url>"` (`ASCLI_` is the legacy env prefix, still honored).
 
 > **Not set until setup.** This field has no effect until you run `anyscribe local setup --model <size>` (or the equivalent Web UI button). The field is still present in `config.yaml` with the default value of `base`.
 
@@ -336,7 +336,7 @@ anyscribe config set instagram.browser firefox
 > using the browser's built-in decryption — your password is never asked for or
 > stored.
 
-> **Pre-0.8.3 upgrade note:** Older versions of anyscribe asked for an Instagram
+> **Pre-0.8.3 upgrade note:** Older versions of anyscribe asked for an Instagram <!-- version-pin-ok -->
 > username and password and stored the password in `~/.anyscribe/.env`.
 > Those are no longer used — you can safely remove the `INSTAGRAM_PASSWORD`
 > line from your `.env` file when convenient.
@@ -358,11 +358,11 @@ DEEPGRAM_API_KEY=...
 > **Important:** This file contains secrets. It's excluded from git by default. Never share it or commit it to a repository.
 
 > **`OPENROUTER_MODEL` no longer does anything.** Older versions read that line to
-> choose an OpenRouter model. Since 0.15.0 the model lives with every other model
+> choose an OpenRouter model. Since 0.15.0 the model lives with every other model <!-- version-pin-ok -->
 > choice — run `anyscribe config set provider_models.openrouter <slug>` and delete the
 > `OPENROUTER_MODEL` line from `.env`.
 
-> **Pre-0.8.3 upgrade note:** Older versions of anyscribe stored `INSTAGRAM_PASSWORD` in this file. It's no longer used — you can safely remove the `INSTAGRAM_PASSWORD` line when convenient. Instagram downloads now use browser cookies instead (see `instagram.browser` below).
+> **Pre-0.8.3 upgrade note:** <!-- version-pin-ok --> Older versions of anyscribe stored `INSTAGRAM_PASSWORD` in this file. It's no longer used — you can safely remove the `INSTAGRAM_PASSWORD` line when convenient. Instagram downloads now use browser cookies instead (see `instagram.browser` below).
 
 ### Changing your API key
 
@@ -387,7 +387,7 @@ anyscribe onboard --force
 
 This shows your current settings (API keys masked) and lets you change only what you need — no need to re-enter everything.
 
-Or edit the file directly:
+Or edit the file directly with any text editor — here's `nano` as an example:
 
 ```bash
 nano ~/.anyscribe/.env
@@ -488,7 +488,7 @@ workspace location, the local model, and all your API keys.
 
 > **Want one of these to be a real setting?** These are deliberate defaults, not
 > oversights — see the developer note in
-> [docs/building/architecture.md](../building/architecture.md) for which ones are
+> [docs/building/architecture.md](https://github.com/rishmadaan/anyscribe/blob/main/docs/building/architecture.md) for which ones are
 > candidates to become configurable. If you have a concrete need (say, a custom
 > audio bitrate), that's a reasonable feature request.
 
@@ -496,9 +496,9 @@ workspace location, the local model, and all your API keys.
 
 To start fresh, delete the app directory and re-run onboarding:
 
+> **Warning:** This deletes your config, API keys, and transcripts. Back up `~/anyscribe/` first if you want to keep your transcripts. If you used a custom workspace path, back up that location instead.
+
 ```bash
 rm -rf ~/.anyscribe ~/anyscribe
 anyscribe onboard
 ```
-
-> **Warning:** This deletes your config, API keys, and transcripts. Back up `~/anyscribe/` first if you want to keep your transcripts. If you used a custom workspace path, back up that location instead.

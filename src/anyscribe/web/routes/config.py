@@ -312,7 +312,10 @@ async def test_provider(
 @router.get("/keys/status")
 async def keys_status() -> dict:
     load_env()
-    return {name: bool(os.environ.get(env_var)) for name, env_var in PROVIDER_KEY_MAP.items()}
+    status = {name: bool(os.environ.get(env_var)) for name, env_var in PROVIDER_KEY_MAP.items()}
+    # local needs no key — count it as configured when faster-whisper is installed
+    status["local"] = faster_whisper_importable()
+    return status
 
 
 @router.put("/keys")

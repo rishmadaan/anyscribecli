@@ -12,7 +12,7 @@
 #   1. Checks your OS (macOS or Linux)
 #   2. Checks for Python 3.10+, installs if missing
 #   3. Checks for yt-dlp and ffmpeg, installs if missing
-#   4. Installs anyscribe via pip (with pipx fallback)
+#   4. Installs anyscribe (with the tray extra) via pip (with pipx fallback)
 #   5. Tells you to run `scribe ui`
 # ──────────────────────────────────────────────────────────────
 
@@ -26,6 +26,7 @@ RUN_UI=false
 VERBOSE=false
 DRY_RUN=false
 USED_PIPX=false
+PY="python3"
 
 # ── Colors ────────────────────────────────────────────────────
 RED='\033[0;31m'
@@ -43,6 +44,20 @@ fail()  { echo -e "${RED}${BOLD}  ✗${NC} $1"; }
 die()   { fail "$1"; exit 1; }
 
 command_exists() { command -v "$1" &>/dev/null; }
+
+# Find a Python >= 3.10, preferring version-suffixed binaries (a brew
+# python@3.12 install provides python3.12; the bare python3 may still be
+# the old system one).
+resolve_python() {
+    local cand
+    for cand in python3.12 python3.11 python3.10 python3; do
+        if command_exists "$cand" && "$cand" -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 10) else 1)' 2>/dev/null; then
+            PY="$cand"
+            return 0
+        fi
+    done
+    return 1
+}
 
 # ── Parse arguments ───────────────────────────────────────────
 while [[ $# -gt 0 ]]; do
@@ -115,10 +130,17 @@ install_brew_if_needed() {
         answer="${answer:-Y}"
         if [[ "$answer" =~ ^[Yy] ]]; then
             info "Installing Homebrew..."
+            warn "Homebrew will ask for your Mac password and can take 10-20 minutes — this is normal."
             if [[ "$DRY_RUN" == true ]]; then
                 echo "    [dry-run] Would install Homebrew"
             else
                 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+                # Fresh installs are not on PATH in this shell yet — activate now.
+                if [[ -x /opt/homebrew/bin/brew ]]; then
+                    eval "$(/opt/homebrew/bin/brew shellenv)"
+                elif [[ -x /usr/local/bin/brew ]]; then
+                    eval "$(/usr/local/bin/brew shellenv)"
+                fi
             fi
         else
             die "Cannot continue without a package manager. Install Homebrew from https://brew.sh and try again."
@@ -176,12 +198,12 @@ install_package() {
     fi
 
     # Fallback to pip if available
-    if [[ -n "$pip_pkg" ]] && command_exists pip3; then
+    if [[ -n "$pip_pkg" ]]; then
         info "Installing $name via pip..."
         if [[ "$DRY_RUN" == true ]]; then
-            echo "    [dry-run] pip3 install $pip_pkg"
+            echo "    [dry-run] $PY -m pip install $pip_pkg"
         else
-            pip3 install "$pip_pkg"
+            "$PY" -m pip install "$pip_pkg"
         fi
         return
     fi
@@ -193,28 +215,16 @@ install_package() {
 # ── Check Python ──────────────────────────────────────────────
 check_python() {
     info "Checking Python..."
-
-    if command_exists python3; then
-        local version
-        version="$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"
-        local major minor
-        major="$(echo "$version" | cut -d. -f1)"
-        minor="$(echo "$version" | cut -d. -f2)"
-
-        if [[ "$major" -ge 3 ]] && [[ "$minor" -ge 10 ]]; then
-            ok "Python $version"
-            return 0
-        else
-            warn "Python $version found, but 3.10+ is required"
-        fi
-    else
-        warn "Python 3 not found"
+    if resolve_python; then
+        ok "Python $("$PY" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")') ($PY)"
+        return 0
     fi
-
+    warn "Python 3.10+ not found"
     read -rp "    Install Python? [Y/n] " answer </dev/tty
     answer="${answer:-Y}"
     if [[ "$answer" =~ ^[Yy] ]]; then
         install_package "Python" "python@3.12" "python3" ""
+        resolve_python || die "Python installed but no python3.10+ found on PATH. Open a new terminal and re-run the installer."
     else
         die "Python 3.10+ is required. Install from https://python.org and try again."
     fi
@@ -262,30 +272,35 @@ check_ffmpeg() {
 install_scribe() {
     info "Installing scribe..."
 
-    local pip_cmd="anyscribe"
+    local pip_cmd="anyscribe[tray]"
     if [[ "$INSTALL_METHOD" == "git" ]]; then
+        # git installs skip the [tray] extra — extras syntax differs for git URLs (spec §3)
         pip_cmd="git+${REPO_URL}"
     elif [[ "$INSTALL_METHOD" != "pip" ]]; then
         die "Unknown install method: $INSTALL_METHOD (use 'pip' or 'git')"
     fi
 
     if [[ "$DRY_RUN" == true ]]; then
-        echo "    [dry-run] pip3 install $pip_cmd"
+        echo "    [dry-run] $PY -m pip install $pip_cmd"
     else
         # Try pip first; fall back to pipx if externally-managed-environment
         local pip_output
-        if pip_output=$(pip3 install "$pip_cmd" 2>&1); then
+        if pip_output=$("$PY" -m pip install "$pip_cmd" 2>&1); then
             : # Success
         elif echo "$pip_output" | grep -qi "externally-managed"; then
             warn "System Python is externally managed. Using pipx instead..."
             if ! command_exists pipx; then
                 info "Installing pipx..."
-                case "$LINUX_PKG" in
-                    apt)    sudo apt install -y pipx ;;
-                    dnf)    sudo dnf install -y pipx ;;
-                    pacman) sudo pacman -S --noconfirm python-pipx ;;
-                    *)      pip3 install --user pipx ;;
-                esac
+                if [[ "$OS" == "macos" ]]; then
+                    brew install pipx
+                else
+                    case "$LINUX_PKG" in
+                        apt)    sudo apt install -y pipx ;;
+                        dnf)    sudo dnf install -y pipx ;;
+                        pacman) sudo pacman -S --noconfirm python-pipx ;;
+                        *)      "$PY" -m pip install --user pipx ;;
+                    esac
+                fi
             fi
             pipx install "$pip_cmd"
             pipx ensurepath 2>/dev/null || true

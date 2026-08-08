@@ -18,6 +18,32 @@ anyscribe supports 7 transcription providers. Here's how they compare and when t
 > `balanced`, `cost`, or `free` and anyscribe selects the provider for you. See
 > [Quality presets](#quality-presets) below.
 
+## What it costs to start
+
+**Start with a tier, not a provider.** Pick `accuracy`, `balanced`, `cost`, or
+`free` and anyscribe chooses for you — that's the whole decision for most people.
+The table below is a reference for when you'd rather pick yourself.
+
+| Provider | Free to start? | Card needed? | Rough cost |
+|----------|----------------|--------------|------------|
+| **Local** | Yes — $0, no account | No — no account at all | Free |
+| **Deepgram** | Yes — $200 credit on signup | No | ~$0.30/hr |
+| **Sarvam** | Yes — ~$12 in credits | See [dashboard.sarvam.ai](https://dashboard.sarvam.ai) | ~$0.35/hr |
+| **Groq** | See [console.groq.com/keys](https://console.groq.com/keys) | See [console.groq.com/keys](https://console.groq.com/keys) | ~$0.04/hr |
+| **OpenAI** | See [platform.openai.com/api-keys](https://platform.openai.com/api-keys) | See [platform.openai.com/api-keys](https://platform.openai.com/api-keys) | ~$0.18–0.36/hr (by model) |
+| **ElevenLabs** | See [elevenlabs.io/app/settings/api-keys](https://elevenlabs.io/app/settings/api-keys) | See [elevenlabs.io/app/settings/api-keys](https://elevenlabs.io/app/settings/api-keys) | ~$0.22–0.40/hr (by plan) |
+| **OpenRouter** | See [openrouter.ai/keys](https://openrouter.ai/keys) | See [openrouter.ai/keys](https://openrouter.ai/keys) | Varies by model |
+
+> **Why so many "see the provider's page" cells?** Because signup terms change
+> whenever the provider feels like it, and a stale promise of "free, no card"
+> is worse than no answer. The two we state outright — Deepgram's $200 credit
+> and Local costing nothing — are the ones anyscribe itself depends on. Everything
+> else, check at the source before you sign up.
+
+> **Cheapest honest path to a first transcript:** `free` (Local, $0 forever,
+> nothing to sign up for) or `balanced` (Deepgram, $200 of credit is a lot of
+> hours at ~$0.30/hr).
+
 ## Privacy — who sees your audio?
 
 Worth knowing before you pick. anyscribe itself doesn't phone home — everything runs on your own machine — but your audio has to go wherever the transcription happens.
@@ -242,7 +268,7 @@ anyscribe config set provider sargam
 
 > **When to use:** Getting an English version of Indian-language audio. Not the right choice if you want to preserve the original words.
 
-> **Hinglish — what to keep?** For Hindi-English audio, **store the verbatim transcript, not a translation** — translation is one-way (you can't recover the original) and LLMs read Hinglish fine. **Deepgram `--language hi-Latn`** (the default `balanced` tier) gives clean romanized Hinglish; **ElevenLabs** (`accuracy` tier) gives native Devanagari. Either is a lossless source of truth an LLM can summarize or translate on demand. See the [building doc](../building/journal/2026-06-29-hinglish-transcript-format-and-llm-consumption.md) for the research behind this.
+> **Hinglish — what to keep?** For Hindi-English audio, **store the verbatim transcript, not a translation** — translation is one-way (you can't recover the original) and LLMs read Hinglish fine. **Deepgram `--language hi-Latn`** (the default `balanced` tier) gives clean romanized Hinglish; **ElevenLabs** (`accuracy` tier) gives native Devanagari. Either is a lossless source of truth an LLM can summarize or translate on demand. See the [building doc](https://github.com/rishmadaan/anyscribe/blob/main/docs/building/journal/2026-06-29-hinglish-transcript-format-and-llm-consumption.md) for the research behind this.
 
 ### Groq
 
@@ -295,7 +321,7 @@ anyscribe config set provider_models.openrouter google/gemini-2.5-flash
 
 > **The old default is gone.** anyscribe used to default to `openai/gpt-4o-audio-preview`, which OpenRouter has since removed — requests to it now fail with a "model not found" error. The default is now `openai/gpt-audio-mini`. If you pinned the old one yourself, change it to a current model name.
 
-> **`OPENROUTER_MODEL` in `.env` is no longer read** (removed in 0.15.0). Use `anyscribe config set provider_models.openrouter <slug>` instead, and delete the line from `~/.anyscribe/.env`.
+> **`OPENROUTER_MODEL` in `.env` is no longer read** (removed in 0.15.0). Use `anyscribe config set provider_models.openrouter <slug>` instead, and delete the line from `~/.anyscribe/.env`. <!-- version-pin-ok -->
 
 > **When to use:** When you need a specific model that's only available on OpenRouter. Not recommended as a primary transcription provider — dedicated STT APIs are faster, cheaper, and more accurate.
 

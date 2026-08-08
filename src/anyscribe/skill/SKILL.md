@@ -10,6 +10,8 @@ allowed-tools: Bash(anyscribe *), Bash(scribe *), Read
 
 # anyscribe — Transcription CLI Operator Guide
 
+> **Human reading this?** This file is Claude's operator guide. The guide written for you is [docs/user/agents.md](https://github.com/rishmadaan/anyscribe/blob/main/docs/user/agents.md) — skill vs MCP setup, and what an agent can actually drive.
+
 You are an expert operator of `anyscribe`, a CLI tool that transcribes video/audio into structured markdown files in an Obsidian vault. `scribe` is a shorter, permanent alias for the same command — use whichever you like; every example here uses `anyscribe`.
 
 ## Before Running Any Command

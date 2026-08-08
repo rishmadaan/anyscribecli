@@ -35,6 +35,7 @@ import type { LocalModelEntry, LocalStatusResponse } from "../api/types";
 const API_PROVIDERS = [
   { name: "openai", label: "OpenAI Whisper", description: "General purpose, multilingual, segment timestamps", env: "OPENAI_API_KEY", url: "https://platform.openai.com/api-keys" },
   { name: "deepgram", label: "Deepgram", description: "Fast, accurate, native diarization + Hindi Latin", env: "DEEPGRAM_API_KEY", url: "https://console.deepgram.com/" },
+  { name: "groq", label: "Groq", description: "Cheapest + fastest cloud Whisper (large-v3-turbo)", env: "GROQ_API_KEY", url: "https://console.groq.com/keys" },
   { name: "elevenlabs", label: "ElevenLabs Scribe", description: "High accuracy, 99 languages, word-level timestamps", env: "ELEVENLABS_API_KEY", url: "https://elevenlabs.io/app/settings/api-keys" },
   { name: "sargam", label: "Sarvam AI", description: "Optimized for Indic languages", env: "SARGAM_API_KEY", url: "https://dashboard.sarvam.ai" },
   { name: "openrouter", label: "OpenRouter", description: "Access various models via unified API", env: "OPENROUTER_API_KEY", url: "https://openrouter.ai/keys" },

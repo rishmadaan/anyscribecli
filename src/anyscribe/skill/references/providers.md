@@ -185,7 +185,7 @@ Routes to various AI models via a unified API. Uses audio-capable chat models wi
 - **Listed models:** `openai/gpt-audio-mini`, `google/gemini-2.5-flash-lite`, `google/gemini-2.5-flash`, `google/gemini-3-flash-preview`, `mistralai/voxtral-small-24b-2507`, `openai/gpt-audio`
 - **Any slug works:** OpenRouter is the one provider where `-m` isn't validated — pass any audio-capable slug and anyscribe forwards it. A wrong slug fails at the API (404), not at anyscribe.
 - **Keep slugs in the picker:** `anyscribe config set extra_models.openrouter "<slug>,<slug>"` (empty value clears). Openrouter-only.
-- **Removed:** the `OPENROUTER_MODEL` env var is no longer read (0.15.0). Migrate to `provider_models.openrouter` and delete the `.env` line.
+- **Removed:** the `OPENROUTER_MODEL` env var is no longer read (0.15.0). Migrate to `provider_models.openrouter` and delete the `.env` line. <!-- version-pin-ok -->
 - **Cost:** Per-token pricing, generally more expensive than dedicated STT
 - **No timestamps** — returns plain text only
 - **Get key:** https://openrouter.ai/keys
