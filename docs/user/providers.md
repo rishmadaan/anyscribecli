@@ -266,7 +266,7 @@ scribe config set provider sargam
 
 > **When to use:** Getting an English version of Indian-language audio. Not the right choice if you want to preserve the original words.
 
-> **Hinglish — what to keep?** For Hindi-English audio, **store the verbatim transcript, not a translation** — translation is one-way (you can't recover the original) and LLMs read Hinglish fine. **Deepgram `--language hi-Latn`** (the default `balanced` tier) gives clean romanized Hinglish; **ElevenLabs** (`accuracy` tier) gives native Devanagari. Either is a lossless source of truth an LLM can summarize or translate on demand. See the [building doc](../building/journal/2026-06-29-hinglish-transcript-format-and-llm-consumption.md) for the research behind this.
+> **Hinglish — what to keep?** For Hindi-English audio, **store the verbatim transcript, not a translation** — translation is one-way (you can't recover the original) and LLMs read Hinglish fine. **Deepgram `--language hi-Latn`** (the default `balanced` tier) gives clean romanized Hinglish; **ElevenLabs** (`accuracy` tier) gives native Devanagari. Either is a lossless source of truth an LLM can summarize or translate on demand. See the [building doc](https://github.com/rishmadaan/anyscribe/blob/main/docs/building/journal/2026-06-29-hinglish-transcript-format-and-llm-consumption.md) for the research behind this.
 
 ### Groq
 

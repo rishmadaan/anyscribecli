@@ -19,12 +19,16 @@ def real_version() -> str:
 
 def check_versions() -> list[str]:
     """Any vX.Y.Z in user-facing prose must equal the real version or be
-    marked <!-- version-pin-ok --> on the same line."""
+    marked <!-- version-pin-ok --> on the same line.
+
+    landing/docs/*.html is scanned too, so a marker in a .md source must land on
+    the SAME line as the version once rendered (keep both inside one paragraph).
+    """
     version = real_version()
     offenders = []
     targets = ["docs/user", "landing", "README.md", "src/anyscribe/skill"]
     # Lookarounds keep IPs (127.0.0.1) and SVG path data out of the match.
-    pat = re.compile(r"(?<![\d.])v?\d+\.\d+\.\d+(?![\d.])")
+    pat = re.compile(r"(?<![\d.])v?\d+\.\d+\.\d+(?!\.?\d)")
     for target in targets:
         base = ROOT / target
         files = (

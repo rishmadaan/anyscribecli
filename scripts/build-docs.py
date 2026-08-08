@@ -6,6 +6,7 @@ Idempotent: no timestamps, no randomness. CI re-runs this and fails on diff.
 
 from __future__ import annotations
 
+import html
 import re
 import sys
 from pathlib import Path
@@ -125,7 +126,7 @@ def render(stem: str) -> str:
     meta, text = read_page(stem)
     text = MD_LINK.sub(r"](/docs/\1\2)", text)  # sibling .md links → clean URLs
     body = markdown.markdown(text, extensions=["tables", "fenced_code", "toc"])
-    title = meta.get("title") or NAV_LABELS.get(stem, stem)
+    title = html.escape(meta.get("title") or NAV_LABELS.get(stem, stem))
     return TEMPLATE.format(title=title, style=STYLE, nav=nav_html(stem), body=body)
 
 
@@ -133,10 +134,10 @@ def render_index() -> str:
     cards = []
     for stem in PAGES:
         meta, _ = read_page(stem)
-        title = meta.get("title") or NAV_LABELS[stem]
+        title = html.escape(meta.get("title") or NAV_LABELS[stem])
+        summary = html.escape(meta.get("summary", ""))
         cards.append(
-            f'<a class="card" href="/docs/{stem}"><h2>{title}</h2>'
-            f'<p>{meta.get("summary", "")}</p></a>'
+            f'<a class="card" href="/docs/{stem}"><h2>{title}</h2><p>{summary}</p></a>'
         )
     body = "<h1>anyscribe docs</h1>\n<div class=\"cards\">\n" + "\n".join(cards) + "\n</div>"
     return TEMPLATE.format(
@@ -144,22 +145,37 @@ def render_index() -> str:
     )
 
 
-HREF = re.compile(r'href="(/docs/[\w-]*)?(#[^"]*)?"')
+HREF = re.compile(r'href="([^"]*)"')
 ID = re.compile(r'\sid="([^"]+)"')
+OK_SCHEMES = ("http://", "https://", "mailto:", "data:")
 
 
 def check_links(pages: dict[str, str]) -> list[str]:
-    """Every /docs/<x> target must be a real page, and every #anchor a real id."""
-    ids = {name: set(ID.findall(html)) for name, html in pages.items()}
+    """Every link must be an allowed scheme, a site-absolute path, or an anchor;
+    every /docs/<x> target a real page, and every #anchor a real rendered id."""
+    ids = {name: set(ID.findall(doc)) for name, doc in pages.items()}
     problems = []
-    for name, html in pages.items():
-        for path, anchor in HREF.findall(html):
-            target = path.rsplit("/", 1)[-1] if path else name
-            if path and target and target not in PAGES:
-                problems.append(f"{name}.html: link to unknown page {path}")
+    for name, doc in pages.items():
+        for href in HREF.findall(doc):
+            if href.startswith(OK_SCHEMES):
                 continue
-            if anchor and anchor != "#" and anchor[1:] not in ids.get(target or name, set()):
-                problems.append(f"{name}.html: broken anchor {path or ''}{anchor}")
+            path, _, anchor = href.partition("#")
+            if path and not path.startswith("/"):
+                # relative links (../building/foo.md) 404 on the deployed site
+                problems.append(f"{name}.html: unsupported link {href}")
+                continue
+            target = name
+            if path.rstrip("/") == "/docs":
+                target = "index"
+            elif path.startswith("/docs/"):
+                target = path.rstrip("/").rsplit("/", 1)[-1]
+                if target not in PAGES:
+                    problems.append(f"{name}.html: link to unknown page {path}")
+                    continue
+            elif path:
+                continue  # some other page of the site; not ours to validate
+            if anchor and anchor not in ids[target]:
+                problems.append(f"{name}.html: broken anchor {href}")
     return problems
 
 
@@ -172,8 +188,8 @@ def main() -> int:
         for p in problems:
             print(p, file=sys.stderr)
         return 1
-    for name, html in pages.items():
-        (OUT / f"{name}.html").write_text(html)
+    for name, doc in pages.items():
+        (OUT / f"{name}.html").write_text(doc)
     print(f"rendered {len(PAGES)} pages + index → {OUT}")
     return 0
 

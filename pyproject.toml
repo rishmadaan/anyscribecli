@@ -55,7 +55,7 @@ dev = [
     # broke the v0.14.0 publish lint gate. Raise deliberately, fixing findings.
     "ruff>=0.4,<0.16",
     # scripts/build-docs.py renders docs/user/*.md into landing/docs/*.html
-    "markdown>=3.5",
+    "markdown>=3.5,<4",
 ]
 local = [
     "faster-whisper>=1.0",

@@ -486,7 +486,7 @@ workspace location, the local model, and all your API keys.
 
 > **Want one of these to be a real setting?** These are deliberate defaults, not
 > oversights — see the developer note in
-> [docs/building/architecture.md](../building/architecture.md) for which ones are
+> [docs/building/architecture.md](https://github.com/rishmadaan/anyscribe/blob/main/docs/building/architecture.md) for which ones are
 > candidates to become configurable. If you have a concrete need (say, a custom
 > audio bitrate), that's a reasonable feature request.
 
