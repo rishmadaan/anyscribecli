@@ -10,6 +10,8 @@ read_when:
 
 You don't have to memorize flags. Hand a link to your agent and say "transcribe this" — it drives anyscribe for you.
 
+> **`scribe` and `ascli` are shorter aliases for `anyscribe`** — every command on this page works typed as any of the three.
+
 ## Two ways in
 
 **The Claude Code skill** teaches Claude how to *use the CLI*. Claude runs `anyscribe` commands in your terminal the way you would, so anything the command line can do, the skill can reach: transcribing, batches, provider setup, log reading, updates, local model management. It's the fuller path, and it only works in Claude Code.

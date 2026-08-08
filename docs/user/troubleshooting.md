@@ -12,6 +12,8 @@ read_when:
 Find the error by the text you actually saw. Each entry says what it means and
 what to type.
 
+> **`scribe` and `ascli` are shorter aliases for `anyscribe`** — every fix below works typed as any of the three.
+
 ## Start here
 
 Whatever the problem, run this first:

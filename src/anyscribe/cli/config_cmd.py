@@ -144,14 +144,14 @@ def config_main(
             f"(anyscribe config set <provider>_api_key <key>)[/dim]"
         )
     console.print(
-        "[dim]Change provider: scribe config set provider <name>  "
+        "[dim]Change provider: anyscribe config set provider <name>  "
         "(also sets quality = custom, so it sticks)[/dim]"
     )
     console.print(
-        "[dim]Pin a model:     scribe config set provider_models.<provider> <model>[/dim]"
+        "[dim]Pin a model:     anyscribe config set provider_models.<provider> <model>[/dim]"
     )
     console.print(
-        "[dim]Or pick a tier:  scribe config set quality accuracy|balanced|cost|free|custom[/dim]"
+        "[dim]Or pick a tier:  anyscribe config set quality accuracy|balanced|cost|free|custom[/dim]"
     )
 
 
