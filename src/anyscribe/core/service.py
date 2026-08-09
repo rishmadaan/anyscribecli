@@ -1,6 +1,6 @@
 """Autostart service (macOS launchd LaunchAgent).
 
-macOS only for now. Registers `scribe tray` as a per-user LaunchAgent so the
+macOS only for now. Registers `anyscribe tray` as a per-user LaunchAgent so the
 tray companion starts at login.
 
 Uses ``{python} -m anyscribe tray`` rather than the ``scribe`` binary path:

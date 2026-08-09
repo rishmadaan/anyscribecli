@@ -21,7 +21,10 @@ class TestClassifyAPIError:
         assert err.status_code == 401
         assert err.provider == "openai"
         assert not err.retryable
-        assert "scribe config set" in err.user_message
+        # Full hint line, anchored on the `anyscribe` prefix: a bare
+        # "scribe config set" check is a substring of the "anyscribe ..." form
+        # and so passes whichever voice the source string uses — it pins nothing.
+        assert "  Fix: anyscribe config set openai_api_key YOUR_KEY" in err.user_message
 
     def test_403_returns_auth_error(self):
         err = classify_api_error(403, "Forbidden", "deepgram")

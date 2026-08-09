@@ -35,7 +35,7 @@ PROVIDER_KEY_ENV: dict[str, str | None] = {
 # Canonical provider -> pickable model ids. First entry is the provider's
 # default; a single-entry list means "no picker" (UI hides the dropdown).
 # "local" is empty because local model choice lives in settings.local_model
-# with its own download/cache lifecycle (scribe model pull, Web UI cards).
+# with its own download/cache lifecycle (anyscribe model pull, Web UI cards).
 # Verified against provider docs 2026-07-29 — see journal entry of that date.
 PROVIDER_MODELS: dict[str, list[str]] = {
     "openai": ["gpt-transcribe", "whisper-1", "gpt-4o-transcribe", "gpt-4o-mini-transcribe"],
@@ -80,7 +80,7 @@ def validate_model(name: str, model: str, extra_models: dict[str, list[str]] | N
     known = get_models(name, extra_models)
     if not known:
         hint = (
-            " Local model choice uses `scribe local setup --model` / settings.local_model."
+            " Local model choice uses `anyscribe local setup --model` / settings.local_model."
             if name == "local"
             else ""
         )

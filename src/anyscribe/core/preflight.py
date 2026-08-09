@@ -39,7 +39,7 @@ def preflight_check(settings: Settings, url: str) -> None:
             "ffmpeg not found. Install it:\n"
             "  macOS:  brew install ffmpeg\n"
             "  Linux:  sudo apt install ffmpeg\n"
-            "  Or run: scribe doctor"
+            "  Or run: anyscribe doctor"
         )
     if not shutil.which("ffprobe"):
         raise RuntimeError(
@@ -53,8 +53,8 @@ def preflight_check(settings: Settings, url: str) -> None:
     if env_var and not os.environ.get(env_var):
         raise RuntimeError(
             f"{env_var} not set for provider '{settings.provider}'.\n"
-            f"  Fix: scribe config set {settings.provider}_api_key YOUR_KEY\n"
-            f"  Or:  scribe onboard --force"
+            f"  Fix: anyscribe config set {settings.provider}_api_key YOUR_KEY\n"
+            f"  Or:  anyscribe onboard --force"
         )
 
     # 3. Validate local file format before environment-dependent disk checks.

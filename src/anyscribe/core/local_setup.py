@@ -2,12 +2,12 @@
 
 Local transcription needs two things on disk before it can run:
 
-1. ``faster-whisper`` installed into the same Python environment as ``scribe``.
+1. ``faster-whisper`` installed into the same Python environment as ``anyscribe``.
 2. At least one Whisper model downloaded into the HuggingFace cache.
 
-This module detects how ``scribe`` itself was installed (pipx / venv pip /
+This module detects how ``anyscribe`` itself was installed (pipx / venv pip /
 system pip) and runs the appropriate subprocess to add faster-whisper, then
-pulls the requested model. The same routine powers the CLI (``scribe local
+pulls the requested model. The same routine powers the CLI (``anyscribe local
 setup``), the onboarding wizard, and the Web UI "Set up local transcription"
 button — one code path, consistent behaviour.
 

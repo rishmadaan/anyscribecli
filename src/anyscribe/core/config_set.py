@@ -22,7 +22,7 @@ from anyscribe.providers import (
 )
 from anyscribe.providers.local_models import MODEL_SIZES
 
-# "openai_api_key" -> "OPENAI_API_KEY", for `scribe config set <x>_api_key`
+# "openai_api_key" -> "OPENAI_API_KEY", for `anyscribe config set <x>_api_key`
 API_KEY_MAP: dict[str, str] = {
     f"{name}_api_key": env for name, env in PROVIDER_KEY_ENV.items() if env
 }
@@ -172,7 +172,7 @@ def _check_pin(provider: str, value, extra_models: dict) -> str:
     known = get_models(provider, extra_models)
     if not known:
         hint = (
-            " Local model choice uses `scribe local setup --model` / settings.local_model."
+            " Local model choice uses `anyscribe local setup --model` / settings.local_model."
             if provider == "local"
             else ""
         )

@@ -38,7 +38,7 @@ class DeepgramProvider(TranscriptionProvider):
         key = os.environ.get("DEEPGRAM_API_KEY", "")
         if not key:
             raise RuntimeError(
-                "DEEPGRAM_API_KEY not set. Run 'scribe onboard' or set it in ~/.anyscribe/.env"
+                "DEEPGRAM_API_KEY not set. Run 'anyscribe onboard' or set it in ~/.anyscribe/.env"
             )
         return key
 

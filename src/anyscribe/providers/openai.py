@@ -39,7 +39,7 @@ class OpenAIProvider(TranscriptionProvider):
         key = os.environ.get("OPENAI_API_KEY", "")
         if not key:
             raise RuntimeError(
-                "OPENAI_API_KEY not set. Run 'scribe onboard' or set it in ~/.anyscribe/.env"
+                "OPENAI_API_KEY not set. Run 'anyscribe onboard' or set it in ~/.anyscribe/.env"
             )
         return key
 
@@ -111,10 +111,10 @@ class OpenAIProvider(TranscriptionProvider):
                     f"File is {size_mb:.0f}MB — OpenAI's diarize endpoint has a 25MB limit "
                     f"and doesn't support chunking.\n\n"
                     f"Use Deepgram instead (handles large files natively with better speaker detection):\n"
-                    f"  scribe config set deepgram_api_key YOUR_KEY\n"
-                    f'  scribe "{audio_path.name}" --diarize\n\n'
+                    f"  anyscribe config set deepgram_api_key YOUR_KEY\n"
+                    f'  anyscribe "{audio_path.name}" --diarize\n\n'
                     f"Or transcribe without diarization (will chunk automatically):\n"
-                    f'  scribe "{audio_path.name}" -p openai'
+                    f'  anyscribe "{audio_path.name}" -p openai'
                 )
             result = self._parse_response(
                 self._transcribe_diarize(audio_path, language, api_key), diarize=True

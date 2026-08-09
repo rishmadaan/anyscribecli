@@ -1,6 +1,6 @@
 """Headless onboarding — shared backend for CLI --yes mode and Web UI wizard.
 
-The TUI `scribe onboard` wizard, the agentic `scribe onboard --yes ...` path,
+The TUI `anyscribe onboard` wizard, the agentic `anyscribe onboard --yes ...` path,
 and the Web UI onboarding wizard all converge on ``run_headless_onboard()``:
 validate inputs, persist config + secrets, create the vault, optionally set up
 local transcription, optionally install the Claude Code skill. One function,

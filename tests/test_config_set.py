@@ -149,7 +149,9 @@ def test_pin_openrouter_accepts_any_slug():
 def test_pin_local_rejected_with_hint():
     out = set_value("provider_models.local", "base")
     assert not out.ok
-    assert "local setup --model" in out.error
+    # Command name included and backtick-anchored: "local setup --model" alone
+    # cannot tell `anyscribe` from `scribe`, so it pins nothing.
+    assert "`anyscribe local setup --model`" in out.error
 
 
 def test_pin_unknown_provider_rejected():

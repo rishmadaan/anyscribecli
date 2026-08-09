@@ -242,7 +242,7 @@ async def test_provider(
             "message": (
                 f"{default_size} model cached"
                 if model_ok
-                else f"{default_size} model not cached — run `scribe local setup --model {default_size}`"
+                else f"{default_size} model not cached — run `anyscribe local setup --model {default_size}`"
             ),
             "size": default_size,
         }

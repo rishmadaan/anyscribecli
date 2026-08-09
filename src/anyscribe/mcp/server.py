@@ -1,6 +1,6 @@
-"""MCP server for scribe — transcription tools for AI harnesses.
+"""MCP server for anyscribe — transcription tools for AI harnesses.
 
-Exposes scribe's core functionality (transcribe, download, config, providers)
+Exposes anyscribe's core functionality (transcribe, download, config, providers)
 as MCP tools for Claude Desktop, Cursor, Windsurf, and other AI clients.
 
 Entry point: `scribe-mcp` (registered in pyproject.toml).
@@ -374,7 +374,7 @@ def delete_transcript(target: str) -> str:
 
 @mcp.tool()
 def get_config() -> str:
-    """Show current scribe configuration.
+    """Show current anyscribe configuration.
 
     Returns all settings including resolved workspace path.
     Sensitive values (API keys) are NOT included — they live in .env.
@@ -393,7 +393,7 @@ def get_config() -> str:
 
 @mcp.tool()
 def set_config(key: str, value: str) -> str:
-    """Change a scribe configuration setting.
+    """Change an anyscribe configuration setting.
 
     Handles every settable key, including API keys (e.g. "openai_api_key",
     written to .env), model pins ("provider_models.<provider>"), user-added
@@ -487,7 +487,7 @@ def test_provider(name: Optional[str] = None) -> str:
 
 @mcp.tool()
 def doctor() -> str:
-    """Run diagnostic checks on scribe installation.
+    """Run diagnostic checks on anyscribe installation.
 
     Checks dependencies, config, workspace, and skill status.
 
@@ -560,7 +560,7 @@ def doctor() -> str:
 
 @mcp.resource("scribe://config")
 def resource_config() -> str:
-    """Current scribe configuration."""
+    """Current anyscribe configuration."""
     return get_config()
 
 

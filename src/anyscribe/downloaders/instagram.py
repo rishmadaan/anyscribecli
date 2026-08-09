@@ -8,7 +8,7 @@ Replaces the previous instaloader-based implementation. yt-dlp:
 
 Public reels work without auth in many cases. For private reels (or when
 Instagram throttles anonymous access), the user configures a browser via
-``scribe config set instagram.browser firefox`` and yt-dlp pulls cookies
+``anyscribe config set instagram.browser firefox`` and yt-dlp pulls cookies
 from that browser's profile via ``--cookies-from-browser``.
 """
 
@@ -144,7 +144,7 @@ def _friendly_error(stderr: str) -> str:
         return (
             "Instagram requires a login to fetch this reel.\n"
             "Configure cookies from your browser:\n"
-            "  scribe config set instagram.browser firefox\n"
+            "  anyscribe config set instagram.browser firefox\n"
             "(supported: firefox, chrome, safari, brave, edge, chromium, vivaldi, opera)\n"
             "Then retry. If you're already configured, your browser session may have expired —\n"
             "open Instagram in that browser, log in, and try again."
@@ -153,7 +153,7 @@ def _friendly_error(stderr: str) -> str:
         return (
             "This reel is from a private account.\n"
             "Configure cookies from a browser logged into an account that follows them:\n"
-            "  scribe config set instagram.browser firefox"
+            "  anyscribe config set instagram.browser firefox"
         )
     if "video unavailable" in lower or "post not found" in lower or "not available" in lower:
         return (
