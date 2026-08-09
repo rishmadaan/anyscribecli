@@ -1,4 +1,4 @@
-"""scribe — main CLI entry point."""
+"""anyscribe — main CLI entry point."""
 
 from __future__ import annotations
 
@@ -17,8 +17,8 @@ class DefaultToTranscribe(TyperGroup):
 
     If the first argument isn't a known subcommand or a flag,
     assume it's a URL or file path and prepend 'transcribe'.
-    This lets users write `scribe "https://..."` instead of
-    `scribe transcribe "https://..."`.
+    This lets users write `anyscribe "https://..."` instead of
+    `anyscribe transcribe "https://..."`.
     """
 
     def parse_args(self, ctx: click.Context, args: list[str]) -> list[str]:
@@ -38,6 +38,9 @@ app = typer.Typer(
 console = Console()
 err_console = Console(stderr=True)
 
+# How far past --port `anyscribe ui` will look for a free port.
+PORT_SCAN_SPAN = 10
+
 
 def version_callback(value: bool) -> None:
     if value:
@@ -56,7 +59,7 @@ def _auto_update_skill() -> None:
     This runs on every invocation but is fast (one file read + string compare).
 
     Also drops superseded skill dirs (``ascli``, then ``scribe``) so Claude Code
-    never sees two competing scribe skills, one of them serving stale commands.
+    never sees two competing anyscribe skills, one of them serving stale commands.
     """
     import shutil
 
@@ -161,7 +164,7 @@ def main(
         help="Enable debug output with full tracebacks and log to ~/.anyscribe/logs/scribe.log.",
     ),
 ) -> None:
-    """[bold]scribe[/bold] — download, transcribe, and convert video/audio to structured markdown."""
+    """[bold]anyscribe[/bold] — download, transcribe, and convert video/audio to structured markdown."""
     global _debug_mode
     _debug_mode = debug
     if debug:
@@ -221,25 +224,39 @@ app.add_typer(models_app, name="model")
 
 @app.command()
 def ui(
-    port: int = typer.Option(8457, "--port", "-p", help="Port to listen on."),
+    port: int = typer.Option(8457, "--port", "-p", min=1, max=65535, help="Port to listen on."),
     no_open: bool = typer.Option(False, "--no-open", help="Don't auto-open browser."),
 ) -> None:
     """Launch the [bold]web UI[/bold] in your browser.
 
-    Starts a local web server and opens the scribe dashboard.
+    Starts a local web server and opens the anyscribe dashboard.
     """
     import socket
 
     from anyscribe.web.app import run
 
-    # Check for port conflict before starting
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        if s.connect_ex(("127.0.0.1", port)) == 0:
-            err_console.print(f"[red]Port {port} is already in use.[/red]")
-            err_console.print(f"Try: [bold]scribe ui --port {port + 1}[/bold]")
-            raise typer.Exit(code=1)
+    # A busy port is nearly always our own second window or a stale server, so
+    # roll forward instead of dead-ending the user. Only the exhausted scan is
+    # a real error.
+    # min() keeps the scan inside the valid port range — connect_ex raises
+    # OverflowError on 65536, which would traceback instead of erroring cleanly.
+    for candidate in range(port, min(port + PORT_SCAN_SPAN, 65535) + 1):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            if s.connect_ex(("127.0.0.1", candidate)) != 0:
+                break
+    else:
+        err_console.print(f"[red]Port {port} is already in use.[/red]")
+        err_console.print(
+            f"Ports {port}–{min(port + PORT_SCAN_SPAN, 65535)} are all busy. "
+            "Try: [bold]anyscribe ui --port <free port>[/bold]"
+        )
+        raise typer.Exit(code=1)
 
-    console.print(f"[bold]scribe ui[/bold] → http://127.0.0.1:{port}")
+    if candidate != port:
+        console.print(f"[yellow]Port {port} busy — using {candidate}.[/yellow]")
+    port = candidate
+
+    console.print(f"[bold]anyscribe ui[/bold] → http://127.0.0.1:{port}")
     try:
         run(port=port, open_browser=not no_open)
     except KeyboardInterrupt:
@@ -255,7 +272,7 @@ def update(
         False, "--check", "-c", help="Only check for updates, don't install."
     ),
 ) -> None:
-    """[bold yellow]Update[/bold yellow] scribe to the latest version.
+    """[bold yellow]Update[/bold yellow] anyscribe to the latest version.
 
     Pulls the latest changes from git and reinstalls the package.
     """
@@ -279,7 +296,7 @@ def doctor() -> None:
     from anyscribe.config.paths import APP_HOME, CONFIG_FILE, ENV_FILE, get_workspace_dir
     from anyscribe.core.updater import get_install_path, check_for_updates
 
-    console.print("[bold]scribe doctor[/bold]\n")
+    console.print("[bold]anyscribe doctor[/bold]\n")
 
     # Dependencies
     console.print("[bold]1. System Dependencies[/bold]\n")
@@ -300,7 +317,7 @@ def doctor() -> None:
         console.print(f"  {name}: {status}")
 
     if not CONFIG_FILE.exists():
-        console.print("\n  [yellow]Run [bold]scribe onboard[/bold] to set up.[/yellow]")
+        console.print("\n  [yellow]Run [bold]anyscribe onboard[/bold] to set up.[/yellow]")
 
     # Install info
     console.print("\n[bold]3. Installation[/bold]\n")
@@ -318,7 +335,7 @@ def doctor() -> None:
     console.print("\n[bold]4. Claude Code Skill[/bold]\n")
     if not ASCLI_SKILL_TARGET.exists():
         console.print("  Skill: [yellow]Not installed[/yellow]")
-        console.print("  [dim]Run [bold]scribe install-skill[/bold] to install.[/dim]")
+        console.print("  [dim]Run [bold]anyscribe install-skill[/bold] to install.[/dim]")
     else:
         version_marker = ASCLI_SKILL_TARGET / ".version"
         try:
@@ -330,12 +347,12 @@ def doctor() -> None:
             console.print(f"  Skill: [green]Installed (v{installed_version})[/green]")
         elif installed_version == "unknown":
             console.print("  Skill: [yellow]Installed (version unknown — pre-0.5.5)[/yellow]")
-            console.print("  [dim]Run [bold]scribe install-skill --force[/bold] to update.[/dim]")
+            console.print("  [dim]Run [bold]anyscribe install-skill --force[/bold] to update.[/dim]")
         else:
             console.print(
                 f"  Skill: [yellow]Outdated (v{installed_version} → v{__version__})[/yellow]"
             )
-            console.print("  [dim]Run [bold]scribe install-skill --force[/bold] to update.[/dim]")
+            console.print("  [dim]Run [bold]anyscribe install-skill --force[/bold] to update.[/dim]")
         console.print(f"  Path: {ASCLI_SKILL_TARGET}")
 
     # Updates

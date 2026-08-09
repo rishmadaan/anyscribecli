@@ -1,4 +1,4 @@
-"""`scribe install-service` / `uninstall-service` — autostart at login.
+"""`anyscribe install-service` / `uninstall-service` — autostart at login.
 
 macOS launchd LaunchAgent only for now. Other platforms get a friendly
 "not supported yet" error.

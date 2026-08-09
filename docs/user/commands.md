@@ -848,6 +848,8 @@ Opens your browser at `http://127.0.0.1:8457` with three views:
 | `--port` | `-p` | Port to listen on | `8457` |
 | `--no-open` | | Don't auto-open browser | Off (opens automatically) |
 
+> **Already got one open?** If the port is taken, anyscribe doesn't stop — it looks at the next ten ports, takes the first free one, and tells you: `Port 8457 busy — using 8458`. You only see an error if all eleven are busy, and then it asks you to pick a port yourself with `--port`.
+
 ### Examples
 
 ```bash
@@ -883,7 +885,7 @@ The icon appears in your menu bar (macOS) or system tray (Linux/Windows) with:
 - **Check for updates…** — opens the [GitHub releases page](https://github.com/rishmadaan/anyscribe/releases)
 - **Quit** — stops the server and exits the tray cleanly
 
-If a `anyscribe ui` server is already running on the port, `anyscribe tray` attaches to it instead of starting a second one. If a tray is already running, a second `anyscribe tray` refuses to start (no port collisions, no duplicate icons).
+If an `anyscribe ui` server is already running on the port, `anyscribe tray` attaches to it instead of starting a second one. If a tray is already running, a second `anyscribe tray` refuses to start (no port collisions, no duplicate icons).
 
 ### Flags
 

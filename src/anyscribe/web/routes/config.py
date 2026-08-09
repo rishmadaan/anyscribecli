@@ -26,6 +26,7 @@ from anyscribe.providers import (
     PROVIDER_REGISTRY,
     get_models,
     list_providers,
+    normalize_provider_name,
 )
 from anyscribe.providers.languages import PROVIDER_LANGUAGES
 from anyscribe.providers.local_models import (
@@ -172,6 +173,7 @@ async def get_provider_languages(name: str) -> dict:
     `freeform=true` means there is no canonical list and the caller should
     render a plain text input (currently OpenRouter only).
     """
+    name = normalize_provider_name(name)
     if name not in PROVIDER_LANGUAGES:
         return {"languages": [], "freeform": False}
     langs = PROVIDER_LANGUAGES[name]
@@ -199,6 +201,7 @@ async def test_provider(
     for existing UI callers and agents).
     """
     load_env()
+    name = normalize_provider_name(name)
     if name not in PROVIDER_REGISTRY:
         return {"success": False, "message": f"Unknown provider: {name}"}
 
@@ -242,7 +245,7 @@ async def test_provider(
             "message": (
                 f"{default_size} model cached"
                 if model_ok
-                else f"{default_size} model not cached — run `scribe local setup --model {default_size}`"
+                else f"{default_size} model not cached — run `anyscribe local setup --model {default_size}`"
             ),
             "size": default_size,
         }

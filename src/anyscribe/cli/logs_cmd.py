@@ -74,7 +74,7 @@ def logs(
     if recovery:
         console.print(
             "\n[bold yellow]Recovery artifacts[/bold yellow] "
-            "[dim](audio saved from failed transcriptions — re-run scribe to retry, or delete)[/dim]"
+            "[dim](audio saved from failed transcriptions — re-run anyscribe to retry, or delete)[/dim]"
         )
         for r in recovery:
             console.print(f"  {r['name']}  [dim]{_human_size(r['size'])}  {r['mtime']}[/dim]")

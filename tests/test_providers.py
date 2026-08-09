@@ -13,7 +13,12 @@ import httpx
 import pytest
 
 from anyscribe.core.errors import AuthenticationError, RateLimitError
-from anyscribe.providers import PROVIDER_REGISTRY, get_models, get_provider
+from anyscribe.providers import (
+    PROVIDER_REGISTRY,
+    get_models,
+    get_provider,
+    normalize_provider_name,
+)
 from anyscribe.providers.base import TranscriptionProvider, TranscriptResult
 from anyscribe.providers.deepgram import DeepgramProvider
 from anyscribe.providers.elevenlabs import ElevenLabsProvider
@@ -634,3 +639,27 @@ class TestModelPicker:
         SargamProvider().transcribe(audio, diarize=True)
         (call,) = calls
         assert "with_diarization" not in call["data"]
+
+
+# ── spelling alias ──────────────────────────────────────
+
+
+class TestProviderNameAlias:
+    """The vendor is "Sarvam AI"; our registry key is `sargam`. Typing the
+    real spelling must land on the same provider, on every surface."""
+
+    def test_normalize_maps_sarvam_to_sargam(self):
+        assert normalize_provider_name("sarvam") == "sargam"
+
+    def test_normalize_leaves_canonical_names_alone(self):
+        for name in PROVIDER_REGISTRY:
+            assert normalize_provider_name(name) == name
+
+    def test_get_provider_accepts_the_alias(self):
+        assert isinstance(get_provider("sarvam"), SargamProvider)
+
+    def test_unknown_provider_error_lists_canonical_names_only(self):
+        with pytest.raises(ValueError) as e:
+            get_provider("nope")
+        assert "sargam" in str(e.value)
+        assert "sarvam" not in str(e.value)

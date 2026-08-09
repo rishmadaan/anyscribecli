@@ -35,6 +35,16 @@ def test_flag_beats_quality_and_diarize(monkeypatch):
     assert (plan.provider, plan.via) == ("sargam", "flag")
 
 
+def test_provider_flag_accepts_the_sarvam_spelling():
+    plan = resolve_run(Settings(provider="openai", quality="custom"), cli_provider="sarvam")
+    assert (plan.provider, plan.via) == ("sargam", "flag")
+
+
+def test_hand_edited_config_alias_resolves():
+    plan = resolve_run(Settings(provider="sarvam", quality="custom"))
+    assert plan.provider == "sargam"
+
+
 def test_accuracy_tier_routes_to_elevenlabs(monkeypatch):
     monkeypatch.setenv("ELEVENLABS_API_KEY", "x")
     plan = resolve_run(Settings(provider="openai", quality="accuracy"))

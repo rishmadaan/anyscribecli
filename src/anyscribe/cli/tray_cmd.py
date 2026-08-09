@@ -1,7 +1,7 @@
-"""`scribe tray` — menu-bar/tray companion that supervises the web server.
+"""`anyscribe tray` — menu-bar/tray companion that supervises the web server.
 
 All pystray/Pillow imports are lazy (inside functions) so the base install
-stays tray-free and `scribe tray --help` works without the `[tray]` extra.
+stays tray-free and `anyscribe tray --help` works without the `[tray]` extra.
 """
 
 from __future__ import annotations
@@ -111,7 +111,7 @@ def tray(
 
     # Already-running instance? Bail instead of colliding on the port.
     if core.read_pidfile() is not None:
-        err_console.print("[yellow]A scribe tray is already running.[/yellow]")
+        err_console.print("[yellow]An anyscribe tray is already running.[/yellow]")
         raise typer.Exit(code=1)
 
     _run_tray(port)

@@ -266,7 +266,7 @@ anyscribe tray
 
 If the server responds at `http://127.0.0.1:8457` but you can't find the waveform icon, check whether a menu-bar manager (Hidden Bar, Bartender, Ice, Dozer) is running. macOS inserts new status items at the LEFT of the strip, which these apps hide by default — expand the manager (chevron icon) and drag the anyscribe waveform to the always-visible side. Also make sure anyscribe is v0.13.2+ (`anyscribe update`): 0.13.1 had a bug where the icon never appeared at all. <!-- version-pin-ok -->
 
-### "A anyscribe tray is already running"
+### "An anyscribe tray is already running"
 
 A tray is already active — its pidfile (`~/.anyscribe/tray.pid`) still points at a live process. This is by design: `anyscribe tray` refuses to start a second instance instead of colliding.
 
@@ -274,7 +274,9 @@ A tray is already active — its pidfile (`~/.anyscribe/tray.pid`) still points 
 
 ### "port already in use" when starting the tray or `anyscribe ui`
 
-If a `anyscribe ui` server is already listening on that port, `anyscribe tray` **attaches** to it rather than erroring — that's expected behavior, not a bug. If a *different, unrelated* process holds the port, pick another one:
+**`anyscribe ui` self-heals — don't prescribe `--port` for it.** A busy port makes it scan the next 10, start on the first free one and print `Port 8457 busy — using 8458.`. It exits 1 only when all 11 are busy; that is the only case where `anyscribe ui --port <n>` is the fix.
+
+**`anyscribe tray` does not roll forward, by design.** If an `anyscribe ui` server is already listening on its port, the tray **attaches** to it rather than erroring — expected behavior, not a bug. A tray on a rolled-forward port would supervise a server nothing else could find, so if a *different, unrelated* process holds the port, give the tray another one explicitly:
 
 ```bash
 anyscribe tray --port 9000

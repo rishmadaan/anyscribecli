@@ -3,8 +3,8 @@
 Uses faster-whisper (CTranslate2-based Whisper) for offline transcription.
 No API key needed, no internet required. Runs on CPU or GPU.
 
-Set up via ``scribe local setup --model <size>`` (CLI), the "Set up local
-transcription" button in the Web UI, or the opt-in step in ``scribe onboard``.
+Set up via ``anyscribe local setup --model <size>`` (CLI), the "Set up local
+transcription" button in the Web UI, or the opt-in step in ``anyscribe onboard``.
 """
 
 from __future__ import annotations
@@ -47,7 +47,7 @@ class LocalProvider(TranscriptionProvider):
     """Transcribe locally using faster-whisper.
 
     No API key, no internet. Weights live in the HuggingFace cache
-    (``~/.cache/huggingface/hub/``) after ``scribe local setup``.
+    (``~/.cache/huggingface/hub/``) after ``anyscribe local setup``.
     """
 
     @property
@@ -61,7 +61,7 @@ class LocalProvider(TranscriptionProvider):
         except ImportError:
             raise RuntimeError(
                 "faster-whisper is not installed. Run "
-                "`scribe local setup --model base` to install it and pull a model."
+                "`anyscribe local setup --model base` to install it and pull a model."
             )
 
         model_size = _resolve_model_size()
@@ -82,7 +82,7 @@ class LocalProvider(TranscriptionProvider):
 
         # Load by HF repo id, not size alias — newer sizes (large-v3-turbo,
         # distil-large-v3.5) aren't in every faster-whisper alias table, and the
-        # repo id hits the exact cache entry `scribe model pull` downloaded.
+        # repo id hits the exact cache entry `anyscribe model pull` downloaded.
         from anyscribe.providers.local_models import MODEL_REPOS
 
         return WhisperModel(MODEL_REPOS[model_size], device=device, compute_type=compute_type)

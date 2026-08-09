@@ -9,7 +9,7 @@ from pathlib import Path
 
 from anyscribe.config.paths import TMP_DIR
 from anyscribe.config.settings import Settings
-from anyscribe.providers import PROVIDER_KEY_ENV
+from anyscribe.providers import PROVIDER_KEY_ENV, normalize_provider_name
 
 # Minimum free space required (500 MB)
 MIN_FREE_BYTES = 500 * 1024 * 1024
@@ -39,7 +39,7 @@ def preflight_check(settings: Settings, url: str) -> None:
             "ffmpeg not found. Install it:\n"
             "  macOS:  brew install ffmpeg\n"
             "  Linux:  sudo apt install ffmpeg\n"
-            "  Or run: scribe doctor"
+            "  Or run: anyscribe doctor"
         )
     if not shutil.which("ffprobe"):
         raise RuntimeError(
@@ -48,13 +48,19 @@ def preflight_check(settings: Settings, url: str) -> None:
             "  Linux:  sudo apt install ffmpeg"
         )
 
-    # 2. Check API key for configured provider
-    env_var = PROVIDER_KEY_ENV.get(settings.provider)
+    # 2. Check API key for configured provider.
+    # Canonicalize first: a hand-edited `provider: sarvam` would otherwise miss
+    # PROVIDER_KEY_ENV entirely, read as "needs no key", and let the run die on
+    # a 401 after the download and conversion had already happened. The fix hint
+    # must name the canonical spelling too — `config set` only accepts
+    # `sargam_api_key`.
+    provider = normalize_provider_name(settings.provider)
+    env_var = PROVIDER_KEY_ENV.get(provider)
     if env_var and not os.environ.get(env_var):
         raise RuntimeError(
-            f"{env_var} not set for provider '{settings.provider}'.\n"
-            f"  Fix: scribe config set {settings.provider}_api_key YOUR_KEY\n"
-            f"  Or:  scribe onboard --force"
+            f"{env_var} not set for provider '{provider}'.\n"
+            f"  Fix: anyscribe config set {provider}_api_key YOUR_KEY\n"
+            f"  Or:  anyscribe onboard --force"
         )
 
     # 3. Validate local file format before environment-dependent disk checks.

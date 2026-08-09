@@ -1,4 +1,4 @@
-"""Onboarding wizard — set up scribe for first use."""
+"""Onboarding wizard — set up anyscribe for first use."""
 
 from __future__ import annotations
 
@@ -279,7 +279,7 @@ def _offer_local_setup(settings: Settings, make_primary: bool) -> None:
         if make_primary:
             console.print(
                 "  [yellow]Primary provider was set to local but setup didn't "
-                "complete — run [bold]scribe local setup --model "
+                "complete — run [bold]anyscribe local setup --model "
                 f"{chosen}[/bold] to retry.[/yellow]"
             )
     else:
@@ -299,7 +299,7 @@ def _pick_model(provider: str, settings: Settings) -> None:
     console.print(
         Panel(
             f"Pick the default model for [bold]{provider}[/bold].\n"
-            "[dim]Change later with [bold]scribe config set provider_models."
+            "[dim]Change later with [bold]anyscribe config set provider_models."
             f"{provider} <model>[/bold][/dim]",
             title="Model",
             border_style="blue",
@@ -398,7 +398,7 @@ def onboard(
     model: Optional[str] = typer.Option(
         None,
         "--model",
-        help="Pin a model for the chosen provider (see `scribe providers list`).",
+        help="Pin a model for the chosen provider (see `anyscribe providers list`).",
     ),
     instagram_browser: Optional[str] = typer.Option(
         None,
@@ -414,7 +414,7 @@ def onboard(
         False, "--json", "-j", help="Emit result as a single JSON object on stdout."
     ),
 ) -> None:
-    """[bold green]Set up scribe[/bold green] — interactive wizard, or --yes for headless agents.
+    """[bold green]Set up anyscribe[/bold green] — interactive wizard, or --yes for headless agents.
 
     With no flags: runs the interactive TUI wizard.
     With ``--yes --provider X [...]``: headless mode for agents / CI / scripts.
@@ -462,8 +462,8 @@ def onboard(
     if CONFIG_FILE.exists() and not force:
         console.print(
             Panel(
-                f"scribe is already configured at [cyan]{APP_HOME}[/cyan]\n"
-                "Run [bold]scribe onboard --force[/bold] to re-run setup.",
+                f"anyscribe is already configured at [cyan]{APP_HOME}[/cyan]\n"
+                "Run [bold]anyscribe onboard --force[/bold] to re-run setup.",
                 title="Already Configured",
                 border_style="yellow",
             )
@@ -472,7 +472,7 @@ def onboard(
 
     console.print(
         Panel(
-            "Welcome to [bold]scribe[/bold]!\n\n"
+            "Welcome to [bold]anyscribe[/bold]!\n\n"
             "This wizard will check your system, set up configuration,\n"
             "and initialize your Obsidian workspace.\n\n"
             "[dim]Use arrow keys to navigate, Enter to select.[/dim]",
@@ -518,7 +518,7 @@ def onboard(
         console.print(
             Panel(
                 "Choose your default transcription provider.\n"
-                "You can change this later with [bold]scribe config set provider <name>[/bold]",
+                "You can change this later with [bold]anyscribe config set provider <name>[/bold]",
                 title="Provider",
                 border_style="blue",
             )
@@ -621,10 +621,10 @@ def onboard(
             Panel(
                 "Instagram downloads use yt-dlp.\n"
                 "Public reels often work without auth. For private reels or when\n"
-                "anonymous fetches are throttled, scribe can read cookies from\n"
+                "anonymous fetches are throttled, anyscribe can read cookies from\n"
                 "your browser — no password is ever stored.\n\n"
                 "[dim]Pick 'none' to skip; you can always set this later with\n"
-                "[/dim][cyan]scribe config set instagram.browser firefox[/cyan]",
+                "[/dim][cyan]anyscribe config set instagram.browser firefox[/cyan]",
                 title="Instagram (Optional)",
                 border_style="blue",
             )
@@ -699,7 +699,7 @@ def onboard(
             Panel(
                 "Keep downloaded audio files after transcription?\n"
                 "Files are saved to [cyan]~/.anyscribe/downloads/audio/[/cyan]\n\n"
-                "[dim]You can change this later with: scribe config set keep_media true[/dim]",
+                "[dim]You can change this later with: anyscribe config set keep_media true[/dim]",
                 title="Media Storage",
                 border_style="blue",
             )
@@ -718,7 +718,7 @@ def onboard(
         console.print(
             Panel(
                 "When transcribing local files (mp3, mp4, wav, etc.),\n"
-                "what should scribe do with the original file?\n\n"
+                "what should anyscribe do with the original file?\n\n"
                 "[bold]skip[/bold]  — leave the file where it is (default)\n"
                 "[bold]copy[/bold]  — copy to media dir for organization\n"
                 "[bold]move[/bold]  — move to media dir for organization\n"
@@ -762,7 +762,7 @@ def onboard(
     if change_download:
         console.print(
             Panel(
-                "After each transcription, scribe can ask if you want to\n"
+                "After each transcription, anyscribe can ask if you want to\n"
                 "download the full video or audio file.\n\n"
                 "[bold]never[/bold]  — don't ask (default)\n"
                 "[bold]ask[/bold]    — ask every time after transcription\n"
@@ -804,10 +804,10 @@ def onboard(
     if change_workspace:
         console.print(
             Panel(
-                "Where should scribe store your transcripts?\n"
+                "Where should anyscribe store your transcripts?\n"
                 f"Default: [cyan]{DEFAULT_WORKSPACE}[/cyan]\n\n"
                 "This is your Obsidian vault — open it in Obsidian to browse transcripts.\n"
-                "[dim]You can change this later with: scribe config set workspace_path /your/path[/dim]",
+                "[dim]You can change this later with: anyscribe config set workspace_path /your/path[/dim]",
                 title="Workspace Location",
                 border_style="blue",
             )
@@ -850,7 +850,7 @@ def onboard(
     if os.environ.get("INSTAGRAM_PASSWORD"):
         console.print(
             "\n  [yellow]Note:[/yellow] An [bold]INSTAGRAM_PASSWORD[/bold] entry was found in your .env file.\n"
-            "  scribe 0.8.3+ no longer uses it — Instagram downloads now go through yt-dlp\n"
+            "  anyscribe 0.8.3+ no longer uses it — Instagram downloads now go through yt-dlp\n"
             "  with browser cookies. You can safely remove that line from\n"
             f"  [dim]{ENV_FILE}[/dim] when convenient."
         )
@@ -886,9 +886,9 @@ def onboard(
             + (f"  Claude Code: {skill_status}\n" if skill_status else "")
             + "\n"
             "[bold]Next steps:[/bold]\n"
-            "  [bold cyan]scribe transcribe <url>[/bold cyan]  — transcribe a video\n"
-            "  [bold cyan]scribe providers list[/bold cyan]    — see available providers\n"
-            "  [bold cyan]scribe config show[/bold cyan]       — view your settings\n"
+            "  [bold cyan]anyscribe transcribe <url>[/bold cyan]  — transcribe a video\n"
+            "  [bold cyan]anyscribe providers list[/bold cyan]    — see available providers\n"
+            "  [bold cyan]anyscribe config show[/bold cyan]       — view your settings\n"
             f"  Open [cyan]{workspace}[/cyan] in Obsidian to browse transcripts",
             title="Ready",
             border_style="green",

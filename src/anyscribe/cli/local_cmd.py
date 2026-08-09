@@ -1,14 +1,14 @@
-"""``scribe local`` — provisioning lifecycle for offline transcription.
+"""``anyscribe local`` — provisioning lifecycle for offline transcription.
 
 Three commands, all agentic-first (flag-driven, ``--json``-capable, idempotent,
 no interactive prompts outside the setup confirmation which is guarded by
 ``--yes`` in non-TTY contexts):
 
-* ``scribe local setup --model SIZE`` — install faster-whisper + download model.
-* ``scribe local status`` — report readiness (safe before setup).
-* ``scribe local teardown`` — reverse setup: uninstall + delete cached models.
+* ``anyscribe local setup --model SIZE`` — install faster-whisper + download model.
+* ``anyscribe local status`` — report readiness (safe before setup).
+* ``anyscribe local teardown`` — reverse setup: uninstall + delete cached models.
 
-Interactive model picking happens in ``scribe onboard``. This command group
+Interactive model picking happens in ``anyscribe onboard``. This command group
 never picks a model for the user — ``--model`` is required.
 """
 

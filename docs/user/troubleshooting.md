@@ -433,7 +433,7 @@ waveform to the always-visible side.
 > Very old versions had a bug where the icon never appeared at all — fixed in
 > 0.13.2. Run `anyscribe update` if you're on anything older. <!-- version-pin-ok -->
 
-### `A anyscribe tray is already running.`
+### `An anyscribe tray is already running.`
 
 A tray is already active and its pidfile (`~/.anyscribe/tray.pid`) still points
 at a live process. This is intentional — anyscribe refuses to start a second tray
@@ -444,13 +444,28 @@ Quit, or Ctrl+C in its terminal) and relaunch.
 
 ### `port already in use`
 
-If a `anyscribe ui` server is already listening, `anyscribe tray` **attaches** to it
-instead of erroring — that's expected. If some unrelated process holds the port,
-pick another:
+**`anyscribe ui` handles this itself.** If the port is taken it looks at the next
+ten, starts on the first free one, and tells you which:
+
+```
+Port 8457 busy — using 8458.
+```
+
+Nothing to do. You only see an error if all eleven are busy, and only then do you
+need to name a port yourself:
+
+```bash
+anyscribe ui --port 9000
+```
+
+**`anyscribe tray` behaves differently, on purpose.** If an `anyscribe ui` server is
+already listening on its port, the tray **attaches** to that server instead of
+starting a second one — that's expected, not a bug. The tray doesn't roll forward
+to another port (it would then be pointing at a server nothing else knows about),
+so if an unrelated process holds the port, give the tray a different one:
 
 ```bash
 anyscribe tray --port 9000
-anyscribe ui --port 9000
 ```
 
 ### Removing the tray completely

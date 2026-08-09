@@ -1,4 +1,4 @@
-"""Install the scribe Claude Code skill to ~/.claude/skills/anyscribe/."""
+"""Install the anyscribe Claude Code skill to ~/.claude/skills/anyscribe/."""
 
 from importlib.resources import as_file
 from pathlib import Path
@@ -47,7 +47,7 @@ def copy_skill_files(quiet: bool = False) -> Path:
 def install_skill(
     force: bool = typer.Option(False, "--force", "-f", help="Overwrite existing skill files"),
 ) -> None:
-    """Install the scribe skill for Claude Code."""
+    """Install the anyscribe skill for Claude Code."""
     if not CLAUDE_HOME.exists():
         console.print("\n  [yellow]Claude Code not detected.[/yellow] ~/.claude/ does not exist.")
         console.print("  Install Claude Code first: https://docs.anthropic.com/en/docs/claude-code")

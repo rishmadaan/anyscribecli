@@ -22,6 +22,7 @@ from anyscribe.providers import (
     get_models,
     get_provider,
     list_providers,
+    normalize_provider_name,
 )
 
 console = Console()
@@ -332,7 +333,10 @@ def providers_test(
     """[bold]Test[/bold] a provider's API key and connectivity."""
     load_env()
     settings = load_config()
-    provider_name = name or settings.provider
+    # Canonicalize BEFORE anything else reads it: get_provider() normalizes
+    # internally, so a raw alias here would sail past the PROVIDER_KEY_ENV
+    # lookup below (None => key check skipped => keyless provider exits 0).
+    provider_name = normalize_provider_name(name or settings.provider)
 
     console.print(f"Testing provider: [bold]{provider_name}[/bold]")
 

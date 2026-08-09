@@ -19,10 +19,11 @@ from anyscribe.providers import (
     PROVIDER_KEY_ENV,
     PROVIDER_REGISTRY,
     get_models,
+    normalize_provider_name,
 )
 from anyscribe.providers.local_models import MODEL_SIZES
 
-# "openai_api_key" -> "OPENAI_API_KEY", for `scribe config set <x>_api_key`
+# "openai_api_key" -> "OPENAI_API_KEY", for `anyscribe config set <x>_api_key`
 API_KEY_MAP: dict[str, str] = {
     f"{name}_api_key": env for name, env in PROVIDER_KEY_ENV.items() if env
 }
@@ -106,6 +107,8 @@ def set_value(key: str, value) -> SetOutcome:
 def _set_enum(key: str, value, data: dict) -> str:
     choices = ENUMS[key]
     v = str(value).strip()
+    if key == "provider":
+        v = normalize_provider_name(v)
     if v not in choices:
         raise _Invalid(f"Invalid value for {key}: {v}", choices)
     data[key] = v
@@ -140,6 +143,7 @@ def _set_scalar(key: str, value, data: dict) -> str:
 
 def _set_models(field: str, sub: str, value, data: dict) -> str:
     """Write `provider_models` / `extra_models`, per-entry or whole-dict."""
+    sub = normalize_provider_name(sub)
     if isinstance(value, dict):
         entries, replace = value, True
     elif sub:
@@ -147,6 +151,7 @@ def _set_models(field: str, sub: str, value, data: dict) -> str:
     else:
         raise _Invalid(f"Use {field}.<provider> <value>")
 
+    entries = {normalize_provider_name(str(p)): v for p, v in entries.items()}
     cleaned: dict = {}
     for prov, v in entries.items():
         if field == "provider_models":
@@ -172,7 +177,7 @@ def _check_pin(provider: str, value, extra_models: dict) -> str:
     known = get_models(provider, extra_models)
     if not known:
         hint = (
-            " Local model choice uses `scribe local setup --model` / settings.local_model."
+            " Local model choice uses `anyscribe local setup --model` / settings.local_model."
             if provider == "local"
             else ""
         )

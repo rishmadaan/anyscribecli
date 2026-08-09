@@ -89,8 +89,8 @@ def classify_api_error(status_code: int, body: str, provider: str) -> ScribeAPIE
             f"{provider} API auth error ({status_code}): {short_body}",
             user_message=(
                 f"Invalid or missing API key for {provider}.\n"
-                f"  Fix: scribe config set {provider}_api_key YOUR_KEY{url_hint}\n"
-                f"  Or:  scribe onboard --force"
+                f"  Fix: anyscribe config set {provider}_api_key YOUR_KEY{url_hint}\n"
+                f"  Or:  anyscribe onboard --force"
             ),
             **kwargs,
         )
@@ -100,7 +100,7 @@ def classify_api_error(status_code: int, body: str, provider: str) -> ScribeAPIE
             f"{provider} rate limited (429): {short_body}",
             user_message=(
                 f"Rate limited by {provider}. Wait a moment and retry,\n"
-                f"or switch providers: scribe config set provider <other>"
+                f"or switch providers: anyscribe config set provider <other>"
             ),
             **kwargs,
         )

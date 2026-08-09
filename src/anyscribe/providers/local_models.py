@@ -247,7 +247,7 @@ def pull_model(
 
     if not faster_whisper_importable():
         raise RuntimeError(
-            "faster-whisper is not installed. Run `scribe local setup --model <size>` "
+            "faster-whisper is not installed. Run `anyscribe local setup --model <size>` "
             "to install it and pull a model."
         )
 

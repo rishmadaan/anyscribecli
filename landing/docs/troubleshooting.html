@@ -345,18 +345,27 @@ waveform to the always-visible side.</p>
 <p>Very old versions had a bug where the icon never appeared at all — fixed in
 0.13.2. Run <code>anyscribe update</code> if you're on anything older. <!-- version-pin-ok --></p>
 </blockquote>
-<h3 id="a-anyscribe-tray-is-already-running"><code>A anyscribe tray is already running.</code></h3>
+<h3 id="an-anyscribe-tray-is-already-running"><code>An anyscribe tray is already running.</code></h3>
 <p>A tray is already active and its pidfile (<code>~/.anyscribe/tray.pid</code>) still points
 at a live process. This is intentional — anyscribe refuses to start a second tray
 rather than collide with the first.</p>
 <p><strong>Fix:</strong> use the existing one (check your menu bar), or quit it first (menu →
 Quit, or Ctrl+C in its terminal) and relaunch.</p>
 <h3 id="port-already-in-use"><code>port already in use</code></h3>
-<p>If a <code>anyscribe ui</code> server is already listening, <code>anyscribe tray</code> <strong>attaches</strong> to it
-instead of erroring — that's expected. If some unrelated process holds the port,
-pick another:</p>
+<p><strong><code>anyscribe ui</code> handles this itself.</strong> If the port is taken it looks at the next
+ten, starts on the first free one, and tells you which:</p>
+<pre><code>Port 8457 busy — using 8458.
+</code></pre>
+<p>Nothing to do. You only see an error if all eleven are busy, and only then do you
+need to name a port yourself:</p>
+<pre><code class="language-bash">anyscribe ui --port 9000
+</code></pre>
+<p><strong><code>anyscribe tray</code> behaves differently, on purpose.</strong> If an <code>anyscribe ui</code> server is
+already listening on its port, the tray <strong>attaches</strong> to that server instead of
+starting a second one — that's expected, not a bug. The tray doesn't roll forward
+to another port (it would then be pointing at a server nothing else knows about),
+so if an unrelated process holds the port, give the tray a different one:</p>
 <pre><code class="language-bash">anyscribe tray --port 9000
-anyscribe ui --port 9000
 </code></pre>
 <h3 id="removing-the-tray-completely">Removing the tray completely</h3>
 <ol>

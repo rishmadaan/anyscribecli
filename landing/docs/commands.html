@@ -1267,6 +1267,9 @@ anyscribe model pull large-v3-turbo --json
 </tr>
 </tbody>
 </table>
+<blockquote>
+<p><strong>Already got one open?</strong> If the port is taken, anyscribe doesn't stop — it looks at the next ten ports, takes the first free one, and tells you: <code>Port 8457 busy — using 8458</code>. You only see an error if all eleven are busy, and then it asks you to pick a port yourself with <code>--port</code>.</p>
+</blockquote>
 <h3 id="examples_7">Examples</h3>
 <pre><code class="language-bash"># Launch web UI (opens browser automatically)
 anyscribe ui
@@ -1296,7 +1299,7 @@ anyscribe ui --no-open
 <li><strong>Check for updates…</strong> — opens the <a href="https://github.com/rishmadaan/anyscribe/releases">GitHub releases page</a></li>
 <li><strong>Quit</strong> — stops the server and exits the tray cleanly</li>
 </ul>
-<p>If a <code>anyscribe ui</code> server is already running on the port, <code>anyscribe tray</code> attaches to it instead of starting a second one. If a tray is already running, a second <code>anyscribe tray</code> refuses to start (no port collisions, no duplicate icons).</p>
+<p>If an <code>anyscribe ui</code> server is already running on the port, <code>anyscribe tray</code> attaches to it instead of starting a second one. If a tray is already running, a second <code>anyscribe tray</code> refuses to start (no port collisions, no duplicate icons).</p>
 <h3 id="flags_9">Flags</h3>
 <table>
 <thead>

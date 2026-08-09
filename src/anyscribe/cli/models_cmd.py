@@ -1,7 +1,7 @@
-"""``scribe model`` — day-to-day Whisper model cache management.
+"""``anyscribe model`` — day-to-day Whisper model cache management.
 
 These commands operate on the HuggingFace cache directly. They never install
-or uninstall faster-whisper — that's ``scribe local setup/teardown``'s job.
+or uninstall faster-whisper — that's ``anyscribe local setup/teardown``'s job.
 If local transcription isn't set up, pull/rm error cleanly and point at the
 right command; list still works (showing everything as not-cached).
 
@@ -72,7 +72,7 @@ def model_list(
         ]
         _write_json(payload)
         if not faster_whisper_importable():
-            err_console.print("hint: faster-whisper not installed — run `scribe local setup`")
+            err_console.print("hint: faster-whisper not installed — run `anyscribe local setup`")
         return
 
     table = Table(title="Whisper models")
@@ -97,7 +97,7 @@ def model_list(
     if not faster_whisper_importable():
         console.print(
             "\n[yellow]Local transcription is not set up.[/yellow] "
-            "Run [bold]scribe local setup --model base[/bold] to install."
+            "Run [bold]anyscribe local setup --model base[/bold] to install."
         )
 
 
@@ -120,14 +120,14 @@ def model_pull(
     if not faster_whisper_importable():
         err = {
             "error": "local transcription not set up",
-            "hint": f"run `scribe local setup --model {size}`",
+            "hint": f"run `anyscribe local setup --model {size}`",
         }
         if output_json:
             _write_json_err(err)
         else:
             err_console.print(
                 "[red]faster-whisper not installed.[/red] "
-                f"Run [bold]scribe local setup --model {size}[/bold] first."
+                f"Run [bold]anyscribe local setup --model {size}[/bold] first."
             )
         raise typer.Exit(code=2)
 
@@ -216,7 +216,7 @@ def model_reinstall(
     """[bold]Reinstall[/bold] a Whisper model — delete + re-download in one step.
 
     Useful if cached weights look corrupted. If the model wasn't cached, this
-    is equivalent to ``scribe model pull`` (no delete needed).
+    is equivalent to ``anyscribe model pull`` (no delete needed).
     """
     if size not in MODEL_SIZES:
         err = {"error": f"unknown size '{size}'", "choices": list(MODEL_SIZES)}
@@ -231,14 +231,14 @@ def model_reinstall(
     if not faster_whisper_importable():
         err = {
             "error": "local transcription not set up",
-            "hint": f"run `scribe local setup --model {size}`",
+            "hint": f"run `anyscribe local setup --model {size}`",
         }
         if output_json:
             _write_json_err(err)
         else:
             err_console.print(
                 "[red]faster-whisper not installed.[/red] "
-                f"Run [bold]scribe local setup --model {size}[/bold] first."
+                f"Run [bold]anyscribe local setup --model {size}[/bold] first."
             )
         raise typer.Exit(code=2)
 

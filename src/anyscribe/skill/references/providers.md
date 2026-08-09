@@ -160,6 +160,7 @@ Specialized for Indian languages. Dramatically better than Whisper for Hindi, Ta
 - **Chunking:** sync API limited to 30 seconds — anyscribe auto-chunks into 30-sec segments (unchanged on v3)
 - **Behavior:** translates to English (this is `mode=translate`, not a verbatim transcript)
 - **Get key:** https://dashboard.sarvam.ai
+- **Spelling:** the canonical provider name is `sargam`. `sarvam` (the vendor's real spelling) is accepted wherever a *provider* is named — `--provider`, `config set provider`, `providers test`, `onboard --provider`, the web routes — and canonicalized to `sargam`. Don't correct a user who types it, and don't expect it back in `config` output. **Exception: the key name is not aliased.** `config set sarvam_api_key` exits 1 with *Unknown key*; use `sargam_api_key` / `SARGAM_API_KEY`.
 
 **When to recommend:** Any content in Indian languages. Handles code-mixed audio (e.g., Hindi-English) well. Not suited for non-Indian languages. Leave the model on `saaras:v3`.
 

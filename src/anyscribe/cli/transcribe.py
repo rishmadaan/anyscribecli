@@ -34,7 +34,7 @@ def transcribe(
         None, "--provider", "-p", help="Override transcription provider."
     ),
     model: Optional[str] = typer.Option(
-        None, "--model", "-m", help="Override the provider's model (see `scribe providers`)."
+        None, "--model", "-m", help="Override the provider's model (see `anyscribe providers`)."
     ),
     quality: Optional[str] = typer.Option(
         None, "--quality", help="Quality preset: accuracy | balanced | cost | free."
@@ -64,7 +64,7 @@ def transcribe(
     [dim]Supported file formats: mp3, mp4, m4a, wav, opus, ogg, flac, webm, aac, wma[/dim]
 
     [dim]Tip: If the URL contains special characters (like ?), either
-    wrap it in quotes or just run `scribe` without a URL
+    wrap it in quotes or just run `anyscribe` without a URL
     and you'll be prompted to paste it.[/dim]
     """
     from anyscribe.core.orchestrator import process
@@ -218,8 +218,8 @@ def _validate_input(url: str) -> str:
             "[red]Error:[/red] This URL looks incomplete — the `?v=...` part is missing.\n\n"
             "  This usually happens because your shell (zsh) interprets `?` as a\n"
             "  special character. Wrap the URL in quotes:\n\n"
-            '  [bold cyan]scribe "https://www.youtube.com/watch?v=VIDEO_ID"[/bold cyan]\n\n'
-            "  Or run [bold]scribe[/bold] without a URL to paste it interactively."
+            '  [bold cyan]anyscribe "https://www.youtube.com/watch?v=VIDEO_ID"[/bold cyan]\n\n'
+            "  Or run [bold]anyscribe[/bold] without a URL to paste it interactively."
         )
         raise typer.Exit(code=2)
 
@@ -228,8 +228,8 @@ def _validate_input(url: str) -> str:
         err_console.print(
             f"[red]Error:[/red] '{url}' doesn't look like a URL or file path.\n\n"
             "  Expected a URL or a local audio/video file:\n"
-            '  [bold cyan]scribe "https://www.youtube.com/watch?v=VIDEO_ID"[/bold cyan]\n'
-            "  [bold cyan]scribe /path/to/audio.mp3[/bold cyan]\n\n"
+            '  [bold cyan]anyscribe "https://www.youtube.com/watch?v=VIDEO_ID"[/bold cyan]\n'
+            "  [bold cyan]anyscribe /path/to/audio.mp3[/bold cyan]\n\n"
             "  Supported formats: mp3, mp4, m4a, wav, opus, ogg, flac, webm, aac, wma"
         )
         raise typer.Exit(code=2)

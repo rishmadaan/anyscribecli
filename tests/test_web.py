@@ -68,6 +68,26 @@ class TestConfig:
         assert r.json()["provider"] == "groq"
         assert r.json()["quality"] == "custom"
 
+    def test_put_config_canonicalizes_the_sarvam_spelling(self, client, tmp_path, monkeypatch):
+        monkeypatch.setattr("anyscribe.config.settings.CONFIG_FILE", tmp_path / "config.yaml")
+        r = client.put("/api/config", json={"provider": "sarvam"})
+        assert r.status_code == 200
+        assert r.json()["provider"] == "sargam"
+
+    def test_provider_test_route_accepts_the_sarvam_spelling(self, client, monkeypatch):
+        monkeypatch.delenv("SARGAM_API_KEY", raising=False)
+        # Reaching the "key not set" answer proves the name resolved; an
+        # unresolved name would have answered "Unknown provider" instead.
+        data = client.post("/api/providers/sarvam/test").json()
+        assert data["message"] == "API key not set (SARGAM_API_KEY)"
+
+    def test_provider_languages_route_accepts_the_sarvam_spelling(self, client):
+        # Its sibling /test route normalizes; an empty list here would render
+        # the wizard's language dropdown blank for the aliased name.
+        alias = client.get("/api/providers/sarvam/languages").json()
+        assert alias == client.get("/api/providers/sargam/languages").json()
+        assert alias["languages"], alias
+
     def test_get_providers(self, client):
         r = client.get("/api/providers")
         assert r.status_code == 200

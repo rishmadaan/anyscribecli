@@ -1,4 +1,4 @@
-"""FastAPI application factory for the scribe web UI."""
+"""FastAPI application factory for the anyscribe web UI."""
 
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ STATIC_DIR = Path(__file__).parent / "static"
 def create_app() -> FastAPI:
     """Build and return the FastAPI application."""
     app = FastAPI(
-        title="scribe",
+        title="anyscribe",
         version=__version__,
         docs_url=None,
         redoc_url=None,
