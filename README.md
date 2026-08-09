@@ -84,6 +84,7 @@ anyscribe /path/to/podcast.mp3
 | [Providers](https://github.com/rishmadaan/anyscribe/blob/main/docs/user/providers.md) | The seven providers compared — accuracy, cost, languages |
 | [Configuration](https://github.com/rishmadaan/anyscribe/blob/main/docs/user/configuration.md) | Every setting, where it lives, what it changes |
 | [Troubleshooting](https://github.com/rishmadaan/anyscribe/blob/main/docs/user/troubleshooting.md) | Common errors and plain-English fixes |
+| [Changelog](https://github.com/rishmadaan/anyscribe/blob/main/CHANGELOG.md) | What changed in each release, and whether you need to do anything |
 
 For contributors: [CLAUDE.md](https://github.com/rishmadaan/anyscribe/blob/main/CLAUDE.md), [AGENTS.md](https://github.com/rishmadaan/anyscribe/blob/main/AGENTS.md), and [docs/building/](https://github.com/rishmadaan/anyscribe/tree/main/docs/building/).
 

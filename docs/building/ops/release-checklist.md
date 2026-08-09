@@ -42,6 +42,10 @@ Run through `docs/building/COMMIT_CHECKLIST.md`:
 - [ ] `docs/user/providers.md` reflects current providers
 - [ ] `docs/building/` has a journal entry for significant changes
 - [ ] `BACKLOG.md` is updated (move completed items, add new ones)
+- [ ] `CHANGELOG.md` has an entry for the version you're about to tag —
+      user-facing "what changed for you", not implementation detail. Write it
+      **before** running the release script: `scripts/check-docs.py` fails the
+      build when the shipped version has no entry.
 
 ### 3. Decide the Version Number
 

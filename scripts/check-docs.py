@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Docs honesty gates: version drift + MCP table drift. Exit non-zero on either."""
+"""Docs honesty gates: version drift + MCP table drift + changelog gap.
+
+Exit non-zero on any of them.
+"""
 
 from __future__ import annotations
 
@@ -57,8 +60,22 @@ def check_mcp_table() -> list[str]:
     return [f"agents.md missing MCP tool: `{t}`" for t in sorted(missing)]
 
 
+def check_changelog() -> list[str]:
+    """The version being shipped must have its own CHANGELOG.md entry.
+
+    A changelog nobody notices has gone stale is worse than no changelog — it
+    reads as "nothing changed". This turns the omission into a red build at the
+    moment the version bump lands, which is the only moment anyone is looking.
+    """
+    version = real_version()
+    text = (ROOT / "CHANGELOG.md").read_text()
+    if re.search(rf"^## {re.escape(version)}(\s|$)", text, re.M):
+        return []
+    return [f"CHANGELOG.md: no '## {version}' entry for the version being released"]
+
+
 def main() -> int:
-    problems = check_versions() + check_mcp_table()
+    problems = check_versions() + check_mcp_table() + check_changelog()
     for p in problems:
         print(p, file=sys.stderr)
     return 1 if problems else 0

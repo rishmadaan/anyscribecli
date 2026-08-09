@@ -67,6 +67,9 @@ User-facing = new command, new flag, changed output, changed config option, new 
 - [ ] All docs referencing version number updated (search for old version)
 - [ ] `landing/index.html` — version badge strings (2 places, grep the old version)
 - [ ] `BACKLOG.md` — version section marked complete, new section added
+- [ ] `CHANGELOG.md` — user-facing entry for the new version. **CI enforces
+      this** (`scripts/check-docs.py`), so a missing entry is a red build, not a
+      thing you discover months later
 - [ ] Git tag created: `git tag vX.Y.Z`
 
 ## After adding a new provider

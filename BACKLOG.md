@@ -64,7 +64,8 @@ The `0.x` prefix means pre-stable — breaking changes are allowed between minor
 | 0.14.1 | Audit fixes (independent post-release audit): gpt-transcribe `languages` object parse (wrote a dict into frontmatter), `provider_models:` null-YAML crash, `-m` on local now rejected loudly, OpenAI diarize per spec (`diarized_json` + `chunking_strategy`), canonical turbo repo id (orphans turbo caches pulled during the brief 0.14.0 window — re-download), Sarvam `with_diarization` dropped (Batch-only upstream), diarized transcripts echo the requested language, doc contradiction fixes | Released 2026-07-29 |
 | 0.15.0 | **Config defaults, one knob.** `quality` gains `custom` and any provider write sets it (CLI/Web/MCP/onboard), so a chosen provider sticks. New `core/resolve.py::resolve_run` owns the single provider+model ladder for all four surfaces and returns visible notes — keyless tier now warns instead of falling back silently, and every run prints `→ provider · model (via)`. Bare `scribe config` is a defaults dashboard (`--json` = settings + `resolved` + `providers`, the one agent-discovery call). `core/config_set.py::set_value` becomes the single write path for every key incl. API keys. OpenAI default → `gpt-transcribe` with automatic `whisper-1` switch for timestamped/diarized output (explicit `-m` opts out). Catalogs: Deepgram +`nova-2`, ElevenLabs `scribe_v2` only, Sarvam `saaras:v3` only (v2.5 + legacy endpoint deleted, old pins auto-migrated). New `extra_models.openrouter` for user-added slugs (openrouter only — closed catalogs stay release-managed). `OPENROUTER_MODEL` env var removed. Onboarding gains a model step + `--quality`/`--model` headless flags | Released 2026-07-29 |
 | 0.15.1 | Full Web-UI config parity: Settings leads with a "Next run" banner (`_resolved` on GET/PUT `/api/config`, error-guarded), provider+model controls un-hidden (were gated behind picking "custom"), new Downloads & media section (`prompt_download`, `local_file_media`, `keep_media`, real `instagram.browser` select via a new `instagram` field on ConfigUpdateRequest), `resolve_run` warns on unknown quality values. Rule set in docs: nothing is terminal-only | Released 2026-07-29 |
-| 0.16.3 | **MCP SDK v2 / protocol `2026-07-28`** — `FastMCP` → `MCPServer`, server identity now `anyscribe` + version string (resource URIs deliberately unchanged). Fixes a live install break: the unbounded `mcp>=1.0` resolved onto the v2 major released 2026-07-28, which deleted `mcp.server.fastmcp`, so every fresh `pip install "anyscribe[mcp]"` failed on import. Now pinned `mcp>=2,<3`. Root cause of the blind spot: CI installed `.[dev]` and never `.[mcp]`, so the MCP test importorskipped away on every run — CI now installs `.[dev,mcp]` and asserts the registered tool/resource surface | **Current** |
+| 0.16.3 | **MCP SDK v2 / protocol `2026-07-28`** — `FastMCP` → `MCPServer`, server identity now `anyscribe` + version string (resource URIs deliberately unchanged). Fixes a live install break: the unbounded `mcp>=1.0` resolved onto the v2 major released 2026-07-28, which deleted `mcp.server.fastmcp`, so every fresh `pip install "anyscribe[mcp]"` failed on import. Now pinned `mcp>=2,<3`. Root cause of the blind spot: CI installed `.[dev]` and never `.[mcp]`, so the MCP test importorskipped away on every run — CI now installs `.[dev,mcp]` and asserts the registered tool/resource surface | Released 2026-08-09 |
+| 0.16.4 | **`CHANGELOG.md` + dependency-drift fix** — a user-facing changelog covering every release (`BACKLOG.md` keeps the implementation detail and roadmap), with a new `check-docs.py` gate that fails CI when the shipped version has no entry, so it can't silently rot. Drops the dead `typer[all]` extra (typer stopped declaring it; plain `typer` has bundled rich + shellingham since 0.12) and bounds it `>=0.12,<1` — same latent-drift shape as the 0.16.3 `mcp` break, caught in that release's clean-install check | **Current** |
 | 0.16.2 | **Voice sweep + polish** — all 104 user-visible runtime strings speak `anyscribe` (matching the docs), `sarvam` accepted as a spelling for the `sargam` provider everywhere a provider name enters (nine call sites, false-green key checks closed), `anyscribe ui` auto-retries up to 10 busy ports (65535-clamped, parser-validated `--port`), grammar fixes, README/landing screenshot downscaled 46% | Released 2026-08-09 |
 | 0.16.1 | **User-facing docs rebuild** — three-door docs site (`agents.md` skill-vs-MCP guide, installer-first getting-started with keep-it-running chapter, commands + troubleshooting split, provider cost table), commit-time docs pipeline with CI honesty gates, install.sh Apple-Silicon fixes + `[tray]` default, keys/status counts local, Groq wizard card, macOS open-at-login toggle | Released 2026-08-09 |
 | 0.16.0 | **Rename `anyscribecli` → `anyscribe`** — new PyPI package, `anyscribe` primary command (`scribe`/`ascli` kept as permanent aliases), `~/.anyscribecli/` → `~/.anyscribe/` config dir with automatic + one-shot `anyscribe migrate`. Old `anyscribecli` PyPI project ships a final shim release that re-declares `scribe`/`ascli`/`scribe-mcp` so upgrades don't lose the console scripts | Released 2026-07-31 |
@@ -531,6 +532,42 @@ wheel on disk.
   `call_tool` round-trip.
 
 Journal: `docs/building/journal/2026-08-09-mcp-sdk-v2-migration.md`.
+
+---
+
+## v0.16.4 — CHANGELOG.md + dependency-drift fix
+
+**Status:** released 2026-08-09.
+
+**`CHANGELOG.md`** now exists at the repo root, covering every release back to
+0.1.0. The split with this file: `CHANGELOG.md` is user-facing — what changed
+for you and whether you need to act. `BACKLOG.md` keeps the same releases with
+implementation detail, plus the roadmap, parked items and icebox. Same
+two-audience split the repo already runs for `docs/user/` vs `docs/building/`.
+
+It is **generated by hand, gated by machine.** A generator over this file's
+version table was considered and rejected: it produces mangled prose from cells
+written for developers, and creates a second silent source of truth. Instead
+`scripts/check-docs.py` gained `check_changelog()` — the version in
+`pyproject.toml` must have a `## <version>` heading in `CHANGELOG.md` or CI
+fails. The gate was watched failing against a version with no entry before being
+trusted. Cost: ten lines, no generator to maintain, and the failure lands at the
+moment of the version bump, which is the only moment anyone is looking.
+
+Wired into `COMMIT_CHECKLIST.md`, `ops/release-checklist.md`, and the Version
+Tag Checklist in `CLAUDE.md`, so the CI failure is a known step rather than a
+surprise.
+
+**Dependency drift:** `typer[all]>=0.9` → `typer>=0.12,<1`. typer no longer
+declares an `all` extra, so every install printed
+`WARNING: typer 0.27.1 does not provide the extra 'all'`. Nothing was lost —
+verified that plain `typer` has bundled `rich` and `shellingham` since 0.12,
+which is why that is the floor. The `<1` ceiling applies the lesson from
+0.16.3: an unbounded range on a dependency is a scheduled outage on the
+maintainer's release day. Found by the clean-install verification at the end of
+the 0.16.3 release — the check earned its keep immediately.
+
+Journal: `docs/building/journal/2026-08-09-changelog-and-typer-drift.md`.
 
 ---
 

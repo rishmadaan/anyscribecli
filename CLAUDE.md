@@ -176,10 +176,14 @@ Version lives in TWO places that must match: `src/anyscribe/__init__.py` and `py
 1. `src/anyscribe/__init__.py` — `__version__` matches the tag
 2. `pyproject.toml` — `version` field matches the tag
 3. `BACKLOG.md` — version table updated, release section added/updated
-4. `docs/building/_index.md` — new row if there's a building journal entry
-5. `docs/building/journal/` — new entry for significant changes
-6. All docs with hardcoded version strings (grep for the old version)
-7. Skill files if behavior changed
+4. `CHANGELOG.md` — user-facing entry for the new version (**CI-enforced** by
+   `scripts/check-docs.py`; write it before running `release.sh`). `CHANGELOG.md`
+   is "what changed for you"; `BACKLOG.md` is the same releases with
+   implementation detail plus the roadmap. Don't paste one into the other.
+5. `docs/building/_index.md` — new row if there's a building journal entry
+6. `docs/building/journal/` — new entry for significant changes
+7. All docs with hardcoded version strings (grep for the old version)
+8. Skill files if behavior changed
 
 **Do not create a tag without updating these files.** Stale version metadata is a bug.
 
