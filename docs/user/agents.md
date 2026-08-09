@@ -47,6 +47,18 @@ pip install "anyscribe[mcp]"
 
 The server command, `anyscribe-mcp`, ships with the base package — it's already on your PATH. What the `[mcp]` extra adds is the MCP library the server needs in order to run, kept out of the base install so a plain `pip install anyscribe` stays light. Without the extra, the command exists but stops on a missing import; with it, `anyscribe-mcp` is the server your agent talks to.
 
+> **Seeing `No module named 'mcp.server.fastmcp'`?** You're on an anyscribe
+> release older than 0.16.3 with the newest MCP library. The MCP project shipped
+> a version 2 that renamed the piece anyscribe was importing, and older anyscribe
+> releases didn't ask for a specific version — so a fresh install picked up the
+> new one and the two no longer fit. Upgrading fixes it:
+>
+> ```bash
+> pip install -U "anyscribe[mcp]"
+> ```
+>
+> 0.16.3 and later pin the range explicitly, so this can't recur.
+
 **Claude Code:**
 
 ```bash

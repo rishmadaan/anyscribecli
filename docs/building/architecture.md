@@ -67,13 +67,20 @@ the Obsidian vault at `~/anyscribe/` stays pure markdown.
 - On Windows, app callback checks if `anyscribe` is on PATH; if not, prints the exact PowerShell command to fix it (one-time, uses `.path_warned` marker)
 
 ### MCP Layer (`mcp/`)
-- FastMCP server with `scribe-mcp` entry point (stdio transport)
+- `MCPServer` (MCP Python SDK v2, protocol revision `2026-07-28`) with the
+  `anyscribe-mcp` entry point, stdio transport (`scribe-mcp` is a permanent alias)
 - 10 tools: transcribe, batch_transcribe, download, list_transcripts, delete_transcript, get_config, set_config, list_providers, test_provider, doctor
   - `transcribe` / `batch_transcribe` accept `quality` (accuracy|balanced|cost|free) and `force`; `force` bypasses the dedup check
-- 3 resources: scribe://config, scribe://providers, scribe://workspace
+- 3 resources: scribe://config, scribe://providers, scribe://workspace — these are
+  addresses, not display names, so the anyscribe rename deliberately left them alone
 - Calls core modules directly (orchestrator, settings, providers) — not CLI commands
 - All tools return JSON, consistent error format
-- Optional dependency: `pip install anyscribe[mcp]` (adds `mcp>=1.0`)
+- Optional dependency: `pip install anyscribe[mcp]` (adds `mcp>=2,<3`). **The upper
+  bound is load-bearing.** SDK v2 deleted `mcp.server.fastmcp` outright; the previous
+  unbounded `mcp>=1.0` resolved straight onto it and broke every fresh install of the
+  extra. Any future major bump gets migrated deliberately, never resolved into.
+- CI installs `.[dev,mcp]`, not `.[dev]` — without the extra, `tests/test_mcp_providers.py`
+  hits its `importorskip` and this whole layer goes untested
 
 ### Web UI Layer (`web/` + `ui/`)
 - FastAPI backend serving a built React SPA at `127.0.0.1:8457`

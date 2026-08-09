@@ -61,7 +61,11 @@ local = [
     "faster-whisper>=1.0",
 ]
 mcp = [
-    "mcp>=1.0",
+    # >=2: SDK v2 speaks protocol 2026-07-28 and renamed FastMCP -> MCPServer.
+    # <3: the previous unbounded "mcp>=1.0" silently resolved to the v2 major on
+    # release day, which deleted mcp.server.fastmcp and broke every fresh
+    # install of the extra. Raise the ceiling deliberately, migrating the server.
+    "mcp>=2,<3",
 ]
 tray = [
     "pystray>=0.19",

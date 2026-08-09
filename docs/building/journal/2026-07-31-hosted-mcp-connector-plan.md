@@ -24,6 +24,13 @@ All load-bearing claims below come from three verified research reports
 (2026-07-31): YouTube access state-of-the-art, claude.ai connector
 requirements, and hosting. Key sources inline.
 
+> **§3's MCP-layer stack decision is superseded — see [§7 Update (2026-08-09)](#7-update--2026-08-09-the-2026-07-28-spec-shipped).**
+> The 2026-07-28 spec and official SDK v2 both went stable on 2026-07-28, after
+> this plan was written. Everything else below (YouTube lanes, auth
+> requirements, database, hosting, costs, phases) stands unchanged. Sections 1–6
+> are preserved as written on 2026-07-31 rather than edited, per the
+> append-only rule for journal entries.
+
 ---
 
 ## 1. Product shape
@@ -278,3 +285,108 @@ Horizon/managed MCP hosting.
 | ToS exposure | No enforcement history vs transcription products; team-only, no API resale, no music focus, caption-first; Gemini lane is the cleanest posture. Revisit before any public launch |
 | claude.ai ships 2026-07-28 spec / Tasks | Stateless + Tasks-shaped job states make both migrations cheap by design |
 | Residential proxy supply chain (NetNut/FBI seizure 2026-07) | Only affects Lane C; diligence provider provenance, keep a second warm |
+
+---
+
+## 7. Update — 2026-08-09: the 2026-07-28 spec shipped
+
+Written 2026-07-31; nine days later the ground under §3 moved. This section
+records what is now verified fact and what it changes. Sections 1–6 stay as
+written.
+
+### What actually happened
+
+MCP specification revision **`2026-07-28` is now the current spec**, published
+2026-07-28. The official Python SDK shipped **`2.0.0` the same day**. anyscribe's
+own local stdio server migrated to it in v0.16.3 — see
+[[2026-08-09-mcp-sdk-v2-migration.md]] — so we are already running the new
+protocol in production on the local product.
+
+The headline change is the one this plan was betting on: **the protocol core is
+now stateless**. The `initialize`/`initialized` handshake and the
+`Mcp-Session-Id` header are retired. Every request is self-describing, carrying
+protocol version and client identity in `_meta`.
+
+### What it changes for the hosted connector
+
+**Session affinity is gone as a design constraint.** §3 chose
+`stateless_http=True` on a single instance to dodge it, and called the future
+migration "free". That bet paid: any request can now land on any instance behind
+plain round-robin, no shared session store. The single Hetzner box stays the
+right *starting* size for cost reasons, but it is no longer a correctness
+requirement — horizontal scale is now a pure capacity decision.
+
+**`input_required` is a protocol result type, not just our job state.** Multi
+Round-Trip Requests (MRTR) replace server-initiated requests over held-open
+streams: a tool returns `resultType: "input_required"`, the client retries with
+`inputResponses`. §3 modelled job states on the MCP Tasks five-state machine
+including `input_required` — that shape is now vindicated and partly native. The
+300s claude.ai per-call ceiling still stands, so async jobs from day one remains
+correct.
+
+**Two new obligations at the HTTP layer**, both of which touch the Caddy config
+in §3's hosting section:
+
+- Requests must carry `Mcp-Method` and `Mcp-Name` headers, so gateways can route
+  and meter without parsing the JSON body. Useful to us directly: per-tool
+  metering can happen at the proxy, feeding `usage_events` without app code.
+- List responses (`tools/list` et al.) carry `ttlMs` and `cacheScope`, letting
+  clients cache the tool catalog and hold stable upstream prompt caches across
+  reconnects.
+
+**Auth requirements tightened**, and §3's checklist needs three additions: RFC
+9207 issuer validation (prevents authorization-server mix-up), `application_type`
+support (fixes localhost redirect rejection for CLI/desktop clients), and
+credentials bound to their issuing server. Note the emphasis flip: **DCR is now
+formally deprecated in favour of CIMD**. §3 said "enable CIMD *and* keep DCR" —
+still right operationally, but CIMD is now the primary path and DCR the legacy
+fallback, not co-equals.
+
+**Legacy HTTP+SSE is officially deprecated** with a year-long offramp. §3 already
+specified Streamable HTTP, so nothing to change — just don't let anything
+reintroduce SSE.
+
+### The stack decision in §3 is now wrong — and this is the important part
+
+§3 pinned **FastMCP 3.4.x**, reasoning it was "the only path with a real auth
+layer" and explicitly rejecting "official SDK 2.0". Both halves of that
+reasoning have expired. Verified by installing them, not by reading changelogs:
+
+| | Speaks `2026-07-28`? | Stability | Auth |
+|---|---|---|---|
+| **Official SDK `2.0.0`** | **Yes** (`LATEST_PROTOCOL_VERSION == 2026-07-28`) | Stable, 2026-07-28 | Ships `mcp.server.auth` — `provider`, `routes`, `middleware`, `handlers`, `settings`. A real OAuth resource-server layer, but a generic provider interface, not a prebuilt WorkOS integration |
+| **FastMCP `3.4.6`** (current stable, 2026-08-05) | **No** — installs official `mcp 1.29.0`, protocol `2025-11-25` | Stable | `AuthKitProvider` / `OAuthProxy` — prebuilt WorkOS, still its main advantage |
+| **FastMCP `4.0.0b2`** (2026-08-07) | Announced (stateless interactivity, enterprise auth, background tasks) | **Beta** — b1 landed on spec-release day, b2 two days ago | Announced "enterprise auth" |
+
+So: **picking FastMCP 3.4.x today would ship the hosted connector on the
+previous protocol revision** — precisely the position v0.16.3 just dug the local
+server out of. That is a materially different tradeoff than the one §3 weighed.
+
+A third argument appeared that did not exist on 2026-07-31: the local stdio
+server is now on official SDK 2.0. Choosing (a) means **one SDK across both
+deployment surfaces**, and the tool vocabulary ports decorator-for-decorator
+because v2 kept `@tool()` / `@resource()` signatures intact.
+
+**Not deciding this now** — it wants its own spike, and nothing is blocked on it
+until Phase 1 step 3. The decision test is narrow and cheap:
+
+> Wire WorkOS AuthKit against official SDK 2.0's `mcp.server.auth` provider
+> interface and time it. If it is under roughly a day, take the official SDK for
+> protocol currency plus a single shared SDK. If AuthKit integration proves
+> genuinely painful, re-evaluate FastMCP 4.0 once it reaches stable — but do not
+> ship the connector on FastMCP 3.4.x and its `2025-11-25` protocol.
+
+### Deferral list, revised
+
+§5 deferred "MCP Tasks + spec 2026-07-28 migration (watch claude.ai support
+announcements)". Split that: the **spec migration is no longer a deferral**, it
+is the baseline any new hosted work should be built on. **MCP Tasks stays
+deferred**, still gated on claude.ai support. Likewise §3's watch item on
+"Skills over MCP" — the extension exists in the shipped spec; the open question
+is purely claude.ai support, not whether it is specified.
+
+### Carried forward unchanged
+
+The YouTube three-lane verdict (§2), the Phase 0 spikes, WorkOS/Neon/Hetzner
+choices, the cost model, and the SPA catch-all landmine in `web/app.py` are all
+untouched by this and remain the plan of record.

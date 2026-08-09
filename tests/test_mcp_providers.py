@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 
 import pytest
@@ -10,6 +11,38 @@ pytest.importorskip("mcp", reason="mcp extra not installed (pip install 'anyscri
 
 from anyscribe.config.settings import Settings
 from anyscribe.mcp import server
+
+EXPECTED_TOOLS = {
+    "batch_transcribe",
+    "delete_transcript",
+    "doctor",
+    "download",
+    "get_config",
+    "list_providers",
+    "list_transcripts",
+    "set_config",
+    "test_provider",
+    "transcribe",
+}
+
+
+def test_server_registers_every_tool_and_resource():
+    """The SDK surface, not just the import, has to survive an upgrade.
+
+    Importing this module already fails loudly if the SDK moves a class
+    (v2 deleted `mcp.server.fastmcp` wholesale). This asserts the layer
+    above that: decorators that still import but quietly stop registering
+    would otherwise ship an MCP server advertising nothing.
+    """
+    tools = asyncio.run(server.mcp.list_tools())
+    resources = asyncio.run(server.mcp.list_resources())
+
+    assert {t.name for t in tools} == EXPECTED_TOOLS
+    assert {str(r.uri) for r in resources} == {
+        "scribe://config",
+        "scribe://providers",
+        "scribe://workspace",
+    }
 
 
 def test_list_providers_merges_user_added_models(monkeypatch):

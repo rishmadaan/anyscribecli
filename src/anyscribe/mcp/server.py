@@ -5,6 +5,12 @@ as MCP tools for Claude Desktop, Cursor, Windsurf, and other AI clients.
 
 Entry point: `anyscribe-mcp` (registered in pyproject.toml; `scribe-mcp` is a
 permanent alias).
+
+Built on MCP Python SDK v2 (`MCPServer`, protocol revision 2026-07-28). SDK v2
+deleted `mcp.server.fastmcp` outright, so the `mcp` extra carries a `<3` upper
+bound — see the comment in pyproject.toml. The `scribe://` resource URIs are
+addresses, not display names: they stay as-is so nothing that resolved them
+breaks. Only the server's display name follows the anyscribe rename.
 """
 
 from __future__ import annotations
@@ -16,13 +22,16 @@ import tempfile
 from pathlib import Path
 from typing import Optional
 
-from mcp.server.fastmcp import FastMCP
+from mcp.server.mcpserver import MCPServer
 
 from anyscribe import __version__
 from anyscribe.providers import PROVIDER_KEY_ENV
 
-mcp = FastMCP(
-    "scribe",
+mcp = MCPServer(
+    "anyscribe",
+    # Hosts surface this in their server list; without it they show a blank
+    # version and "which anyscribe is this?" needs a doctor() call to answer.
+    version=__version__,
     instructions=(
         "Transcription CLI — download and transcribe video/audio from YouTube, "
         "Instagram, or local files into structured markdown. Use transcribe to "

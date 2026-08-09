@@ -100,6 +100,21 @@ ls -la ~/.anyscribe/                      # check the owner
 sudo chown -R $(whoami) ~/.anyscribe/     # hand it back to yourself
 ```
 
+### `ModuleNotFoundError: No module named 'mcp.server.fastmcp'`
+
+Only affects the MCP server (`anyscribe-mcp`), not the regular commands.
+
+The MCP library released a version 2 that renamed the piece anyscribe imports.
+anyscribe releases before 0.16.3 didn't ask for a specific version, so a fresh
+install pulled the new one and the two stopped fitting together.
+
+```bash
+pip install -U "anyscribe[mcp]"           # 0.16.3+ pins the version range
+```
+
+Then restart whichever app hosts the server (Claude Desktop, Cursor) so it
+launches the fixed one. See [Agents and MCP](agents.md) for the full setup.
+
 ---
 
 ## Input and downloads

@@ -117,6 +117,15 @@ anyscribe migrate              # do it
 <pre><code class="language-bash">ls -la ~/.anyscribe/                      # check the owner
 sudo chown -R $(whoami) ~/.anyscribe/     # hand it back to yourself
 </code></pre>
+<h3 id="modulenotfounderror-no-module-named-mcpserverfastmcp"><code>ModuleNotFoundError: No module named 'mcp.server.fastmcp'</code></h3>
+<p>Only affects the MCP server (<code>anyscribe-mcp</code>), not the regular commands.</p>
+<p>The MCP library released a version 2 that renamed the piece anyscribe imports.
+anyscribe releases before 0.16.3 didn't ask for a specific version, so a fresh
+install pulled the new one and the two stopped fitting together.</p>
+<pre><code class="language-bash">pip install -U &quot;anyscribe[mcp]&quot;           # 0.16.3+ pins the version range
+</code></pre>
+<p>Then restart whichever app hosts the server (Claude Desktop, Cursor) so it
+launches the fixed one. See <a href="/docs/agents">Agents and MCP</a> for the full setup.</p>
 <hr />
 <h2 id="input-and-downloads">Input and downloads</h2>
 <h3 id="no-matches-found-when-you-paste-a-url"><code>no matches found</code> when you paste a URL</h3>
