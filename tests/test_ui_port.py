@@ -88,3 +88,12 @@ def test_scan_never_probes_past_the_last_valid_port(started, monkeypatch):
     assert result.exit_code == 1
     assert started == []
     assert "anyscribe ui --port" in result.output
+
+
+def test_port_above_the_valid_range_is_rejected_by_the_parser(started):
+    # Without an upper bound this reached the scan and printed a nonsense
+    # "Ports 70000–65535 are all busy" line.
+    result = runner.invoke(app, ["ui", "--port", "70000", "--no-open"])
+    assert result.exit_code != 0
+    assert started == []
+    assert "are all busy" not in result.output

@@ -173,6 +173,7 @@ async def get_provider_languages(name: str) -> dict:
     `freeform=true` means there is no canonical list and the caller should
     render a plain text input (currently OpenRouter only).
     """
+    name = normalize_provider_name(name)
     if name not in PROVIDER_LANGUAGES:
         return {"languages": [], "freeform": False}
     langs = PROVIDER_LANGUAGES[name]

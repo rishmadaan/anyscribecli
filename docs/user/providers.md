@@ -255,7 +255,7 @@ Specialized for Indian languages. Supports 22 Indian languages plus English with
 anyscribe config set provider sargam
 ```
 
-> **`sargam` or `sarvam`?** The company is Sarvam AI, but anyscribe's internal name for the provider is `sargam`. Type either — `sarvam` is accepted everywhere a provider name goes (the `--provider` flag, `config set`, the Web UI) and is stored as `sargam`.
+> **`sargam` or `sarvam`?** The company is Sarvam AI, but anyscribe's internal name for the provider is `sargam`. Where you name the *provider* you can type either — `--provider sarvam`, `anyscribe config set provider sarvam`, `anyscribe providers test sarvam`, `anyscribe onboard --provider sarvam`, and the Web UI — and it's stored as `sargam`. **The API-key setting is the exception:** it's spelled `anyscribe config set sargam_api_key`, and the env var is `SARGAM_API_KEY`. `sarvam_api_key` is rejected.
 
 - **API key env var:** `SARGAM_API_KEY`
 - **Get a key:** [dashboard.sarvam.ai](https://dashboard.sarvam.ai)

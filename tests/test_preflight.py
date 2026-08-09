@@ -31,6 +31,24 @@ class TestPreflightCheck:
 
     @patch("anyscribe.core.preflight.shutil.which", return_value="/usr/bin/ffmpeg")
     @patch.dict("os.environ", {}, clear=True)
+    def test_missing_api_key_for_hand_edited_provider_alias(self, mock_which):
+        # A hand-edited `provider: sarvam` used to sail through the key check
+        # (PROVIDER_KEY_ENV.get on the raw name returns None => "needs no key"),
+        # so the run only died on a 401 after downloading and converting.
+        settings = Settings(provider="sarvam")
+        with pytest.raises(RuntimeError, match="SARGAM_API_KEY not set"):
+            preflight_check(settings, "https://youtube.com/watch?v=x")
+
+    @patch("anyscribe.core.preflight.shutil.which", return_value="/usr/bin/ffmpeg")
+    @patch.dict("os.environ", {}, clear=True)
+    def test_api_key_fix_hint_names_the_canonical_provider(self, mock_which):
+        # The hint is a command the user pastes — it must say sargam_api_key,
+        # which is the only spelling `config set` accepts for a key name.
+        with pytest.raises(RuntimeError, match=r"config set sargam_api_key"):
+            preflight_check(Settings(provider="sarvam"), "https://youtube.com/watch?v=x")
+
+    @patch("anyscribe.core.preflight.shutil.which", return_value="/usr/bin/ffmpeg")
+    @patch.dict("os.environ", {}, clear=True)
     def test_missing_groq_api_key(self, mock_which):
         # Regression: groq had drifted out of preflight's provider->env map,
         # so a missing GROQ_API_KEY passed preflight and failed mid-run.

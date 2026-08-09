@@ -500,7 +500,7 @@ response format, so <strong>"how do I add a model to Deepgram?" is answered by
 <pre><code class="language-bash">anyscribe config set provider sargam
 </code></pre>
 <blockquote>
-<p><strong><code>sargam</code> or <code>sarvam</code>?</strong> The company is Sarvam AI, but anyscribe's internal name for the provider is <code>sargam</code>. Type either — <code>sarvam</code> is accepted everywhere a provider name goes (the <code>--provider</code> flag, <code>config set</code>, the Web UI) and is stored as <code>sargam</code>.</p>
+<p><strong><code>sargam</code> or <code>sarvam</code>?</strong> The company is Sarvam AI, but anyscribe's internal name for the provider is <code>sargam</code>. Where you name the <em>provider</em> you can type either — <code>--provider sarvam</code>, <code>anyscribe config set provider sarvam</code>, <code>anyscribe providers test sarvam</code>, <code>anyscribe onboard --provider sarvam</code>, and the Web UI — and it's stored as <code>sargam</code>. <strong>The API-key setting is the exception:</strong> it's spelled <code>anyscribe config set sargam_api_key</code>, and the env var is <code>SARGAM_API_KEY</code>. <code>sarvam_api_key</code> is rejected.</p>
 </blockquote>
 <ul>
 <li><strong>API key env var:</strong> <code>SARGAM_API_KEY</code></li>

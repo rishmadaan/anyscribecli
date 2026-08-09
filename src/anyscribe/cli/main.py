@@ -224,7 +224,7 @@ app.add_typer(models_app, name="model")
 
 @app.command()
 def ui(
-    port: int = typer.Option(8457, "--port", "-p", help="Port to listen on."),
+    port: int = typer.Option(8457, "--port", "-p", min=1, max=65535, help="Port to listen on."),
     no_open: bool = typer.Option(False, "--no-open", help="Don't auto-open browser."),
 ) -> None:
     """Launch the [bold]web UI[/bold] in your browser.
