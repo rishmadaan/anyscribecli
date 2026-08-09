@@ -1,3 +1,3 @@
 """anyscribe — download, transcribe, and convert video/audio to structured markdown."""
 
-__version__ = "0.16.2"
+__version__ = "0.16.3"
