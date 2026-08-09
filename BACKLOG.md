@@ -588,9 +588,11 @@ See `docs/building/ops/pypi-guide.md` for PyPI setup, tokens, and troubleshootin
 
 ## Hosted MCP connector — "Anyscribe Cloud"
 
-**Status: planned, not started.** Decided 2026-07-31 with Rish: build it. A
-second deployment surface, not a replacement — the local CLI/vault product
-continues unchanged.
+**Status: planned; parked 2026-08-09.** Decided 2026-07-31 with Rish: build it.
+Parked on Rish's call the same day the v0.16.3/0.16.4 work landed — a
+scheduling decision, not a change of direction and not a blocker. A second
+deployment surface, not a replacement: the local CLI/vault product continues
+unchanged.
 
 Turn anyscribe into a remote MCP connector any claude.ai user adds once
 (Settings → Connectors → custom connector → log in). Subscription-gated,
@@ -603,10 +605,24 @@ are not IP-bound while media URLs are, so the pipeline is caption-first
 Firecrawl→Groq for the rest, and self-hosted yt-dlp + residential proxy only as
 a phase-2 fallback. Fixed cost ≈ $25–35/mo; marginal ≈ $0.002/captioned video.
 
-**Next action is Phase 0 — three spikes, 2–3 days**, none of them started:
-Gemini YouTube-URL verbatim quality vs Whisper; Supadata free tier against ~20
-real team URLs; and auto-caption quality on our actual Hindi/Hinglish content.
-Phase 1 (build + team launch) is ~2–3 weeks after that.
+**When it unparks, the next action is Phase 0 — three spikes, 2–3 days**, none
+of them started. They exist to measure the one number the whole business model
+hangs on: whether existing YouTube captions are good enough to sell (≈$0.002 a
+video if yes, 25–100× that if no). Currently a well-researched belief, not a
+measurement. The three:
+
+1. **Gemini vs Whisper on 5 videos** — decides which lane handles the ~10% of
+   videos with no captions: Gemini URL-ingestion (B1) or Firecrawl→Groq (B2).
+2. **Supadata free tier (100 credits) against ~20 real team URLs** — does the
+   caption vendor return reliably, and formatted well enough to publish?
+3. **Auto-caption quality on our actual Hindi/Hinglish content** — the one that
+   most affects us specifically. YouTube auto-captions are good at clean English
+   and historically rough at Hinglish. If they fail here, those languages
+   default to paid ASR (Sarvam/Deepgram, already in the codebase) and the cost
+   model changes for the exact users we'd launch to first.
+
+Inputs needed to start: a few hours, and ~20 real URLs. No architecture
+decisions are pending. Phase 1 (build + team launch) is ~2–3 weeks after that.
 
 **Open stack decision, reopened 2026-08-09 by the v0.16.3 work.** The plan
 pinned FastMCP 3.4.x for its prebuilt WorkOS `AuthKitProvider`. But FastMCP
