@@ -61,6 +61,20 @@ PROVIDER_MODELS: dict[str, list[str]] = {
 OPEN_MODEL_PROVIDERS = {"openrouter"}
 
 
+# The vendor spells itself "Sarvam AI"; our registry key has always been
+# `sargam`. Rather than a risky rename of a persisted config value, accept the
+# real spelling as INPUT and canonicalize it. Every surface that takes a
+# provider name from a human routes through `normalize_provider_name` — the
+# registry, error messages and `list_providers()` stay canonical-only, so the
+# alias is never something a user has to learn.
+PROVIDER_ALIASES: dict[str, str] = {"sarvam": "sargam"}
+
+
+def normalize_provider_name(name: str) -> str:
+    """Canonical registry key for a user-supplied provider name."""
+    return PROVIDER_ALIASES.get(name, name)
+
+
 def get_models(name: str, extra_models: dict[str, list[str]] | None = None) -> list[str]:
     """Pickable models for `name`: the catalog plus user-added slugs.
 
@@ -93,6 +107,7 @@ def validate_model(name: str, model: str, extra_models: dict[str, list[str]] | N
 
 def get_provider(name: str, model: str | None = None) -> TranscriptionProvider:
     """Get an instantiated provider by name, optionally pinned to a model."""
+    name = normalize_provider_name(name)
     if name not in PROVIDER_REGISTRY:
         available = ", ".join(sorted(PROVIDER_REGISTRY.keys()))
         raise ValueError(f"Unknown provider '{name}'. Available: {available}")

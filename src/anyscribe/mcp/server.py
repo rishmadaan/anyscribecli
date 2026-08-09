@@ -3,7 +3,8 @@
 Exposes anyscribe's core functionality (transcribe, download, config, providers)
 as MCP tools for Claude Desktop, Cursor, Windsurf, and other AI clients.
 
-Entry point: `scribe-mcp` (registered in pyproject.toml).
+Entry point: `anyscribe-mcp` (registered in pyproject.toml; `scribe-mcp` is a
+permanent alias).
 """
 
 from __future__ import annotations

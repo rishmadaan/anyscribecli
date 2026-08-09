@@ -26,6 +26,7 @@ from anyscribe.providers import (
     PROVIDER_REGISTRY,
     get_models,
     list_providers,
+    normalize_provider_name,
 )
 from anyscribe.providers.languages import PROVIDER_LANGUAGES
 from anyscribe.providers.local_models import (
@@ -199,6 +200,7 @@ async def test_provider(
     for existing UI callers and agents).
     """
     load_env()
+    name = normalize_provider_name(name)
     if name not in PROVIDER_REGISTRY:
         return {"success": False, "message": f"Unknown provider: {name}"}
 

@@ -15,7 +15,12 @@ from dataclasses import dataclass, field
 
 from anyscribe.config.settings import Settings
 from anyscribe.core.quality import QUALITY_TIERS, has_key
-from anyscribe.providers import PROVIDER_KEY_ENV, get_models, validate_model
+from anyscribe.providers import (
+    PROVIDER_KEY_ENV,
+    get_models,
+    normalize_provider_name,
+    validate_model,
+)
 from anyscribe.providers.openai import OpenAIProvider
 
 # output formats that need per-segment timestamps from the provider
@@ -84,6 +89,7 @@ def resolve_run(
                 f"(valid: accuracy, balanced, cost, free, custom)"
             )
 
+    provider = normalize_provider_name(provider)
     if provider not in PROVIDER_REGISTRY:
         available = ", ".join(sorted(PROVIDER_REGISTRY))
         raise ValueError(f"Unknown provider '{provider}'. Available: {available}")

@@ -111,7 +111,7 @@ def tray(
 
     # Already-running instance? Bail instead of colliding on the port.
     if core.read_pidfile() is not None:
-        err_console.print("[yellow]A anyscribe tray is already running.[/yellow]")
+        err_console.print("[yellow]An anyscribe tray is already running.[/yellow]")
         raise typer.Exit(code=1)
 
     _run_tray(port)

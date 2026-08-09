@@ -55,6 +55,25 @@ def test_unknown_provider_rejected():
     assert "openai" in out.choices
 
 
+def test_provider_alias_is_canonicalized_on_write():
+    # Users type the vendor's real spelling; config.yaml keeps the registry key.
+    out = set_value("provider", "sarvam")
+    assert out.ok
+    assert load_config().provider == "sargam"
+
+
+def test_provider_choices_never_advertise_the_alias():
+    out = set_value("provider", "nope")
+    assert "sargam" in out.choices
+    assert "sarvam" not in out.choices
+
+
+def test_model_pin_accepts_the_provider_alias():
+    out = set_value("provider_models.sarvam", "saaras:v3")
+    assert out.ok, out.error
+    assert load_config().provider_models == {"sargam": "saaras:v3"}
+
+
 @pytest.mark.parametrize(
     "key,value",
     [

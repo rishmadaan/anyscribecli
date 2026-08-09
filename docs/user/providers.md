@@ -255,6 +255,8 @@ Specialized for Indian languages. Supports 22 Indian languages plus English with
 anyscribe config set provider sargam
 ```
 
+> **`sargam` or `sarvam`?** The company is Sarvam AI, but anyscribe's internal name for the provider is `sargam`. Type either — `sarvam` is accepted everywhere a provider name goes (the `--provider` flag, `config set`, the Web UI) and is stored as `sargam`.
+
 - **API key env var:** `SARGAM_API_KEY`
 - **Get a key:** [dashboard.sarvam.ai](https://dashboard.sarvam.ai)
 - **Cost:** ~$0.35/hour; free tier: ~$12 in credits

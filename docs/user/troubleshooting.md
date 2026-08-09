@@ -433,7 +433,7 @@ waveform to the always-visible side.
 > Very old versions had a bug where the icon never appeared at all — fixed in
 > 0.13.2. Run `anyscribe update` if you're on anything older. <!-- version-pin-ok -->
 
-### `A anyscribe tray is already running.`
+### `An anyscribe tray is already running.`
 
 A tray is already active and its pidfile (`~/.anyscribe/tray.pid`) still points
 at a live process. This is intentional — anyscribe refuses to start a second tray

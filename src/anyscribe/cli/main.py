@@ -38,6 +38,9 @@ app = typer.Typer(
 console = Console()
 err_console = Console(stderr=True)
 
+# How far past --port `anyscribe ui` will look for a free port.
+PORT_SCAN_SPAN = 10
+
 
 def version_callback(value: bool) -> None:
     if value:
@@ -56,7 +59,7 @@ def _auto_update_skill() -> None:
     This runs on every invocation but is fast (one file read + string compare).
 
     Also drops superseded skill dirs (``ascli``, then ``scribe``) so Claude Code
-    never sees two competing scribe skills, one of them serving stale commands.
+    never sees two competing anyscribe skills, one of them serving stale commands.
     """
     import shutil
 
@@ -232,12 +235,24 @@ def ui(
 
     from anyscribe.web.app import run
 
-    # Check for port conflict before starting
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        if s.connect_ex(("127.0.0.1", port)) == 0:
-            err_console.print(f"[red]Port {port} is already in use.[/red]")
-            err_console.print(f"Try: [bold]anyscribe ui --port {port + 1}[/bold]")
-            raise typer.Exit(code=1)
+    # A busy port is nearly always our own second window or a stale server, so
+    # roll forward instead of dead-ending the user. Only the exhausted scan is
+    # a real error.
+    for candidate in range(port, port + PORT_SCAN_SPAN + 1):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            if s.connect_ex(("127.0.0.1", candidate)) != 0:
+                break
+    else:
+        err_console.print(f"[red]Port {port} is already in use.[/red]")
+        err_console.print(
+            f"Ports {port}–{port + PORT_SCAN_SPAN} are all busy. "
+            "Try: [bold]anyscribe ui --port <free port>[/bold]"
+        )
+        raise typer.Exit(code=1)
+
+    if candidate != port:
+        console.print(f"[yellow]Port {port} busy — using {candidate}.[/yellow]")
+    port = candidate
 
     console.print(f"[bold]anyscribe ui[/bold] → http://127.0.0.1:{port}")
     try:

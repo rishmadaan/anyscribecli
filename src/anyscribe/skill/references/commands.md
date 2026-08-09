@@ -322,6 +322,8 @@ anyscribe ui --no-open        # don't auto-open browser
 
 Local only (127.0.0.1). Stop with Ctrl+C.
 
+If the requested port is busy, `ui` scans the next 10 ports, starts on the first free one and prints `Port 8457 busy — using 8458`. It exits 1 only when the whole span is busy — so don't pre-check the port or retry with `--port` on a conflict.
+
 ---
 
 ## anyscribe tray
