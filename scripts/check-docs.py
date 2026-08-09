@@ -47,6 +47,17 @@ def check_versions() -> list[str]:
                 for hit in pat.findall(line):
                     if hit.lstrip("v") != version:
                         offenders.append(f"{f.relative_to(ROOT)}:{i}: {hit}")
+    if offenders:
+        # Without this, the failure is a bare list of line numbers and the
+        # reader has to find the escape hatch by reading this file. The common
+        # cause is a deliberate historical mention (a "fixed in X" note) that
+        # was current when written and went stale at the next version bump.
+        offenders.append(
+            f"  ^ these are versions other than the current {version}. Update them, "
+            "or append <!-- version-pin-ok --> on the SAME line if the mention is "
+            "deliberately historical (keep marker and version in one paragraph, "
+            "since the rendered HTML is scanned too)."
+        )
     return offenders
 
 

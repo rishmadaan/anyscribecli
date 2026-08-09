@@ -104,3 +104,36 @@ v0.16.3 — installing the published package into an empty virtualenv and readin
 the output, rather than trusting a green CI badge. That step existed in
 `ops/release-checklist.md` all along; running it properly surfaced a real, if
 small, defect within minutes. Cheap check, keep doing it.
+
+## Postscript: the v0.16.4 tag went out with a red CI
+
+Honest record. The PyPI publish succeeded; the `docs` job failed on the same
+push. Cause was entirely self-inflicted, and instructive.
+
+The v0.16.3 troubleshooting entries I wrote referenced `0.16.3` as a historical
+fact — "releases before 0.16.3 didn't pin a version", "0.16.3 and later pin the
+range". Correct prose. But `check_versions()` flags any version string in
+user-facing docs that isn't the *current* one, so those lines were green while
+0.16.3 was current and went red the instant 0.16.4 was tagged. **A doc that
+names the version it ships in is a latent CI failure scheduled for the next
+release.**
+
+The repo already had the answer, written down in
+`docs/superpowers/plans/2026-07-31-user-facing-docs-rebuild.md`: "Never print an
+exact version in doc prose. Historical mentions that must stay get a
+`<!-- version-pin-ok -->` marker on the same line." I wrote the docs without
+following a rule this repo had already learned. Fixed by adding the markers, and
+by dropping the version out of a code-block comment entirely (a marker inside a
+fence would render as literal text to the reader).
+
+The gate itself is not wrong and was not changed — allowing un-marked older
+versions would defeat its purpose, since stale "install 0.15.0" instructions are
+exactly what it exists to catch. What *was* wrong is that the failure printed a
+bare list of file:line:version with no route to the fix, so the reader has to go
+read `check-docs.py` to discover the escape hatch exists. It now prints the
+remedy once, after the offenders, including the same-line/same-paragraph
+constraint that trips people on the rendered HTML. Verified it stays silent when
+there is no drift and appears when there is.
+
+No release was needed for any of this: `scripts/` and `docs/` are not packaged,
+so the published 0.16.4 artifact is unaffected.

@@ -567,6 +567,18 @@ which is why that is the floor. The `<1` ceiling applies the lesson from
 maintainer's release day. Found by the clean-install verification at the end of
 the 0.16.3 release — the check earned its keep immediately.
 
+**Post-tag fix (same day, no release needed).** The v0.16.4 tag published fine
+but the `docs` CI job went red: the v0.16.3 troubleshooting entries named
+`0.16.3` as a historical fact, which `check_versions()` correctly flags once
+0.16.4 is current. A doc that names the version it ships in is a latent CI
+failure scheduled for the next release — and the repo already had the rule
+(`<!-- version-pin-ok -->` on the same line) written down in the docs-rebuild
+plan. Markers added; the version dropped from a code-block comment where a
+marker would have rendered as literal text. The gate was left as-is (allowing
+unmarked older versions would defeat it) but now prints the remedy after the
+offender list instead of a bare file:line dump. `scripts/` and `docs/` aren't
+packaged, so the published artifact was never affected.
+
 Journal: `docs/building/journal/2026-08-09-changelog-and-typer-drift.md`.
 
 ---
