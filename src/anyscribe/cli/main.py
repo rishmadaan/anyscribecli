@@ -238,14 +238,16 @@ def ui(
     # A busy port is nearly always our own second window or a stale server, so
     # roll forward instead of dead-ending the user. Only the exhausted scan is
     # a real error.
-    for candidate in range(port, port + PORT_SCAN_SPAN + 1):
+    # min() keeps the scan inside the valid port range — connect_ex raises
+    # OverflowError on 65536, which would traceback instead of erroring cleanly.
+    for candidate in range(port, min(port + PORT_SCAN_SPAN, 65535) + 1):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             if s.connect_ex(("127.0.0.1", candidate)) != 0:
                 break
     else:
         err_console.print(f"[red]Port {port} is already in use.[/red]")
         err_console.print(
-            f"Ports {port}–{port + PORT_SCAN_SPAN} are all busy. "
+            f"Ports {port}–{min(port + PORT_SCAN_SPAN, 65535)} are all busy. "
             "Try: [bold]anyscribe ui --port <free port>[/bold]"
         )
         raise typer.Exit(code=1)

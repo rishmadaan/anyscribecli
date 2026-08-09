@@ -295,3 +295,14 @@ def test_local_provider_model_flag_points_at_local_model(tmp_path, monkeypatch):
             provider="local", local_model="tiny", model="large-v3"
         )
     assert "--local-model" in exc.value.payload["hint"]
+
+
+def test_onboarding_accepts_the_sarvam_spelling(tmp_path, monkeypatch):
+    """Docs promise `sarvam` works "everywhere a provider name goes" — the
+    onboarding validator has to honour that too, and persist the canonical
+    name so PROVIDER_KEY_ENV lookups downstream don't KeyError."""
+    monkeypatch.setenv("HOME", str(tmp_path))
+    result, saved = _run_isolated(tmp_path, provider="sarvam", api_key="sv-key")
+    assert result["provider"] == "sargam"
+    assert saved.provider == "sargam"
+    assert result["api_keys_set"] == ["SARGAM_API_KEY"]

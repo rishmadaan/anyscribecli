@@ -456,10 +456,13 @@ def test_provider(name: Optional[str] = None) -> str:
     Returns:
         JSON with provider name, status, and any issues.
     """
-    from anyscribe.providers import get_provider
+    from anyscribe.providers import get_provider, normalize_provider_name
 
     settings = _load_settings()
-    provider_name = name or settings.provider
+    # Canonicalize first — get_provider() normalizes internally, so a raw alias
+    # would miss the PROVIDER_KEY_ENV lookup and report api_key_set: true for a
+    # provider with no key at all.
+    provider_name = normalize_provider_name(name or settings.provider)
 
     try:
         provider = get_provider(provider_name)

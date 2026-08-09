@@ -274,7 +274,9 @@ A tray is already active — its pidfile (`~/.anyscribe/tray.pid`) still points 
 
 ### "port already in use" when starting the tray or `anyscribe ui`
 
-If a `anyscribe ui` server is already listening on that port, `anyscribe tray` **attaches** to it rather than erroring — that's expected behavior, not a bug. If a *different, unrelated* process holds the port, pick another one:
+**`anyscribe ui` self-heals — don't prescribe `--port` for it.** A busy port makes it scan the next 10, start on the first free one and print `Port 8457 busy — using 8458.`. It exits 1 only when all 11 are busy; that is the only case where `anyscribe ui --port <n>` is the fix.
+
+**`anyscribe tray` does not roll forward, by design.** If an `anyscribe ui` server is already listening on its port, the tray **attaches** to it rather than erroring — expected behavior, not a bug. A tray on a rolled-forward port would supervise a server nothing else could find, so if a *different, unrelated* process holds the port, give the tray another one explicitly:
 
 ```bash
 anyscribe tray --port 9000

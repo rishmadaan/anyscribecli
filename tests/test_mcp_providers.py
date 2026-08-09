@@ -29,3 +29,22 @@ def test_list_providers_merges_user_added_models(monkeypatch):
     assert by_name["openai"]["model"] == "gpt-transcribe"
     # local has no pickable models — its choice lives in settings.local_model.
     assert by_name["local"]["models"] == []
+
+
+def test_test_provider_alias_reports_the_same_key_status_as_canonical(monkeypatch):
+    """The alias must not skip the API-key check.
+
+    `get_provider` normalizes internally, so a raw `sarvam` used for the
+    PROVIDER_KEY_ENV lookup silently returned None — reporting a keyless
+    provider as fully configured.
+    """
+    monkeypatch.setattr(server, "_load_settings", lambda: Settings(provider="openai"))
+    monkeypatch.delenv("SARGAM_API_KEY", raising=False)
+
+    alias = json.loads(server.test_provider("sarvam"))
+    canonical = json.loads(server.test_provider("sargam"))
+
+    assert alias == canonical
+    assert alias["provider"] == "sargam"
+    assert alias["api_key_env"] == "SARGAM_API_KEY"
+    assert alias["api_key_set"] is False

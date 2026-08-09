@@ -58,3 +58,33 @@ def test_exhausted_scan_errors_out_with_the_port_hint(busy_port, started, monkey
     assert started == []
     assert f"Port {busy_port} is already in use." in result.output
     assert "anyscribe ui --port" in result.output
+
+
+def test_scan_never_probes_past_the_last_valid_port(started, monkeypatch):
+    """Near the top of the range the scan must stop at 65535, not run off it.
+
+    `connect_ex` raises OverflowError on port 65536, so an unclamped range
+    crashed with a traceback instead of printing the exhaustion hint.
+    """
+    probed: list[int] = []
+
+    class AllBusy:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *exc):
+            return False
+
+        def connect_ex(self, addr):
+            if not 0 <= addr[1] <= 65535:
+                raise OverflowError("port must be 0-65535")
+            probed.append(addr[1])
+            return 0  # every port answers => busy
+
+    monkeypatch.setattr(socket, "socket", lambda *a, **k: AllBusy())
+    result = runner.invoke(app, ["ui", "--port", "65530", "--no-open"])
+
+    assert probed == list(range(65530, 65536))
+    assert result.exit_code == 1
+    assert started == []
+    assert "anyscribe ui --port" in result.output

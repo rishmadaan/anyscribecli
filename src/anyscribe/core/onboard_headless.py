@@ -35,7 +35,12 @@ from anyscribe.config.settings import (
     save_env,
 )
 from anyscribe.core.config_set import ENUMS
-from anyscribe.providers import OPEN_MODEL_PROVIDERS, PROVIDER_KEY_ENV, get_models
+from anyscribe.providers import (
+    OPEN_MODEL_PROVIDERS,
+    PROVIDER_KEY_ENV,
+    get_models,
+    normalize_provider_name,
+)
 
 API_PROVIDERS = {name for name, env in PROVIDER_KEY_ENV.items() if env}
 ALL_PROVIDERS = API_PROVIDERS | {"local"}
@@ -176,6 +181,9 @@ def run_headless_onboard(
     local setup was requested and failed, status is ``"partial"`` and the
     ``local_setup`` payload carries the failure detail.
     """
+    # One canonicalization for the whole run: `provider` is read a dozen times
+    # below, including PROVIDER_KEY_ENV[provider], which KeyErrors on an alias.
+    provider = normalize_provider_name(provider)
     _validate(provider, api_key, local_model, instagram_browser, quality, model)
     _emit(on_progress, {"event": "validated", "provider": provider})
 

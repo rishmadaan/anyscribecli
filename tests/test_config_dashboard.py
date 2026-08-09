@@ -211,3 +211,21 @@ def test_dashboard_survives_unknown_provider_in_config(monkeypatch, tmp_path, ca
     assert result.exit_code == 1
     payload = _json.loads(result.stdout)
     assert "Unknown provider" in payload["error"]
+
+
+def test_providers_test_alias_fails_on_missing_key_like_canonical():
+    """`providers test sarvam` must not report success without a key.
+
+    get_provider() normalizes internally, but PROVIDER_KEY_ENV was looked up
+    with the raw name — returning None, so the key check was skipped entirely
+    and a keyless provider exited 0.
+    """
+    save_config(Settings(provider="openai"))
+    canonical = runner.invoke(providers_app, ["test", "sargam"])
+    alias = runner.invoke(providers_app, ["test", "sarvam"])
+
+    assert canonical.exit_code == 1
+    assert alias.exit_code == 1, alias.output
+    assert "SARGAM_API_KEY" in alias.output
+    assert "Not set" in alias.output
+    assert "Testing provider: sargam" in alias.output
